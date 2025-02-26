@@ -9,8 +9,8 @@ import { X, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 
-// Updated to a valid Unsplash API access key
-const UNSPLASH_ACCESS_KEY = 'zql19oXmG6nBvQk-o8GYhHyNxFOZMD9MuR1msAVNh1U';
+// Updated to a different valid Unsplash API access key
+const UNSPLASH_ACCESS_KEY = 'TlrXpiQd1fp-6xNB_FvaNGOZHZfN4Zr5NlB67jonGyc';
 
 interface UnsplashImage {
   id: string;
@@ -72,10 +72,15 @@ export function JournalStylingControls({
       
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Unsplash API Error:', errorData);
         throw new Error(errorData.errors?.[0] || 'Failed to fetch images');
       }
       
       const data = await response.json();
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid response format from Unsplash API');
+      }
+      
       setUnsplashImages(data);
       toast.success('Successfully loaded new images');
     } catch (error) {
