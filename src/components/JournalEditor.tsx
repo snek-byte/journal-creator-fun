@@ -62,6 +62,13 @@ export function JournalEditor() {
     window.print();
   };
 
+  // Convert gradient class to actual CSS gradient style
+  const getGradientStyle = (gradientClass: string) => {
+    // Extract the linear-gradient value from the class
+    const match = gradientClass.match(/linear-gradient[^)]+\)/);
+    return match ? { backgroundImage: match[0].replace(/_/g, ' ') } : {};
+  };
+
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
       {/* Control Panel - Hide during printing */}
@@ -168,7 +175,8 @@ export function JournalEditor() {
         {showPreview && (
           <div
             ref={previewRef}
-            className={`w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn print:shadow-none print:rounded-none print:min-h-screen ${gradient}`}
+            style={getGradientStyle(gradient)}
+            className="w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn print:shadow-none print:rounded-none print:min-h-screen"
           >
             <div className="w-full h-full p-8">
               <div
