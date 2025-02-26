@@ -1,3 +1,4 @@
+
 export type TextStyle = 'normal' | 'mathematical' | 'gothic' | 'cursive' | 'double' | 'circle' | 
   'bold' | 'italic' | 'boldItalic' | 'script' | 'boldScript' | 'fraktur' | 'boldFraktur' | 
   'sansSerif' | 'sansSerifBold' | 'sansSerifItalic' | 'sansSerifBoldItalic' | 'monospace' |
@@ -195,4 +196,47 @@ const unicodeMap = {
   underline: {
     A: 'A̲', B: 'B̲', C: 'C̲', D: 'D̲', E: 'E̲', F: 'F̲', G: 'G̲', H: 'H̲', I: 'I̲', J: 'J̲',
     K: 'K̲', L: 'L̲', M: 'M̲', N: 'N̲', O: 'O̲', P: 'P̲', Q: 'Q̲', R: 'R̲', S: 'S̲', T: 'T̲',
-    U: 'U̲', V: 'V̲', W: 'W̲
+    U: 'U̲', V: 'V̲', W: 'W̲', X: 'X̲', Y: 'Y̲', Z: 'Z̲',
+    a: 'a̲', b: 'b̲', c: 'c̲', d: 'd̲', e: 'e̲', f: 'f̲', g: 'g̲', h: 'h̲', i: 'i̲', j: 'j̲',
+    k: 'k̲', l: 'l̲', m: 'm̲', n: 'n̲', o: 'o̲', p: 'p̲', q: 'q̲', r: 'r̲', s: 's̲', t: 't̲',
+    u: 'u̲', v: 'v̲', w: 'w̲', x: 'x̲', y: 'y̲', z: 'z̲'
+  }
+};
+
+export const textStyles: { value: TextStyle; label: string }[] = [
+  { value: 'normal', label: 'Normal Text' },
+  { value: 'mathematical', label: 'Mathematical' },
+  { value: 'gothic', label: 'Gothic' },
+  { value: 'cursive', label: 'Cursive' },
+  { value: 'double', label: 'Double Struck' },
+  { value: 'circle', label: 'Circled' },
+  { value: 'bold', label: 'Bold' },
+  { value: 'italic', label: 'Italic' },
+  { value: 'boldItalic', label: 'Bold Italic' },
+  { value: 'script', label: 'Script' },
+  { value: 'boldScript', label: 'Bold Script' },
+  { value: 'fraktur', label: 'Fraktur' },
+  { value: 'boldFraktur', label: 'Bold Fraktur' },
+  { value: 'sansSerif', label: 'Sans Serif' },
+  { value: 'sansSerifBold', label: 'Sans Serif Bold' },
+  { value: 'sansSerifItalic', label: 'Sans Serif Italic' },
+  { value: 'sansSerifBoldItalic', label: 'Sans Serif Bold Italic' },
+  { value: 'monospace', label: 'Monospace' },
+  { value: 'fullWidth', label: 'Full Width' },
+  { value: 'smallCaps', label: 'Small Caps' },
+  { value: 'subscript', label: 'Subscript' },
+  { value: 'superscript', label: 'Superscript' },
+  { value: 'inverted', label: 'Inverted' },
+  { value: 'reversed', label: 'Reversed' },
+  { value: 'strikethrough', label: 'Strikethrough' },
+  { value: 'underline', label: 'Underline' }
+];
+
+export function applyTextStyle(text: string, style: TextStyle): string {
+  if (style === 'normal') return text;
+
+  const styleMap = unicodeMap[style];
+  if (!styleMap) return text;
+
+  return text.split('').map(char => styleMap[char] || char).join('');
+}
