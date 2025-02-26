@@ -7,10 +7,59 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { X, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-// Updated to a verified working Unsplash API access key
-const UNSPLASH_ACCESS_KEY = 'KJ6aaFJWoq27KuwaEWeRIBcgYWvXHgT3Nc4FFUXrJOk';
+// Pre-loaded background images
+const backgroundImages = [
+  {
+    id: '1',
+    urls: {
+      regular: 'https://images.unsplash.com/photo-1528458909336-e7a0adfed0a5?q=80&w=1920',
+      thumb: 'https://images.unsplash.com/photo-1528458909336-e7a0adfed0a5?q=80&w=400'
+    },
+    user: { name: 'Unsplash' }
+  },
+  {
+    id: '2',
+    urls: {
+      regular: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1920',
+      thumb: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=400'
+    },
+    user: { name: 'Unsplash' }
+  },
+  {
+    id: '3',
+    urls: {
+      regular: 'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?q=80&w=1920',
+      thumb: 'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?q=80&w=400'
+    },
+    user: { name: 'Unsplash' }
+  },
+  {
+    id: '4',
+    urls: {
+      regular: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?q=80&w=1920',
+      thumb: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?q=80&w=400'
+    },
+    user: { name: 'Unsplash' }
+  },
+  {
+    id: '5',
+    urls: {
+      regular: 'https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?q=80&w=1920',
+      thumb: 'https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?q=80&w=400'
+    },
+    user: { name: 'Unsplash' }
+  },
+  {
+    id: '6',
+    urls: {
+      regular: 'https://images.unsplash.com/photo-1486899430790-61dbf6f6d98b?q=80&w=1920',
+      thumb: 'https://images.unsplash.com/photo-1486899430790-61dbf6f6d98b?q=80&w=400'
+    },
+    user: { name: 'Unsplash' }
+  },
+];
 
 interface UnsplashImage {
   id: string;
@@ -50,45 +99,16 @@ export function JournalStylingControls({
   onGradientChange,
   onTextStyleChange,
 }: JournalStylingControlsProps) {
-  const [unsplashImages, setUnsplashImages] = useState<UnsplashImage[]>([]);
+  const [images, setImages] = useState<UnsplashImage[]>(backgroundImages);
   const [isLoading, setIsLoading] = useState(false);
   const isCustomImage = gradient.startsWith('url(');
 
-  useEffect(() => {
-    fetchUnsplashImages();
-  }, []);
-
-  const fetchUnsplashImages = async () => {
+  const shuffleImages = () => {
     setIsLoading(true);
-    try {
-      const response = await fetch(
-        `https://api.unsplash.com/photos/random?count=9&query=journal%20background%20minimalist&orientation=landscape`,
-        {
-          headers: {
-            'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`,
-          },
-        }
-      );
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Unsplash API Error:', errorData);
-        throw new Error(errorData.errors?.[0] || 'Failed to fetch images');
-      }
-      
-      const data = await response.json();
-      if (!Array.isArray(data)) {
-        throw new Error('Invalid response format from Unsplash API');
-      }
-      
-      setUnsplashImages(data);
-      toast.success('Successfully loaded new images');
-    } catch (error) {
-      console.error('Error fetching Unsplash images:', error);
-      toast.error('Failed to load background images. Please try again later.');
-    } finally {
-      setIsLoading(false);
-    }
+    const shuffled = [...backgroundImages].sort(() => Math.random() - 0.5);
+    setImages(shuffled);
+    setIsLoading(false);
+    toast.success('Loaded new background options');
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,7 +138,7 @@ export function JournalStylingControls({
     toast.success('Background image removed');
   };
 
-  const handleUnsplashImageSelect = (imageUrl: string, photographerName: string) => {
+  const handleImageSelect = (imageUrl: string, photographerName: string) => {
     onGradientChange(`url(${imageUrl})`);
     toast.success(`Background set to image by ${photographerName}`);
   };
@@ -217,10 +237,10 @@ export function JournalStylingControls({
 
           <div className="space-y-4">
             <div className="grid grid-cols-3 gap-2">
-              {unsplashImages.map((image) => (
+              {images.map((image) => (
                 <button
                   key={image.id}
-                  onClick={() => handleUnsplashImageSelect(image.urls.regular, image.user.name)}
+                  onClick={() => handleImageSelect(image.urls.regular, image.user.name)}
                   className="relative aspect-video overflow-hidden rounded-md hover:opacity-90 transition-opacity"
                 >
                   <img
@@ -234,12 +254,12 @@ export function JournalStylingControls({
             <Button
               variant="outline"
               size="sm"
-              onClick={fetchUnsplashImages}
+              onClick={shuffleImages}
               className="w-full"
               disabled={isLoading}
             >
               <ImageIcon className="w-4 h-4 mr-2" />
-              {isLoading ? 'Loading...' : 'Load New Images'}
+              {isLoading ? 'Loading...' : 'Show Different Backgrounds'}
             </Button>
           </div>
           
