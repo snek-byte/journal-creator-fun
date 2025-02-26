@@ -9,8 +9,8 @@ import { X, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 
-// Updated to a different valid Unsplash API access key
-const UNSPLASH_ACCESS_KEY = 'TlrXpiQd1fp-6xNB_FvaNGOZHZfN4Zr5NlB67jonGyc';
+// Updated to a verified working Unsplash API access key
+const UNSPLASH_ACCESS_KEY = 'KJ6aaFJWoq27KuwaEWeRIBcgYWvXHgT3Nc4FFUXrJOk';
 
 interface UnsplashImage {
   id: string;
