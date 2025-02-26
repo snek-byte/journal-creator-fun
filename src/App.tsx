@@ -9,6 +9,7 @@ import { useJournalStore } from "@/store/journalStore";
 import Dashboard from "./pages/Dashboard";
 import Write from "./pages/Write";
 import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
 
@@ -27,8 +28,9 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<Write />} />
             <Route path="/write" element={<Write />} />
+            <Route path="/auth" element={<Auth />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
