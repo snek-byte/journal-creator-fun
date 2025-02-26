@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sticker as Image } from "lucide-react";
@@ -16,16 +16,41 @@ export function StickerSelector({ onStickerSelect }: StickerSelectorProps) {
   const [stickers, setStickers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const searchStickers = async () => {
-    if (!search) return;
-    
+  // Load trending stickers by default
+  useEffect(() => {
+    fetchTrendingStickers();
+  }, []);
+
+  const fetchTrendingStickers = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`https://api.mojilala.com/v1/stickers/search?q=${encodeURIComponent(search)}&api_key=dc6zaTOxFJmzC`);
+      const response = await fetch(
+        'https://api.giphy.com/v1/stickers/trending?api_key=dc6zaTOxFJmzC&limit=30'
+      );
       const data = await response.json();
       setStickers(data.data || []);
     } catch (error) {
-      console.error('Error fetching stickers:', error);
+      console.error('Error fetching trending stickers:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const searchStickers = async () => {
+    if (!search) {
+      fetchTrendingStickers();
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `https://api.giphy.com/v1/stickers/search?q=${encodeURIComponent(search)}&api_key=dc6zaTOxFJmzC&limit=30`
+      );
+      const data = await response.json();
+      setStickers(data.data || []);
+    } catch (error) {
+      console.error('Error searching stickers:', error);
     } finally {
       setLoading(false);
     }
@@ -42,14 +67,17 @@ export function StickerSelector({ onStickerSelect }: StickerSelectorProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Image className="w-4 h-4 mr-2" />
-          Add Sticker
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="hover:bg-accent hover:text-accent-foreground"
+        >
+          <Image className="w-4 h-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Add Stickers</DialogTitle>
+          <DialogTitle>Choose a Sticker</DialogTitle>
         </DialogHeader>
         <div className="flex gap-2 mb-4">
           <Input
@@ -63,21 +91,32 @@ export function StickerSelector({ onStickerSelect }: StickerSelectorProps) {
           </Button>
         </div>
         <ScrollArea className="h-[300px] w-full rounded-md border p-4">
-          <div className="grid grid-cols-3 gap-4">
-            {stickers.map((sticker: any) => (
-              <button
-                key={sticker.id}
-                onClick={() => handleStickerClick(sticker)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <img
-                  src={sticker.images.fixed_width.url}
-                  alt={sticker.title}
-                  className="w-full h-auto"
-                />
-              </button>
-            ))}
-          </div>
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              Loading stickers...
+            </div>
+          ) : stickers.length === 0 ? (
+            <div className="flex items-center justify-center h-full text-muted-foreground">
+              No stickers found. Try a different search term.
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-4">
+              {stickers.map((sticker: any) => (
+                <button
+                  key={sticker.id}
+                  onClick={() => handleStickerClick(sticker)}
+                  className="p-2 rounded-lg hover:bg-accent transition-colors"
+                >
+                  <img
+                    src={sticker.images.fixed_width.url}
+                    alt={sticker.title}
+                    className="w-full h-auto"
+                    loading="lazy"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </ScrollArea>
       </DialogContent>
     </Dialog>
