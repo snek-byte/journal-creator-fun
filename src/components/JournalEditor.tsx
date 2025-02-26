@@ -2,12 +2,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
 import { useJournalStore } from '@/store/journalStore';
 import { useEffect, useRef } from 'react';
-import { Eye, EyeOff, Printer, LightbulbIcon, Award, Trophy } from 'lucide-react';
-import { Badge } from "@/components/ui/badge";
+import { Eye, EyeOff, Printer } from 'lucide-react';
 import type { Mood } from '@/types/journal';
 
 const moodOptions: { value: Mood; label: string; icon: string }[] = [
@@ -143,11 +140,7 @@ export function JournalEditor() {
     togglePreview,
     saveEntry,
     loadChallenge,
-    applyChallenge,
-    apiKey,
-    setApiKey,
-    generatedPrompt,
-    generateMoodPrompt
+    applyChallenge
   } = useJournalStore();
 
   const previewRef = useRef<HTMLDivElement>(null);
@@ -160,34 +153,15 @@ export function JournalEditor() {
     window.print();
   };
 
-  const handleMoodChange = async (mood: Mood) => {
-    setMood(mood);
-    if (apiKey) {
-      await generateMoodPrompt(mood);
-      toast.success("New writing prompt generated!");
-    }
-  };
-
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
       <div className="w-full lg:w-1/3 p-6 border-r bg-white print:hidden">
         <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium">TheWriter.ly API Key</label>
-            <Input
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Enter your API key"
-              className="font-mono"
-            />
-          </div>
-
-          <div className="space-y-2">
             <label className="text-sm font-medium">How are you feeling?</label>
             <Select 
               value={currentEntry.mood} 
-              onValueChange={handleMoodChange}
+              onValueChange={setMood}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select your mood" />
@@ -203,20 +177,6 @@ export function JournalEditor() {
               </SelectContent>
             </Select>
           </div>
-
-          {generatedPrompt && (
-            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <h3 className="text-sm font-medium mb-2">Writing Prompt:</h3>
-              <p className="text-sm text-gray-600">{generatedPrompt}</p>
-              <Button 
-                variant="ghost" 
-                className="w-full mt-2"
-                onClick={() => setText(generatedPrompt)}
-              >
-                Use This Prompt
-              </Button>
-            </div>
-          )}
 
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium">Make Entry Public</label>
