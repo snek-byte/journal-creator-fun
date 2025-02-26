@@ -1,3 +1,4 @@
+
 export type Mood = 'happy' | 'sad' | 'stressed' | 'calm' | 'neutral';
 
 export interface JournalEntry {
@@ -13,7 +14,6 @@ export interface JournalEntry {
   moodNote?: string;
   isPublic: boolean;
   challengeId?: string;
-  textStyle?: string;
 }
 
 export interface Challenge {

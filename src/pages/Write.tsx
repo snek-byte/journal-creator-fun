@@ -1,10 +1,6 @@
 
-import { JournalEditor } from "@/components/journal/JournalEditor";
+import { JournalEditor } from "@/components/JournalEditor";
 
 export default function Write() {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <JournalEditor />
-    </div>
-  );
+  return <JournalEditor />;
 }
