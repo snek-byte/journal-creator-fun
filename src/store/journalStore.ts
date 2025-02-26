@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { JournalEntry, Challenge, Badge, UserProgress, Mood } from '@/types/journal';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { transformText } from '@/utils/unicodeTextStyles';
 
 interface JournalState {
   // Current entry being edited
@@ -16,6 +17,7 @@ interface JournalState {
     mood?: Mood;
     moodNote?: string;
     isPublic: boolean;
+    textStyle?: string;
   };
   // Collections
   entries: JournalEntry[];
@@ -42,6 +44,7 @@ interface JournalState {
   loadChallenge: () => void;
   applyChallenge: () => void;
   earnXP: (amount: number) => Promise<void>;
+  setTextStyle: (style: string) => void;
 }
 
 export const useJournalStore = create<JournalState>()(
@@ -55,6 +58,7 @@ export const useJournalStore = create<JournalState>()(
         fontColor: '#000000',
         gradient: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)',
         isPublic: false,
+        textStyle: '',
       },
       entries: [],
       dailyChallenge: null,
@@ -134,11 +138,15 @@ export const useJournalStore = create<JournalState>()(
         }
 
         try {
+          const transformedText = state.currentEntry.textStyle 
+            ? transformText(state.currentEntry.text, state.currentEntry.textStyle as any)
+            : state.currentEntry.text;
+
           const { error: entryError } = await supabase
             .from('journal_entries')
             .insert({
               user_id: user.data.user.id,
-              text: state.currentEntry.text,
+              text: transformedText,
               font: state.currentEntry.font,
               font_size: state.currentEntry.fontSize,
               font_weight: state.currentEntry.fontWeight,
@@ -147,7 +155,8 @@ export const useJournalStore = create<JournalState>()(
               mood: state.currentEntry.mood || null,
               mood_note: state.currentEntry.moodNote || null,
               is_public: state.currentEntry.isPublic,
-              challenge_id: state.dailyChallenge?.id || null
+              challenge_id: state.dailyChallenge?.id || null,
+              text_style: state.currentEntry.textStyle || null
             });
 
           if (entryError) throw entryError;
@@ -320,7 +329,10 @@ export const useJournalStore = create<JournalState>()(
         }));
 
         toast.success(`Earned ${amount} XP!`);
-      }
+      },
+      setTextStyle: (style) => set((state) => ({ 
+        currentEntry: { ...state.currentEntry, textStyle: style } 
+      }))
     }),
     {
       name: 'journal-storage'
