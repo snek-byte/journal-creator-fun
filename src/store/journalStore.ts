@@ -3,48 +3,9 @@ import { persist } from 'zustand/middleware';
 import type { JournalEntry, Challenge, Badge, UserProgress, Mood } from '@/types/journal';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { transformText } from '@/utils/unicodeTextStyles';
 
-interface JournalState {
-  // Current entry being edited
-  currentEntry: {
-    text: string;
-    font: string;
-    fontSize: string;
-    fontWeight: string;
-    fontColor: string;
-    gradient: string;
-    mood?: Mood;
-    moodNote?: string;
-    isPublic: boolean;
-  };
-  // Collections
-  entries: JournalEntry[];
-  dailyChallenge: Challenge | null;
-  badges: Badge[];
-  // User progress
-  progress: UserProgress;
-  // UI state
-  showPreview: boolean;
-  // Actions
-  setText: (text: string) => void;
-  setFont: (font: string) => void;
-  setFontSize: (size: string) => void;
-  setFontWeight: (weight: string) => void;
-  setFontColor: (color: string) => void;
-  setGradient: (gradient: string) => void;
-  setMood: (mood: Mood) => void;
-  setMoodNote: (note: string) => void;
-  setIsPublic: (isPublic: boolean) => void;
-  togglePreview: () => void;
-  saveEntry: () => Promise<void>;
-  loadEntries: () => Promise<void>;
-  loadProgress: () => Promise<void>;
-  loadChallenge: () => void;
-  applyChallenge: () => void;
-  earnXP: (amount: number) => Promise<void>;
-}
-
-export const useJournalStore = create<JournalState>()(
+export const useJournalStore = create<JournalStore>()(
   persist(
     (set, get) => ({
       currentEntry: {
@@ -55,6 +16,7 @@ export const useJournalStore = create<JournalState>()(
         fontColor: '#000000',
         gradient: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)',
         isPublic: false,
+        textStyle: ''
       },
       entries: [],
       dailyChallenge: null,
@@ -121,6 +83,9 @@ export const useJournalStore = create<JournalState>()(
       setIsPublic: (isPublic) => set((state) => ({ 
         currentEntry: { ...state.currentEntry, isPublic } 
       })),
+      setTextStyle: (textStyle) => set((state) => ({ 
+        currentEntry: { ...state.currentEntry, textStyle } 
+      })),
       togglePreview: () => set((state) => ({ 
         showPreview: !state.showPreview 
       })),
@@ -147,7 +112,8 @@ export const useJournalStore = create<JournalState>()(
               mood: state.currentEntry.mood || null,
               mood_note: state.currentEntry.moodNote || null,
               is_public: state.currentEntry.isPublic,
-              challenge_id: state.dailyChallenge?.id || null
+              challenge_id: state.dailyChallenge?.id || null,
+              text_style: state.currentEntry.textStyle || null
             });
 
           if (entryError) throw entryError;
@@ -162,7 +128,8 @@ export const useJournalStore = create<JournalState>()(
               ...state.currentEntry,
               text: '',
               mood: undefined,
-              moodNote: undefined
+              moodNote: undefined,
+              textStyle: ''
             }
           }));
 
@@ -208,7 +175,8 @@ export const useJournalStore = create<JournalState>()(
           mood: entry.mood as Mood | undefined,
           moodNote: entry.mood_note || undefined,
           isPublic: entry.is_public,
-          challengeId: entry.challenge_id || undefined
+          challengeId: entry.challenge_id || undefined,
+          textStyle: entry.text_style || undefined
         }));
 
         set({ entries });
