@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -99,10 +98,142 @@ const generateDots = ({ color1, color2, strokeWidth, scale, angle }: PatternPara
   return `url("data:image/svg+xml;base64,${btoa(svg)}")`;
 };
 
+const generateCheckerboard = ({ color1, color2, scale, angle }: PatternParams): string => {
+  const size = 100 * scale;
+  const svg = `
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="checkerboard" width="${size/2}" height="${size/2}" patternUnits="userSpaceOnUse" patternTransform="rotate(${angle})">
+          <rect width="${size/4}" height="${size/4}" fill="${color1}"/>
+          <rect x="${size/4}" width="${size/4}" height="${size/4}" fill="${color2}"/>
+          <rect y="${size/4}" width="${size/4}" height="${size/4}" fill="${color2}"/>
+          <rect x="${size/4}" y="${size/4}" width="${size/4}" height="${size/4}" fill="${color1}"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#checkerboard)"/>
+    </svg>
+  `;
+  return `url("data:image/svg+xml;base64,${btoa(svg)}")`;
+};
+
+const generateHexagons = ({ color1, color2, strokeWidth, scale, angle }: PatternParams): string => {
+  const size = 100 * scale;
+  const hexSize = size / 4;
+  const path = `
+    M ${hexSize} 0 
+    l ${hexSize} ${hexSize * 0.866} 
+    l 0 ${hexSize * 1.732} 
+    l -${hexSize} ${hexSize * 0.866} 
+    l -${hexSize} -${hexSize * 0.866} 
+    l 0 -${hexSize * 1.732} 
+    Z
+  `;
+  
+  const svg = `
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="hexagons" width="${size/2}" height="${size/2}" patternUnits="userSpaceOnUse" patternTransform="rotate(${angle})">
+          <rect width="100%" height="100%" fill="${color1}"/>
+          <path d="${path}" fill="${color2}" stroke="${color2}" stroke-width="${strokeWidth}"/>
+          <path d="${path}" transform="translate(${size/2}, ${size/2})" fill="${color2}" stroke="${color2}" stroke-width="${strokeWidth}"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#hexagons)"/>
+    </svg>
+  `;
+  return `url("data:image/svg+xml;base64,${btoa(svg)}")`;
+};
+
+const generateCrossHatch = ({ color1, color2, strokeWidth, scale, angle }: PatternParams): string => {
+  const size = 100 * scale;
+  const spacing = size / 8;
+  const svg = `
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="crosshatch" width="${size/2}" height="${size/2}" patternUnits="userSpaceOnUse" patternTransform="rotate(${angle})">
+          <rect width="100%" height="100%" fill="${color1}"/>
+          <path d="M 0 0 l ${size} ${size}" stroke="${color2}" stroke-width="${strokeWidth}" />
+          <path d="M 0 ${spacing} l ${size} ${size}" stroke="${color2}" stroke-width="${strokeWidth}" />
+          <path d="M ${size} 0 l -${size} ${size}" stroke="${color2}" stroke-width="${strokeWidth}" />
+          <path d="M ${size} ${spacing} l -${size} ${size}" stroke="${color2}" stroke-width="${strokeWidth}" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#crosshatch)"/>
+    </svg>
+  `;
+  return `url("data:image/svg+xml;base64,${btoa(svg)}")`;
+};
+
+const generateTriangles = ({ color1, color2, strokeWidth, scale, angle }: PatternParams): string => {
+  const size = 100 * scale;
+  const triangleSize = size / 4;
+  const path = `
+    M 0 0 
+    L ${triangleSize} ${triangleSize * 1.732} 
+    L ${triangleSize * 2} 0 
+    Z
+  `;
+  
+  const svg = `
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="triangles" width="${size/2}" height="${size/2}" patternUnits="userSpaceOnUse" patternTransform="rotate(${angle})">
+          <rect width="100%" height="100%" fill="${color1}"/>
+          <path d="${path}" fill="${color2}" stroke="${color2}" stroke-width="${strokeWidth}"/>
+          <path d="${path}" transform="translate(${size/2}, ${size/2})" fill="${color2}" stroke="${color2}" stroke-width="${strokeWidth}"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#triangles)"/>
+    </svg>
+  `;
+  return `url("data:image/svg+xml;base64,${btoa(svg)}")`;
+};
+
+const generateCircles = ({ color1, color2, strokeWidth, scale, angle }: PatternParams): string => {
+  const size = 100 * scale;
+  const radius = size / 8;
+  const svg = `
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="circles" width="${size/2}" height="${size/2}" patternUnits="userSpaceOnUse" patternTransform="rotate(${angle})">
+          <rect width="100%" height="100%" fill="${color1}"/>
+          <circle cx="${size/4}" cy="${size/4}" r="${radius}" fill="${color2}" stroke="${color2}" stroke-width="${strokeWidth}"/>
+          <circle cx="${size/2}" cy="${size/2}" r="${radius}" fill="${color2}" stroke="${color2}" stroke-width="${strokeWidth}"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#circles)"/>
+    </svg>
+  `;
+  return `url("data:image/svg+xml;base64,${btoa(svg)}")`;
+};
+
+const generateLines = ({ color1, color2, strokeWidth, scale, angle }: PatternParams): string => {
+  const size = 100 * scale;
+  const spacing = size / 8;
+  const svg = `
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="lines" width="${spacing * 2}" height="${spacing * 2}" patternUnits="userSpaceOnUse" patternTransform="rotate(${angle})">
+          <rect width="100%" height="100%" fill="${color1}"/>
+          <line x1="0" y1="0" x2="0" y2="${size}" stroke="${color2}" stroke-width="${strokeWidth}"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#lines)"/>
+    </svg>
+  `;
+  return `url("data:image/svg+xml;base64,${btoa(svg)}")`;
+};
+
 const patterns: PatternOption[] = [
   { id: 'waves', label: 'Waves', generator: generateWaves },
   { id: 'zigzag', label: 'Zigzag', generator: generateZigZag },
   { id: 'dots', label: 'Dots', generator: generateDots },
+  { id: 'checkerboard', label: 'Checkerboard', generator: generateCheckerboard },
+  { id: 'hexagons', label: 'Hexagons', generator: generateHexagons },
+  { id: 'crosshatch', label: 'Cross Hatch', generator: generateCrossHatch },
+  { id: 'triangles', label: 'Triangles', generator: generateTriangles },
+  { id: 'circles', label: 'Circles', generator: generateCircles },
+  { id: 'lines', label: 'Lines', generator: generateLines },
 ];
 
 export function PatternGenerator({ onPatternSelect }: PatternGeneratorProps) {
