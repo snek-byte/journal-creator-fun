@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useJournalStore } from '@/store/journalStore';
@@ -108,30 +109,22 @@ export function JournalEditor() {
         return;
       }
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-journal`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({
-            to: emailAddress,
-            text: currentEntry.text,
-            mood: currentEntry.mood,
-            date: new Date().toISOString(),
-          }),
-        }
-      );
+      const response = await supabase.functions.invoke('send-journal', {
+        body: {
+          to: emailAddress,
+          text: currentEntry.text,
+          mood: currentEntry.mood,
+          date: new Date().toISOString(),
+        },
+      });
 
-      if (!response.ok) {
-        throw new Error("Failed to send email");
+      if (response.error) {
+        throw new Error(response.error.message);
       }
 
       toast.success("Journal entry sent to your email!");
       setShowEmailDialog(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error sending email:", error);
       toast.error("Failed to send email. Please try again.");
     } finally {
