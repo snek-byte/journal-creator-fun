@@ -1,6 +1,5 @@
 
 import type { JournalEntry, Challenge, Badge, UserProgress, Mood } from '@/types/journal';
-import type { TextStyle } from '@/utils/unicodeTextStyles';
 
 export interface JournalStore {
   // Current entry being edited

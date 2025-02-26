@@ -3,7 +3,10 @@ import type { StateCreator } from 'zustand';
 import type { JournalStore } from '../types';
 import type { Mood } from '@/types/journal';
 
-export const createEntrySlice: StateCreator<JournalStore> = (set) => ({
+export const createEntrySlice: StateCreator<JournalStore, [], [], Pick<JournalStore, 
+  'currentEntry' | 'setText' | 'setFont' | 'setFontSize' | 'setFontWeight' | 
+  'setFontColor' | 'setGradient' | 'setMood' | 'setMoodNote' | 'setIsPublic' | 'setTextStyle'
+>> = (set) => ({
   currentEntry: {
     text: '',
     font: 'inter',

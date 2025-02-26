@@ -5,7 +5,7 @@ import type { Mood } from '@/types/journal';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export const createEntriesSlice: StateCreator<JournalStore> = (set, get) => ({
+export const createEntriesSlice: StateCreator<JournalStore, [], [], Pick<JournalStore, 'entries' | 'loadEntries' | 'saveEntry'>> = (set, get) => ({
   entries: [],
   loadEntries: async () => {
     const user = await supabase.auth.getUser();

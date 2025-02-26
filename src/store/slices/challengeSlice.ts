@@ -2,7 +2,7 @@
 import type { StateCreator } from 'zustand';
 import type { JournalStore } from '../types';
 
-export const createChallengeSlice: StateCreator<JournalStore> = (set, get) => ({
+export const createChallengeSlice: StateCreator<JournalStore, [], [], Pick<JournalStore, 'dailyChallenge' | 'badges' | 'loadChallenge' | 'applyChallenge'>> = (set, get) => ({
   dailyChallenge: null,
   badges: [
     {
