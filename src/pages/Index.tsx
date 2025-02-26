@@ -4,6 +4,7 @@ import { useJournalStore } from "@/store/journalStore";
 import { CalendarDays, BookOpen, Award, Star } from "lucide-react";
 import { JournalEditor } from "@/components/JournalEditor";
 import { format } from "date-fns";
+import { moodOptions } from "@/constants/moods";
 
 export default function Index() {
   const { entries, progress, badges, dailyChallenge } = useJournalStore();

@@ -6,15 +6,8 @@ import { useJournalStore } from '@/store/journalStore';
 import { useEffect, useRef } from 'react';
 import { Eye, EyeOff, Printer, LightbulbIcon, Award, Trophy } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
+import { moodOptions } from "@/constants/moods";
 import type { Mood } from '@/types/journal';
-
-const moodOptions: { value: Mood; label: string; icon: string }[] = [
-  { value: 'happy', label: 'Happy', icon: '😊' },
-  { value: 'sad', label: 'Sad', icon: '😢' },
-  { value: 'stressed', label: 'Stressed', icon: '😰' },
-  { value: 'calm', label: 'Calm', icon: '😌' },
-  { value: 'neutral', label: 'Neutral', icon: '😐' }
-];
 
 const fontOptions = [
   { value: 'inter', label: 'Inter' },
