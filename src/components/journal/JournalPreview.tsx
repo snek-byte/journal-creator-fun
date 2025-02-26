@@ -42,32 +42,38 @@ export function JournalPreview({
     setStickers([...stickers, sticker]);
   };
 
-  const handleStickerDragStart = (e: React.DragEvent, stickerId: string) => {
+  const handleMouseDown = (e: React.MouseEvent, stickerId: string) => {
     setDraggingSticker(stickerId);
-    e.dataTransfer.setData('text/plain', ''); // Required for Firefox
-    const img = e.currentTarget as HTMLImageElement;
-    if (img) {
-      e.dataTransfer.setDragImage(img, img.width / 2, img.height / 2);
-    }
-  };
+    const target = e.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
 
-  const handleStickerDragEnd = (e: React.DragEvent) => {
-    if (!draggingSticker || !previewRef.current) return;
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!previewRef.current) return;
+      const previewRect = previewRef.current.getBoundingClientRect();
+      
+      const x = ((moveEvent.clientX - previewRect.left - offsetX) / previewRect.width) * 100;
+      const y = ((moveEvent.clientY - previewRect.top - offsetY) / previewRect.height) * 100;
+      
+      const clampedX = Math.max(0, Math.min(100, x));
+      const clampedY = Math.max(0, Math.min(100, y));
 
-    const rect = previewRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+      setStickers(stickers.map(s => 
+        s.id === stickerId 
+          ? { ...s, position: { x: clampedX, y: clampedY } }
+          : s
+      ));
+    };
 
-    // Clamp the position to stay within the preview bounds
-    const clampedX = Math.max(0, Math.min(100, x));
-    const clampedY = Math.max(0, Math.min(100, y));
+    const handleMouseUp = () => {
+      setDraggingSticker(null);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
 
-    setStickers(stickers.map(s => 
-      s.id === draggingSticker 
-        ? { ...s, position: { x: clampedX, y: clampedY } }
-        : s
-    ));
-    setDraggingSticker(null);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   const PreviewContent = () => (
@@ -82,11 +88,6 @@ export function JournalPreview({
         printColorAdjust: 'exact',
       }}
       className="w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn print:shadow-none print:rounded-none print:min-h-screen relative"
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }}
-      onDrop={handleStickerDragEnd}
     >
       <div className="w-full h-full p-8">
         {mood && (
@@ -107,20 +108,24 @@ export function JournalPreview({
         </div>
       </div>
       {stickers.map((sticker) => (
-        <img
+        <div
           key={sticker.id}
-          src={sticker.url}
-          alt="Sticker"
-          className="absolute w-16 h-16 object-contain cursor-move"
+          className={`absolute cursor-move select-none ${draggingSticker === sticker.id ? 'z-50' : 'z-10'}`}
           style={{
             left: `${sticker.position.x}%`,
             top: `${sticker.position.y}%`,
             transform: 'translate(-50%, -50%)',
             touchAction: 'none',
           }}
-          draggable
-          onDragStart={(e) => handleStickerDragStart(e, sticker.id)}
-        />
+          onMouseDown={(e) => handleMouseDown(e, sticker.id)}
+        >
+          <img
+            src={sticker.url}
+            alt="Sticker"
+            className="w-16 h-16 object-contain pointer-events-none"
+            draggable={false}
+          />
+        </div>
       ))}
     </div>
   );
