@@ -31,11 +31,26 @@ const fontWeights = [
 ];
 
 const gradients = [
-  { value: 'bg-[linear-gradient(135deg,#f6d365_0%,#fda085_100%)]', label: 'Warm Flame' },
-  { value: 'bg-[linear-gradient(120deg,#84fab0_0%,#8fd3f4_100%)]', label: 'Morning Glory' },
-  { value: 'bg-[linear-gradient(120deg,#f093fb_0%,#f5576c_100%)]', label: 'Sweet Period' },
-  { value: 'bg-[linear-gradient(to_right,#4facfe_0%,#00f2fe_100%)]', label: 'Ocean Blue' },
-  { value: 'bg-[linear-gradient(120deg,#a1c4fd_0%,#c2e9fb_100%)]', label: 'Soft Blue' },
+  { 
+    value: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)',
+    label: 'Warm Flame'
+  },
+  { 
+    value: 'linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%)',
+    label: 'Morning Glory'
+  },
+  { 
+    value: 'linear-gradient(120deg, #f093fb 0%, #f5576c 100%)',
+    label: 'Sweet Period'
+  },
+  { 
+    value: 'linear-gradient(to right, #4facfe 0%, #00f2fe 100%)',
+    label: 'Ocean Blue'
+  },
+  { 
+    value: 'linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%)',
+    label: 'Soft Blue'
+  },
 ];
 
 export function JournalEditor() {
@@ -60,13 +75,6 @@ export function JournalEditor() {
 
   const handlePrint = () => {
     window.print();
-  };
-
-  // Convert gradient class to actual CSS gradient style
-  const getGradientStyle = (gradientClass: string) => {
-    // Extract the linear-gradient value from the class
-    const match = gradientClass.match(/linear-gradient[^)]+\)/);
-    return match ? { backgroundImage: match[0].replace(/_/g, ' ') } : {};
   };
 
   return (
@@ -175,7 +183,11 @@ export function JournalEditor() {
         {showPreview && (
           <div
             ref={previewRef}
-            style={getGradientStyle(gradient)}
+            style={{
+              backgroundImage: gradient,
+              WebkitPrintColorAdjust: 'exact',
+              printColorAdjust: 'exact',
+            }}
             className="w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn print:shadow-none print:rounded-none print:min-h-screen"
           >
             <div className="w-full h-full p-8">

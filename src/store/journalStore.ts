@@ -24,7 +24,7 @@ export const useJournalStore = create<JournalState>((set) => ({
   fontSize: '16px',
   fontWeight: 'normal',
   fontColor: '#000000',
-  gradient: 'bg-gradient-to-r from-purple-400 to-pink-500',
+  gradient: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)',
   showPreview: true,
   setText: (text) => set({ text }),
   setFont: (font) => set({ font }),
