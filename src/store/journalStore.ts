@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { JournalEntry, Challenge, Badge, UserProgress, Mood } from '@/types/journal';
@@ -135,20 +134,21 @@ export const useJournalStore = create<JournalState>()(
         }
 
         try {
-          // Save the entry to Supabase
-          const { error: entryError } = await supabase.from('journal_entries').insert({
-            user_id: user.data.user.id,
-            text: state.currentEntry.text,
-            font: state.currentEntry.font,
-            font_size: state.currentEntry.fontSize,
-            font_weight: state.currentEntry.fontWeight,
-            font_color: state.currentEntry.fontColor,
-            gradient: state.currentEntry.gradient,
-            mood: state.currentEntry.mood,
-            mood_note: state.currentEntry.moodNote,
-            is_public: state.currentEntry.isPublic,
-            challenge_id: state.dailyChallenge?.id
-          });
+          const { error: entryError } = await supabase
+            .from('journal_entries')
+            .insert({
+              user_id: user.data.user.id,
+              text: state.currentEntry.text,
+              font: state.currentEntry.font,
+              font_size: state.currentEntry.fontSize,
+              font_weight: state.currentEntry.fontWeight,
+              font_color: state.currentEntry.fontColor,
+              gradient: state.currentEntry.gradient,
+              mood: state.currentEntry.mood || null,
+              mood_note: state.currentEntry.moodNote || null,
+              is_public: state.currentEntry.isPublic,
+              challenge_id: state.dailyChallenge?.id || null
+            });
 
           if (entryError) throw entryError;
 
@@ -181,13 +181,18 @@ export const useJournalStore = create<JournalState>()(
 
         const { data, error } = await supabase
           .from('journal_entries')
-          .select('*')
+          .select()
           .eq('user_id', user.data.user.id)
           .order('created_at', { ascending: false });
 
         if (error) {
           console.error('Error loading entries:', error);
           toast.error('Failed to load entries');
+          return;
+        }
+
+        if (!data) {
+          set({ entries: [] });
           return;
         }
 
@@ -201,9 +206,9 @@ export const useJournalStore = create<JournalState>()(
           fontColor: entry.font_color,
           gradient: entry.gradient,
           mood: entry.mood as Mood | undefined,
-          moodNote: entry.mood_note,
+          moodNote: entry.mood_note || undefined,
           isPublic: entry.is_public,
-          challengeId: entry.challenge_id
+          challengeId: entry.challenge_id || undefined
         }));
 
         set({ entries });
@@ -214,13 +219,17 @@ export const useJournalStore = create<JournalState>()(
 
         const { data, error } = await supabase
           .from('profiles')
-          .select('*')
+          .select()
           .eq('id', user.data.user.id)
           .single();
 
         if (error) {
           console.error('Error loading progress:', error);
           toast.error('Failed to load progress');
+          return;
+        }
+
+        if (!data) {
           return;
         }
 
@@ -289,6 +298,10 @@ export const useJournalStore = create<JournalState>()(
         if (error) {
           console.error('Error updating XP:', error);
           toast.error('Failed to update progress');
+          return;
+        }
+
+        if (!data) {
           return;
         }
 

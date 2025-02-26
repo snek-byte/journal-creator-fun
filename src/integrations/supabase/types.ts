@@ -9,7 +9,93 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      journal_entries: {
+        Row: {
+          challenge_id: string | null
+          created_at: string
+          font: string
+          font_color: string
+          font_size: string
+          font_weight: string
+          gradient: string
+          id: string
+          is_public: boolean
+          mood: string | null
+          mood_note: string | null
+          text: string
+          user_id: string
+        }
+        Insert: {
+          challenge_id?: string | null
+          created_at?: string
+          font: string
+          font_color: string
+          font_size: string
+          font_weight: string
+          gradient: string
+          id?: string
+          is_public?: boolean
+          mood?: string | null
+          mood_note?: string | null
+          text: string
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string | null
+          created_at?: string
+          font?: string
+          font_color?: string
+          font_size?: string
+          font_weight?: string
+          gradient?: string
+          id?: string
+          is_public?: boolean
+          mood?: string | null
+          mood_note?: string | null
+          text?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          completed_challenges: string[]
+          created_at: string
+          current_streak: number
+          earned_badges: string[]
+          id: string
+          longest_streak: number
+          total_entries: number
+          total_xp: number
+          unlocked_features: string[]
+          updated_at: string
+        }
+        Insert: {
+          completed_challenges?: string[]
+          created_at?: string
+          current_streak?: number
+          earned_badges?: string[]
+          id: string
+          longest_streak?: number
+          total_entries?: number
+          total_xp?: number
+          unlocked_features?: string[]
+          updated_at?: string
+        }
+        Update: {
+          completed_challenges?: string[]
+          created_at?: string
+          current_streak?: number
+          earned_badges?: string[]
+          id?: string
+          longest_streak?: number
+          total_entries?: number
+          total_xp?: number
+          unlocked_features?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
