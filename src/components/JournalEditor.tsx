@@ -1,3 +1,4 @@
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -148,9 +149,13 @@ export function JournalEditor() {
       togglePreview();
     }
 
+    const content = previewRef.current?.cloneNode(true) as HTMLElement;
+    if (!content) return;
+
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
+    // Create a new document with only the journal content
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
@@ -158,39 +163,49 @@ export function JournalEditor() {
           <title>Journal Entry</title>
           <style>
             @import url('https://fonts.googleapis.com/css2?family=${currentEntry.font}&display=swap');
-            @page {
-              size: A4;
-              margin: 0;
-            }
             body {
               margin: 0;
-              padding: 0;
+              padding: 20px;
               min-height: 100vh;
-              background-image: ${currentEntry.gradient};
-              -webkit-print-color-adjust: exact;
-              print-color-adjust: exact;
+              display: flex;
+              align-items: center;
+              justify-content: center;
             }
-            .journal-page {
+            .journal-content {
+              width: 100%;
+              max-width: 800px;
               padding: 40px;
-              min-height: 100vh;
+              border-radius: 8px;
+              background-image: ${currentEntry.gradient};
               font-family: ${currentEntry.font}, sans-serif;
               font-size: ${currentEntry.fontSize};
               font-weight: ${currentEntry.fontWeight};
               color: ${currentEntry.fontColor};
-              box-sizing: border-box;
             }
             .mood {
-              font-size: 2rem;
-              margin-bottom: 1.5rem;
+              margin-bottom: 1rem;
+              font-size: 1.5rem;
             }
             .entry-text {
               white-space: pre-wrap;
               line-height: 1.6;
             }
+            @media print {
+              body {
+                padding: 0;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
+              .journal-content {
+                width: 100%;
+                height: 100%;
+                border-radius: 0;
+              }
+            }
           </style>
         </head>
         <body>
-          <div class="journal-page">
+          <div class="journal-content">
             ${currentEntry.mood ? `<div class="mood">${moodOptions.find(m => m.value === currentEntry.mood)?.icon}</div>` : ''}
             <div class="entry-text">${currentEntry.text || "Start writing your journal entry..."}</div>
           </div>
@@ -201,6 +216,7 @@ export function JournalEditor() {
     printWindow.document.close();
     printWindow.focus();
     
+    // Wait for styles to load before printing
     setTimeout(() => {
       printWindow.print();
       printWindow.close();
@@ -389,10 +405,8 @@ export function JournalEditor() {
             ref={previewRef}
             style={{
               backgroundImage: currentEntry.gradient,
-              fontFamily: currentEntry.font,
-              fontSize: currentEntry.fontSize,
-              fontWeight: currentEntry.fontWeight,
-              color: currentEntry.fontColor,
+              WebkitPrintColorAdjust: 'exact',
+              printColorAdjust: 'exact',
             }}
             className="w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn print:shadow-none print:rounded-none print:min-h-screen"
           >
@@ -402,7 +416,15 @@ export function JournalEditor() {
                   {moodOptions.find(m => m.value === currentEntry.mood)?.icon}
                 </div>
               )}
-              <div className="w-full h-full whitespace-pre-wrap">
+              <div
+                style={{
+                  fontFamily: currentEntry.font,
+                  fontSize: currentEntry.fontSize,
+                  fontWeight: currentEntry.fontWeight,
+                  color: currentEntry.fontColor,
+                }}
+                className="w-full h-full whitespace-pre-wrap"
+              >
                 {currentEntry.text || "Start writing your journal entry..."}
               </div>
             </div>
