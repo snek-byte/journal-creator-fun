@@ -9,6 +9,30 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      Calendly: {
+        Row: {
+          attrs: Json | null
+          created_at: string | null
+          slug: string | null
+          updated_at: string | null
+          uri: string | null
+        }
+        Insert: {
+          attrs?: Json | null
+          created_at?: string | null
+          slug?: string | null
+          updated_at?: string | null
+          uri?: string | null
+        }
+        Update: {
+          attrs?: Json | null
+          created_at?: string | null
+          slug?: string | null
+          updated_at?: string | null
+          uri?: string | null
+        }
+        Relationships: []
+      }
       journal_entries: {
         Row: {
           challenge_id: string | null

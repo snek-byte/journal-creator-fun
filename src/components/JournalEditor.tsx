@@ -3,11 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useJournalStore } from '@/store/journalStore';
 import { useEffect } from 'react';
-import { Printer, RefreshCcw } from 'lucide-react';
+import { Printer, Lightbulb } from 'lucide-react';
 import { MoodSelector } from './journal/MoodSelector';
 import { JournalStylingControls } from './journal/JournalStylingControls';
 import { JournalPreview } from './journal/JournalPreview';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import type { Mood } from '@/types/journal';
 
 export function JournalEditor() {
@@ -42,35 +41,46 @@ export function JournalEditor() {
       <div className="w-full lg:w-1/3 p-6 border-r bg-white print:hidden">
         <div className="space-y-6">
           {dailyChallenge && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg">Daily Challenge</CardTitle>
-                    <CardDescription>+20 XP</CardDescription>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={loadChallenge}
-                    className="h-8 w-8"
-                  >
-                    <RefreshCcw className="h-4 w-4" />
-                  </Button>
+            <div className="rounded-lg border border-yellow-200 bg-yellow-50/50 p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Lightbulb className="h-4 w-4 text-yellow-600" />
+                  <h3 className="font-medium">Daily Challenge</h3>
                 </div>
-              </CardHeader>
-              <CardContent className="pt-3">
-                <p className="mb-4">{dailyChallenge.prompt}</p>
-                <Button 
-                  variant="secondary" 
-                  className="w-full"
-                  onClick={applyChallenge}
-                >
-                  Use This Prompt
-                </Button>
-              </CardContent>
-            </Card>
+                <span className="text-sm font-medium text-yellow-800">+20 XP</span>
+              </div>
+              <p className="mb-4 text-gray-600">{dailyChallenge.prompt}</p>
+              <Button 
+                className="w-full bg-white hover:bg-gray-50 text-gray-900 border border-gray-200"
+                variant="ghost"
+                onClick={applyChallenge}
+              >
+                Use This Prompt
+              </Button>
+            </div>
           )}
+
+          <div className="rounded-lg border border-pink-200 bg-pink-50/50 p-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <svg className="h-4 w-4 text-pink-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 8V16M12 16L16 12M12 16L8 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <h3 className="font-medium">Progress</h3>
+              </div>
+              <span className="text-sm font-medium">0 XP</span>
+            </div>
+            <div className="space-y-2 text-sm text-gray-600">
+              <div className="flex justify-between">
+                <span>Current Streak:</span>
+                <span>0 days</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Total Entries:</span>
+                <span>0</span>
+              </div>
+            </div>
+          </div>
 
           <MoodSelector
             mood={currentEntry.mood}
