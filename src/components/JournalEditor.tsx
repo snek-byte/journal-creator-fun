@@ -1,4 +1,3 @@
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +11,26 @@ const fontOptions = [
   { value: 'lato', label: 'Lato' },
   { value: 'poppins', label: 'Poppins' },
   { value: 'montserrat', label: 'Montserrat' },
+  { value: 'playfair-display', label: 'Playfair Display' },
+  { value: 'merriweather', label: 'Merriweather' },
+  { value: 'source-serif-pro', label: 'Source Serif Pro' },
+  { value: 'josefin-sans', label: 'Josefin Sans' },
+  { value: 'work-sans', label: 'Work Sans' },
+  { value: 'quicksand', label: 'Quicksand' },
+  { value: 'space-grotesk', label: 'Space Grotesk' },
+  { value: 'dm-sans', label: 'DM Sans' },
+  { value: 'nunito', label: 'Nunito' },
+  { value: 'raleway', label: 'Raleway' },
+  { value: 'dancing-script', label: 'Dancing Script' },
+  { value: 'pacifico', label: 'Pacifico' },
+  { value: 'great-vibes', label: 'Great Vibes' },
+  { value: 'satisfy', label: 'Satisfy' },
+  { value: 'caveat', label: 'Caveat' },
+  { value: 'sacramento', label: 'Sacramento' },
+  { value: 'carattere', label: 'Carattere' },
+  { value: 'birthstone', label: 'Birthstone' },
+  { value: 'lobster', label: 'Lobster' },
+  { value: 'petit-formal-script', label: 'Petit Formal Script' }
 ];
 
 const fontSizes = [
@@ -51,6 +70,46 @@ const gradients = [
     value: 'linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%)',
     label: 'Soft Blue'
   },
+  {
+    value: 'linear-gradient(to right, #ffecd2 0%, #fcb69f 100%)',
+    label: 'Peach'
+  },
+  {
+    value: 'linear-gradient(to right, #b2f7ef 0%, #56cfe1 100%)',
+    label: 'Crystal Clear'
+  },
+  {
+    value: 'linear-gradient(to right, #f77062 0%, #fe5196 100%)',
+    label: 'Burning Rose'
+  },
+  {
+    value: 'linear-gradient(to right, #9795f0 0%, #fbc8d4 100%)',
+    label: 'Lavender Blush'
+  },
+  {
+    value: 'linear-gradient(to right, #e0c3fc 0%, #8ec5fc 100%)',
+    label: 'Purple Lake'
+  },
+  {
+    value: 'linear-gradient(to right, #c7ceea 0%, #a29bfe 100%)',
+    label: 'Misty Mountains'
+  },
+  {
+    value: 'linear-gradient(to right, #f7971e 0%, #ffd200 100%)',
+    label: 'Golden Hour'
+  },
+  {
+    value: 'linear-gradient(to right, #485563 0%, #29323c 100%)',
+    label: 'Midnight'
+  },
+  {
+    value: 'linear-gradient(to right, #ee9ca7 0%, #ffdde1 100%)',
+    label: 'Cherry Blossom'
+  },
+  {
+    value: 'linear-gradient(to right, #2193b0 0%, #6dd5ed 100%)',
+    label: 'Caribbean Blue'
+  }
 ];
 
 export function JournalEditor() {
@@ -79,7 +138,6 @@ export function JournalEditor() {
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-      {/* Control Panel - Hide during printing */}
       <div className="w-full lg:w-1/3 p-6 border-r bg-white print:hidden">
         <div className="space-y-6">
           <div className="space-y-2">
@@ -170,7 +228,6 @@ export function JournalEditor() {
         </div>
       </div>
 
-      {/* Preview Panel */}
       <div className="w-full lg:w-2/3 p-6 relative print:w-full print:p-0">
         <Button
           onClick={togglePreview}
