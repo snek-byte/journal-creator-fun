@@ -79,11 +79,9 @@ export const createEntrySlice: StateCreator<
 
       if (entryError) throw entryError;
 
-      // Update progress
       const xpEarned = 10 + (state.dailyChallenge ? 20 : 0);
       await get().earnXP(xpEarned);
       
-      // Reset current entry
       set((state) => ({
         currentEntry: {
           ...state.currentEntry,
@@ -93,7 +91,6 @@ export const createEntrySlice: StateCreator<
         }
       }));
 
-      // Reload entries to show the new one
       await get().loadEntries();
       
       toast.success('Journal entry saved!');
