@@ -60,7 +60,7 @@ export function StickerSelector({ onStickerSelect }: StickerSelectorProps) {
     onStickerSelect({
       id: sticker.id,
       url: sticker.images.fixed_width.url,
-      position: { x: 0, y: 0 }
+      position: { x: 50, y: 50 } // Start stickers in the center of the preview
     });
   };
 

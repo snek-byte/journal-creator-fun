@@ -44,6 +44,11 @@ export function JournalPreview({
 
   const handleStickerDragStart = (e: React.DragEvent, stickerId: string) => {
     setDraggingSticker(stickerId);
+    e.dataTransfer.setData('text/plain', ''); // Required for Firefox
+    const img = e.currentTarget as HTMLImageElement;
+    if (img) {
+      e.dataTransfer.setDragImage(img, img.width / 2, img.height / 2);
+    }
   };
 
   const handleStickerDragEnd = (e: React.DragEvent) => {
@@ -53,9 +58,13 @@ export function JournalPreview({
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
 
+    // Clamp the position to stay within the preview bounds
+    const clampedX = Math.max(0, Math.min(100, x));
+    const clampedY = Math.max(0, Math.min(100, y));
+
     setStickers(stickers.map(s => 
       s.id === draggingSticker 
-        ? { ...s, position: { x, y } }
+        ? { ...s, position: { x: clampedX, y: clampedY } }
         : s
     ));
     setDraggingSticker(null);
@@ -73,7 +82,10 @@ export function JournalPreview({
         printColorAdjust: 'exact',
       }}
       className="w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn print:shadow-none print:rounded-none print:min-h-screen relative"
-      onDragOver={(e) => e.preventDefault()}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
       onDrop={handleStickerDragEnd}
     >
       <div className="w-full h-full p-8">
@@ -104,6 +116,7 @@ export function JournalPreview({
             left: `${sticker.position.x}%`,
             top: `${sticker.position.y}%`,
             transform: 'translate(-50%, -50%)',
+            touchAction: 'none',
           }}
           draggable
           onDragStart={(e) => handleStickerDragStart(e, sticker.id)}
