@@ -1,8 +1,10 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { fontOptions, fontSizes, fontWeights, gradients } from "./config/editorConfig";
 import { textStyles } from "@/utils/unicodeTextStyles";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 interface JournalStylingControlsProps {
   font: string;
@@ -31,6 +33,28 @@ export function JournalStylingControls({
   onGradientChange,
   onTextStyleChange,
 }: JournalStylingControlsProps) {
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (typeof e.target?.result === 'string') {
+        onGradientChange(`url(${e.target.result})`);
+        toast.success('Background image uploaded successfully');
+      }
+    };
+    reader.onerror = () => {
+      toast.error('Failed to load image');
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -107,20 +131,32 @@ export function JournalStylingControls({
         />
       </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Background</label>
-        <Select value={gradient} onValueChange={onGradientChange}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {gradients.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="space-y-4">
+        <Label className="text-sm font-medium">Background</Label>
+        <div className="space-y-4">
+          <Select value={gradient} onValueChange={onGradientChange}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {gradients.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          <div className="space-y-2">
+            <Label className="text-sm text-gray-500">Or upload an image</Label>
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="cursor-pointer"
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
