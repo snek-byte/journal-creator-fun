@@ -1,7 +1,7 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { JournalEntry, Challenge, Badge, UserProgress, Mood } from '@/types/journal';
+import { generatePrompt } from '@/services/promptService';
 
 interface JournalState {
   // Current entry being edited
@@ -39,6 +39,10 @@ interface JournalState {
   loadChallenge: () => void;
   applyChallenge: () => void;
   earnXP: (amount: number) => void;
+  apiKey: string;
+  generatedPrompt: string;
+  setApiKey: (key: string) => void;
+  generateMoodPrompt: (mood: Mood) => Promise<void>;
 }
 
 export const useJournalStore = create<JournalState>()(
@@ -200,7 +204,17 @@ export const useJournalStore = create<JournalState>()(
           ...state.progress,
           totalXp: state.progress.totalXp + amount
         }
-      }))
+      })),
+      apiKey: '',
+      generatedPrompt: '',
+      setApiKey: (key: string) => set({ apiKey: key }),
+      generateMoodPrompt: async (mood: Mood) => {
+        const { apiKey } = get();
+        if (!apiKey) return;
+        
+        const prompt = await generatePrompt(mood, apiKey);
+        set({ generatedPrompt: prompt });
+      }
     }),
     {
       name: 'journal-storage'

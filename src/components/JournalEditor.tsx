@@ -2,6 +2,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import { useJournalStore } from '@/store/journalStore';
 import { useEffect, useRef } from 'react';
 import { Eye, EyeOff, Printer, LightbulbIcon, Award, Trophy } from 'lucide-react';
@@ -141,7 +143,11 @@ export function JournalEditor() {
     togglePreview,
     saveEntry,
     loadChallenge,
-    applyChallenge
+    applyChallenge,
+    apiKey,
+    setApiKey,
+    generatedPrompt,
+    generateMoodPrompt
   } = useJournalStore();
 
   const previewRef = useRef<HTMLDivElement>(null);
@@ -154,57 +160,34 @@ export function JournalEditor() {
     window.print();
   };
 
+  const handleMoodChange = async (mood: Mood) => {
+    setMood(mood);
+    if (apiKey) {
+      await generateMoodPrompt(mood);
+      toast.success("New writing prompt generated!");
+    }
+  };
+
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
       <div className="w-full lg:w-1/3 p-6 border-r bg-white print:hidden">
-        {dailyChallenge && (
-          <div className="mb-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <LightbulbIcon className="w-5 h-5 text-amber-500" />
-                Daily Challenge
-              </h3>
-              <Badge variant="secondary">+20 XP</Badge>
-            </div>
-            <p className="text-sm text-gray-600 mb-3">{dailyChallenge.prompt}</p>
-            <Button 
-              variant="outline" 
-              className="w-full"
-              onClick={applyChallenge}
-            >
-              Use This Prompt
-            </Button>
-          </div>
-        )}
-
-        <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-purple-500" />
-              Progress
-            </h3>
-            <Badge variant="secondary">
-              {progress.totalXp} XP
-            </Badge>
-          </div>
-          <div className="text-sm text-gray-600">
-            <div className="flex justify-between mb-1">
-              <span>Current Streak:</span>
-              <span>{progress.currentStreak} days</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Total Entries:</span>
-              <span>{progress.totalEntries}</span>
-            </div>
-          </div>
-        </div>
-
         <div className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">TheWriter.ly API Key</label>
+            <Input
+              type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="Enter your API key"
+              className="font-mono"
+            />
+          </div>
+
           <div className="space-y-2">
             <label className="text-sm font-medium">How are you feeling?</label>
             <Select 
               value={currentEntry.mood} 
-              onValueChange={(value: Mood) => setMood(value)}
+              onValueChange={handleMoodChange}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select your mood" />
@@ -220,6 +203,20 @@ export function JournalEditor() {
               </SelectContent>
             </Select>
           </div>
+
+          {generatedPrompt && (
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <h3 className="text-sm font-medium mb-2">Writing Prompt:</h3>
+              <p className="text-sm text-gray-600">{generatedPrompt}</p>
+              <Button 
+                variant="ghost" 
+                className="w-full mt-2"
+                onClick={() => setText(generatedPrompt)}
+              >
+                Use This Prompt
+              </Button>
+            </div>
+          )}
 
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium">Make Entry Public</label>
