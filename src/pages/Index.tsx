@@ -1,10 +1,10 @@
-
 import { Button } from "@/components/ui/button";
 import { useJournalStore } from "@/store/journalStore";
 import { CalendarDays, BookOpen, Award, Star } from "lucide-react";
 import { JournalEditor } from "@/components/JournalEditor";
 import { format } from "date-fns";
 import { moodOptions } from "@/constants/moods";
+import { Link } from "react-router-dom";
 
 export default function Index() {
   const { entries, progress, badges, dailyChallenge } = useJournalStore();
@@ -15,9 +15,17 @@ export default function Index() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Journal Dashboard</h1>
-          <p className="text-gray-600">Track your progress and write daily entries</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">My Journal Dashboard</h1>
+            <p className="text-gray-600">Track your progress and write daily entries</p>
+          </div>
+          <Link to="/premium">
+            <Button variant="outline" className="gap-2">
+              <Star className="w-4 h-4" />
+              Premium Content
+            </Button>
+          </Link>
         </div>
 
         {/* Stats Grid */}
