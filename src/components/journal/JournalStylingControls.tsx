@@ -4,6 +4,8 @@ import { fontOptions, fontSizes, fontWeights, gradients } from "./config/editorC
 import { textStyles } from "@/utils/unicodeTextStyles";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 import { toast } from "sonner";
 
 interface JournalStylingControlsProps {
@@ -33,6 +35,8 @@ export function JournalStylingControls({
   onGradientChange,
   onTextStyleChange,
 }: JournalStylingControlsProps) {
+  const isCustomImage = gradient.startsWith('url(');
+
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -53,6 +57,11 @@ export function JournalStylingControls({
       toast.error('Failed to load image');
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    onGradientChange(gradients[0].value);
+    toast.success('Background image removed');
   };
 
   return (
@@ -134,9 +143,9 @@ export function JournalStylingControls({
       <div className="space-y-4">
         <Label className="text-sm font-medium">Background</Label>
         <div className="space-y-4">
-          <Select value={gradient} onValueChange={onGradientChange}>
+          <Select value={isCustomImage ? '' : gradient} onValueChange={onGradientChange}>
             <SelectTrigger>
-              <SelectValue />
+              <SelectValue placeholder="Select a gradient" />
             </SelectTrigger>
             <SelectContent>
               {gradients.map((option) => (
@@ -149,12 +158,25 @@ export function JournalStylingControls({
           
           <div className="space-y-2">
             <Label className="text-sm text-gray-500">Or upload an image</Label>
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="cursor-pointer"
-            />
+            <div className="space-y-2">
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="cursor-pointer"
+              />
+              {isCustomImage && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleRemoveImage}
+                  className="w-full"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Remove Image
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
