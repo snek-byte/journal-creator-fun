@@ -38,7 +38,7 @@ export function JournalEditor() {
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-      <div className="w-full lg:w-1/3 p-6 border-r bg-white print:hidden">
+      <div className="w-full lg:w-1/4 p-6 border-r bg-white print:hidden">
         <div className="space-y-6">
           {dailyChallenge && (
             <div className="rounded-lg border border-yellow-200 bg-yellow-50/50 p-4">
