@@ -1,9 +1,8 @@
-
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useJournalStore } from '@/store/journalStore';
 import { useEffect, useRef, useState } from 'react';
-import { Printer, Lightbulb, RotateCw, Smile } from 'lucide-react';
+import { Printer, Lightbulb, RotateCw, Smile, Mail } from 'lucide-react';
 import { MoodSelector } from './journal/MoodSelector';
 import { JournalStylingControls } from './journal/JournalStylingControls';
 import { JournalPreview } from './journal/JournalPreview';
@@ -11,6 +10,11 @@ import { StickerSelector } from './journal/StickerSelector';
 import type { Mood, Sticker } from '@/types/journal';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export function JournalEditor() {
   const {
@@ -33,12 +37,20 @@ export function JournalEditor() {
     applyChallenge,
   } = useJournalStore();
 
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [emailAddress, setEmailAddress] = useState("");
+  const [isSending, setIsSending] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
 
   useEffect(() => {
     loadChallenge();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.email) {
+        setEmailAddress(user.email);
+      }
+    });
   }, []);
 
   const handlePrint = () => {
@@ -67,7 +79,6 @@ export function JournalEditor() {
     const newText = text.substring(0, start) + emojiData.emoji + text.substring(end);
     setText(newText);
     
-    // Restore cursor position after emoji insertion
     setTimeout(() => {
       if (textareaRef.current) {
         const newPosition = start + emojiData.emoji.length;
@@ -76,6 +87,56 @@ export function JournalEditor() {
         textareaRef.current.focus();
       }
     }, 0);
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailAddress) {
+      toast.error("Please enter an email address");
+      return;
+    }
+
+    if (!currentEntry.text.trim()) {
+      toast.error("Please write something in your journal before sending");
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Please sign in to send emails");
+        return;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-journal`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            to: emailAddress,
+            text: currentEntry.text,
+            mood: currentEntry.mood,
+            date: new Date().toISOString(),
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to send email");
+      }
+
+      toast.success("Journal entry sent to your email!");
+      setShowEmailDialog(false);
+    } catch (error) {
+      console.error("Error sending email:", error);
+      toast.error("Failed to send email. Please try again.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -192,9 +253,54 @@ export function JournalEditor() {
               <Printer className="w-4 h-4 mr-2" />
               Print
             </Button>
+            <Button 
+              onClick={() => setShowEmailDialog(true)} 
+              variant="outline" 
+              className="flex-1"
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              Email
+            </Button>
           </div>
         </div>
       </div>
+
+      <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Send Journal Entry</DialogTitle>
+            <DialogDescription>
+              Send this journal entry to your email address.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email address</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={emailAddress}
+                onChange={(e) => setEmailAddress(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowEmailDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSendEmail}
+              disabled={isSending}
+            >
+              {isSending ? "Sending..." : "Send"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <JournalPreview
         showPreview={showPreview}
