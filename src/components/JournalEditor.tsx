@@ -2,11 +2,9 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import { useJournalStore } from '@/store/journalStore';
 import { useRef } from 'react';
-import { Download, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Printer } from 'lucide-react';
 
 const fontOptions = [
   { value: 'inter', label: 'Inter' },
@@ -33,11 +31,11 @@ const fontWeights = [
 ];
 
 const gradients = [
-  { value: 'bg-gradient-to-r from-purple-400 to-pink-500', label: 'Lavender' },
-  { value: 'bg-gradient-to-r from-cyan-400 to-blue-500', label: 'Ocean' },
-  { value: 'bg-gradient-to-r from-green-400 to-emerald-500', label: 'Forest' },
-  { value: 'bg-gradient-to-r from-rose-400 to-red-500', label: 'Sunset' },
-  { value: 'bg-gradient-to-r from-amber-200 to-yellow-400', label: 'Dawn' },
+  { value: 'bg-[linear-gradient(135deg,#f6d365_0%,#fda085_100%)]', label: 'Warm Flame' },
+  { value: 'bg-[linear-gradient(120deg,#84fab0_0%,#8fd3f4_100%)]', label: 'Morning Glory' },
+  { value: 'bg-[linear-gradient(120deg,#f093fb_0%,#f5576c_100%)]', label: 'Sweet Period' },
+  { value: 'bg-[linear-gradient(to_right,#4facfe_0%,#00f2fe_100%)]', label: 'Ocean Blue' },
+  { value: 'bg-[linear-gradient(120deg,#a1c4fd_0%,#c2e9fb_100%)]', label: 'Soft Blue' },
 ];
 
 export function JournalEditor() {
@@ -60,35 +58,14 @@ export function JournalEditor() {
 
   const previewRef = useRef<HTMLDivElement>(null);
 
-  const exportAsPDF = async () => {
-    if (!previewRef.current) return;
-    
-    const canvas = await html2canvas(previewRef.current);
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'px',
-      format: [canvas.width, canvas.height]
-    });
-    
-    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-    pdf.save('journal-entry.pdf');
-  };
-
-  const exportAsImage = async () => {
-    if (!previewRef.current) return;
-    
-    const canvas = await html2canvas(previewRef.current);
-    const link = document.createElement('a');
-    link.download = 'journal-entry.png';
-    link.href = canvas.toDataURL();
-    link.click();
+  const handlePrint = () => {
+    window.print();
   };
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-      {/* Control Panel */}
-      <div className="w-full lg:w-1/3 p-6 border-r bg-white">
+      {/* Control Panel - Hide during printing */}
+      <div className="w-full lg:w-1/3 p-6 border-r bg-white print:hidden">
         <div className="space-y-6">
           <div className="space-y-2">
             <label className="text-sm font-medium">Font Family</label>
@@ -171,25 +148,19 @@ export function JournalEditor() {
             className="min-h-[200px] resize-none"
           />
 
-          <div className="flex gap-2">
-            <Button onClick={exportAsPDF} className="flex-1">
-              <Download className="w-4 h-4 mr-2" />
-              Save as PDF
-            </Button>
-            <Button onClick={exportAsImage} variant="outline" className="flex-1">
-              <Download className="w-4 h-4 mr-2" />
-              Save as Image
-            </Button>
-          </div>
+          <Button onClick={handlePrint} className="w-full">
+            <Printer className="w-4 h-4 mr-2" />
+            Print Journal
+          </Button>
         </div>
       </div>
 
       {/* Preview Panel */}
-      <div className="w-full lg:w-2/3 p-6 relative">
+      <div className="w-full lg:w-2/3 p-6 relative print:w-full print:p-0">
         <Button
           onClick={togglePreview}
           variant="ghost"
-          className="absolute top-4 right-4 z-10"
+          className="absolute top-4 right-4 z-10 print:hidden"
         >
           {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
         </Button>
@@ -197,7 +168,7 @@ export function JournalEditor() {
         {showPreview && (
           <div
             ref={previewRef}
-            className={`w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn ${gradient}`}
+            className={`w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn print:shadow-none print:rounded-none print:min-h-screen ${gradient}`}
           >
             <div className="w-full h-full p-8">
               <div
