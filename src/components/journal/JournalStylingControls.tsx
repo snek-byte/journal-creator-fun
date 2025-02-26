@@ -1,7 +1,9 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { fontOptions, fontSizes, fontWeights, gradients } from "./config/editorConfig";
 import { textStyles } from "@/utils/unicodeTextStyles";
+import { PatternGenerator } from "./PatternGenerator";
 
 interface JournalStylingControlsProps {
   font: string;
@@ -108,18 +110,29 @@ export function JournalStylingControls({
 
       <div className="space-y-2">
         <label className="text-sm font-medium">Background</label>
-        <Select value={gradient} onValueChange={onGradientChange}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {gradients.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Tabs defaultValue="gradients" className="w-full">
+          <TabsList className="w-full">
+            <TabsTrigger value="gradients" className="flex-1">Gradients</TabsTrigger>
+            <TabsTrigger value="patterns" className="flex-1">Patterns</TabsTrigger>
+          </TabsList>
+          <TabsContent value="gradients">
+            <Select value={gradient} onValueChange={onGradientChange}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {gradients.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </TabsContent>
+          <TabsContent value="patterns">
+            <PatternGenerator onPatternSelect={onGradientChange} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
