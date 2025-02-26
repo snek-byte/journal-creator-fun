@@ -47,17 +47,18 @@ export function JournalEditor() {
                   <Lightbulb className="h-4 w-4 text-yellow-600" />
                   <h3 className="font-medium">Daily Challenge</h3>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={loadChallenge}
-                    className="text-yellow-600 hover:text-yellow-700 transition-colors"
-                  >
-                    <RotateCw className="h-4 w-4" />
-                  </button>
-                  <span className="text-sm font-medium text-yellow-800">+20 XP</span>
-                </div>
+                <span className="text-sm font-medium text-yellow-800">+20 XP</span>
               </div>
-              <p className="mb-4 text-gray-600">{dailyChallenge.prompt}</p>
+              <div className="flex items-start gap-2 mb-4">
+                <button 
+                  onClick={loadChallenge}
+                  className="text-yellow-600 hover:text-yellow-700 transition-colors mt-0.5"
+                  title="Get a new prompt"
+                >
+                  <RotateCw className="h-4 w-4" />
+                </button>
+                <p className="text-gray-600">{dailyChallenge.prompt}</p>
+              </div>
               <Button 
                 className="w-full bg-white hover:bg-gray-50 text-gray-900 border border-gray-200"
                 variant="ghost"
