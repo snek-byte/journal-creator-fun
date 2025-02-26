@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sticker as Image } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import type { Sticker } from '@/types/journal';
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -25,7 +25,7 @@ export function StickerSelector({ onStickerSelect }: StickerSelectorProps) {
     setLoading(true);
     try {
       const response = await fetch(
-        'https://api.giphy.com/v1/stickers/trending?api_key=dc6zaTOxFJmzC&limit=30'
+        'https://api.giphy.com/v1/stickers/trending?api_key=GlVGYHkr3WSBnllca54iNt0yFbjz7L65&limit=30'
       );
       const data = await response.json();
       setStickers(data.data || []);
@@ -45,7 +45,7 @@ export function StickerSelector({ onStickerSelect }: StickerSelectorProps) {
     setLoading(true);
     try {
       const response = await fetch(
-        `https://api.giphy.com/v1/stickers/search?q=${encodeURIComponent(search)}&api_key=dc6zaTOxFJmzC&limit=30`
+        `https://api.giphy.com/v1/stickers/search?q=${encodeURIComponent(search)}&api_key=GlVGYHkr3WSBnllca54iNt0yFbjz7L65&limit=30`
       );
       const data = await response.json();
       setStickers(data.data || []);
@@ -78,6 +78,9 @@ export function StickerSelector({ onStickerSelect }: StickerSelectorProps) {
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Choose a Sticker</DialogTitle>
+          <DialogDescription>
+            Search and select a sticker to add to your journal
+          </DialogDescription>
         </DialogHeader>
         <div className="flex gap-2 mb-4">
           <Input
