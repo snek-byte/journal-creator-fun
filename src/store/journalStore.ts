@@ -1,7 +1,6 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { JournalEntry, Challenge, Badge, UserProgress, Mood } from '@/types/journal';
+import type { JournalEntry, Challenge, Badge, UserProgress, Mood, Sticker } from '@/types/journal';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -18,6 +17,7 @@ interface JournalState {
     moodNote?: string;
     isPublic: boolean;
     textStyle: string;
+    stickers: Sticker[];
   };
   // Collections
   entries: JournalEntry[];
@@ -38,6 +38,7 @@ interface JournalState {
   setMoodNote: (note: string) => void;
   setIsPublic: (isPublic: boolean) => void;
   setTextStyle: (style: string) => void;
+  setStickers: (stickers: Sticker[]) => void;
   togglePreview: () => void;
   saveEntry: () => Promise<void>;
   loadEntries: () => Promise<void>;
@@ -58,7 +59,8 @@ export const useJournalStore = create<JournalState>()(
         fontColor: '#000000',
         gradient: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)',
         isPublic: false,
-        textStyle: 'normal'
+        textStyle: 'normal',
+        stickers: []
       },
       entries: [],
       dailyChallenge: null,
@@ -128,6 +130,9 @@ export const useJournalStore = create<JournalState>()(
       setTextStyle: (textStyle) => set((state) => ({
         currentEntry: { ...state.currentEntry, textStyle }
       })),
+      setStickers: (stickers) => set((state) => ({
+        currentEntry: { ...state.currentEntry, stickers }
+      })),
       togglePreview: () => set((state) => ({ 
         showPreview: !state.showPreview 
       })),
@@ -155,7 +160,8 @@ export const useJournalStore = create<JournalState>()(
               mood_note: state.currentEntry.moodNote || null,
               is_public: state.currentEntry.isPublic,
               challenge_id: state.dailyChallenge?.id || null,
-              text_style: state.currentEntry.textStyle || null
+              text_style: state.currentEntry.textStyle || null,
+              stickers: state.currentEntry.stickers
             });
 
           if (entryError) throw entryError;

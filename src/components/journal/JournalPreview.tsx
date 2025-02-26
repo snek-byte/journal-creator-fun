@@ -1,11 +1,12 @@
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Maximize2, Minimize2 } from 'lucide-react';
+import { Eye, EyeOff, Maximize2 } from 'lucide-react';
 import { moodOptions } from './config/editorConfig';
-import type { Mood } from '@/types/journal';
+import type { Mood, Sticker } from '@/types/journal';
 import { applyTextStyle } from '@/utils/unicodeTextStyles';
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { StickerSelector } from './StickerSelector';
 
 interface JournalPreviewProps {
   showPreview: boolean;
@@ -33,10 +34,36 @@ export function JournalPreview({
   onTogglePreview,
 }: JournalPreviewProps) {
   const previewRef = useRef<HTMLDivElement>(null);
+  const [stickers, setStickers] = useState<Sticker[]>([]);
+  const [draggingSticker, setDraggingSticker] = useState<string | null>(null);
   const transformedText = applyTextStyle(text, textStyle as any);
+
+  const handleStickerAdd = (sticker: Sticker) => {
+    setStickers([...stickers, sticker]);
+  };
+
+  const handleStickerDragStart = (e: React.DragEvent, stickerId: string) => {
+    setDraggingSticker(stickerId);
+  };
+
+  const handleStickerDragEnd = (e: React.DragEvent) => {
+    if (!draggingSticker || !previewRef.current) return;
+
+    const rect = previewRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    setStickers(stickers.map(s => 
+      s.id === draggingSticker 
+        ? { ...s, position: { x, y } }
+        : s
+    ));
+    setDraggingSticker(null);
+  };
 
   const PreviewContent = () => (
     <div
+      ref={previewRef}
       style={{
         backgroundImage: gradient,
         backgroundSize: 'cover',
@@ -45,7 +72,9 @@ export function JournalPreview({
         WebkitPrintColorAdjust: 'exact',
         printColorAdjust: 'exact',
       }}
-      className="w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn print:shadow-none print:rounded-none print:min-h-screen"
+      className="w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn print:shadow-none print:rounded-none print:min-h-screen relative"
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={handleStickerDragEnd}
     >
       <div className="w-full h-full p-8">
         {mood && (
@@ -65,12 +94,28 @@ export function JournalPreview({
           {transformedText || "Start writing your journal entry..."}
         </div>
       </div>
+      {stickers.map((sticker) => (
+        <img
+          key={sticker.id}
+          src={sticker.url}
+          alt="Sticker"
+          className="absolute w-16 h-16 object-contain cursor-move"
+          style={{
+            left: `${sticker.position.x}%`,
+            top: `${sticker.position.y}%`,
+            transform: 'translate(-50%, -50%)',
+          }}
+          draggable
+          onDragStart={(e) => handleStickerDragStart(e, sticker.id)}
+        />
+      ))}
     </div>
   );
 
   return (
     <div className="w-full lg:w-3/4 p-6 relative print:w-full print:p-0 min-h-[800px]">
       <div className="absolute top-4 right-4 z-10 flex gap-2 print:hidden">
+        <StickerSelector onStickerSelect={handleStickerAdd} />
         <Button
           onClick={onTogglePreview}
           variant="ghost"

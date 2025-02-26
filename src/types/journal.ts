@@ -1,5 +1,13 @@
-
 export type Mood = 'happy' | 'sad' | 'stressed' | 'calm' | 'neutral';
+
+export interface Sticker {
+  id: string;
+  url: string;
+  position: {
+    x: number;
+    y: number;
+  };
+}
 
 export interface JournalEntry {
   id: string;
@@ -15,6 +23,7 @@ export interface JournalEntry {
   isPublic: boolean;
   challengeId?: string;
   textStyle?: string;
+  stickers?: Sticker[];
 }
 
 export interface Challenge {
