@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useJournalStore } from "@/store/journalStore";
 import { supabase } from "./integrations/supabase/client";
-import Dashboard from "./pages/Dashboard";
 import Write from "./pages/Write";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -19,11 +18,13 @@ const App = () => {
   const [session, setSession] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
 
+  // Load journal entries and progress
   useEffect(() => {
     loadEntries();
     loadProgress();
   }, [loadEntries, loadProgress]);
 
+  // Handle authentication state
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(!!session);
@@ -50,9 +51,9 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={session ? <Write /> : <Navigate to="/auth" />} />
-            <Route path="/write" element={session ? <Write /> : <Navigate to="/auth" />} />
-            <Route path="/auth" element={session ? <Navigate to="/write" /> : <Auth />} />
+            <Route path="/" element={<Write />} />
+            <Route path="/write" element={<Write />} />
+            <Route path="/auth" element={<Auth />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
