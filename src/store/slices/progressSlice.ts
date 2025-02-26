@@ -4,7 +4,7 @@ import type { JournalStore } from '../types';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export const createProgressSlice: StateCreator<JournalStore, [], [], Pick<JournalStore, 'progress' | 'loadProgress' | 'earnXP'>> = (set) => ({
+export const createProgressSlice: StateCreator<JournalStore, [], [], Pick<JournalStore, 'progress' | 'loadProgress' | 'earnXP'>> = (set, get) => ({
   progress: {
     totalXp: 0,
     currentStreak: 0,
@@ -48,15 +48,15 @@ export const createProgressSlice: StateCreator<JournalStore, [], [], Pick<Journa
     const user = await supabase.auth.getUser();
     if (!user.data.user) return;
 
+    const currentState = get();
+    const newTotalXp = currentState.progress.totalXp + amount;
+    const newTotalEntries = currentState.progress.totalEntries + 1;
+
     const { data, error } = await supabase
       .from('profiles')
       .update({
-        total_xp: set((state) => ({ 
-          progress: { ...state.progress, totalXp: state.progress.totalXp + amount }
-        })).progress.totalXp,
-        total_entries: set((state) => ({
-          progress: { ...state.progress, totalEntries: state.progress.totalEntries + 1 }
-        })).progress.totalEntries
+        total_xp: newTotalXp,
+        total_entries: newTotalEntries
       })
       .eq('id', user.data.user.id)
       .select()
