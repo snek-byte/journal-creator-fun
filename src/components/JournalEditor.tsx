@@ -1,4 +1,3 @@
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,8 +6,15 @@ import { useJournalStore } from '@/store/journalStore';
 import { useEffect, useRef } from 'react';
 import { Eye, EyeOff, Printer, LightbulbIcon, Award, Trophy } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
-import { moodOptions } from "@/constants/moods";
 import type { Mood } from '@/types/journal';
+
+const moodOptions: { value: Mood; label: string; icon: string }[] = [
+  { value: 'happy', label: 'Happy', icon: '😊' },
+  { value: 'sad', label: 'Sad', icon: '😢' },
+  { value: 'stressed', label: 'Stressed', icon: '😰' },
+  { value: 'calm', label: 'Calm', icon: '😌' },
+  { value: 'neutral', label: 'Neutral', icon: '😐' }
+];
 
 const fontOptions = [
   { value: 'inter', label: 'Inter' },
@@ -145,82 +151,7 @@ export function JournalEditor() {
   }, []);
 
   const handlePrint = () => {
-    if (!showPreview) {
-      togglePreview();
-    }
-
-    const content = previewRef.current?.cloneNode(true) as HTMLElement;
-    if (!content) return;
-
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-
-    // Create a new document with only the journal content
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Journal Entry</title>
-          <style>
-            @import url('https://fonts.googleapis.com/css2?family=${currentEntry.font}&display=swap');
-            body {
-              margin: 0;
-              padding: 20px;
-              min-height: 100vh;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-            .journal-content {
-              width: 100%;
-              max-width: 800px;
-              padding: 40px;
-              border-radius: 8px;
-              background-image: ${currentEntry.gradient};
-              font-family: ${currentEntry.font}, sans-serif;
-              font-size: ${currentEntry.fontSize};
-              font-weight: ${currentEntry.fontWeight};
-              color: ${currentEntry.fontColor};
-            }
-            .mood {
-              margin-bottom: 1rem;
-              font-size: 1.5rem;
-            }
-            .entry-text {
-              white-space: pre-wrap;
-              line-height: 1.6;
-            }
-            @media print {
-              body {
-                padding: 0;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-              }
-              .journal-content {
-                width: 100%;
-                height: 100%;
-                border-radius: 0;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="journal-content">
-            ${currentEntry.mood ? `<div class="mood">${moodOptions.find(m => m.value === currentEntry.mood)?.icon}</div>` : ''}
-            <div class="entry-text">${currentEntry.text || "Start writing your journal entry..."}</div>
-          </div>
-        </body>
-      </html>
-    `);
-
-    printWindow.document.close();
-    printWindow.focus();
-    
-    // Wait for styles to load before printing
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 500);
+    window.print();
   };
 
   return (
@@ -413,7 +344,7 @@ export function JournalEditor() {
             <div className="w-full h-full p-8">
               {currentEntry.mood && (
                 <div className="mb-4 text-lg">
-                  {moodOptions.find(m => m.value === currentEntry.mood)?.icon}
+                  Mood: {moodOptions.find(m => m.value === currentEntry.mood)?.icon}
                 </div>
               )}
               <div
