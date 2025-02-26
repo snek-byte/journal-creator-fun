@@ -1,5 +1,5 @@
 
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Maximize2 } from 'lucide-react';
 import { moodOptions } from './config/editorConfig';
@@ -18,6 +18,9 @@ interface JournalPreviewProps {
   fontColor: string;
   gradient: string;
   textStyle?: string;
+  stickers: Sticker[];
+  onStickerAdd: (sticker: Sticker) => void;
+  onStickerMove: (stickerId: string, position: { x: number, y: number }) => void;
   onTogglePreview: () => void;
 }
 
@@ -31,43 +34,34 @@ export function JournalPreview({
   fontColor,
   gradient,
   textStyle = 'normal',
+  stickers,
+  onStickerAdd,
+  onStickerMove,
   onTogglePreview,
 }: JournalPreviewProps) {
   const previewRef = useRef<HTMLDivElement>(null);
-  const [stickers, setStickers] = useState<Sticker[]>([]);
-  const [draggingSticker, setDraggingSticker] = useState<string | null>(null);
-  const transformedText = applyTextStyle(text, textStyle as any);
-
-  const handleStickerAdd = (sticker: Sticker) => {
-    setStickers([...stickers, sticker]);
-  };
 
   const handleMouseDown = (e: React.MouseEvent, stickerId: string) => {
-    setDraggingSticker(stickerId);
+    e.preventDefault();
     const target = e.currentTarget as HTMLElement;
     const rect = target.getBoundingClientRect();
-    const offsetX = e.clientX - rect.left;
-    const offsetY = e.clientY - rect.top;
+    const startX = e.clientX - rect.left;
+    const startY = e.clientY - rect.top;
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       if (!previewRef.current) return;
       const previewRect = previewRef.current.getBoundingClientRect();
       
-      const x = ((moveEvent.clientX - previewRect.left - offsetX) / previewRect.width) * 100;
-      const y = ((moveEvent.clientY - previewRect.top - offsetY) / previewRect.height) * 100;
+      const x = ((moveEvent.clientX - previewRect.left) / previewRect.width) * 100;
+      const y = ((moveEvent.clientY - previewRect.top) / previewRect.height) * 100;
       
       const clampedX = Math.max(0, Math.min(100, x));
       const clampedY = Math.max(0, Math.min(100, y));
 
-      setStickers(stickers.map(s => 
-        s.id === stickerId 
-          ? { ...s, position: { x: clampedX, y: clampedY } }
-          : s
-      ));
+      onStickerMove(stickerId, { x: clampedX, y: clampedY });
     };
 
     const handleMouseUp = () => {
-      setDraggingSticker(null);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
@@ -104,13 +98,13 @@ export function JournalPreview({
           }}
           className="w-full h-full whitespace-pre-wrap"
         >
-          {transformedText || "Start writing your journal entry..."}
+          {text || "Start writing your journal entry..."}
         </div>
       </div>
       {stickers.map((sticker) => (
         <div
           key={sticker.id}
-          className={`absolute cursor-move select-none ${draggingSticker === sticker.id ? 'z-50' : 'z-10'}`}
+          className="absolute cursor-move select-none"
           style={{
             left: `${sticker.position.x}%`,
             top: `${sticker.position.y}%`,
@@ -133,7 +127,7 @@ export function JournalPreview({
   return (
     <div className="w-full lg:w-3/4 p-6 relative print:w-full print:p-0 min-h-[800px]">
       <div className="absolute top-4 right-4 z-10 flex gap-2 print:hidden">
-        <StickerSelector onStickerSelect={handleStickerAdd} />
+        <StickerSelector onStickerSelect={onStickerAdd} />
         <Button
           onClick={onTogglePreview}
           variant="ghost"

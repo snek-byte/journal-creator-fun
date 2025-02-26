@@ -177,7 +177,8 @@ export const useJournalStore = create<JournalState>()(
               text: '',
               mood: undefined,
               moodNote: undefined,
-              textStyle: 'normal'
+              textStyle: 'normal',
+              stickers: []
             }
           }));
 

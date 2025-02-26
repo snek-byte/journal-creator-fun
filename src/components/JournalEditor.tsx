@@ -2,12 +2,13 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useJournalStore } from '@/store/journalStore';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Printer, Lightbulb, RotateCw } from 'lucide-react';
 import { MoodSelector } from './journal/MoodSelector';
 import { JournalStylingControls } from './journal/JournalStylingControls';
 import { JournalPreview } from './journal/JournalPreview';
-import type { Mood } from '@/types/journal';
+import { StickerSelector } from './journal/StickerSelector';
+import type { Mood, Sticker } from '@/types/journal';
 
 export function JournalEditor() {
   const {
@@ -23,11 +24,14 @@ export function JournalEditor() {
     setMood,
     setIsPublic,
     setTextStyle,
+    setStickers,
     togglePreview,
     saveEntry,
     loadChallenge,
     applyChallenge,
   } = useJournalStore();
+
+  const previewRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadChallenge();
@@ -35,6 +39,18 @@ export function JournalEditor() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleStickerAdd = (sticker: Sticker) => {
+    setStickers([...(currentEntry.stickers || []), sticker]);
+  };
+
+  const handleStickerMove = (stickerId: string, position: { x: number, y: number }) => {
+    setStickers(
+      (currentEntry.stickers || []).map(s => 
+        s.id === stickerId ? { ...s, position } : s
+      )
+    );
   };
 
   return (
@@ -142,6 +158,9 @@ export function JournalEditor() {
         fontColor={currentEntry.fontColor}
         gradient={currentEntry.gradient}
         textStyle={currentEntry.textStyle}
+        stickers={currentEntry.stickers || []}
+        onStickerAdd={handleStickerAdd}
+        onStickerMove={handleStickerMove}
         onTogglePreview={togglePreview}
       />
     </div>
