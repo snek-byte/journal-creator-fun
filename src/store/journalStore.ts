@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { JournalEntry, Challenge, Badge, UserProgress, Mood } from '@/types/journal';
@@ -16,6 +17,7 @@ interface JournalState {
     mood?: Mood;
     moodNote?: string;
     isPublic: boolean;
+    textStyle: string;
   };
   // Collections
   entries: JournalEntry[];
@@ -35,6 +37,7 @@ interface JournalState {
   setMood: (mood: Mood) => void;
   setMoodNote: (note: string) => void;
   setIsPublic: (isPublic: boolean) => void;
+  setTextStyle: (style: string) => void;
   togglePreview: () => void;
   saveEntry: () => Promise<void>;
   loadEntries: () => Promise<void>;
@@ -55,6 +58,7 @@ export const useJournalStore = create<JournalState>()(
         fontColor: '#000000',
         gradient: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)',
         isPublic: false,
+        textStyle: 'normal'
       },
       entries: [],
       dailyChallenge: null,
@@ -121,6 +125,9 @@ export const useJournalStore = create<JournalState>()(
       setIsPublic: (isPublic) => set((state) => ({ 
         currentEntry: { ...state.currentEntry, isPublic } 
       })),
+      setTextStyle: (textStyle) => set((state) => ({
+        currentEntry: { ...state.currentEntry, textStyle }
+      })),
       togglePreview: () => set((state) => ({ 
         showPreview: !state.showPreview 
       })),
@@ -147,7 +154,8 @@ export const useJournalStore = create<JournalState>()(
               mood: state.currentEntry.mood || null,
               mood_note: state.currentEntry.moodNote || null,
               is_public: state.currentEntry.isPublic,
-              challenge_id: state.dailyChallenge?.id || null
+              challenge_id: state.dailyChallenge?.id || null,
+              text_style: state.currentEntry.textStyle || null
             });
 
           if (entryError) throw entryError;
@@ -162,7 +170,8 @@ export const useJournalStore = create<JournalState>()(
               ...state.currentEntry,
               text: '',
               mood: undefined,
-              moodNote: undefined
+              moodNote: undefined,
+              textStyle: 'normal'
             }
           }));
 
@@ -208,7 +217,8 @@ export const useJournalStore = create<JournalState>()(
           mood: entry.mood as Mood | undefined,
           moodNote: entry.mood_note || undefined,
           isPublic: entry.is_public,
-          challengeId: entry.challenge_id || undefined
+          challengeId: entry.challenge_id || undefined,
+          textStyle: entry.text_style || undefined
         }));
 
         set({ entries });
@@ -229,9 +239,7 @@ export const useJournalStore = create<JournalState>()(
           return;
         }
 
-        if (!data) {
-          return;
-        }
+        if (!data) return;
 
         set({
           progress: {
@@ -291,11 +299,15 @@ export const useJournalStore = create<JournalState>()(
         const user = await supabase.auth.getUser();
         if (!user.data.user) return;
 
+        const currentState = get();
+        const newTotalXp = currentState.progress.totalXp + amount;
+        const newTotalEntries = currentState.progress.totalEntries + 1;
+
         const { data, error } = await supabase
           .from('profiles')
           .update({
-            total_xp: get().progress.totalXp + amount,
-            total_entries: get().progress.totalEntries + 1
+            total_xp: newTotalXp,
+            total_entries: newTotalEntries
           })
           .eq('id', user.data.user.id)
           .select()
@@ -307,9 +319,7 @@ export const useJournalStore = create<JournalState>()(
           return;
         }
 
-        if (!data) {
-          return;
-        }
+        if (!data) return;
 
         set((state) => ({
           progress: {
