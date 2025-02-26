@@ -2,13 +2,15 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useJournalStore } from '@/store/journalStore';
-import { useEffect, useRef } from 'react';
-import { Printer, Lightbulb, RotateCw } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Printer, Lightbulb, RotateCw, Smile } from 'lucide-react';
 import { MoodSelector } from './journal/MoodSelector';
 import { JournalStylingControls } from './journal/JournalStylingControls';
 import { JournalPreview } from './journal/JournalPreview';
 import { StickerSelector } from './journal/StickerSelector';
 import type { Mood, Sticker } from '@/types/journal';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export function JournalEditor() {
   const {
@@ -32,6 +34,8 @@ export function JournalEditor() {
   } = useJournalStore();
 
   const previewRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [cursorPosition, setCursorPosition] = useState<number | null>(null);
 
   useEffect(() => {
     loadChallenge();
@@ -51,6 +55,27 @@ export function JournalEditor() {
         s.id === stickerId ? { ...s, position } : s
       )
     );
+  };
+
+  const handleEmojiSelect = (emojiData: EmojiClickData) => {
+    if (!textareaRef.current) return;
+
+    const start = textareaRef.current.selectionStart;
+    const end = textareaRef.current.selectionEnd;
+    const text = currentEntry.text;
+    
+    const newText = text.substring(0, start) + emojiData.emoji + text.substring(end);
+    setText(newText);
+    
+    // Restore cursor position after emoji insertion
+    setTimeout(() => {
+      if (textareaRef.current) {
+        const newPosition = start + emojiData.emoji.length;
+        textareaRef.current.selectionStart = newPosition;
+        textareaRef.current.selectionEnd = newPosition;
+        textareaRef.current.focus();
+      }
+    }, 0);
   };
 
   return (
@@ -129,12 +154,35 @@ export function JournalEditor() {
             onTextStyleChange={setTextStyle}
           />
 
-          <Textarea
-            placeholder="Start writing your journal entry..."
-            value={currentEntry.text}
-            onChange={(e) => setText(e.target.value)}
-            className="min-h-[200px] resize-none"
-          />
+          <div className="relative">
+            <div className="absolute top-2 right-2 z-10">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Smile className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="end">
+                  <EmojiPicker
+                    onEmojiClick={handleEmojiSelect}
+                    width="100%"
+                    height={400}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <Textarea
+              ref={textareaRef}
+              placeholder="Start writing your journal entry..."
+              value={currentEntry.text}
+              onChange={(e) => setText(e.target.value)}
+              onSelect={(e) => {
+                const target = e.target as HTMLTextAreaElement;
+                setCursorPosition(target.selectionStart);
+              }}
+              className="min-h-[200px] resize-none pr-10"
+            />
+          </div>
 
           <div className="flex gap-4">
             <Button onClick={saveEntry} className="flex-1">
