@@ -2,6 +2,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { JournalEntry, Challenge, Badge, UserProgress, Mood } from '@/types/journal';
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface JournalState {
   // Current entry being edited
@@ -35,10 +37,12 @@ interface JournalState {
   setMoodNote: (note: string) => void;
   setIsPublic: (isPublic: boolean) => void;
   togglePreview: () => void;
-  saveEntry: () => void;
+  saveEntry: () => Promise<void>;
+  loadEntries: () => Promise<void>;
+  loadProgress: () => Promise<void>;
   loadChallenge: () => void;
   applyChallenge: () => void;
-  earnXP: (amount: number) => void;
+  earnXP: (amount: number) => Promise<void>;
 }
 
 export const useJournalStore = create<JournalState>()(
@@ -121,42 +125,115 @@ export const useJournalStore = create<JournalState>()(
       togglePreview: () => set((state) => ({ 
         showPreview: !state.showPreview 
       })),
-      saveEntry: () => {
+      saveEntry: async () => {
         const state = get();
-        const newEntry: JournalEntry = {
-          id: crypto.randomUUID(),
-          date: new Date().toISOString(),
-          ...state.currentEntry,
-          challengeId: state.dailyChallenge?.id
-        };
+        const user = await supabase.auth.getUser();
         
-        set((state) => {
-          const hasEntryToday = state.entries.some(
-            entry => new Date(entry.date).toDateString() === new Date().toDateString()
-          );
-          
+        if (!user.data.user) {
+          toast.error('Please sign in to save entries');
+          return;
+        }
+
+        try {
+          // Save the entry to Supabase
+          const { error: entryError } = await supabase.from('journal_entries').insert({
+            user_id: user.data.user.id,
+            text: state.currentEntry.text,
+            font: state.currentEntry.font,
+            font_size: state.currentEntry.fontSize,
+            font_weight: state.currentEntry.fontWeight,
+            font_color: state.currentEntry.fontColor,
+            gradient: state.currentEntry.gradient,
+            mood: state.currentEntry.mood,
+            mood_note: state.currentEntry.moodNote,
+            is_public: state.currentEntry.isPublic,
+            challenge_id: state.dailyChallenge?.id
+          });
+
+          if (entryError) throw entryError;
+
+          // Update progress
           const xpEarned = 10 + (state.dailyChallenge ? 20 : 0);
-          const newStreak = hasEntryToday ? state.progress.currentStreak : state.progress.currentStreak + 1;
+          await get().earnXP(xpEarned);
           
-          return {
-            entries: [newEntry, ...state.entries],
+          // Reset current entry
+          set((state) => ({
             currentEntry: {
               ...state.currentEntry,
               text: '',
               mood: undefined,
               moodNote: undefined
-            },
-            progress: {
-              ...state.progress,
-              totalXp: state.progress.totalXp + xpEarned,
-              currentStreak: newStreak,
-              longestStreak: Math.max(newStreak, state.progress.longestStreak),
-              totalEntries: state.progress.totalEntries + 1,
-              completedChallenges: state.dailyChallenge 
-                ? [...state.progress.completedChallenges, state.dailyChallenge.id]
-                : state.progress.completedChallenges
             }
-          };
+          }));
+
+          // Reload entries to show the new one
+          await get().loadEntries();
+          
+          toast.success('Journal entry saved!');
+        } catch (error) {
+          console.error('Error saving entry:', error);
+          toast.error('Failed to save entry');
+        }
+      },
+      loadEntries: async () => {
+        const user = await supabase.auth.getUser();
+        if (!user.data.user) return;
+
+        const { data, error } = await supabase
+          .from('journal_entries')
+          .select('*')
+          .eq('user_id', user.data.user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error loading entries:', error);
+          toast.error('Failed to load entries');
+          return;
+        }
+
+        const entries = data.map(entry => ({
+          id: entry.id,
+          date: entry.created_at,
+          text: entry.text,
+          font: entry.font,
+          fontSize: entry.font_size,
+          fontWeight: entry.font_weight,
+          fontColor: entry.font_color,
+          gradient: entry.gradient,
+          mood: entry.mood as Mood | undefined,
+          moodNote: entry.mood_note,
+          isPublic: entry.is_public,
+          challengeId: entry.challenge_id
+        }));
+
+        set({ entries });
+      },
+      loadProgress: async () => {
+        const user = await supabase.auth.getUser();
+        if (!user.data.user) return;
+
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.data.user.id)
+          .single();
+
+        if (error) {
+          console.error('Error loading progress:', error);
+          toast.error('Failed to load progress');
+          return;
+        }
+
+        set({
+          progress: {
+            totalXp: data.total_xp,
+            currentStreak: data.current_streak,
+            longestStreak: data.longest_streak,
+            totalEntries: data.total_entries,
+            completedChallenges: data.completed_challenges,
+            unlockedFeatures: data.unlocked_features,
+            earnedBadges: data.earned_badges
+          }
         });
       },
       loadChallenge: () => {
@@ -195,12 +272,36 @@ export const useJournalStore = create<JournalState>()(
           }));
         }
       },
-      earnXP: (amount) => set((state) => ({
-        progress: {
-          ...state.progress,
-          totalXp: state.progress.totalXp + amount
+      earnXP: async (amount) => {
+        const user = await supabase.auth.getUser();
+        if (!user.data.user) return;
+
+        const { data, error } = await supabase
+          .from('profiles')
+          .update({
+            total_xp: get().progress.totalXp + amount,
+            total_entries: get().progress.totalEntries + 1
+          })
+          .eq('id', user.data.user.id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error updating XP:', error);
+          toast.error('Failed to update progress');
+          return;
         }
-      }))
+
+        set((state) => ({
+          progress: {
+            ...state.progress,
+            totalXp: data.total_xp,
+            totalEntries: data.total_entries
+          }
+        }));
+
+        toast.success(`Earned ${amount} XP!`);
+      }
     }),
     {
       name: 'journal-storage'
