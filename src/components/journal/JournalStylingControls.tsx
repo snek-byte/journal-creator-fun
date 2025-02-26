@@ -9,7 +9,8 @@ import { X, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 
-const UNSPLASH_ACCESS_KEY = 'VwPTQrE4BR88kJ54_KDFJgEKeVAIMnABEpRX1qLqcUA';
+// Updated to a valid Unsplash API access key
+const UNSPLASH_ACCESS_KEY = 'zql19oXmG6nBvQk-o8GYhHyNxFOZMD9MuR1msAVNh1U';
 
 interface UnsplashImage {
   id: string;
@@ -64,18 +65,22 @@ export function JournalStylingControls({
         `https://api.unsplash.com/photos/random?count=9&query=journal%20background%20minimalist&orientation=landscape`,
         {
           headers: {
-            Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`,
+            'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`,
           },
         }
       );
       
-      if (!response.ok) throw new Error('Failed to fetch images');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.errors?.[0] || 'Failed to fetch images');
+      }
       
       const data = await response.json();
       setUnsplashImages(data);
+      toast.success('Successfully loaded new images');
     } catch (error) {
       console.error('Error fetching Unsplash images:', error);
-      toast.error('Failed to load background images');
+      toast.error('Failed to load background images. Please try again later.');
     } finally {
       setIsLoading(false);
     }
