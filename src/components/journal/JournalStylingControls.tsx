@@ -5,8 +5,22 @@ import { textStyles } from "@/utils/unicodeTextStyles";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import { X, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
+import { useEffect, useState } from "react";
+
+const UNSPLASH_ACCESS_KEY = 'VwPTQrE4BR88kJ54_KDFJgEKeVAIMnABEpRX1qLqcUA';
+
+interface UnsplashImage {
+  id: string;
+  urls: {
+    regular: string;
+    thumb: string;
+  };
+  user: {
+    name: string;
+  };
+}
 
 interface JournalStylingControlsProps {
   font: string;
@@ -35,7 +49,37 @@ export function JournalStylingControls({
   onGradientChange,
   onTextStyleChange,
 }: JournalStylingControlsProps) {
+  const [unsplashImages, setUnsplashImages] = useState<UnsplashImage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const isCustomImage = gradient.startsWith('url(');
+
+  useEffect(() => {
+    fetchUnsplashImages();
+  }, []);
+
+  const fetchUnsplashImages = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `https://api.unsplash.com/photos/random?count=9&query=journal%20background%20minimalist&orientation=landscape`,
+        {
+          headers: {
+            Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`,
+          },
+        }
+      );
+      
+      if (!response.ok) throw new Error('Failed to fetch images');
+      
+      const data = await response.json();
+      setUnsplashImages(data);
+    } catch (error) {
+      console.error('Error fetching Unsplash images:', error);
+      toast.error('Failed to load background images');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -62,6 +106,11 @@ export function JournalStylingControls({
   const handleRemoveImage = () => {
     onGradientChange(gradients[0].value);
     toast.success('Background image removed');
+  };
+
+  const handleUnsplashImageSelect = (imageUrl: string, photographerName: string) => {
+    onGradientChange(`url(${imageUrl})`);
+    toast.success(`Background set to image by ${photographerName}`);
   };
 
   return (
@@ -155,9 +204,37 @@ export function JournalStylingControls({
               ))}
             </SelectContent>
           </Select>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-2">
+              {unsplashImages.map((image) => (
+                <button
+                  key={image.id}
+                  onClick={() => handleUnsplashImageSelect(image.urls.regular, image.user.name)}
+                  className="relative aspect-video overflow-hidden rounded-md hover:opacity-90 transition-opacity"
+                >
+                  <img
+                    src={image.urls.thumb}
+                    alt={`Background by ${image.user.name}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchUnsplashImages}
+              className="w-full"
+              disabled={isLoading}
+            >
+              <ImageIcon className="w-4 h-4 mr-2" />
+              {isLoading ? 'Loading...' : 'Load New Images'}
+            </Button>
+          </div>
           
           <div className="space-y-2">
-            <Label className="text-sm text-gray-500">Or upload an image</Label>
+            <Label className="text-sm text-gray-500">Or upload your own image</Label>
             <div className="space-y-2">
               <Input
                 type="file"
