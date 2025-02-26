@@ -1,8 +1,8 @@
 
-import { JournalEditor } from "@/components/JournalEditor";
+import { Navigate } from "react-router-dom";
 
 const Index = () => {
-  return <JournalEditor />;
+  return <Navigate to="/" replace />;
 };
 
 export default Index;
