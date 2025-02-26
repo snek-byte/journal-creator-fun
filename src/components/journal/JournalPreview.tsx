@@ -69,7 +69,7 @@ export function JournalPreview({
   );
 
   return (
-    <div className="w-full lg:w-3/4 p-6 relative print:w-full print:p-0 min-h-[500px]">
+    <div className="w-full lg:w-3/4 p-6 relative print:w-full print:p-0 min-h-[800px]">
       <div className="absolute top-4 right-4 z-10 flex gap-2 print:hidden">
         <Button
           onClick={onTogglePreview}
