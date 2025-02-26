@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useJournalStore } from '@/store/journalStore';
@@ -49,19 +50,14 @@ export function JournalEditor() {
                 <div className="flex items-center gap-2">
                   <button 
                     onClick={loadChallenge}
-                    className="text-yellow-600 hover:text-yellow-700 transition-colors group"
-                    title="Get a new prompt"
+                    className="text-yellow-600 hover:text-yellow-700 transition-colors"
                   >
                     <RotateCw className="h-4 w-4" />
                   </button>
                   <span className="text-sm font-medium text-yellow-800">+20 XP</span>
                 </div>
               </div>
-              <p className="mb-2 text-gray-600">{dailyChallenge.prompt}</p>
-              <p className="text-xs text-gray-500 mb-4 flex items-center gap-1">
-                <RotateCw className="h-3 w-3" />
-                Click the refresh icon to get a different prompt
-              </p>
+              <p className="mb-4 text-gray-600">{dailyChallenge.prompt}</p>
               <Button 
                 className="w-full bg-white hover:bg-gray-50 text-gray-900 border border-gray-200"
                 variant="ghost"
