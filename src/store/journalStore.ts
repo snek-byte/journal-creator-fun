@@ -253,18 +253,24 @@ export const useJournalStore = create<JournalState>()(
           "What's something you're looking forward to?",
           "Describe your perfect day",
           "What's a skill you'd like to develop?",
-          "Write about someone who inspires you"
+          "Write about someone who inspires you",
+          "Share a memorable conversation you had recently",
+          "What's your favorite place and why?",
+          "Write about a goal you're working towards",
+          "Describe a moment that changed your perspective",
+          "What are you grateful for today?",
+          "Write about a lesson you learned the hard way",
+          "Share a dream or aspiration you have",
+          "What makes you feel most alive?"
         ];
         
         const today = new Date().toDateString();
-        const promptIndex = Math.floor(
-          new Date(today).getTime() / (1000 * 60 * 60 * 24)
-        ) % prompts.length;
+        const randomIndex = Math.floor(Math.random() * prompts.length);
         
         set({
           dailyChallenge: {
-            id: `challenge-${today}`,
-            prompt: prompts[promptIndex],
+            id: `challenge-${today}-${randomIndex}`,
+            prompt: prompts[randomIndex],
             date: today,
             xpReward: 20
           }

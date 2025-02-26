@@ -3,16 +3,18 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useJournalStore } from '@/store/journalStore';
 import { useEffect } from 'react';
-import { Printer } from 'lucide-react';
+import { Printer, RefreshCcw } from 'lucide-react';
 import { MoodSelector } from './journal/MoodSelector';
 import { JournalStylingControls } from './journal/JournalStylingControls';
 import { JournalPreview } from './journal/JournalPreview';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import type { Mood } from '@/types/journal';
 
 export function JournalEditor() {
   const {
     currentEntry,
     showPreview,
+    dailyChallenge,
     setText,
     setFont,
     setFontSize,
@@ -24,6 +26,7 @@ export function JournalEditor() {
     togglePreview,
     saveEntry,
     loadChallenge,
+    applyChallenge,
   } = useJournalStore();
 
   useEffect(() => {
@@ -38,6 +41,37 @@ export function JournalEditor() {
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
       <div className="w-full lg:w-1/3 p-6 border-r bg-white print:hidden">
         <div className="space-y-6">
+          {dailyChallenge && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg">Daily Challenge</CardTitle>
+                    <CardDescription>+20 XP</CardDescription>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={loadChallenge}
+                    className="h-8 w-8"
+                  >
+                    <RefreshCcw className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-3">
+                <p className="mb-4">{dailyChallenge.prompt}</p>
+                <Button 
+                  variant="secondary" 
+                  className="w-full"
+                  onClick={applyChallenge}
+                >
+                  Use This Prompt
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
           <MoodSelector
             mood={currentEntry.mood}
             isPublic={currentEntry.isPublic}
