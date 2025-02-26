@@ -49,6 +49,9 @@ export function JournalPreview({
           ref={previewRef}
           style={{
             backgroundImage: gradient,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
             WebkitPrintColorAdjust: 'exact',
             printColorAdjust: 'exact',
           }}
