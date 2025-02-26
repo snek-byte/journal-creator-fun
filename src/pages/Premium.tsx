@@ -100,7 +100,8 @@ export default function Premium() {
                   </div>
                 )}
               </Card>
-            ))}
+            );
+          })}
         </div>
       </div>
     </div>
