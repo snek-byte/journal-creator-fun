@@ -7,8 +7,6 @@ import { Printer, Lightbulb, RotateCw } from 'lucide-react';
 import { MoodSelector } from './journal/MoodSelector';
 import { JournalStylingControls } from './journal/JournalStylingControls';
 import { JournalPreview } from './journal/JournalPreview';
-import { TextStyleSelector } from './journal/TextStyleSelector';
-import { transformText } from '@/utils/unicodeTextStyles';
 import type { Mood } from '@/types/journal';
 
 export function JournalEditor() {
@@ -23,7 +21,6 @@ export function JournalEditor() {
     setFontColor,
     setGradient,
     setMood,
-    setTextStyle,
     setIsPublic,
     togglePreview,
     saveEntry,
@@ -39,13 +36,9 @@ export function JournalEditor() {
     window.print();
   };
 
-  const displayText = currentEntry.textStyle 
-    ? transformText(currentEntry.text, currentEntry.textStyle as any)
-    : currentEntry.text;
-
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-      <div className="w-full lg:w-1/4 p-6 border-r bg-white print:hidden">
+      <div className="w-full lg:w-1/3 p-6 border-r bg-white print:hidden">
         <div className="space-y-6">
           {dailyChallenge && (
             <div className="rounded-lg border border-yellow-200 bg-yellow-50/50 p-4">
@@ -76,16 +69,33 @@ export function JournalEditor() {
             </div>
           )}
 
+          <div className="rounded-lg border border-pink-200 bg-pink-50/50 p-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <svg className="h-4 w-4 text-pink-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 8V16M12 16L16 12M12 16L8 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <h3 className="font-medium">Progress</h3>
+              </div>
+              <span className="text-sm font-medium">0 XP</span>
+            </div>
+            <div className="space-y-2 text-sm text-gray-600">
+              <div className="flex justify-between">
+                <span>Current Streak:</span>
+                <span>0 days</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Total Entries:</span>
+                <span>0</span>
+              </div>
+            </div>
+          </div>
+
           <MoodSelector
             mood={currentEntry.mood}
             isPublic={currentEntry.isPublic}
             onMoodChange={(mood: Mood) => setMood(mood)}
             onIsPublicChange={setIsPublic}
-          />
-
-          <TextStyleSelector
-            value={currentEntry.textStyle || ''}
-            onChange={setTextStyle}
           />
 
           <JournalStylingControls
@@ -122,7 +132,7 @@ export function JournalEditor() {
 
       <JournalPreview
         showPreview={showPreview}
-        text={displayText}
+        text={currentEntry.text}
         mood={currentEntry.mood}
         font={currentEntry.font}
         fontSize={currentEntry.fontSize}
