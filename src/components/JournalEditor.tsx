@@ -22,6 +22,7 @@ export function JournalEditor() {
     setGradient,
     setMood,
     setIsPublic,
+    setTextStyle,
     togglePreview,
     saveEntry,
     loadChallenge,
@@ -109,6 +110,7 @@ export function JournalEditor() {
             onFontWeightChange={setFontWeight}
             onFontColorChange={setFontColor}
             onGradientChange={setGradient}
+            onTextStyleChange={setTextStyle}
           />
 
           <Textarea
@@ -139,6 +141,7 @@ export function JournalEditor() {
         fontWeight={currentEntry.fontWeight}
         fontColor={currentEntry.fontColor}
         gradient={currentEntry.gradient}
+        textStyle={currentEntry.textStyle}
         onTogglePreview={togglePreview}
       />
     </div>

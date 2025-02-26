@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from 'lucide-react';
 import { moodOptions } from './config/editorConfig';
 import type { Mood } from '@/types/journal';
+import { applyTextStyle } from '@/utils/unicodeTextStyles';
 
 interface JournalPreviewProps {
   showPreview: boolean;
@@ -14,6 +15,7 @@ interface JournalPreviewProps {
   fontWeight: string;
   fontColor: string;
   gradient: string;
+  textStyle?: string;
   onTogglePreview: () => void;
 }
 
@@ -26,9 +28,11 @@ export function JournalPreview({
   fontWeight,
   fontColor,
   gradient,
+  textStyle = 'normal',
   onTogglePreview,
 }: JournalPreviewProps) {
   const previewRef = useRef<HTMLDivElement>(null);
+  const transformedText = applyTextStyle(text, textStyle as any);
 
   return (
     <div className="w-full lg:w-2/3 p-6 relative print:w-full print:p-0">
@@ -65,7 +69,7 @@ export function JournalPreview({
               }}
               className="w-full h-full whitespace-pre-wrap"
             >
-              {text || "Start writing your journal entry..."}
+              {transformedText || "Start writing your journal entry..."}
             </div>
           </div>
         </div>

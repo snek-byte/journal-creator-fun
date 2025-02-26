@@ -14,6 +14,7 @@ export interface JournalEntry {
   moodNote?: string;
   isPublic: boolean;
   challengeId?: string;
+  textStyle?: string;
 }
 
 export interface Challenge {

@@ -1,6 +1,7 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { fontOptions, fontSizes, fontWeights, gradients } from "./config/editorConfig";
+import { textStyles } from "@/utils/unicodeTextStyles";
 
 interface JournalStylingControlsProps {
   font: string;
@@ -13,6 +14,7 @@ interface JournalStylingControlsProps {
   onFontWeightChange: (value: string) => void;
   onFontColorChange: (value: string) => void;
   onGradientChange: (value: string) => void;
+  onTextStyleChange: (value: string) => void;
 }
 
 export function JournalStylingControls({
@@ -26,9 +28,26 @@ export function JournalStylingControls({
   onFontWeightChange,
   onFontColorChange,
   onGradientChange,
+  onTextStyleChange,
 }: JournalStylingControlsProps) {
   return (
     <div className="space-y-6">
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Text Style</label>
+        <Select onValueChange={onTextStyleChange} defaultValue="normal">
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {textStyles.map((style) => (
+              <SelectItem key={style.value} value={style.value}>
+                {style.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="space-y-2">
         <label className="text-sm font-medium">Font Family</label>
         <Select value={font} onValueChange={onFontChange}>
