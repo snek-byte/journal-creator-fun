@@ -1,9 +1,20 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { useJournalStore } from '@/store/journalStore';
-import { useRef } from 'react';
-import { Eye, EyeOff, Printer } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { Eye, EyeOff, Printer, LightbulbIcon, Award, Trophy } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
+import type { Mood } from '@/types/journal';
+
+const moodOptions: { value: Mood; label: string; icon: string }[] = [
+  { value: 'happy', label: 'Happy', icon: '😊' },
+  { value: 'sad', label: 'Sad', icon: '😢' },
+  { value: 'stressed', label: 'Stressed', icon: '😰' },
+  { value: 'calm', label: 'Calm', icon: '😌' },
+  { value: 'neutral', label: 'Neutral', icon: '😐' }
+];
 
 const fontOptions = [
   { value: 'inter', label: 'Inter' },
@@ -114,12 +125,9 @@ const gradients = [
 
 export function JournalEditor() {
   const {
-    text,
-    font,
-    fontSize,
-    fontWeight,
-    fontColor,
-    gradient,
+    currentEntry,
+    dailyChallenge,
+    progress,
     showPreview,
     setText,
     setFont,
@@ -127,10 +135,20 @@ export function JournalEditor() {
     setFontWeight,
     setFontColor,
     setGradient,
+    setMood,
+    setMoodNote,
+    setIsPublic,
     togglePreview,
+    saveEntry,
+    loadChallenge,
+    applyChallenge
   } = useJournalStore();
 
   const previewRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    loadChallenge();
+  }, []);
 
   const handlePrint = () => {
     window.print();
@@ -139,10 +157,81 @@ export function JournalEditor() {
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
       <div className="w-full lg:w-1/3 p-6 border-r bg-white print:hidden">
+        {dailyChallenge && (
+          <div className="mb-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <LightbulbIcon className="w-5 h-5 text-amber-500" />
+                Daily Challenge
+              </h3>
+              <Badge variant="secondary">+20 XP</Badge>
+            </div>
+            <p className="text-sm text-gray-600 mb-3">{dailyChallenge.prompt}</p>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={applyChallenge}
+            >
+              Use This Prompt
+            </Button>
+          </div>
+        )}
+
+        <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-purple-500" />
+              Progress
+            </h3>
+            <Badge variant="secondary">
+              {progress.totalXp} XP
+            </Badge>
+          </div>
+          <div className="text-sm text-gray-600">
+            <div className="flex justify-between mb-1">
+              <span>Current Streak:</span>
+              <span>{progress.currentStreak} days</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Total Entries:</span>
+              <span>{progress.totalEntries}</span>
+            </div>
+          </div>
+        </div>
+
         <div className="space-y-6">
           <div className="space-y-2">
+            <label className="text-sm font-medium">How are you feeling?</label>
+            <Select 
+              value={currentEntry.mood} 
+              onValueChange={(value: Mood) => setMood(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select your mood" />
+              </SelectTrigger>
+              <SelectContent>
+                {moodOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    <span className="flex items-center gap-2">
+                      {option.icon} {option.label}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium">Make Entry Public</label>
+            <Switch
+              checked={currentEntry.isPublic}
+              onCheckedChange={setIsPublic}
+            />
+          </div>
+
+          <div className="space-y-2">
             <label className="text-sm font-medium">Font Family</label>
-            <Select value={font} onValueChange={setFont}>
+            <Select value={currentEntry.font} onValueChange={setFont}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -158,7 +247,7 @@ export function JournalEditor() {
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Font Size</label>
-            <Select value={fontSize} onValueChange={setFontSize}>
+            <Select value={currentEntry.fontSize} onValueChange={setFontSize}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -174,7 +263,7 @@ export function JournalEditor() {
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Font Weight</label>
-            <Select value={fontWeight} onValueChange={setFontWeight}>
+            <Select value={currentEntry.fontWeight} onValueChange={setFontWeight}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -192,7 +281,7 @@ export function JournalEditor() {
             <label className="text-sm font-medium">Font Color</label>
             <input
               type="color"
-              value={fontColor}
+              value={currentEntry.fontColor}
               onChange={(e) => setFontColor(e.target.value)}
               className="w-full h-10 rounded-md cursor-pointer"
             />
@@ -200,7 +289,7 @@ export function JournalEditor() {
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Background</label>
-            <Select value={gradient} onValueChange={setGradient}>
+            <Select value={currentEntry.gradient} onValueChange={setGradient}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -216,15 +305,20 @@ export function JournalEditor() {
 
           <Textarea
             placeholder="Start writing your journal entry..."
-            value={text}
+            value={currentEntry.text}
             onChange={(e) => setText(e.target.value)}
             className="min-h-[200px] resize-none"
           />
 
-          <Button onClick={handlePrint} className="w-full">
-            <Printer className="w-4 h-4 mr-2" />
-            Print Journal
-          </Button>
+          <div className="flex gap-4">
+            <Button onClick={saveEntry} className="flex-1">
+              Save Entry
+            </Button>
+            <Button onClick={handlePrint} variant="outline" className="flex-1">
+              <Printer className="w-4 h-4 mr-2" />
+              Print
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -241,23 +335,28 @@ export function JournalEditor() {
           <div
             ref={previewRef}
             style={{
-              backgroundImage: gradient,
+              backgroundImage: currentEntry.gradient,
               WebkitPrintColorAdjust: 'exact',
               printColorAdjust: 'exact',
             }}
             className="w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn print:shadow-none print:rounded-none print:min-h-screen"
           >
             <div className="w-full h-full p-8">
+              {currentEntry.mood && (
+                <div className="mb-4 text-lg">
+                  Mood: {moodOptions.find(m => m.value === currentEntry.mood)?.icon}
+                </div>
+              )}
               <div
                 style={{
-                  fontFamily: font,
-                  fontSize,
-                  fontWeight,
-                  color: fontColor,
+                  fontFamily: currentEntry.font,
+                  fontSize: currentEntry.fontSize,
+                  fontWeight: currentEntry.fontWeight,
+                  color: currentEntry.fontColor,
                 }}
                 className="w-full h-full whitespace-pre-wrap"
               >
-                {text || "Start writing your journal entry..."}
+                {currentEntry.text || "Start writing your journal entry..."}
               </div>
             </div>
           </div>
