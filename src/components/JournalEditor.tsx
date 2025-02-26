@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useJournalStore } from '@/store/journalStore';
 import { useEffect } from 'react';
-import { Printer, Lightbulb } from 'lucide-react';
+import { Printer, Lightbulb, RotateCw } from 'lucide-react';
 import { MoodSelector } from './journal/MoodSelector';
 import { JournalStylingControls } from './journal/JournalStylingControls';
 import { JournalPreview } from './journal/JournalPreview';
@@ -47,7 +47,15 @@ export function JournalEditor() {
                   <Lightbulb className="h-4 w-4 text-yellow-600" />
                   <h3 className="font-medium">Daily Challenge</h3>
                 </div>
-                <span className="text-sm font-medium text-yellow-800">+20 XP</span>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={loadChallenge}
+                    className="text-yellow-600 hover:text-yellow-700 transition-colors"
+                  >
+                    <RotateCw className="h-4 w-4" />
+                  </button>
+                  <span className="text-sm font-medium text-yellow-800">+20 XP</span>
+                </div>
               </div>
               <p className="mb-4 text-gray-600">{dailyChallenge.prompt}</p>
               <Button 
