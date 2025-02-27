@@ -19,11 +19,11 @@ export function DailyChallenge({ prompt, onRefresh, onApply }: DailyChallengePro
         <Button
           variant="ghost"
           size="icon"
-          className="h-5 w-5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-0 -mr-1"
+          className="h-4 w-4 text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-0 -mr-2"
           onClick={onRefresh}
           title="Get a new challenge"
         >
-          <RotateCcw className="h-2.5 w-2.5" />
+          <RotateCcw className="h-2 w-2" />
         </Button>
       </div>
       
