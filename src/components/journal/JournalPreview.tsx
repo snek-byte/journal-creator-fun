@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Pencil } from 'lucide-react';
@@ -72,20 +71,7 @@ export function JournalPreview({
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const [showIconControls, setShowIconControls] = useState(false);
   const [iconSize, setIconSize] = useState<number>(48);
-  
-  // Prevent form submission on button clicks
-  useEffect(() => {
-    const handleFormSubmit = (e: Event) => {
-      if (isDrawingMode) {
-        e.preventDefault();
-      }
-    };
-    
-    document.addEventListener('submit', handleFormSubmit);
-    return () => {
-      document.removeEventListener('submit', handleFormSubmit);
-    };
-  }, [isDrawingMode]);
+  const [hasActivePreview, setHasActivePreview] = useState(false);
 
   useEffect(() => {
     if (selectedIconId) {
@@ -95,6 +81,10 @@ export function JournalPreview({
       }
     }
   }, [selectedIconId, icons]);
+
+  useEffect(() => {
+    setHasActivePreview(showPreview);
+  }, [showPreview]);
 
   const getBackground = () => {
     if (backgroundImage) {
@@ -283,159 +273,11 @@ export function JournalPreview({
     setShowIconControls(false);
   };
 
-  // Toggle drawing mode
-  const toggleDrawingMode = (e: React.MouseEvent) => {
+  const handleDrawingToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDrawingMode(prev => !prev);
+    setIsDrawingMode(!isDrawingMode);
   };
-
-  const PreviewContent = () => (
-    <div
-      ref={previewRef}
-      style={{
-        background: getBackground(),
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        WebkitPrintColorAdjust: 'exact',
-        printColorAdjust: 'exact',
-      }}
-      className="w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn print:shadow-none print:rounded-none print:min-h-screen relative"
-      onClick={handleBackgroundClick}
-    >
-      {mood && (
-        <div className="absolute top-4 left-4 text-lg">
-          Mood: {moodOptions.find(m => m.value === mood)?.icon}
-        </div>
-      )}
-      
-      {isDrawingMode ? (
-        <DrawingLayer
-          width={previewRef.current?.clientWidth || 800}
-          height={previewRef.current?.clientHeight || 600}
-          className="absolute inset-0 z-50"
-          onDrawingChange={onDrawingChange}
-        />
-      ) : (
-        <>
-          <div
-            ref={textRef}
-            style={{
-              fontFamily: font,
-              fontSize,
-              fontWeight,
-              color: fontColor,
-              left: `${textPosition.x}%`,
-              top: `${textPosition.y}%`,
-              maxWidth: '80%',
-              transform: 'translate(0, 0)',
-              transformOrigin: 'top left',
-            }}
-            className={`absolute whitespace-pre-wrap p-6 cursor-move select-none transition-colors rounded-lg
-              ${isTextDragging ? 'bg-black/5 ring-2 ring-primary/30' : 'hover:bg-black/5'}
-            `}
-            onMouseDown={handleTextMouseDown}
-            onTouchStart={handleTextTouchStart}
-          >
-            {textStyle && textStyle !== 'normal' 
-              ? applyTextStyle(text || "Start writing your journal entry...", textStyle as any) 
-              : (text || "Start writing your journal entry...")}
-          </div>
-          
-          {stickers.map((sticker) => (
-            <img
-              key={sticker.id}
-              src={sticker.url}
-              alt={sticker.id}
-              style={{
-                left: `${sticker.position.x}%`,
-                top: `${sticker.position.y}%`,
-                transform: 'translate(-50%, -50%)',
-              }}
-              className={`absolute w-16 h-16 cursor-move transition-all hover:ring-2 hover:ring-primary
-                ${selectedStickerId === sticker.id ? 'ring-2 ring-primary' : ''}
-              `}
-              draggable={false}
-              onMouseDown={(e) => handleStickerMouseDown(e, sticker.id)}
-            />
-          ))}
-
-          {icons.map((icon) => (
-            <img
-              key={icon.id}
-              src={icon.url}
-              alt={icon.id}
-              style={{
-                left: `${icon.position.x}%`,
-                top: `${icon.position.y}%`,
-                transform: 'translate(-50%, -50%)',
-                width: `${icon.size || 48}px`,
-                height: `${icon.size || 48}px`,
-                color: icon.color,
-              }}
-              className={`absolute cursor-move transition-all hover:ring-2 hover:ring-primary
-                ${selectedIconId === icon.id ? 'ring-2 ring-primary' : ''}
-              `}
-              draggable={false}
-              onMouseDown={(e) => handleIconMouseDown(e, icon.id)}
-            />
-          ))}
-          
-          {selectedStickerId && showDeleteButton && (
-            <Button
-              variant="destructive"
-              size="sm"
-              className="absolute z-10 right-4 bottom-4"
-              onClick={handleRemoveSticker}
-              type="button"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Remove Sticker
-            </Button>
-          )}
-          
-          {selectedIconId && showIconControls && (
-            <div className="absolute z-10 right-4 bottom-4 flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleIconSizeChange(false)}
-                type="button"
-              >
-                <MinusSquare className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleIconSizeChange(true)}
-                type="button"
-              >
-                <PlusSquare className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleRemoveIcon}
-                type="button"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
-
-          {drawing && (
-            <img
-              src={drawing}
-              alt="Journal drawing"
-              className="absolute inset-0 w-full h-full pointer-events-none"
-              style={{ mixBlendMode: 'multiply' }}
-            />
-          )}
-        </>
-      )}
-    </div>
-  );
 
   return (
     <div className="w-full lg:w-3/4 p-6 relative print:w-full print:p-0 min-h-[800px]">
@@ -444,7 +286,7 @@ export function JournalPreview({
         <IconSelector onIconSelect={handleIconAdd} />
         <BackgroundImageSelector onImageSelect={onBackgroundSelect} />
         <Button
-          onClick={toggleDrawingMode}
+          onClick={handleDrawingToggle}
           variant={isDrawingMode ? "secondary" : "ghost"}
           size="icon"
           title={isDrawingMode ? "Exit drawing mode" : "Enter drawing mode"}
@@ -469,13 +311,300 @@ export function JournalPreview({
               </Button>
             </DialogTrigger>
             <DialogContent className="w-[90vw] h-[90vh] max-w-[90vw] max-h-[90vh]">
-              <PreviewContent />
+              <div
+                ref={previewRef}
+                style={{
+                  background: getBackground(),
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                  height: '100%',
+                }}
+                className="w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn print:shadow-none print:rounded-none print:min-h-screen relative"
+                onClick={handleBackgroundClick}
+              >
+                {mood && (
+                  <div className="absolute top-4 left-4 text-lg">
+                    Mood: {moodOptions.find(m => m.value === mood)?.icon}
+                  </div>
+                )}
+                
+                {isDrawingMode ? (
+                  <DrawingLayer
+                    width={previewRef.current?.clientWidth || 800}
+                    height={previewRef.current?.clientHeight || 600}
+                    className="absolute inset-0 z-50"
+                    onDrawingChange={onDrawingChange}
+                  />
+                ) : (
+                  <>
+                    <div
+                      ref={textRef}
+                      style={{
+                        fontFamily: font,
+                        fontSize,
+                        fontWeight,
+                        color: fontColor,
+                        left: `${textPosition.x}%`,
+                        top: `${textPosition.y}%`,
+                        maxWidth: '80%',
+                        transform: 'translate(0, 0)',
+                        transformOrigin: 'top left',
+                      }}
+                      className={`absolute whitespace-pre-wrap p-6 cursor-move select-none transition-colors rounded-lg
+                        ${isTextDragging ? 'bg-black/5 ring-2 ring-primary/30' : 'hover:bg-black/5'}
+                      `}
+                      onMouseDown={handleTextMouseDown}
+                      onTouchStart={handleTextTouchStart}
+                    >
+                      {textStyle && textStyle !== 'normal' 
+                        ? applyTextStyle(text || "Start writing your journal entry...", textStyle as any) 
+                        : (text || "Start writing your journal entry...")}
+                    </div>
+                    
+                    {stickers.map((sticker) => (
+                      <img
+                        key={sticker.id}
+                        src={sticker.url}
+                        alt={sticker.id}
+                        style={{
+                          left: `${sticker.position.x}%`,
+                          top: `${sticker.position.y}%`,
+                          transform: 'translate(-50%, -50%)',
+                        }}
+                        className={`absolute w-16 h-16 cursor-move transition-all hover:ring-2 hover:ring-primary
+                          ${selectedStickerId === sticker.id ? 'ring-2 ring-primary' : ''}
+                        `}
+                        draggable={false}
+                        onMouseDown={(e) => handleStickerMouseDown(e, sticker.id)}
+                      />
+                    ))}
+
+                    {icons.map((icon) => (
+                      <img
+                        key={icon.id}
+                        src={icon.url}
+                        alt={icon.id}
+                        style={{
+                          left: `${icon.position.x}%`,
+                          top: `${icon.position.y}%`,
+                          transform: 'translate(-50%, -50%)',
+                          width: `${icon.size || 48}px`,
+                          height: `${icon.size || 48}px`,
+                          color: icon.color,
+                        }}
+                        className={`absolute cursor-move transition-all hover:ring-2 hover:ring-primary
+                          ${selectedIconId === icon.id ? 'ring-2 ring-primary' : ''}
+                        `}
+                        draggable={false}
+                        onMouseDown={(e) => handleIconMouseDown(e, icon.id)}
+                      />
+                    ))}
+                    
+                    {selectedStickerId && showDeleteButton && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="absolute z-10 right-4 bottom-4"
+                        onClick={handleRemoveSticker}
+                        type="button"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Remove Sticker
+                      </Button>
+                    )}
+                    
+                    {selectedIconId && showIconControls && (
+                      <div className="absolute z-10 right-4 bottom-4 flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleIconSizeChange(false)}
+                          type="button"
+                        >
+                          <MinusSquare className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleIconSizeChange(true)}
+                          type="button"
+                        >
+                          <PlusSquare className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={handleRemoveIcon}
+                          type="button"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
+
+                    {drawing && (
+                      <img
+                        src={drawing}
+                        alt="Journal drawing"
+                        className="absolute inset-0 w-full h-full pointer-events-none"
+                        style={{ mixBlendMode: 'multiply' }}
+                      />
+                    )}
+                  </>
+                )}
+              </div>
             </DialogContent>
           </Dialog>
         )}
       </div>
 
-      {showPreview && <PreviewContent />}
+      {showPreview && (
+        <div
+          ref={previewRef}
+          style={{
+            background: getBackground(),
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            WebkitPrintColorAdjust: 'exact',
+            printColorAdjust: 'exact',
+          }}
+          className="w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn print:shadow-none print:rounded-none print:min-h-screen relative"
+          onClick={handleBackgroundClick}
+        >
+          {mood && (
+            <div className="absolute top-4 left-4 text-lg">
+              Mood: {moodOptions.find(m => m.value === mood)?.icon}
+            </div>
+          )}
+          
+          {isDrawingMode ? (
+            <DrawingLayer
+              width={previewRef.current?.clientWidth || 800}
+              height={previewRef.current?.clientHeight || 600}
+              className="absolute inset-0 z-50"
+              onDrawingChange={onDrawingChange}
+            />
+          ) : (
+            <>
+              <div
+                ref={textRef}
+                style={{
+                  fontFamily: font,
+                  fontSize,
+                  fontWeight,
+                  color: fontColor,
+                  left: `${textPosition.x}%`,
+                  top: `${textPosition.y}%`,
+                  maxWidth: '80%',
+                  transform: 'translate(0, 0)',
+                  transformOrigin: 'top left',
+                }}
+                className={`absolute whitespace-pre-wrap p-6 cursor-move select-none transition-colors rounded-lg
+                  ${isTextDragging ? 'bg-black/5 ring-2 ring-primary/30' : 'hover:bg-black/5'}
+                `}
+                onMouseDown={handleTextMouseDown}
+                onTouchStart={handleTextTouchStart}
+              >
+                {textStyle && textStyle !== 'normal' 
+                  ? applyTextStyle(text || "Start writing your journal entry...", textStyle as any) 
+                  : (text || "Start writing your journal entry...")}
+              </div>
+              
+              {stickers.map((sticker) => (
+                <img
+                  key={sticker.id}
+                  src={sticker.url}
+                  alt={sticker.id}
+                  style={{
+                    left: `${sticker.position.x}%`,
+                    top: `${sticker.position.y}%`,
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                  className={`absolute w-16 h-16 cursor-move transition-all hover:ring-2 hover:ring-primary
+                    ${selectedStickerId === sticker.id ? 'ring-2 ring-primary' : ''}
+                  `}
+                  draggable={false}
+                  onMouseDown={(e) => handleStickerMouseDown(e, sticker.id)}
+                />
+              ))}
+
+              {icons.map((icon) => (
+                <img
+                  key={icon.id}
+                  src={icon.url}
+                  alt={icon.id}
+                  style={{
+                    left: `${icon.position.x}%`,
+                    top: `${icon.position.y}%`,
+                    transform: 'translate(-50%, -50%)',
+                    width: `${icon.size || 48}px`,
+                    height: `${icon.size || 48}px`,
+                    color: icon.color,
+                  }}
+                  className={`absolute cursor-move transition-all hover:ring-2 hover:ring-primary
+                    ${selectedIconId === icon.id ? 'ring-2 ring-primary' : ''}
+                  `}
+                  draggable={false}
+                  onMouseDown={(e) => handleIconMouseDown(e, icon.id)}
+                />
+              ))}
+              
+              {selectedStickerId && showDeleteButton && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="absolute z-10 right-4 bottom-4"
+                  onClick={handleRemoveSticker}
+                  type="button"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Remove Sticker
+                </Button>
+              )}
+              
+              {selectedIconId && showIconControls && (
+                <div className="absolute z-10 right-4 bottom-4 flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleIconSizeChange(false)}
+                    type="button"
+                  >
+                    <MinusSquare className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleIconSizeChange(true)}
+                    type="button"
+                  >
+                    <PlusSquare className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleRemoveIcon}
+                    type="button"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+
+              {drawing && (
+                <img
+                  src={drawing}
+                  alt="Journal drawing"
+                  className="absolute inset-0 w-full h-full pointer-events-none"
+                  style={{ mixBlendMode: 'multiply' }}
+                />
+              )}
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

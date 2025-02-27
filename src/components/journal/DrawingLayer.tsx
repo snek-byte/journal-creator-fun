@@ -39,9 +39,12 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
   const [redoStack, setRedoStack] = useState<string[]>([]);
   const [currentColor, setCurrentColor] = useState('#000000');
   const [lineWidth, setLineWidth] = useState(2);
+  const hasInitialized = useRef(false);
 
   // Initialize canvas only once on component mount
   useEffect(() => {
+    if (hasInitialized.current) return;
+    
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -54,14 +57,14 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    // Save initial state
-    const dataUrl = canvas.toDataURL();
-    setUndoStack([dataUrl]);
+    // Clear the canvas to ensure it's empty on mount
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Only call onDrawingChange if there's actual drawing data
-    if (dataUrl && dataUrl !== 'data:,') {
-      onDrawingChange?.(dataUrl);
-    }
+    // Initialize the undo stack with an empty canvas state
+    const emptyState = canvas.toDataURL();
+    setUndoStack([emptyState]);
+    
+    hasInitialized.current = true;
   }, []);
 
   // Update stroke style when color or erasing mode changes
@@ -75,14 +78,16 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
 
   const saveState = () => {
     if (!canvasRef.current) return;
+    if (!isDrawing) return; // Only save state when we've actually drawn something
+    
     const dataUrl = canvasRef.current.toDataURL();
     
-    // Only update state if we're not already processing
     setUndoStack(prev => [...prev, dataUrl]);
     setRedoStack([]);
     
-    if (dataUrl && dataUrl !== 'data:,') {
-      onDrawingChange?.(dataUrl);
+    // Only call onDrawingChange if there's an actual change
+    if (onDrawingChange && dataUrl !== undoStack[0]) {
+      onDrawingChange(dataUrl);
     }
   };
 
@@ -115,11 +120,11 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
   };
 
   const stopDrawing = () => {
-    if (isDrawing) {
-      setIsDrawing(false);
-      setLastPoint(null);
-      saveState();
-    }
+    if (!isDrawing) return;
+    
+    setIsDrawing(false);
+    setLastPoint(null);
+    saveState();
   };
 
   const getPoint = (e: React.MouseEvent | React.TouchEvent): Point => {
@@ -177,7 +182,9 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
     img.onload = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
-      onDrawingChange?.(dataUrl);
+      if (onDrawingChange) {
+        onDrawingChange(dataUrl);
+      }
     };
     img.src = dataUrl;
   };
@@ -190,7 +197,14 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
     if (!ctx) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    saveState();
+    
+    const emptyState = canvas.toDataURL();
+    setUndoStack([emptyState]);
+    setRedoStack([]);
+    
+    if (onDrawingChange) {
+      onDrawingChange('');
+    }
   };
 
   const handleLineWidthChange = (newWidth: number) => {
@@ -206,7 +220,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
       <div className="absolute top-2 left-2 flex flex-col gap-2 z-10 bg-white/80 p-2 rounded-lg shadow-sm">
         <div className="flex gap-2">
           <Button
-            variant={isErasing ? "secondary" : "ghost"}
+            variant={!isErasing ? "secondary" : "ghost"}
             size="icon"
             className="h-8 w-8"
             onClick={() => setIsErasing(false)}
@@ -215,7 +229,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
             <Paintbrush className="h-4 w-4" />
           </Button>
           <Button
-            variant={isErasing ? "ghost" : "secondary"}
+            variant={isErasing ? "secondary" : "ghost"}
             size="icon"
             className="h-8 w-8"
             onClick={() => setIsErasing(true)}
