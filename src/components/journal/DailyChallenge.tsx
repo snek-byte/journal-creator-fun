@@ -11,39 +11,44 @@ interface DailyChallengeProps {
 
 export function DailyChallenge({ prompt, onRefresh, onApply }: DailyChallengeProps) {
   return (
-    <Card className="border-none shadow-none bg-transparent">
-      <CardHeader className="p-0 space-y-1">
+    <Card className="border-none shadow-none bg-gradient-to-br from-amber-50 to-orange-50">
+      <CardHeader className="p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <Zap className="h-4 w-4 mr-1 text-amber-500" />
-            <CardTitle className="text-sm font-medium text-gray-600">Daily Challenge</CardTitle>
-            <span className="ml-1 text-sm text-amber-500 font-medium">+20 XP</span>
+          <div className="flex items-center space-x-1.5">
+            <Zap className="h-3.5 w-3.5 text-amber-500" />
+            <span className="text-xs font-medium text-amber-600">+20 XP</span>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6"
+            className="h-6 w-6 text-amber-600 hover:text-amber-700 hover:bg-amber-100"
             onClick={onRefresh}
             title="Get a new challenge"
           >
             <RotateCcw className="h-3 w-3" />
           </Button>
         </div>
-        <CardDescription className="text-sm font-medium text-gray-700 mt-1">
-          {prompt}
-        </CardDescription>
-      </CardHeader>
+        
+        <div>
+          <CardTitle className="text-base font-medium text-gray-900 mb-2">
+            Daily Writing Challenge
+          </CardTitle>
+          <CardDescription className="text-base font-normal text-gray-700 leading-relaxed">
+            {prompt}
+          </CardDescription>
+        </div>
       
-      <div className="flex justify-end mt-3">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onApply}
-          className="text-xs px-2 py-1 h-7"
-        >
-          Use this prompt
-        </Button>
-      </div>
+        <div className="flex justify-end pt-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onApply}
+            className="text-sm font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-100"
+          >
+            Use this prompt
+          </Button>
+        </div>
+      </CardHeader>
     </Card>
   );
 }
