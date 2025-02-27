@@ -30,8 +30,8 @@ export function DailyChallenge({ prompt, onRefresh, onApply }: DailyChallengePro
           </Button>
         </div>
         
-        <CardDescription className="text-sm font-medium text-gray-800 my-1 italic">
-          {prompt}
+        <CardDescription className="text-sm font-medium text-gray-800 my-1 italic font-dancing-script">
+          "{prompt}"
         </CardDescription>
         
         <div className="flex justify-end mt-3">
