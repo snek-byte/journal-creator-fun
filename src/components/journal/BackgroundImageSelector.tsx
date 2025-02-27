@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
@@ -20,7 +19,6 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
-  // Define sets of curated backgrounds
   const imageSets = {
     nature: [
       { name: 'Mountain Lake', url: 'https://images.unsplash.com/photo-1439853949127-fa647821eba0?auto=format&fit=crop&w=800&q=80' },
@@ -39,51 +37,68 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
       { name: 'Paper', url: 'https://images.unsplash.com/photo-1516541196182-6bdb0516ed27?auto=format&fit=crop&w=800&q=80' },
       { name: 'Marble', url: 'https://images.unsplash.com/photo-1566041510639-8d95a2490bfb?auto=format&fit=crop&w=800&q=80' },
       { name: 'Concrete', url: 'https://images.unsplash.com/photo-1514483127413-f72f273478c3?auto=format&fit=crop&w=800&q=80' }
+    ],
+    paper: [
+      { name: 'Classic Paper', url: 'https://images.unsplash.com/photo-1516541196182-6bdb0516ed27?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Vintage Paper', url: 'https://images.unsplash.com/photo-1587614298871-5c1c03aef307?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Textured Paper', url: 'https://images.unsplash.com/photo-1583484963886-cfe2bff2945f?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Kraft Paper', url: 'https://images.unsplash.com/photo-1517697471339-4aa32003c11a?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Handmade Paper', url: 'https://images.unsplash.com/photo-1582902281043-dcea5e78c682?auto=format&fit=crop&w=800&q=80' }
+    ],
+    illustrated: [
+      { name: 'Stylized Tech', url: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Modern Robot', url: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Digital Art', url: 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Code Art', url: 'https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&w=800&q=80' }
     ]
   };
 
   const [currentCategory, setCurrentCategory] = useState('nature');
   const [backgroundImages, setBackgroundImages] = useState(imageSets.nature);
 
-  // Handle gradient selection
   const handleGradientSelect = (gradient: string) => {
     setGradient(gradient);
-    setBackgroundImage(''); // Clear any existing background image
+    setBackgroundImage('');
     onImageSelect('');
     toast.success('Gradient background applied');
   };
 
-  // Handle background image selection
   const handleBackgroundSelect = (imageUrl: string) => {
     setBackgroundImage(imageUrl);
     onImageSelect(imageUrl);
     toast.success('Image background applied');
   };
 
-  // Handle search/category change
   const handleSearch = async () => {
     setIsLoading(true);
     try {
       const query = searchQuery.toLowerCase().trim();
       let newImages;
+      let category;
       
-      if (query === 'nature' || query === 'landscape' || query === 'mountain') {
+      if (query.includes('paper') || query.includes('texture')) {
+        newImages = imageSets.paper;
+        category = 'paper';
+      } else if (query.includes('art') || query.includes('illustration') || query.includes('digital')) {
+        newImages = imageSets.illustrated;
+        category = 'illustrated';
+      } else if (query.includes('nature') || query.includes('landscape')) {
         newImages = imageSets.nature;
-        setCurrentCategory('nature');
-      } else if (query === 'abstract' || query === 'art' || query === 'pattern') {
+        category = 'nature';
+      } else if (query.includes('abstract') || query.includes('pattern')) {
         newImages = imageSets.abstract;
-        setCurrentCategory('abstract');
-      } else if (query === 'minimal' || query === 'simple' || query === 'clean') {
+        category = 'abstract';
+      } else if (query.includes('minimal') || query.includes('simple')) {
         newImages = imageSets.minimal;
-        setCurrentCategory('minimal');
+        category = 'minimal';
       } else {
-        // Default to nature if no match
-        newImages = imageSets.nature;
-        setCurrentCategory('nature');
+        newImages = imageSets.paper;
+        category = 'paper';
       }
       
+      setCurrentCategory(category);
       setBackgroundImages(newImages);
-      toast.success(`Showing ${currentCategory} backgrounds`);
+      toast.success(`Showing ${category} backgrounds`);
     } catch (error) {
       console.error('Error changing category:', error);
       toast.error('Failed to load images');
@@ -92,15 +107,14 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
     }
   };
 
-  // Rotate through categories
   const shuffleImages = () => {
     setIsLoading(true);
     try {
-      const categories = ['nature', 'abstract', 'minimal'] as const;
+      const categories = ['nature', 'abstract', 'minimal', 'paper', 'illustrated'] as const;
       const currentIndex = categories.indexOf(currentCategory as any);
       const nextCategory = categories[(currentIndex + 1) % categories.length];
       setCurrentCategory(nextCategory);
-      setBackgroundImages(imageSets[nextCategory]);
+      setBackgroundImages(imageSets[nextCategory as keyof typeof imageSets]);
       toast.success(`Showing ${nextCategory} backgrounds`);
     } catch (error) {
       console.error('Error rotating categories:', error);
@@ -110,7 +124,6 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
     }
   };
 
-  // Handle image upload
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
