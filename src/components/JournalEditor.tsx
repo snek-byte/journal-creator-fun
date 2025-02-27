@@ -55,12 +55,16 @@ export function JournalEditor() {
   const [showProgress, setShowProgress] = useState(false);
 
   useEffect(() => {
-    loadChallenge();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user?.email) {
-        setEmailAddress(user.email);
-      }
-    });
+    try {
+      loadChallenge();
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user?.email) {
+          setEmailAddress(user.email);
+        }
+      });
+    } catch (error) {
+      console.error("Error loading initial data:", error);
+    }
   }, []);
 
   const handlePrint = () => {
@@ -68,60 +72,92 @@ export function JournalEditor() {
   };
 
   const handleStickerAdd = (sticker: Sticker) => {
-    addSticker(sticker);
+    try {
+      addSticker(sticker);
+    } catch (error) {
+      console.error("Error adding sticker:", error);
+    }
   };
 
   const handleIconAdd = (icon: Icon) => {
-    addIcon(icon);
-    toast.success('Icon added! Drag it to position on your journal.');
+    try {
+      addIcon(icon);
+      toast.success('Icon added! Drag it to position on your journal.');
+    } catch (error) {
+      console.error("Error adding icon:", error);
+    }
   };
 
   const handleStickerMove = (stickerId: string, position: { x: number, y: number }) => {
-    setStickers(
-      (currentEntry.stickers || []).map(s => 
-        s.id === stickerId ? { ...s, position } : s
-      )
-    );
+    try {
+      setStickers(
+        (currentEntry.stickers || []).map(s => 
+          s.id === stickerId ? { ...s, position } : s
+        )
+      );
+    } catch (error) {
+      console.error("Error moving sticker:", error);
+    }
   };
 
   const handleIconMove = (iconId: string, position: { x: number, y: number }) => {
-    setIcons(
-      (currentEntry.icons || []).map(i => 
-        i.id === iconId ? { ...i, position } : i
-      )
-    );
+    try {
+      setIcons(
+        (currentEntry.icons || []).map(i => 
+          i.id === iconId ? { ...i, position } : i
+        )
+      );
+    } catch (error) {
+      console.error("Error moving icon:", error);
+    }
   };
 
   const handleIconUpdate = (iconId: string, updates: Partial<Icon>) => {
-    updateIcon(iconId, updates);
+    try {
+      updateIcon(iconId, updates);
+    } catch (error) {
+      console.error("Error updating icon:", error);
+    }
   };
 
   const handleTextMove = (position: { x: number, y: number }) => {
-    setTextPosition(position);
+    try {
+      setTextPosition(position);
+    } catch (error) {
+      console.error("Error moving text:", error);
+    }
   };
 
   const handleBackgroundSelect = (imageUrl: string) => {
-    setBackgroundImage(imageUrl);
+    try {
+      setBackgroundImage(imageUrl);
+    } catch (error) {
+      console.error("Error selecting background:", error);
+    }
   };
 
   const handleEmojiSelect = (emojiData: EmojiClickData) => {
-    if (!textareaRef.current) return;
+    try {
+      if (!textareaRef.current) return;
 
-    const start = textareaRef.current.selectionStart;
-    const end = textareaRef.current.selectionEnd;
-    const text = currentEntry.text;
-    
-    const newText = text.substring(0, start) + emojiData.emoji + text.substring(end);
-    setText(newText);
-    
-    setTimeout(() => {
-      if (textareaRef.current) {
-        const newPosition = start + emojiData.emoji.length;
-        textareaRef.current.selectionStart = newPosition;
-        textareaRef.current.selectionEnd = newPosition;
-        textareaRef.current.focus();
-      }
-    }, 0);
+      const start = textareaRef.current.selectionStart;
+      const end = textareaRef.current.selectionEnd;
+      const text = currentEntry.text;
+      
+      const newText = text.substring(0, start) + emojiData.emoji + text.substring(end);
+      setText(newText);
+      
+      setTimeout(() => {
+        if (textareaRef.current) {
+          const newPosition = start + emojiData.emoji.length;
+          textareaRef.current.selectionStart = newPosition;
+          textareaRef.current.selectionEnd = newPosition;
+          textareaRef.current.focus();
+        }
+      }, 0);
+    } catch (error) {
+      console.error("Error selecting emoji:", error);
+    }
   };
 
   const handleSendEmail = async () => {

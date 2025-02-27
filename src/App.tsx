@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Write from "./pages/Write";
 import NotFound from "./pages/NotFound";
@@ -26,6 +26,7 @@ const App = () => {
         <TooltipProvider>
           <Routes>
             <Route path="/" element={<Write />} />
+            <Route path="/index" element={<Navigate to="/" replace />} />
             <Route path="/write" element={<Write />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/auth" element={<Auth />} />
