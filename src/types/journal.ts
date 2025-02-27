@@ -21,6 +21,18 @@ export interface Sticker {
   };
 }
 
+export interface Icon {
+  id: string;
+  url: string;
+  position: {
+    x: number;
+    y: number;
+  };
+  color?: string;
+  size?: number;
+  style: 'outline' | 'color';
+}
+
 export interface JournalEntry {
   id: number;
   date: string;
@@ -36,6 +48,7 @@ export interface JournalEntry {
   challengeId?: string;
   textStyle?: string;
   stickers: Sticker[];
+  icons: Icon[];
   textPosition?: {
     x: number;
     y: number;

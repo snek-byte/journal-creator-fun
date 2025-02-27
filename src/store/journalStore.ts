@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { JournalEntry, Challenge, Badge, UserProgress, Mood, Sticker } from '@/types/journal';
+import type { JournalEntry, Challenge, Badge, UserProgress, Mood, Sticker, Icon } from '@/types/journal';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -18,6 +18,7 @@ interface JournalState {
     isPublic: boolean;
     textStyle: string;
     stickers: Sticker[];
+    icons: Icon[];
     textPosition: { x: number, y: number };
   };
   // Collections
@@ -40,9 +41,13 @@ interface JournalState {
   setIsPublic: (isPublic: boolean) => void;
   setTextStyle: (style: string) => void;
   setStickers: (stickers: Sticker[]) => void;
+  setIcons: (icons: Icon[]) => void;
   setTextPosition: (position: { x: number, y: number }) => void;
   addSticker: (sticker: Sticker) => void;
+  addIcon: (icon: Icon) => void;
   removeSticker: (stickerId: string) => void;
+  removeIcon: (iconId: string) => void;
+  updateIcon: (iconId: string, updates: Partial<Icon>) => void;
   togglePreview: () => void;
   saveEntry: () => Promise<void>;
   loadEntries: () => Promise<void>;
@@ -65,6 +70,7 @@ export const useJournalStore = create<JournalState>()(
         isPublic: false,
         textStyle: 'normal',
         stickers: [],
+        icons: [],
         textPosition: { x: 50, y: 50 }
       },
       entries: [],
@@ -138,6 +144,9 @@ export const useJournalStore = create<JournalState>()(
       setStickers: (stickers) => set((state) => ({
         currentEntry: { ...state.currentEntry, stickers }
       })),
+      setIcons: (icons) => set((state) => ({
+        currentEntry: { ...state.currentEntry, icons }
+      })),
       setTextPosition: (textPosition) => set((state) => ({
         currentEntry: { ...state.currentEntry, textPosition }
       })),
@@ -147,10 +156,30 @@ export const useJournalStore = create<JournalState>()(
           stickers: [...state.currentEntry.stickers, sticker]
         }
       })),
+      addIcon: (icon) => set((state) => ({
+        currentEntry: {
+          ...state.currentEntry,
+          icons: [...state.currentEntry.icons, icon]
+        }
+      })),
       removeSticker: (stickerId) => set((state) => ({
         currentEntry: {
           ...state.currentEntry,
           stickers: state.currentEntry.stickers.filter(s => s.id !== stickerId)
+        }
+      })),
+      removeIcon: (iconId) => set((state) => ({
+        currentEntry: {
+          ...state.currentEntry,
+          icons: state.currentEntry.icons.filter(i => i.id !== iconId)
+        }
+      })),
+      updateIcon: (iconId, updates) => set((state) => ({
+        currentEntry: {
+          ...state.currentEntry,
+          icons: state.currentEntry.icons.map(icon => 
+            icon.id === iconId ? { ...icon, ...updates } : icon
+          )
         }
       })),
       togglePreview: () => set((state) => ({ 
@@ -182,6 +211,7 @@ export const useJournalStore = create<JournalState>()(
               challenge_id: state.dailyChallenge?.id || null,
               text_style: state.currentEntry.textStyle || null,
               stickers: state.currentEntry.stickers,
+              icons: state.currentEntry.icons,
               text_position: state.currentEntry.textPosition
             });
 
@@ -200,6 +230,7 @@ export const useJournalStore = create<JournalState>()(
               moodNote: undefined,
               textStyle: 'normal',
               stickers: [],
+              icons: [],
               textPosition: { x: 50, y: 50 }
             }
           }));
@@ -249,6 +280,7 @@ export const useJournalStore = create<JournalState>()(
           challengeId: entry.challenge_id || undefined,
           textStyle: entry.text_style || undefined,
           stickers: entry.stickers as Sticker[] || [],
+          icons: entry.icons as Icon[] || [],
           textPosition: entry.text_position as { x: number, y: number } || { x: 50, y: 50 }
         }));
 

@@ -11,7 +11,7 @@ import { StickerSelector } from './journal/StickerSelector';
 import { EmailDialog } from './journal/EmailDialog';
 import { ProgressCard } from './journal/ProgressCard';
 import { DailyChallenge } from './journal/DailyChallenge';
-import type { Mood, Sticker } from '@/types/journal';
+import type { Mood, Sticker, Icon } from '@/types/journal';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,7 +32,11 @@ export function JournalEditor() {
     setIsPublic,
     setTextStyle,
     setStickers,
+    setIcons,
     setTextPosition,
+    addSticker,
+    addIcon,
+    updateIcon,
     togglePreview,
     saveEntry,
     loadChallenge,
@@ -59,7 +63,11 @@ export function JournalEditor() {
   };
 
   const handleStickerAdd = (sticker: Sticker) => {
-    setStickers([...(currentEntry.stickers || []), sticker]);
+    addSticker(sticker);
+  };
+
+  const handleIconAdd = (icon: Icon) => {
+    addIcon(icon);
   };
 
   const handleStickerMove = (stickerId: string, position: { x: number, y: number }) => {
@@ -68,6 +76,18 @@ export function JournalEditor() {
         s.id === stickerId ? { ...s, position } : s
       )
     );
+  };
+
+  const handleIconMove = (iconId: string, position: { x: number, y: number }) => {
+    setIcons(
+      (currentEntry.icons || []).map(i => 
+        i.id === iconId ? { ...i, position } : i
+      )
+    );
+  };
+
+  const handleIconUpdate = (iconId: string, updates: Partial<Icon>) => {
+    updateIcon(iconId, updates);
   };
 
   const handleTextMove = (position: { x: number, y: number }) => {
@@ -241,9 +261,13 @@ export function JournalEditor() {
         gradient={currentEntry.gradient}
         textStyle={currentEntry.textStyle}
         stickers={currentEntry.stickers || []}
+        icons={currentEntry.icons || []}
         textPosition={currentEntry.textPosition || { x: 50, y: 50 }}
         onStickerAdd={handleStickerAdd}
+        onIconAdd={handleIconAdd}
         onStickerMove={handleStickerMove}
+        onIconMove={handleIconMove}
+        onIconUpdate={handleIconUpdate}
         onTextMove={handleTextMove}
         onTogglePreview={togglePreview}
       />
