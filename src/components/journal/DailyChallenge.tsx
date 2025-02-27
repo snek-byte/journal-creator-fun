@@ -10,8 +10,8 @@ interface DailyChallengeProps {
 
 export function DailyChallenge({ prompt, onRefresh, onApply }: DailyChallengeProps) {
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-violet-50 max-w-[240px] rounded-lg p-1.5">
-      <div className="flex items-center justify-between mb-0.5">
+    <div className="bg-gradient-to-br from-blue-50 to-violet-50 max-w-[200px] rounded-lg p-1">
+      <div className="flex items-center justify-between mb-0">
         <div className="flex items-center gap-0.5">
           <Zap className="h-2.5 w-2.5 text-violet-500" />
           <span className="text-[10px] font-medium text-violet-500">Daily Challenge</span>
@@ -27,8 +27,8 @@ export function DailyChallenge({ prompt, onRefresh, onApply }: DailyChallengePro
         </Button>
       </div>
       
-      <div className="flex flex-col items-center justify-center min-h-[70px] space-y-3">
-        <p className="text-[11px] font-medium text-gray-800 italic font-merriweather text-center px-1.5">
+      <div className="flex flex-col items-center justify-center min-h-[60px] space-y-2 mt-1">
+        <p className="text-[11px] font-medium text-gray-800 italic font-merriweather text-center px-1">
           {prompt}
         </p>
         
