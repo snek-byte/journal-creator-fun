@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ export function StickerSelector({ onStickerSelect }: StickerSelectorProps) {
   const [searchedStickers, setSearchedStickers] = useState<any[]>([]);
   const [recentStickers, setRecentStickers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   // Load trending stickers by default
   useEffect(() => {
@@ -93,10 +95,11 @@ export function StickerSelector({ onStickerSelect }: StickerSelectorProps) {
       position: { x: 50, y: 50 }
     });
     saveRecentSticker(sticker);
+    setDialogOpen(false); // Close dialog after selection
   };
 
   return (
-    <Dialog>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         <Button 
           variant="ghost" 

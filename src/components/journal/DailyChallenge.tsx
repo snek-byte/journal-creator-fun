@@ -24,12 +24,12 @@ export function DailyChallenge({ prompt, onRefresh, onApply }: DailyChallengePro
           onClick={onRefresh}
           title="Get a new challenge"
         >
-          <RotateCcw className="h-2.5 w-2.5" />
+          <RotateCcw className="h-2 w-2" />
         </Button>
       </div>
       
       <p className="text-xs font-medium text-gray-800 mt-3 mb-2 italic font-merriweather">
-        "{prompt}"
+        {prompt}
       </p>
       
       <div className="flex justify-end mt-2">

@@ -55,6 +55,9 @@ interface State {
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
 
+const recentToastMessages = new Set<string>()
+const RECENT_TOAST_EXPIRY = 3000 // 3 seconds
+
 const addToRemoveQueue = (toastId: string) => {
   if (toastTimeouts.has(toastId)) {
     return
@@ -140,6 +143,21 @@ function dispatch(action: Action) {
 type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
+  // Check if this is a duplicate toast message within the last 3 seconds
+  if (props.description) {
+    const messageKey = String(props.description)
+    if (recentToastMessages.has(messageKey)) {
+      // Don't show duplicate toast messages
+      return { id: "", dismiss: () => {}, update: () => {} }
+    }
+    
+    // Add message to recent set and set a timeout to remove it
+    recentToastMessages.add(messageKey)
+    setTimeout(() => {
+      recentToastMessages.delete(messageKey)
+    }, RECENT_TOAST_EXPIRY)
+  }
+
   const id = genId()
 
   const update = (props: ToasterToast) =>
