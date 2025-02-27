@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Paintbrush, Eraser, UndoIcon, RedoIcon, Trash2, CircleDashed, PaintBucket, Pencil, Highlighter, X, GripVertical, Minus } from "lucide-react";
@@ -56,7 +57,8 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
   // For dragging functionality
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 10, y: 10 });
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const dragStartPos = useRef({ x: 0, y: 0 });
+  const initialPos = useRef({ x: 0, y: 0 });
   const [compactMode, setCompactMode] = useState(false);
   const [isActive, setIsActive] = useState(false);
 
@@ -110,28 +112,31 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
     }
   }, [currentColor, brushType, opacity]);
 
-  // Dragging functionality
+  // Improved dragging functionality
   const handleDragStart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (!toolbarRef.current) return;
-    
-    const rect = toolbarRef.current.getBoundingClientRect();
-    setDragOffset({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    });
-    
     setIsDragging(true);
+    
+    // Store the initial mouse position
+    dragStartPos.current = { x: e.clientX, y: e.clientY };
+    
+    // Store the initial position of the toolbar
+    initialPos.current = { ...position };
   };
 
   const handleDragMove = (e: MouseEvent) => {
     if (!isDragging) return;
     
+    // Calculate the distance moved from the start position
+    const dx = e.clientX - dragStartPos.current.x;
+    const dy = e.clientY - dragStartPos.current.y;
+    
+    // Update the position based on the initial position plus the distance moved
     setPosition({
-      x: e.clientX - dragOffset.x,
-      y: e.clientY - dragOffset.y
+      x: initialPos.current.x + dx,
+      y: initialPos.current.y + dy
     });
   };
 
