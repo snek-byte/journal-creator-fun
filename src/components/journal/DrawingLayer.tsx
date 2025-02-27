@@ -605,40 +605,40 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
             )}
             
             {/* Control buttons */}
-            <div className="flex gap-1">
+            <div className="flex justify-between gap-0.5">
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-5 p-0 flex-1"
+                className="h-6 p-0.5 text-[9px]"
                 onClick={undo}
                 disabled={undoStack.length <= 1}
                 type="button"
               >
-                <UndoIcon className="h-2.5 w-2.5 mr-1" />
-                <span className="text-[10px]">Undo</span>
+                <UndoIcon className="h-2 w-2 mr-0.5" />
+                Undo
               </Button>
               
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-5 p-0 flex-1"
+                className="h-6 p-0.5 text-[9px]"
                 onClick={redo}
                 disabled={redoStack.length === 0}
                 type="button"
               >
-                <RedoIcon className="h-2.5 w-2.5 mr-1" />
-                <span className="text-[10px]">Redo</span>
+                <RedoIcon className="h-2 w-2 mr-0.5" />
+                Redo
               </Button>
               
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-5 p-0 flex-1"
+                className="h-6 p-0.5 text-[9px]"
                 onClick={clearCanvas}
                 type="button"
               >
-                <Trash2 className="h-2.5 w-2.5 mr-1" />
-                <span className="text-[10px]">Clear</span>
+                <Trash2 className="h-2 w-2 mr-0.5" />
+                Clear
               </Button>
             </div>
           </div>
