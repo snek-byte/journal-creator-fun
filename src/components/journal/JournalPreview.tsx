@@ -43,18 +43,45 @@ export function JournalPreview({
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const [touchTimeout, setTouchTimeout] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const { removeSticker } = useJournalStore();
 
   const handleMouseDown = (e: React.MouseEvent, stickerId: string) => {
     e.preventDefault();
+    e.stopPropagation();
     setSelectedStickerId(stickerId);
+    setIsDragging(false);
+    
+    const startX = e.clientX;
+    const startY = e.clientY;
     
     const handleMouseMove = (moveEvent: MouseEvent) => {
+      // Check if moved more than a few pixels to count as dragging
+      const diffX = Math.abs(moveEvent.clientX - startX);
+      const diffY = Math.abs(moveEvent.clientY - startY);
+      
+      if (diffX > 3 || diffY > 3) {
+        setIsDragging(true);
+      }
+      
       moveSticker(moveEvent.clientX, moveEvent.clientY);
     };
 
-    const handleMouseUp = () => {
+    const handleMouseUp = (upEvent: MouseEvent) => {
       setSelectedStickerId(null);
+      
+      // If this wasn't a drag, then show delete button or delete on second click
+      if (!isDragging) {
+        // If delete button is already showing, delete on click
+        if (showDeleteButton) {
+          handleDeleteSticker(stickerId);
+        } else {
+          // Otherwise show delete button
+          setShowDeleteButton(true);
+          setSelectedStickerId(stickerId);
+        }
+      }
+      
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
@@ -137,14 +164,9 @@ export function JournalPreview({
     setShowDeleteButton(false);
   };
   
-  const handleStickerClick = (e: React.MouseEvent, stickerId: string) => {
-    e.stopPropagation();
-    if (selectedStickerId === stickerId) {
-      setShowDeleteButton(!showDeleteButton);
-    } else {
-      setSelectedStickerId(stickerId);
-      setShowDeleteButton(true);
-    }
+  const handleBackgroundClick = () => {
+    setSelectedStickerId(null);
+    setShowDeleteButton(false);
   };
 
   const PreviewContent = () => (
@@ -159,10 +181,7 @@ export function JournalPreview({
         printColorAdjust: 'exact',
       }}
       className="w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn print:shadow-none print:rounded-none print:min-h-screen relative"
-      onClick={() => {
-        setSelectedStickerId(null);
-        setShowDeleteButton(false);
-      }}
+      onClick={handleBackgroundClick}
     >
       <div className="w-full h-full p-8">
         {mood && (
@@ -187,16 +206,18 @@ export function JournalPreview({
       {stickers.map((sticker) => (
         <div
           key={sticker.id}
-          className={`absolute touch-none select-none ${selectedStickerId === sticker.id ? 'z-50 scale-110' : 'z-10'}`}
+          className={`absolute touch-none select-none cursor-grab active:cursor-grabbing
+            ${selectedStickerId === sticker.id ? 'z-50 scale-110' : 'z-10'}
+            ${showDeleteButton && selectedStickerId === sticker.id ? 'ring-2 ring-destructive' : ''}`}
           style={{
             left: `${sticker.position.x}%`,
             top: `${sticker.position.y}%`,
             transform: 'translate(-50%, -50%)',
             transition: selectedStickerId === sticker.id ? 'none' : 'all 0.2s ease',
+            padding: '8px',
           }}
           onMouseDown={(e) => handleMouseDown(e, sticker.id)}
           onTouchStart={(e) => handleTouchStart(e, sticker.id)}
-          onClick={(e) => handleStickerClick(e, sticker.id)}
         >
           <img
             src={sticker.url}
@@ -208,7 +229,7 @@ export function JournalPreview({
             <Button
               variant="destructive"
               size="icon"
-              className="absolute -top-4 -right-4 h-8 w-8 rounded-full"
+              className="absolute -top-4 -right-4 h-8 w-8 rounded-full shadow-md"
               onClick={(e) => {
                 e.stopPropagation();
                 handleDeleteSticker(sticker.id);
@@ -219,6 +240,13 @@ export function JournalPreview({
           )}
         </div>
       ))}
+      
+      {/* Delete Instructions - show when sticker is selected */}
+      {selectedStickerId && showDeleteButton && (
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/80 p-2 rounded-md text-xs text-center shadow-md backdrop-blur-sm">
+          Click the delete button to remove sticker
+        </div>
+      )}
     </div>
   );
 
