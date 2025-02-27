@@ -11,15 +11,13 @@ interface DailyChallengeProps {
 export function DailyChallenge({ prompt, onRefresh, onApply }: DailyChallengeProps) {
   return (
     <div className="bg-gradient-to-br from-blue-50 to-violet-50 rounded-lg p-3 w-full">
-      <div className="flex items-center mb-3">
-        <div className="flex items-center gap-1">
-          <Zap className="h-4 w-4 text-violet-500" />
-          <span className="text-sm font-medium text-violet-500">Daily Challenge</span>
-        </div>
+      <div className="flex items-center gap-1 mb-3">
+        <Zap className="h-4 w-4 text-violet-500" />
+        <span className="text-sm font-medium text-violet-500">Daily Challenge</span>
         <Button
           variant="ghost"
           size="icon"
-          className="h-4 w-4 text-gray-400 hover:text-gray-600 hover:bg-transparent p-0 ml-1"
+          className="h-4 w-4 text-gray-400 hover:text-gray-600 hover:bg-transparent p-0"
           onClick={onRefresh}
           title="Get a new challenge"
         >
