@@ -32,12 +32,12 @@ const colors = [
 
 // Brush types
 const brushTypes = [
-  { name: 'Pen', value: 'pen', icon: <Pencil className="h-3 w-3" /> },
-  { name: 'Marker', value: 'marker', icon: <Paintbrush className="h-3 w-3" /> },
-  { name: 'Highlighter', value: 'highlighter', icon: <Highlighter className="h-3 w-3" /> },
-  { name: 'Spray', value: 'spray', icon: <CircleDashed className="h-3 w-3" /> },
-  { name: 'Fill', value: 'fill', icon: <PaintBucket className="h-3 w-3" /> },
-  { name: 'Eraser', value: 'eraser', icon: <Eraser className="h-3 w-3" /> },
+  { name: 'Pen', value: 'pen', icon: <Pencil className="h-2.5 w-2.5" /> },
+  { name: 'Marker', value: 'marker', icon: <Paintbrush className="h-2.5 w-2.5" /> },
+  { name: 'Highlighter', value: 'highlighter', icon: <Highlighter className="h-2.5 w-2.5" /> },
+  { name: 'Spray', value: 'spray', icon: <CircleDashed className="h-2.5 w-2.5" /> },
+  { name: 'Fill', value: 'fill', icon: <PaintBucket className="h-2.5 w-2.5" /> },
+  { name: 'Eraser', value: 'eraser', icon: <Eraser className="h-2.5 w-2.5" /> },
 ];
 
 export function DrawingLayer({ className, width, height, onDrawingChange }: DrawingLayerProps) {
@@ -478,7 +478,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
         }}
         className={cn(
           "bg-white rounded-lg shadow-md border border-gray-200",
-          compactMode ? "w-auto" : "w-[170px]"
+          compactMode ? "w-auto" : "w-[160px]"
         )}
       >
         {/* Draggable header */}
@@ -487,27 +487,27 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
           onMouseDown={handleDragStart}
         >
           <div className="flex items-center gap-1">
-            <GripVertical className="h-3 w-3 text-gray-400" />
+            <GripVertical className="h-2.5 w-2.5 text-gray-400" />
             <span className="text-xs font-medium text-gray-600">Draw Tool</span>
           </div>
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"
               size="icon"
-              className="h-5 w-5 p-0 text-gray-400 hover:text-gray-600"
+              className="h-4 w-4 p-0 text-gray-400 hover:text-gray-600"
               onClick={() => setCompactMode(!compactMode)}
               type="button"
             >
-              {compactMode ? <Paintbrush className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
+              {compactMode ? <Paintbrush className="h-2.5 w-2.5" /> : <Minus className="h-2.5 w-2.5" />}
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              className="h-5 w-5 p-0 text-gray-400 hover:text-gray-600"
+              className="h-4 w-4 p-0 text-gray-400 hover:text-gray-600"
               onClick={() => onDrawingChange && onDrawingChange('')}
               type="button"
             >
-              <X className="h-3 w-3" />
+              <X className="h-2.5 w-2.5" />
             </Button>
           </div>
         </div>
@@ -520,7 +520,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
                 {colors.map((color) => (
                   <button
                     key={color.value}
-                    className={`w-4 h-4 rounded-full ${currentColor === color.value ? 'ring-1 ring-offset-1 ring-black' : ''}`}
+                    className={`w-3.5 h-3.5 rounded-full ${currentColor === color.value ? 'ring-1 ring-offset-1 ring-black' : ''}`}
                     style={{ backgroundColor: color.value }}
                     onClick={() => setCurrentColor(color.value)}
                     title={color.label}
@@ -533,9 +533,9 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
                 <PopoverTrigger asChild>
                   <Button 
                     variant="outline" 
-                    className="w-full h-6 mt-1 flex items-center justify-center gap-1 text-xs"
+                    className="w-full h-5 mt-1 flex items-center justify-center gap-1 text-[10px]"
                   >
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: currentColor }}></div>
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: currentColor }}></div>
                     Custom Color
                   </Button>
                 </PopoverTrigger>
@@ -553,7 +553,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
                     key={brush.value}
                     variant={brushType === brush.value ? "secondary" : "ghost"}
                     size="sm"
-                    className="h-6 p-0"
+                    className="h-5 p-0"
                     onClick={() => handleBrushTypeChange(brush.value)}
                     title={brush.name}
                     type="button"
@@ -569,7 +569,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
               {[2, 4, 6, 8].map((size) => (
                 <button
                   key={size}
-                  className={`flex-1 flex items-center justify-center rounded border ${lineWidth === size ? 'bg-primary/20 border-primary' : 'border-gray-300'} h-6`}
+                  className={`flex-1 flex items-center justify-center rounded border ${lineWidth === size ? 'bg-primary/20 border-primary' : 'border-gray-300'} h-5`}
                   onClick={() => setLineWidth(size)}
                   type="button"
                 >
@@ -587,8 +587,11 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
             
             {/* Opacity (only for certain brush types) */}
             {brushType !== 'eraser' && brushType !== 'highlighter' && (
-              <div className="flex items-center gap-1">
-                <span className="text-xs w-12">Opacity:</span>
+              <div className="flex flex-col w-full">
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-medium">Opacity</span>
+                  <span className="text-[10px] text-gray-500">{opacity.toFixed(1)}</span>
+                </div>
                 <input
                   type="range"
                   min="0.1"
@@ -596,7 +599,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
                   step="0.1"
                   value={opacity}
                   onChange={(e) => setOpacity(parseFloat(e.target.value))}
-                  className="flex-1 h-1"
+                  className="w-full h-1 mt-1"
                 />
               </div>
             )}
@@ -606,36 +609,36 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 p-0 flex-1"
+                className="h-5 p-0 flex-1"
                 onClick={undo}
                 disabled={undoStack.length <= 1}
                 type="button"
               >
-                <UndoIcon className="h-3 w-3 mr-1" />
-                <span className="text-xs">Undo</span>
+                <UndoIcon className="h-2.5 w-2.5 mr-1" />
+                <span className="text-[10px]">Undo</span>
               </Button>
               
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 p-0 flex-1"
+                className="h-5 p-0 flex-1"
                 onClick={redo}
                 disabled={redoStack.length === 0}
                 type="button"
               >
-                <RedoIcon className="h-3 w-3 mr-1" />
-                <span className="text-xs">Redo</span>
+                <RedoIcon className="h-2.5 w-2.5 mr-1" />
+                <span className="text-[10px]">Redo</span>
               </Button>
               
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 p-0 flex-1"
+                className="h-5 p-0 flex-1"
                 onClick={clearCanvas}
                 type="button"
               >
-                <Trash2 className="h-3 w-3 mr-1" />
-                <span className="text-xs">Clear</span>
+                <Trash2 className="h-2.5 w-2.5 mr-1" />
+                <span className="text-[10px]">Clear</span>
               </Button>
             </div>
           </div>
