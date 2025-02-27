@@ -10,7 +10,7 @@ interface DailyChallengeProps {
 
 export function DailyChallenge({ prompt, onRefresh, onApply }: DailyChallengeProps) {
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-violet-50 max-w-sm rounded-lg p-3">
+    <div className="bg-gradient-to-br from-blue-50 to-violet-50 max-w-xs rounded-lg p-3">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-1.5">
           <Zap className="h-3.5 w-3.5 text-violet-500" />
