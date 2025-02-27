@@ -7,7 +7,10 @@ export type Mood =
   | 'relaxed' 
   | 'anxious'
   | 'grateful'
-  | 'confused';
+  | 'confused'
+  | 'stressed'
+  | 'calm'
+  | 'neutral';
 
 export interface Sticker {
   id: string;

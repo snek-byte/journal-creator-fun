@@ -1,4 +1,3 @@
-
 import type { Mood } from '@/types/journal';
 
 export const moodOptions: { value: Mood; label: string; icon: string }[] = [
@@ -6,7 +5,13 @@ export const moodOptions: { value: Mood; label: string; icon: string }[] = [
   { value: 'sad', label: 'Sad', icon: '😢' },
   { value: 'stressed', label: 'Stressed', icon: '😰' },
   { value: 'calm', label: 'Calm', icon: '😌' },
-  { value: 'neutral', label: 'Neutral', icon: '😐' }
+  { value: 'neutral', label: 'Neutral', icon: '😐' },
+  { value: 'angry', label: 'Angry', icon: '😠' },
+  { value: 'excited', label: 'Excited', icon: '🤩' },
+  { value: 'relaxed', label: 'Relaxed', icon: '😎' },
+  { value: 'anxious', label: 'Anxious', icon: '😨' },
+  { value: 'grateful', label: 'Grateful', icon: '🥰' },
+  { value: 'confused', label: 'Confused', icon: '😕' }
 ];
 
 export const fontOptions = [
