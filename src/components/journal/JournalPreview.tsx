@@ -344,7 +344,7 @@ export function JournalPreview({
             </div>
           )}
           
-          {isDrawingMode && (
+          {isDrawingMode && showPreview && (
             <DrawingLayer
               width={previewRef.current?.clientWidth || 800}
               height={previewRef.current?.clientHeight || 600}

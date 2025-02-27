@@ -22,16 +22,16 @@ interface DrawingLayerProps {
 // Soft pastel color palette
 const colors = [
   { name: 'Black', value: '#000000' },
-  { name: 'Soft Purple', value: '#E5DEFF' },
-  { name: 'Soft Blue', value: '#D3E4FD' },
-  { name: 'Soft Green', value: '#F2FCE2' },
-  { name: 'Soft Yellow', value: '#FEF7CD' },
-  { name: 'Soft Orange', value: '#FEC6A1' },
-  { name: 'Soft Pink', value: '#FFDEE2' },
-  { name: 'Soft Peach', value: '#FDE1D3' },
+  { name: 'Dark Blue', value: '#1e40af' },
+  { name: 'Purple', value: '#7e22ce' },
+  { name: 'Red', value: '#dc2626' },
+  { name: 'Orange', value: '#ea580c' },
+  { name: 'Yellow', value: '#ca8a04' },
+  { name: 'Green', value: '#16a34a' },
+  { name: 'Teal', value: '#0d9488' },
 ];
 
-// Brush types
+// Brush types with smaller icons
 const brushTypes = [
   { name: 'Pen', value: 'pen', icon: <Pencil className="h-3 w-3" /> },
   { name: 'Marker', value: 'marker', icon: <Paintbrush className="h-3 w-3" /> },
@@ -44,6 +44,7 @@ const brushTypes = [
 export function DrawingLayer({ className, width, height, onDrawingChange }: DrawingLayerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [lastPoint, setLastPoint] = useState<Point | null>(null);
   const [undoStack, setUndoStack] = useState<string[]>([]);
@@ -60,7 +61,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [minimized, setMinimized] = useState(false);
 
-  // Initialize canvas only once on component mount
+  // Initialize canvas on mount
   useEffect(() => {
     if (hasInitialized.current) return;
     
@@ -93,7 +94,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
     };
   }, []);
 
-  // Update stroke style when color changes
+  // Update stroke style when color or brush changes
   useEffect(() => {
     if (!canvasRef.current) return;
     const ctx = canvasRef.current.getContext('2d');
@@ -117,8 +118,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
   }, [currentColor, brushType, opacity]);
 
   const saveState = () => {
-    if (!canvasRef.current) return;
-    if (!isDrawing) return; // Only save state when we've actually drawn something
+    if (!canvasRef.current || !isDrawing) return;
     
     const dataUrl = canvasRef.current.toDataURL();
     
@@ -132,6 +132,8 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
   };
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+    if (isDragging) return;
+    
     e.preventDefault();
     setIsDrawing(true);
     const point = getPoint(e);
@@ -427,25 +429,26 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
   };
 
   const handleDragStart = (e: React.MouseEvent) => {
-    if (toolbarRef.current) {
-      e.preventDefault();
-      e.stopPropagation();
-      const rect = toolbarRef.current.getBoundingClientRect();
-      setDragOffset({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-      });
-      setIsDragging(true);
-    }
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!toolbarRef.current) return;
+    
+    const rect = toolbarRef.current.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+    setIsDragging(true);
   };
 
   const handleDragMove = (e: MouseEvent) => {
-    if (isDragging) {
-      setPosition({
-        x: e.clientX - dragOffset.x,
-        y: e.clientY - dragOffset.y
-      });
-    }
+    if (!isDragging) return;
+    
+    setPosition({
+      x: e.clientX - dragOffset.x,
+      y: e.clientY - dragOffset.y
+    });
   };
 
   const handleDragEnd = () => {
@@ -456,6 +459,9 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
     if (isDragging) {
       window.addEventListener('mousemove', handleDragMove);
       window.addEventListener('mouseup', handleDragEnd);
+    } else {
+      window.removeEventListener('mousemove', handleDragMove);
+      window.removeEventListener('mouseup', handleDragEnd);
     }
     
     return () => {
@@ -465,31 +471,47 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
   }, [isDragging]);
 
   return (
-    <div className={cn("absolute inset-0", className)}>
+    <div className={cn("absolute inset-0", className)} ref={containerRef}>
+      <canvas
+        ref={canvasRef}
+        width={width}
+        height={height}
+        className={cn("touch-none cursor-crosshair")}
+        onMouseDown={startDrawing}
+        onMouseMove={draw}
+        onMouseUp={stopDrawing}
+        onMouseOut={stopDrawing}
+        onTouchStart={startDrawing}
+        onTouchMove={draw}
+        onTouchEnd={stopDrawing}
+      />
+      
       <div 
         ref={toolbarRef}
         style={{ 
           left: `${position.x}px`, 
-          top: `${position.y}px` 
+          top: `${position.y}px`,
+          position: 'absolute',
+          zIndex: 9999
         }}
         className={cn(
-          "absolute z-50 flex flex-col bg-white/95 rounded-lg shadow-md border border-gray-200 transition-all",
-          minimized ? "w-auto" : "w-[180px]"
+          "flex flex-col bg-white rounded-lg shadow-md border border-gray-200 transition-all",
+          minimized ? "w-auto" : "w-[160px]"
         )}
       >
         <div 
-          className="flex items-center justify-between bg-gray-50 rounded-t-lg p-1 cursor-move"
+          className="flex items-center justify-between bg-gray-50 rounded-t-lg p-1 cursor-move border-b border-gray-100"
           onMouseDown={handleDragStart}
         >
           <div className="flex items-center gap-1 px-1">
             <GripVertical className="h-3 w-3 text-gray-400" />
-            <span className="text-xs font-medium text-gray-600">Doodle Tool</span>
+            <span className="text-[10px] font-medium text-gray-600">Doodle Tool</span>
           </div>
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"
               size="icon"
-              className="h-5 w-5"
+              className="h-4 w-4 p-0"
               onClick={() => setMinimized(!minimized)}
               type="button"
             >
@@ -498,7 +520,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
             <Button
               variant="ghost"
               size="icon"
-              className="h-5 w-5 text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+              className="h-4 w-4 p-0 text-gray-400 hover:text-gray-600"
               onClick={clearCanvas}
               type="button"
             >
@@ -508,21 +530,21 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
         </div>
 
         {!minimized && (
-          <div className="p-2 space-y-2">
+          <div className="p-1.5 space-y-1.5">
             <Tabs defaultValue="brushes" className="w-full">
-              <TabsList className="grid grid-cols-2 h-6">
-                <TabsTrigger value="brushes" className="text-xs">Brushes</TabsTrigger>
-                <TabsTrigger value="colors" className="text-xs">Colors</TabsTrigger>
+              <TabsList className="grid grid-cols-2 h-5">
+                <TabsTrigger value="brushes" className="text-[10px]">Brushes</TabsTrigger>
+                <TabsTrigger value="colors" className="text-[10px]">Colors</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="brushes" className="space-y-2 mt-1.5">
+              <TabsContent value="brushes" className="space-y-1.5 mt-1">
                 <div className="flex flex-wrap gap-1">
                   {brushTypes.map((brush) => (
                     <Button
                       key={brush.value}
                       variant={brushType === brush.value ? "secondary" : "ghost"}
                       size="icon"
-                      className="h-6 w-6 p-1"
+                      className="h-5 w-5 p-0"
                       onClick={() => handleBrushTypeChange(brush.value)}
                       title={brush.name}
                       type="button"
@@ -533,13 +555,13 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
                 </div>
                 
                 <div>
-                  <div className="flex items-center gap-1.5 mt-1.5">
-                    <span className="text-xs">Size:</span>
+                  <div className="flex items-center gap-1 mt-1">
+                    <span className="text-[10px]">Size:</span>
                     <div className="flex gap-1">
                       {[2, 4, 6, 8].map((size) => (
                         <button
                           key={size}
-                          className={`w-4 h-4 flex items-center justify-center border rounded-sm ${lineWidth === size ? 'bg-primary/20 border-primary' : 'border-gray-300'}`}
+                          className={`w-3 h-3 flex items-center justify-center border rounded-sm ${lineWidth === size ? 'bg-primary/20 border-primary' : 'border-gray-300'}`}
                           onClick={() => handleLineWidthChange(size)}
                           type="button"
                         >
@@ -557,8 +579,8 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
                   </div>
                   
                   {brushType !== 'eraser' && brushType !== 'highlighter' && (
-                    <div className="flex items-center gap-1.5 mt-1.5">
-                      <span className="text-xs">Opacity:</span>
+                    <div className="flex items-center gap-1 mt-1">
+                      <span className="text-[10px]">Opacity:</span>
                       <input
                         type="range"
                         min="0.1"
@@ -573,12 +595,12 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
                 </div>
               </TabsContent>
               
-              <TabsContent value="colors" className="mt-1.5">
+              <TabsContent value="colors" className="mt-1">
                 <div className="flex flex-wrap justify-center gap-1 mt-1">
                   {colors.map((color) => (
                     <button
                       key={color.value}
-                      className={`w-5 h-5 rounded-full ${currentColor === color.value ? 'ring-1 ring-offset-1 ring-primary' : ''}`}
+                      className={`w-4 h-4 rounded-full ${currentColor === color.value ? 'ring-1 ring-offset-1 ring-primary' : ''}`}
                       style={{ backgroundColor: color.value }}
                       onClick={() => setCurrentColor(color.value)}
                       title={color.name}
@@ -587,21 +609,21 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
                   ))}
                 </div>
                 
-                <div className="mt-2">
+                <div className="mt-1.5">
                   <Popover>
                     <PopoverTrigger asChild>
                       <button
-                        className="w-full h-6 rounded-md flex items-center justify-center gap-1 border border-gray-200"
+                        className="w-full h-5 rounded-md flex items-center justify-center gap-1 border border-gray-200"
                         type="button"
                       >
                         <div 
-                          className="w-4 h-4 rounded-full" 
+                          className="w-3 h-3 rounded-full" 
                           style={{ backgroundColor: currentColor }}
                         />
-                        <span className="text-xs">Custom</span>
+                        <span className="text-[10px]">Custom</span>
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-2">
+                    <PopoverContent className="w-auto p-1">
                       <HexColorPicker color={currentColor} onChange={setCurrentColor} />
                     </PopoverContent>
                   </Popover>
@@ -613,7 +635,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 p-1"
+                className="h-5 w-5 p-0"
                 onClick={undo}
                 disabled={undoStack.length <= 1}
                 type="button"
@@ -623,7 +645,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 p-1"
+                className="h-5 w-5 p-0"
                 onClick={redo}
                 disabled={redoStack.length === 0}
                 type="button"
@@ -633,7 +655,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 p-1"
+                className="h-5 w-5 p-0"
                 onClick={clearCanvas}
                 type="button"
               >
@@ -643,19 +665,6 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
           </div>
         )}
       </div>
-      <canvas
-        ref={canvasRef}
-        width={width}
-        height={height}
-        className={cn("touch-none cursor-crosshair")}
-        onMouseDown={startDrawing}
-        onMouseMove={draw}
-        onMouseUp={stopDrawing}
-        onMouseOut={stopDrawing}
-        onTouchStart={startDrawing}
-        onTouchMove={draw}
-        onTouchEnd={stopDrawing}
-      />
     </div>
   );
 }
