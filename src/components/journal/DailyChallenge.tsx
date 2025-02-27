@@ -17,6 +17,7 @@ export function DailyChallenge({ prompt, onRefresh, onApply }: DailyChallengePro
           <div className="flex items-center gap-1.5">
             <Zap className="h-3.5 w-3.5 text-violet-500" />
             <span className="text-xs font-medium text-violet-500">Daily Challenge</span>
+            <span className="text-xs font-medium text-violet-500 ml-1.5">+20 XP</span>
           </div>
           <Button
             variant="ghost"
@@ -33,8 +34,7 @@ export function DailyChallenge({ prompt, onRefresh, onApply }: DailyChallengePro
           {prompt}
         </CardDescription>
         
-        <div className="flex items-center justify-between mt-3">
-          <span className="text-xs font-medium text-violet-500">+20 XP</span>
+        <div className="flex justify-end mt-3">
           <Button
             variant="ghost"
             size="sm"
