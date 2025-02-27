@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { JournalEntry, Challenge, Badge, UserProgress, Mood, Sticker, Icon } from '@/types/journal';
@@ -6,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface JournalState {
-  // Current entry being edited
   currentEntry: {
     text: string;
     font: string;
@@ -22,16 +20,13 @@ interface JournalState {
     icons: Icon[];
     textPosition: { x: number, y: number };
     backgroundImage?: string;
+    drawing?: string;
   };
-  // Collections
   entries: JournalEntry[];
   dailyChallenge: Challenge | null;
   badges: Badge[];
-  // User progress
   progress: UserProgress;
-  // UI state
   showPreview: boolean;
-  // Actions
   setText: (text: string) => void;
   setFont: (font: string) => void;
   setFontSize: (size: string) => void;
@@ -58,6 +53,7 @@ interface JournalState {
   loadChallenge: () => void;
   applyChallenge: () => void;
   earnXP: (amount: number) => Promise<void>;
+  setDrawing: (drawing: string) => void;
 }
 
 export const useJournalStore = create<JournalState>()(
@@ -74,8 +70,9 @@ export const useJournalStore = create<JournalState>()(
         textStyle: 'normal',
         stickers: [],
         icons: [],
-        textPosition: { x: 10, y: 10 }, // Position at top left
-        backgroundImage: undefined
+        textPosition: { x: 10, y: 10 },
+        backgroundImage: undefined,
+        drawing: undefined
       },
       entries: [],
       dailyChallenge: null,
@@ -164,7 +161,6 @@ export const useJournalStore = create<JournalState>()(
         }
       })),
       addIcon: (icon) => set((state) => {
-        // Ensure icons array exists before adding to it
         const currentIcons = state.currentEntry.icons || [];
         return {
           currentEntry: {
@@ -224,16 +220,15 @@ export const useJournalStore = create<JournalState>()(
               stickers: state.currentEntry.stickers,
               icons: state.currentEntry.icons,
               text_position: state.currentEntry.textPosition,
-              background_image: state.currentEntry.backgroundImage || null
+              background_image: state.currentEntry.backgroundImage || null,
+              drawing: state.currentEntry.drawing || null
             });
 
           if (entryError) throw entryError;
 
-          // Update progress
           const xpEarned = 10 + (state.dailyChallenge ? 20 : 0);
           await get().earnXP(xpEarned);
           
-          // Reset current entry
           set((state) => ({
             currentEntry: {
               ...state.currentEntry,
@@ -243,12 +238,12 @@ export const useJournalStore = create<JournalState>()(
               textStyle: 'normal',
               stickers: [],
               icons: [],
-              textPosition: { x: 10, y: 10 }, // Reset to top left
-              backgroundImage: undefined
+              textPosition: { x: 10, y: 10 },
+              backgroundImage: undefined,
+              drawing: undefined
             }
           }));
 
-          // Reload entries to show the new one
           await get().loadEntries();
           
           toast.success('Journal entry saved!');
@@ -294,8 +289,9 @@ export const useJournalStore = create<JournalState>()(
           textStyle: entry.text_style || undefined,
           stickers: entry.stickers as Sticker[] || [],
           icons: entry.icons as Icon[] || [],
-          textPosition: entry.text_position as { x: number, y: number } || { x: 10, y: 10 }, // Default to top left
-          backgroundImage: entry.background_image as string | undefined
+          textPosition: entry.text_position as { x: number, y: number } || { x: 10, y: 10 },
+          backgroundImage: entry.background_image as string | undefined,
+          drawing: entry.drawing as string | undefined
         }));
 
         set({ entries });

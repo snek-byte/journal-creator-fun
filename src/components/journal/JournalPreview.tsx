@@ -1,7 +1,6 @@
-
 import { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare } from 'lucide-react';
+import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Pencil } from 'lucide-react';
 import { moodOptions } from './config/editorConfig';
 import type { Mood, Sticker, Icon } from '@/types/journal';
 import { applyTextStyle } from '@/utils/unicodeTextStyles';
@@ -9,6 +8,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { StickerSelector } from './StickerSelector';
 import { IconSelector } from './IconSelector';
 import { BackgroundImageSelector } from './BackgroundImageSelector';
+import { DrawingLayer } from './DrawingLayer';
 import { useJournalStore } from '@/store/journalStore';
 
 interface JournalPreviewProps {
@@ -25,6 +25,7 @@ interface JournalPreviewProps {
   icons: Icon[];
   textPosition: { x: number, y: number };
   backgroundImage?: string;
+  drawing?: string;
   onStickerAdd: (sticker: Sticker) => void;
   onIconAdd: (icon: Icon) => void;
   onStickerMove: (stickerId: string, position: { x: number, y: number }) => void;
@@ -32,6 +33,7 @@ interface JournalPreviewProps {
   onIconUpdate: (iconId: string, updates: Partial<Icon>) => void;
   onTextMove: (position: { x: number, y: number }) => void;
   onBackgroundSelect: (url: string) => void;
+  onDrawingChange: (dataUrl: string) => void;
   onTogglePreview: () => void;
 }
 
@@ -49,6 +51,7 @@ export function JournalPreview({
   icons,
   textPosition,
   backgroundImage,
+  drawing,
   onStickerAdd,
   onIconAdd,
   onStickerMove,
@@ -56,6 +59,7 @@ export function JournalPreview({
   onIconUpdate,
   onTextMove,
   onBackgroundSelect,
+  onDrawingChange,
   onTogglePreview,
 }: JournalPreviewProps) {
   const previewRef = useRef<HTMLDivElement>(null);
@@ -67,18 +71,16 @@ export function JournalPreview({
   const [touchTimeout, setTouchTimeout] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isTextDragging, setIsTextDragging] = useState(false);
+  const [isDrawingMode, setIsDrawingMode] = useState(false);
   const { removeSticker, removeIcon } = useJournalStore();
 
-  // This effect ensures text is positioned at the top left
   useEffect(() => {
-    // If text is in the default center position or not at top left, move it to top left
     if (textPosition.x !== 10 || textPosition.y !== 10) {
       onTextMove({ x: 10, y: 10 });
     }
   }, []);
 
   const handleAddIcon = (icon: Icon) => {
-    // Position new icons at the top left
     const newIcon = {
       ...icon,
       position: { x: 10, y: 10 }
@@ -87,7 +89,6 @@ export function JournalPreview({
   };
 
   const handleAddSticker = (sticker: Sticker) => {
-    // Position new stickers at the top left
     const newSticker = {
       ...sticker,
       position: { x: 10, y: 10 }
@@ -375,7 +376,7 @@ export function JournalPreview({
     
     onIconUpdate(iconId, { size: newSize });
   };
-  
+
   const handleBackgroundClick = () => {
     setSelectedStickerId(null);
     setSelectedIconId(null);
@@ -390,7 +391,6 @@ export function JournalPreview({
     return gradient;
   };
 
-  // Function to get icon style with size
   const getIconStyle = (icon: Icon) => {
     return {
       width: `${icon.size || 48}px`, 
@@ -418,148 +418,168 @@ export function JournalPreview({
         </div>
       )}
       
-      <div
-        ref={textRef}
-        style={{
-          fontFamily: font,
-          fontSize,
-          fontWeight,
-          color: fontColor,
-          left: `${textPosition.x}%`,
-          top: `${textPosition.y}%`,
-          maxWidth: '80%',
-          transform: 'translate(0, 0)',
-          transformOrigin: 'top left',
-        }}
-        className={`absolute whitespace-pre-wrap p-6 cursor-move select-none transition-colors rounded-lg
-          ${isTextDragging ? 'bg-black/5 ring-2 ring-primary/30' : 'hover:bg-black/5'}
-        `}
-        onMouseDown={handleTextMouseDown}
-        onTouchStart={handleTextTouchStart}
-      >
-        {textStyle && textStyle !== 'normal' 
-          ? applyTextStyle(text || "Start writing your journal entry...", textStyle as any) 
-          : (text || "Start writing your journal entry...")}
-      </div>
-      
-      {stickers && stickers.map((sticker) => (
-        <div
-          key={sticker.id}
-          className={`absolute touch-none select-none cursor-grab active:cursor-grabbing
-            ${selectedStickerId === sticker.id ? 'z-50 scale-110' : 'z-10'}
-            ${showDeleteButton && selectedStickerId === sticker.id ? 'ring-2 ring-destructive' : ''}`}
-          style={{
-            left: `${sticker.position.x}%`,
-            top: `${sticker.position.y}%`,
-            transform: 'translate(0, 0)',
-            transformOrigin: 'top left',
-            transition: selectedStickerId === sticker.id ? 'none' : 'all 0.2s ease',
-            padding: '8px',
-          }}
-          onMouseDown={(e) => handleMouseDown(e, sticker.id)}
-          onTouchStart={(e) => handleTouchStart(e, sticker.id)}
-        >
-          <img
-            src={sticker.url}
-            alt="Sticker"
-            className="w-16 h-16 object-contain pointer-events-none"
-            draggable={false}
-          />
-          {showDeleteButton && selectedStickerId === sticker.id && (
-            <Button
-              variant="destructive"
-              size="icon"
-              className="absolute -top-4 -right-4 h-8 w-8 rounded-full shadow-md"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteSticker(sticker.id);
-              }}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      ))}
-
-      {icons && icons.map((icon) => (
-        <div
-          key={icon.id}
-          className={`absolute touch-none select-none cursor-grab active:cursor-grabbing
-            ${selectedIconId === icon.id ? 'z-50 scale-110' : 'z-10'}
-            ${showIconControls && selectedIconId === icon.id ? 'ring-2 ring-primary' : ''}`}
-          style={{
-            left: `${icon.position.x}%`,
-            top: `${icon.position.y}%`,
-            transform: 'translate(0, 0)',
-            transformOrigin: 'top left',
-            transition: selectedIconId === icon.id ? 'none' : 'all 0.2s ease',
-            padding: '8px',
-          }}
-          onMouseDown={(e) => handleIconMouseDown(e, icon.id)}
-          onTouchStart={(e) => handleIconTouchStart(e, icon.id)}
-        >
-          <img
-            src={icon.url}
-            alt="Icon"
-            className="object-contain pointer-events-none"
-            draggable={false}
-            style={getIconStyle(icon)}
-          />
+      {isDrawingMode ? (
+        <DrawingLayer
+          width={previewRef.current?.clientWidth || 800}
+          height={previewRef.current?.clientHeight || 600}
+          className="absolute inset-0 z-50"
+          onDrawingChange={onDrawingChange}
+        />
+      ) : (
+        <>
+          <div
+            ref={textRef}
+            style={{
+              fontFamily: font,
+              fontSize,
+              fontWeight,
+              color: fontColor,
+              left: `${textPosition.x}%`,
+              top: `${textPosition.y}%`,
+              maxWidth: '80%',
+              transform: 'translate(0, 0)',
+              transformOrigin: 'top left',
+            }}
+            className={`absolute whitespace-pre-wrap p-6 cursor-move select-none transition-colors rounded-lg
+              ${isTextDragging ? 'bg-black/5 ring-2 ring-primary/30' : 'hover:bg-black/5'}
+            `}
+            onMouseDown={handleTextMouseDown}
+            onTouchStart={handleTextTouchStart}
+          >
+            {textStyle && textStyle !== 'normal' 
+              ? applyTextStyle(text || "Start writing your journal entry...", textStyle as any) 
+              : (text || "Start writing your journal entry...")}
+          </div>
           
-          {showIconControls && selectedIconId === icon.id && (
-            <div className="absolute -top-10 -right-4 flex flex-col gap-1">
-              <div className="flex gap-1">
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="h-8 w-8 rounded-full shadow-md bg-white"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleResizeIcon(icon.id, false);
-                  }}
-                >
-                  <MinusSquare className="h-4 w-4" />
-                </Button>
-                
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="h-8 w-8 rounded-full shadow-md bg-white"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleResizeIcon(icon.id, true);
-                  }}
-                >
-                  <PlusSquare className="h-4 w-4" />
-                </Button>
-                
+          {stickers && stickers.map((sticker) => (
+            <div
+              key={sticker.id}
+              className={`absolute touch-none select-none cursor-grab active:cursor-grabbing
+                ${selectedStickerId === sticker.id ? 'z-50 scale-110' : 'z-10'}
+                ${showDeleteButton && selectedStickerId === sticker.id ? 'ring-2 ring-destructive' : ''}`}
+              style={{
+                left: `${sticker.position.x}%`,
+                top: `${sticker.position.y}%`,
+                transform: 'translate(0, 0)',
+                transformOrigin: 'top left',
+                transition: selectedStickerId === sticker.id ? 'none' : 'all 0.2s ease',
+                padding: '8px',
+              }}
+              onMouseDown={(e) => handleMouseDown(e, sticker.id)}
+              onTouchStart={(e) => handleTouchStart(e, sticker.id)}
+            >
+              <img
+                src={sticker.url}
+                alt="Sticker"
+                className="w-16 h-16 object-contain pointer-events-none"
+                draggable={false}
+              />
+              {showDeleteButton && selectedStickerId === sticker.id && (
                 <Button
                   variant="destructive"
                   size="icon"
-                  className="h-8 w-8 rounded-full shadow-md"
+                  className="absolute -top-4 -right-4 h-8 w-8 rounded-full shadow-md"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleDeleteIcon(icon.id);
+                    handleDeleteSticker(sticker.id);
                   }}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
-              </div>
+              )}
+            </div>
+          ))}
+
+          {icons && icons.map((icon) => (
+            <div
+              key={icon.id}
+              className={`absolute touch-none select-none cursor-grab active:cursor-grabbing
+                ${selectedIconId === icon.id ? 'z-50 scale-110' : 'z-10'}
+                ${showIconControls && selectedIconId === icon.id ? 'ring-2 ring-primary' : ''}`}
+              style={{
+                left: `${icon.position.x}%`,
+                top: `${icon.position.y}%`,
+                transform: 'translate(0, 0)',
+                transformOrigin: 'top left',
+                transition: selectedIconId === icon.id ? 'none' : 'all 0.2s ease',
+                padding: '8px',
+              }}
+              onMouseDown={(e) => handleIconMouseDown(e, icon.id)}
+              onTouchStart={(e) => handleIconTouchStart(e, icon.id)}
+            >
+              <img
+                src={icon.url}
+                alt="Icon"
+                className="object-contain pointer-events-none"
+                draggable={false}
+                style={getIconStyle(icon)}
+              />
+              
+              {showIconControls && selectedIconId === icon.id && (
+                <div className="absolute -top-10 -right-4 flex flex-col gap-1">
+                  <div className="flex gap-1">
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="h-8 w-8 rounded-full shadow-md bg-white"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleResizeIcon(icon.id, false);
+                      }}
+                    >
+                      <MinusSquare className="h-4 w-4" />
+                    </Button>
+                    
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="h-8 w-8 rounded-full shadow-md bg-white"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleResizeIcon(icon.id, true);
+                      }}
+                    >
+                      <PlusSquare className="h-4 w-4" />
+                    </Button>
+                    
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="h-8 w-8 rounded-full shadow-md"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteIcon(icon.id);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+          
+          {selectedStickerId && showDeleteButton && (
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/80 p-2 rounded-md text-xs text-center shadow-md backdrop-blur-sm">
+              Click the delete button to remove sticker
             </div>
           )}
-        </div>
-      ))}
-      
-      {selectedStickerId && showDeleteButton && (
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/80 p-2 rounded-md text-xs text-center shadow-md backdrop-blur-sm">
-          Click the delete button to remove sticker
-        </div>
-      )}
-      
-      {selectedIconId && showIconControls && (
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/80 p-2 rounded-md text-xs text-center shadow-md backdrop-blur-sm">
-          Use controls to resize or delete icon
-        </div>
+          
+          {selectedIconId && showIconControls && (
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/80 p-2 rounded-md text-xs text-center shadow-md backdrop-blur-sm">
+              Use controls to resize or delete icon
+            </div>
+          )}
+
+          {drawing && (
+            <img
+              src={drawing}
+              alt="Journal drawing"
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              style={{ mixBlendMode: 'multiply' }}
+            />
+          )}
+        </>
       )}
     </div>
   );
@@ -570,6 +590,14 @@ export function JournalPreview({
         <StickerSelector onStickerSelect={handleAddSticker} />
         <IconSelector onIconSelect={handleAddIcon} />
         <BackgroundImageSelector onImageSelect={onBackgroundSelect} />
+        <Button
+          onClick={() => setIsDrawingMode(!isDrawingMode)}
+          variant={isDrawingMode ? "secondary" : "ghost"}
+          size="icon"
+          title={isDrawingMode ? "Exit drawing mode" : "Enter drawing mode"}
+        >
+          <Pencil className="w-4 h-4" />
+        </Button>
         <Button
           onClick={onTogglePreview}
           variant="ghost"

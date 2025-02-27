@@ -1,4 +1,3 @@
-
 export type Mood = 
   | 'happy' 
   | 'sad' 
@@ -54,6 +53,7 @@ export interface JournalEntry {
     y: number;
   };
   backgroundImage?: string;
+  drawing?: string;
 }
 
 export interface Challenge {
