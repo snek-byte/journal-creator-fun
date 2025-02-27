@@ -1,325 +1,66 @@
 
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { useJournalStore } from '@/store/journalStore';
-import { useEffect, useRef, useState } from 'react';
-import { Printer, Smile, Mail, Dock, Undock } from 'lucide-react';
-import { MoodSelector } from './journal/MoodSelector';
-import { JournalStylingControls } from './journal/JournalStylingControls';
+import { useJournalEditor } from '@/hooks/useJournalEditor';
+import { JournalEditorSidebar } from './journal/JournalEditorSidebar';
 import { JournalPreview } from './journal/JournalPreview';
-import { StickerSelector } from './journal/StickerSelector';
-import { IconSelector } from './journal/IconSelector';
-import { BackgroundImageSelector } from './journal/BackgroundImageSelector';
 import { EmailDialog } from './journal/EmailDialog';
-import { DailyChallenge } from './journal/DailyChallenge';
-import type { Mood, Sticker, Icon } from '@/types/journal';
-import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export function JournalEditor() {
   const {
     currentEntry,
     showPreview,
     dailyChallenge,
-    setText,
-    setFont,
-    setFontSize,
-    setFontWeight,
-    setFontColor,
-    setGradient,
+    showEmailDialog,
+    emailAddress,
+    isSending,
+    isDocked,
+    textareaRef,
+    handlePrint,
+    handleStickerAdd,
+    handleIconAdd,
+    handleStickerMove,
+    handleIconMove,
+    handleIconUpdate,
+    handleTextMove,
+    handleBackgroundSelect,
+    handleDrawingChange,
+    handleEmojiSelect,
+    handleSendEmail,
+    toggleDocked,
+    setShowEmailDialog,
+    setEmailAddress,
     setMood,
     setIsPublic,
-    setTextStyle,
-    setStickers,
-    setIcons,
-    setTextPosition,
-    setBackgroundImage,
-    setDrawing,
-    addSticker,
-    addIcon,
-    updateIcon,
+    setText,
     togglePreview,
     saveEntry,
-    loadChallenge,
     applyChallenge,
-  } = useJournalStore();
-
-  const [showEmailDialog, setShowEmailDialog] = useState(false);
-  const [emailAddress, setEmailAddress] = useState("");
-  const [isSending, setIsSending] = useState(false);
-  const [isDocked, setIsDocked] = useState(true);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [cursorPosition, setCursorPosition] = useState<number | null>(null);
-
-  useEffect(() => {
-    try {
-      loadChallenge();
-      supabase.auth.getUser().then(({ data: { user } }) => {
-        if (user?.email) {
-          setEmailAddress(user.email);
-        }
-      });
-    } catch (error) {
-      console.error("Error loading initial data:", error);
-    }
-  }, []);
-
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const handleStickerAdd = (sticker: Sticker) => {
-    try {
-      addSticker(sticker);
-    } catch (error) {
-      console.error("Error adding sticker:", error);
-    }
-  };
-
-  const handleIconAdd = (icon: Icon) => {
-    try {
-      addIcon(icon);
-      toast.success('Icon added! Drag it to position on your journal.');
-    } catch (error) {
-      console.error("Error adding icon:", error);
-    }
-  };
-
-  const handleStickerMove = (stickerId: string, position: { x: number, y: number }) => {
-    try {
-      setStickers(
-        (currentEntry.stickers || []).map(s => 
-          s.id === stickerId ? { ...s, position } : s
-        )
-      );
-    } catch (error) {
-      console.error("Error moving sticker:", error);
-    }
-  };
-
-  const handleIconMove = (iconId: string, position: { x: number, y: number }) => {
-    try {
-      setIcons(
-        (currentEntry.icons || []).map(i => 
-          i.id === iconId ? { ...i, position } : i
-        )
-      );
-    } catch (error) {
-      console.error("Error moving icon:", error);
-    }
-  };
-
-  const handleIconUpdate = (iconId: string, updates: Partial<Icon>) => {
-    try {
-      updateIcon(iconId, updates);
-    } catch (error) {
-      console.error("Error updating icon:", error);
-    }
-  };
-
-  const handleTextMove = (position: { x: number, y: number }) => {
-    try {
-      setTextPosition(position);
-    } catch (error) {
-      console.error("Error moving text:", error);
-    }
-  };
-
-  const handleBackgroundSelect = (imageUrl: string) => {
-    try {
-      setBackgroundImage(imageUrl);
-    } catch (error) {
-      console.error("Error selecting background:", error);
-    }
-  };
-
-  const handleDrawingChange = (dataUrl: string) => {
-    try {
-      setDrawing(dataUrl);
-    } catch (error) {
-      console.error("Error updating drawing:", error);
-    }
-  };
-
-  const handleEmojiSelect = (emojiData: EmojiClickData) => {
-    try {
-      if (!textareaRef.current) return;
-
-      const start = textareaRef.current.selectionStart;
-      const end = textareaRef.current.selectionEnd;
-      const text = currentEntry.text;
-      
-      const newText = text.substring(0, start) + emojiData.emoji + text.substring(end);
-      setText(newText);
-      
-      setTimeout(() => {
-        if (textareaRef.current) {
-          const newPosition = start + emojiData.emoji.length;
-          textareaRef.current.selectionStart = newPosition;
-          textareaRef.current.selectionEnd = newPosition;
-          textareaRef.current.focus();
-        }
-      }, 0);
-    } catch (error) {
-      console.error("Error selecting emoji:", error);
-    }
-  };
-
-  const handleSendEmail = async () => {
-    if (!emailAddress) {
-      toast.error("Please enter an email address");
-      return;
-    }
-
-    if (!currentEntry.text.trim()) {
-      toast.error("Please write something in your journal before sending");
-      return;
-    }
-
-    setIsSending(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("Please sign in to send emails");
-        return;
-      }
-
-      const response = await supabase.functions.invoke('send-journal', {
-        body: {
-          to: emailAddress,
-          text: currentEntry.text,
-          mood: currentEntry.mood,
-          date: new Date().toISOString(),
-        },
-      });
-
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-
-      toast.success("Journal entry sent to your email!");
-      setShowEmailDialog(false);
-    } catch (error: any) {
-      console.error("Error sending email:", error);
-      toast.error("Failed to send email. Please try again.");
-    } finally {
-      setIsSending(false);
-    }
-  };
-
-  const toggleDocked = () => {
-    setIsDocked(!isDocked);
-    // When we toggle, ensure we reflow the preview
-    setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 100);
-  };
+    loadChallenge
+  } = useJournalEditor();
 
   return (
     <div className={`flex flex-col lg:flex-row min-h-screen bg-gray-50 ${!isDocked ? 'relative' : ''}`}>
-      <div className={`${isDocked ? 'w-full lg:w-1/3' : 'w-96'} p-6 border-r bg-white print:hidden ${
-        !isDocked ? 'absolute left-0 top-0 z-10 h-full shadow-lg transition-all duration-300 transform' : ''
-      }`}>
-        <div className="flex justify-end mb-2">
-          <Button
-            onClick={toggleDocked}
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            title={isDocked ? "Undock panel" : "Dock panel"}
-          >
-            {isDocked ? (
-              <Undock className="h-4 w-4" />
-            ) : (
-              <Dock className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
-        
-        <div className="space-y-6">
-          {dailyChallenge && (
-            <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-lg border border-blue-100 shadow-sm mb-6">
-              <DailyChallenge
-                prompt={dailyChallenge.prompt}
-                onRefresh={loadChallenge}
-                onApply={applyChallenge}
-              />
-            </div>
-          )}
-
-          <MoodSelector
-            mood={currentEntry.mood}
-            isPublic={currentEntry.isPublic}
-            onMoodChange={(mood: Mood) => setMood(mood)}
-            onIsPublicChange={setIsPublic}
-          />
-
-          <JournalStylingControls
-            font={currentEntry.font}
-            fontSize={currentEntry.fontSize}
-            fontWeight={currentEntry.fontWeight}
-            fontColor={currentEntry.fontColor}
-            gradient={currentEntry.gradient}
-            onFontChange={setFont}
-            onFontSizeChange={setFontSize}
-            onFontWeightChange={setFontWeight}
-            onFontColorChange={setFontColor}
-            onGradientChange={setGradient}
-            onTextStyleChange={setTextStyle}
-          />
-
-          <div className="relative">
-            <div className="absolute top-2 right-2 z-10">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Smile className="h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="end">
-                  <EmojiPicker
-                    onEmojiClick={handleEmojiSelect}
-                    width="100%"
-                    height={400}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <Textarea
-              ref={textareaRef}
-              placeholder="Start writing your journal entry..."
-              value={currentEntry.text}
-              onChange={(e) => setText(e.target.value)}
-              onSelect={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                setCursorPosition(target.selectionStart);
-              }}
-              className="min-h-[200px] resize-none pr-10"
-            />
-          </div>
-
-          <div className="flex gap-4">
-            <Button onClick={saveEntry} className="flex-1">
-              Save Entry
-            </Button>
-            <Button onClick={handlePrint} variant="outline" className="flex-1">
-              <Printer className="w-4 h-4 mr-2" />
-              Print
-            </Button>
-            <Button 
-              onClick={() => setShowEmailDialog(true)} 
-              variant="outline" 
-              className="flex-1"
-            >
-              <Mail className="w-4 h-4 mr-2" />
-              Email
-            </Button>
-          </div>
-        </div>
-      </div>
+      <JournalEditorSidebar 
+        isDocked={isDocked}
+        toggleDocked={toggleDocked}
+        textareaRef={textareaRef}
+        currentEntry={currentEntry}
+        dailyChallenge={dailyChallenge}
+        handlePrint={handlePrint}
+        handleEmojiSelect={handleEmojiSelect}
+        setShowEmailDialog={setShowEmailDialog}
+        setText={setText}
+        setMood={setMood}
+        setIsPublic={setIsPublic}
+        setFont={currentEntry.setFont}
+        setFontSize={currentEntry.setFontSize}
+        setFontWeight={currentEntry.setFontWeight}
+        setFontColor={currentEntry.setFontColor}
+        setGradient={currentEntry.setGradient}
+        setTextStyle={currentEntry.setTextStyle}
+        saveEntry={saveEntry}
+        loadChallenge={loadChallenge}
+        applyChallenge={applyChallenge}
+      />
 
       <EmailDialog
         open={showEmailDialog}
