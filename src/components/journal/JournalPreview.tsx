@@ -344,14 +344,16 @@ export function JournalPreview({
             </div>
           )}
           
-          {isDrawingMode ? (
+          {isDrawingMode && (
             <DrawingLayer
               width={previewRef.current?.clientWidth || 800}
               height={previewRef.current?.clientHeight || 600}
               className="absolute inset-0 z-50"
               onDrawingChange={onDrawingChange}
             />
-          ) : (
+          )}
+          
+          {!isDrawingMode && (
             <>
               <div
                 ref={textRef}

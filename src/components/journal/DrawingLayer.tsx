@@ -19,26 +19,26 @@ interface DrawingLayerProps {
   onDrawingChange?: (dataUrl: string) => void;
 }
 
-// Drawing colors
+// Soft pastel color palette
 const colors = [
   { name: 'Black', value: '#000000' },
-  { name: 'Dark Gray', value: '#403E43' },
-  { name: 'Medium Gray', value: '#8E9196' },
-  { name: 'Primary Purple', value: '#9b87f5' },
-  { name: 'Red', value: '#ea384c' },
-  { name: 'Blue', value: '#0EA5E9' },
-  { name: 'Green', value: '#4CAF50' },
-  { name: 'Orange', value: '#F97316' },
+  { name: 'Soft Purple', value: '#E5DEFF' },
+  { name: 'Soft Blue', value: '#D3E4FD' },
+  { name: 'Soft Green', value: '#F2FCE2' },
+  { name: 'Soft Yellow', value: '#FEF7CD' },
+  { name: 'Soft Orange', value: '#FEC6A1' },
+  { name: 'Soft Pink', value: '#FFDEE2' },
+  { name: 'Soft Peach', value: '#FDE1D3' },
 ];
 
 // Brush types
 const brushTypes = [
-  { name: 'Pen', value: 'pen', icon: <Pencil className="h-4 w-4" /> },
-  { name: 'Marker', value: 'marker', icon: <Paintbrush className="h-4 w-4" /> },
-  { name: 'Highlighter', value: 'highlighter', icon: <Highlighter className="h-4 w-4" /> },
-  { name: 'Spray', value: 'spray', icon: <CircleDashed className="h-4 w-4" /> },
-  { name: 'Fill', value: 'fill', icon: <PaintBucket className="h-4 w-4" /> },
-  { name: 'Eraser', value: 'eraser', icon: <Eraser className="h-4 w-4" /> },
+  { name: 'Pen', value: 'pen', icon: <Pencil className="h-3 w-3" /> },
+  { name: 'Marker', value: 'marker', icon: <Paintbrush className="h-3 w-3" /> },
+  { name: 'Highlighter', value: 'highlighter', icon: <Highlighter className="h-3 w-3" /> },
+  { name: 'Spray', value: 'spray', icon: <CircleDashed className="h-3 w-3" /> },
+  { name: 'Fill', value: 'fill', icon: <PaintBucket className="h-3 w-3" /> },
+  { name: 'Eraser', value: 'eraser', icon: <Eraser className="h-3 w-3" /> },
 ];
 
 export function DrawingLayer({ className, width, height, onDrawingChange }: DrawingLayerProps) {
@@ -429,6 +429,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
   const handleDragStart = (e: React.MouseEvent) => {
     if (toolbarRef.current) {
       e.preventDefault();
+      e.stopPropagation();
       const rect = toolbarRef.current.getBoundingClientRect();
       setDragOffset({
         x: e.clientX - rect.left,
@@ -473,7 +474,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
         }}
         className={cn(
           "absolute z-50 flex flex-col bg-white/95 rounded-lg shadow-md border border-gray-200 transition-all",
-          minimized ? "w-auto" : "w-[250px]"
+          minimized ? "w-auto" : "w-[180px]"
         )}
       >
         <div 
@@ -488,7 +489,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6"
+              className="h-5 w-5"
               onClick={() => setMinimized(!minimized)}
               type="button"
             >
@@ -497,7 +498,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6 text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+              className="h-5 w-5 text-gray-400 hover:text-gray-600 hover:bg-gray-100"
               onClick={clearCanvas}
               type="button"
             >
@@ -509,19 +510,19 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
         {!minimized && (
           <div className="p-2 space-y-2">
             <Tabs defaultValue="brushes" className="w-full">
-              <TabsList className="grid grid-cols-2 h-7">
+              <TabsList className="grid grid-cols-2 h-6">
                 <TabsTrigger value="brushes" className="text-xs">Brushes</TabsTrigger>
                 <TabsTrigger value="colors" className="text-xs">Colors</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="brushes" className="space-y-3 mt-2">
+              <TabsContent value="brushes" className="space-y-2 mt-1.5">
                 <div className="flex flex-wrap gap-1">
                   {brushTypes.map((brush) => (
                     <Button
                       key={brush.value}
                       variant={brushType === brush.value ? "secondary" : "ghost"}
                       size="icon"
-                      className="h-7 w-7"
+                      className="h-6 w-6 p-1"
                       onClick={() => handleBrushTypeChange(brush.value)}
                       title={brush.name}
                       type="button"
@@ -532,21 +533,21 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
                 </div>
                 
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 mt-1.5">
                     <span className="text-xs">Size:</span>
                     <div className="flex gap-1">
                       {[2, 4, 6, 8].map((size) => (
                         <button
                           key={size}
-                          className={`w-5 h-5 flex items-center justify-center border rounded ${lineWidth === size ? 'bg-primary/20 border-primary' : 'border-gray-300'}`}
+                          className={`w-4 h-4 flex items-center justify-center border rounded-sm ${lineWidth === size ? 'bg-primary/20 border-primary' : 'border-gray-300'}`}
                           onClick={() => handleLineWidthChange(size)}
                           type="button"
                         >
                           <div 
                             className="rounded-full" 
                             style={{ 
-                              width: `${size}px`, 
-                              height: `${size}px`,
+                              width: `${size/2}px`, 
+                              height: `${size/2}px`,
                               backgroundColor: brushType === 'eraser' ? '#888' : currentColor
                             }}
                           />
@@ -556,7 +557,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
                   </div>
                   
                   {brushType !== 'eraser' && brushType !== 'highlighter' && (
-                    <div className="flex items-center gap-2 mt-2">
+                    <div className="flex items-center gap-1.5 mt-1.5">
                       <span className="text-xs">Opacity:</span>
                       <input
                         type="range"
@@ -565,19 +566,19 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
                         step="0.1"
                         value={opacity}
                         onChange={(e) => setOpacity(parseFloat(e.target.value))}
-                        className="flex-1 h-1.5"
+                        className="flex-1 h-1"
                       />
                     </div>
                   )}
                 </div>
               </TabsContent>
               
-              <TabsContent value="colors" className="mt-2">
-                <div className="grid grid-cols-4 gap-1">
+              <TabsContent value="colors" className="mt-1.5">
+                <div className="flex flex-wrap justify-center gap-1 mt-1">
                   {colors.map((color) => (
                     <button
                       key={color.value}
-                      className={`w-full h-6 rounded ${currentColor === color.value ? 'ring-1 ring-offset-1 ring-primary' : 'border border-gray-300'}`}
+                      className={`w-5 h-5 rounded-full ${currentColor === color.value ? 'ring-1 ring-offset-1 ring-primary' : ''}`}
                       style={{ backgroundColor: color.value }}
                       onClick={() => setCurrentColor(color.value)}
                       title={color.name}
@@ -590,13 +591,14 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
                   <Popover>
                     <PopoverTrigger asChild>
                       <button
-                        className="w-full h-7 rounded flex items-center justify-center gap-1 border border-gray-300"
-                        style={{ backgroundColor: currentColor }}
+                        className="w-full h-6 rounded-md flex items-center justify-center gap-1 border border-gray-200"
                         type="button"
                       >
-                        <span className="bg-white px-1.5 py-0.5 rounded text-xs">
-                          Custom
-                        </span>
+                        <div 
+                          className="w-4 h-4 rounded-full" 
+                          style={{ backgroundColor: currentColor }}
+                        />
+                        <span className="text-xs">Custom</span>
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-2">
@@ -611,7 +613,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7"
+                className="h-6 w-6 p-1"
                 onClick={undo}
                 disabled={undoStack.length <= 1}
                 type="button"
@@ -621,7 +623,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7"
+                className="h-6 w-6 p-1"
                 onClick={redo}
                 disabled={redoStack.length === 0}
                 type="button"
@@ -631,7 +633,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7"
+                className="h-6 w-6 p-1"
                 onClick={clearCanvas}
                 type="button"
               >
