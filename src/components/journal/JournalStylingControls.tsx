@@ -2,8 +2,6 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { fontOptions, fontSizes, fontWeights } from "./config/editorConfig";
 import { textStyles } from "@/utils/unicodeTextStyles";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 
 interface JournalStylingControlsProps {
   font: string;
@@ -33,16 +31,16 @@ export function JournalStylingControls({
   onTextStyleChange,
 }: JournalStylingControlsProps) {
   return (
-    <div className="space-y-3">
-      <div className="space-y-1">
-        <label className="text-xs font-medium">Text Style</label>
+    <div className="space-y-2">
+      <div className="space-y-0.5">
+        <label className="text-[10px] font-medium">Text Style</label>
         <Select onValueChange={onTextStyleChange} defaultValue="normal">
-          <SelectTrigger className="h-8 text-xs">
+          <SelectTrigger className="h-7 text-[10px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {textStyles.map((style) => (
-              <SelectItem key={style.value} value={style.value} className="text-xs">
+              <SelectItem key={style.value} value={style.value} className="text-[10px]">
                 {style.label}
               </SelectItem>
             ))}
@@ -50,15 +48,15 @@ export function JournalStylingControls({
         </Select>
       </div>
 
-      <div className="space-y-1">
-        <label className="text-xs font-medium">Font Family</label>
+      <div className="space-y-0.5">
+        <label className="text-[10px] font-medium">Font Family</label>
         <Select value={font} onValueChange={onFontChange}>
-          <SelectTrigger className="h-8 text-xs">
+          <SelectTrigger className="h-7 text-[10px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {fontOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value} className="text-xs">
+              <SelectItem key={option.value} value={option.value} className="text-[10px]">
                 {option.label}
               </SelectItem>
             ))}
@@ -66,16 +64,16 @@ export function JournalStylingControls({
         </Select>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        <div className="space-y-1">
-          <label className="text-xs font-medium">Font Size</label>
+      <div className="grid grid-cols-2 gap-1.5">
+        <div className="space-y-0.5">
+          <label className="text-[10px] font-medium">Font Size</label>
           <Select value={fontSize} onValueChange={onFontSizeChange}>
-            <SelectTrigger className="h-8 text-xs">
+            <SelectTrigger className="h-7 text-[10px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {fontSizes.map((option) => (
-                <SelectItem key={option.value} value={option.value} className="text-xs">
+                <SelectItem key={option.value} value={option.value} className="text-[10px]">
                   {option.label}
                 </SelectItem>
               ))}
@@ -83,15 +81,15 @@ export function JournalStylingControls({
           </Select>
         </div>
 
-        <div className="space-y-1">
-          <label className="text-xs font-medium">Font Weight</label>
+        <div className="space-y-0.5">
+          <label className="text-[10px] font-medium">Font Weight</label>
           <Select value={fontWeight} onValueChange={onFontWeightChange}>
-            <SelectTrigger className="h-8 text-xs">
+            <SelectTrigger className="h-7 text-[10px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {fontWeights.map((option) => (
-                <SelectItem key={option.value} value={option.value} className="text-xs">
+                <SelectItem key={option.value} value={option.value} className="text-[10px]">
                   {option.label}
                 </SelectItem>
               ))}
@@ -100,17 +98,17 @@ export function JournalStylingControls({
         </div>
       </div>
 
-      <div className="space-y-1">
-        <label className="text-xs font-medium">Font Color</label>
+      <div className="space-y-0.5">
+        <label className="text-[10px] font-medium">Font Color</label>
         <input
           type="color"
           value={fontColor}
           onChange={(e) => onFontColorChange(e.target.value)}
-          className="w-full h-8 rounded-md cursor-pointer"
+          className="w-full h-7 rounded-md cursor-pointer"
         />
       </div>
       
-      <div className="text-xs text-muted-foreground">
+      <div className="text-[9px] text-muted-foreground">
         <p>Use the background selector in the journal toolbar to set gradients or images.</p>
       </div>
     </div>

@@ -68,28 +68,28 @@ export function JournalEditorSidebar({
   applyChallenge,
 }: JournalEditorSidebarProps) {
   return (
-    <div className={`${isDocked ? 'w-full lg:w-1/3 2xl:w-1/4' : 'w-80'} p-3 border-r bg-white print:hidden overflow-y-auto ${
-      !isDocked ? 'absolute left-0 top-0 z-10 h-full shadow-lg transition-all duration-300 transform' : ''
+    <div className={`${isDocked ? 'w-full lg:w-1/4 2xl:w-1/5' : 'w-64'} p-2 border-r bg-white print:hidden overflow-y-auto h-full ${
+      !isDocked ? 'absolute left-0 top-0 z-10 shadow-lg transition-all duration-300 transform' : ''
     }`}>
-      <div className="flex justify-end mb-1">
+      <div className="flex justify-end mb-0.5">
         <Button
           onClick={toggleDocked}
           variant="ghost"
           size="sm"
-          className="h-6 w-6 p-0"
+          className="h-5 w-5 p-0"
           title={isDocked ? "Undock panel" : "Dock panel"}
         >
           {isDocked ? (
-            <AreaChart className="h-3 w-3" />
+            <AreaChart className="h-2.5 w-2.5" />
           ) : (
-            <Undo className="h-3 w-3" />
+            <Undo className="h-2.5 w-2.5" />
           )}
         </Button>
       </div>
       
-      <div className="space-y-3 text-sm">
+      <div className="space-y-2 text-xs">
         {dailyChallenge && (
-          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-2 rounded-lg border border-blue-100 shadow-sm mb-3">
+          <div className="mb-2">
             <DailyChallenge
               prompt={dailyChallenge.prompt}
               onRefresh={loadChallenge}
@@ -123,15 +123,15 @@ export function JournalEditorSidebar({
           <div className="absolute top-1 right-1 z-10">
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                  <Smile className="h-3 w-3" />
+                <Button variant="ghost" size="sm" className="h-5 w-5 p-0">
+                  <Smile className="h-2.5 w-2.5" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-full p-0" align="end">
                 <EmojiPicker
                   onEmojiClick={handleEmojiSelect}
                   width="100%"
-                  height={350}
+                  height={250}
                 />
               </PopoverContent>
             </Popover>
@@ -141,24 +141,24 @@ export function JournalEditorSidebar({
             placeholder="Start writing your journal entry..."
             value={currentEntry.text}
             onChange={(e) => setText(e.target.value)}
-            className="min-h-[150px] resize-none pr-8 text-sm"
+            className="min-h-[120px] resize-none pr-7 text-xs"
           />
         </div>
 
-        <div className="flex gap-2 pt-1">
-          <Button onClick={saveEntry} className="flex-1 h-8 text-xs px-2 py-1">
+        <div className="flex gap-1 pt-1">
+          <Button onClick={saveEntry} className="flex-1 h-7 text-[10px] px-1.5 py-0">
             Save Entry
           </Button>
-          <Button onClick={handlePrint} variant="outline" className="flex-1 h-8 text-xs px-2 py-1">
-            <Printer className="w-3 h-3 mr-1" />
+          <Button onClick={handlePrint} variant="outline" className="flex-1 h-7 text-[10px] px-1.5 py-0">
+            <Printer className="w-2.5 h-2.5 mr-1" />
             Print
           </Button>
           <Button 
             onClick={() => setShowEmailDialog(true)} 
             variant="outline" 
-            className="flex-1 h-8 text-xs px-2 py-1"
+            className="flex-1 h-7 text-[10px] px-1.5 py-0"
           >
-            <Mail className="w-3 h-3 mr-1" />
+            <Mail className="w-2.5 h-2.5 mr-1" />
             Email
           </Button>
         </div>

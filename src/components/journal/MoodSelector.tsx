@@ -18,19 +18,19 @@ export function MoodSelector({
   onIsPublicChange,
 }: MoodSelectorProps) {
   return (
-    <div className="space-y-3">
-      <div className="space-y-1">
-        <label className="text-xs font-medium">How are you feeling?</label>
+    <div className="space-y-2">
+      <div className="space-y-0.5">
+        <label className="text-[10px] font-medium">How are you feeling?</label>
         <Select 
           value={mood} 
           onValueChange={onMoodChange}
         >
-          <SelectTrigger className="h-8 text-xs">
+          <SelectTrigger className="h-7 text-[10px]">
             <SelectValue placeholder="Select your mood" />
           </SelectTrigger>
           <SelectContent>
             {moodOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value} className="text-xs">
+              <SelectItem key={option.value} value={option.value} className="text-[10px]">
                 <span className="flex items-center gap-1">
                   {option.icon} {option.label}
                 </span>
@@ -41,11 +41,11 @@ export function MoodSelector({
       </div>
 
       <div className="flex items-center justify-between">
-        <label className="text-xs font-medium">Make Entry Public</label>
+        <label className="text-[10px] font-medium">Make Entry Public</label>
         <Switch
           checked={isPublic}
           onCheckedChange={onIsPublicChange}
-          className="scale-75 data-[state=checked]:bg-violet-500"
+          className="scale-[0.65] data-[state=checked]:bg-violet-500"
         />
       </div>
     </div>
