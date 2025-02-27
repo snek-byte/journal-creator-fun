@@ -32,6 +32,7 @@ export function JournalEditor() {
     setIsPublic,
     setTextStyle,
     setStickers,
+    setTextPosition,
     togglePreview,
     saveEntry,
     loadChallenge,
@@ -67,6 +68,10 @@ export function JournalEditor() {
         s.id === stickerId ? { ...s, position } : s
       )
     );
+  };
+
+  const handleTextMove = (position: { x: number, y: number }) => {
+    setTextPosition(position);
   };
 
   const handleEmojiSelect = (emojiData: EmojiClickData) => {
@@ -236,8 +241,10 @@ export function JournalEditor() {
         gradient={currentEntry.gradient}
         textStyle={currentEntry.textStyle}
         stickers={currentEntry.stickers || []}
+        textPosition={currentEntry.textPosition || { x: 50, y: 50 }}
         onStickerAdd={handleStickerAdd}
         onStickerMove={handleStickerMove}
+        onTextMove={handleTextMove}
         onTogglePreview={togglePreview}
       />
     </div>

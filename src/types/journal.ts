@@ -1,4 +1,13 @@
-export type Mood = 'happy' | 'sad' | 'stressed' | 'calm' | 'neutral';
+
+export type Mood = 
+  | 'happy' 
+  | 'sad' 
+  | 'angry' 
+  | 'excited' 
+  | 'relaxed' 
+  | 'anxious'
+  | 'grateful'
+  | 'confused';
 
 export interface Sticker {
   id: string;
@@ -10,9 +19,9 @@ export interface Sticker {
 }
 
 export interface JournalEntry {
-  id: string;
-  text: string;
+  id: number;
   date: string;
+  text: string;
   font: string;
   fontSize: string;
   fontWeight: string;
@@ -23,7 +32,11 @@ export interface JournalEntry {
   isPublic: boolean;
   challengeId?: string;
   textStyle?: string;
-  stickers?: Sticker[];
+  stickers: Sticker[];
+  textPosition?: {
+    x: number;
+    y: number;
+  };
 }
 
 export interface Challenge {
@@ -39,7 +52,7 @@ export interface Badge {
   description: string;
   icon: string;
   requirement: number;
-  type: 'streak' | 'entries' | 'challenges' | 'mood';
+  type: 'streak' | 'entries' | 'challenges';
 }
 
 export interface UserProgress {

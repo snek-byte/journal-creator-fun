@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { JournalEntry, Challenge, Badge, UserProgress, Mood, Sticker } from '@/types/journal';
@@ -19,6 +18,7 @@ interface JournalState {
     isPublic: boolean;
     textStyle: string;
     stickers: Sticker[];
+    textPosition: { x: number, y: number };
   };
   // Collections
   entries: JournalEntry[];
@@ -40,6 +40,7 @@ interface JournalState {
   setIsPublic: (isPublic: boolean) => void;
   setTextStyle: (style: string) => void;
   setStickers: (stickers: Sticker[]) => void;
+  setTextPosition: (position: { x: number, y: number }) => void;
   addSticker: (sticker: Sticker) => void;
   removeSticker: (stickerId: string) => void;
   togglePreview: () => void;
@@ -63,7 +64,8 @@ export const useJournalStore = create<JournalState>()(
         gradient: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)',
         isPublic: false,
         textStyle: 'normal',
-        stickers: []
+        stickers: [],
+        textPosition: { x: 50, y: 50 }
       },
       entries: [],
       dailyChallenge: null,
@@ -136,6 +138,9 @@ export const useJournalStore = create<JournalState>()(
       setStickers: (stickers) => set((state) => ({
         currentEntry: { ...state.currentEntry, stickers }
       })),
+      setTextPosition: (textPosition) => set((state) => ({
+        currentEntry: { ...state.currentEntry, textPosition }
+      })),
       addSticker: (sticker) => set((state) => ({
         currentEntry: { 
           ...state.currentEntry, 
@@ -176,7 +181,8 @@ export const useJournalStore = create<JournalState>()(
               is_public: state.currentEntry.isPublic,
               challenge_id: state.dailyChallenge?.id || null,
               text_style: state.currentEntry.textStyle || null,
-              stickers: state.currentEntry.stickers
+              stickers: state.currentEntry.stickers,
+              text_position: state.currentEntry.textPosition
             });
 
           if (entryError) throw entryError;
@@ -193,7 +199,8 @@ export const useJournalStore = create<JournalState>()(
               mood: undefined,
               moodNote: undefined,
               textStyle: 'normal',
-              stickers: []
+              stickers: [],
+              textPosition: { x: 50, y: 50 }
             }
           }));
 
@@ -241,7 +248,8 @@ export const useJournalStore = create<JournalState>()(
           isPublic: entry.is_public,
           challengeId: entry.challenge_id || undefined,
           textStyle: entry.text_style || undefined,
-          stickers: entry.stickers as Sticker[] || []
+          stickers: entry.stickers as Sticker[] || [],
+          textPosition: entry.text_position as { x: number, y: number } || { x: 50, y: 50 }
         }));
 
         set({ entries });

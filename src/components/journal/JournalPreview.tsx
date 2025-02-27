@@ -1,3 +1,4 @@
+
 import { useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Maximize2, Trash2 } from 'lucide-react';
@@ -19,8 +20,10 @@ interface JournalPreviewProps {
   gradient: string;
   textStyle?: string;
   stickers: Sticker[];
+  textPosition: { x: number, y: number };
   onStickerAdd: (sticker: Sticker) => void;
   onStickerMove: (stickerId: string, position: { x: number, y: number }) => void;
+  onTextMove: (position: { x: number, y: number }) => void;
   onTogglePreview: () => void;
 }
 
@@ -35,15 +38,19 @@ export function JournalPreview({
   gradient,
   textStyle = 'normal',
   stickers,
+  textPosition,
   onStickerAdd,
   onStickerMove,
+  onTextMove,
   onTogglePreview,
 }: JournalPreviewProps) {
   const previewRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const [touchTimeout, setTouchTimeout] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isTextDragging, setIsTextDragging] = useState(false);
   const { removeSticker } = useJournalStore();
 
   const handleMouseDown = (e: React.MouseEvent, stickerId: string) => {
@@ -88,6 +95,58 @@ export function JournalPreview({
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleTextMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsTextDragging(true);
+    
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      moveText(moveEvent.clientX, moveEvent.clientY);
+    };
+
+    const handleMouseUp = () => {
+      setIsTextDragging(false);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleTextTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsTextDragging(true);
+
+    const handleTouchMove = (moveEvent: TouchEvent) => {
+      moveText(moveEvent.touches[0].clientX, moveEvent.touches[0].clientY);
+    };
+
+    const handleTouchEnd = () => {
+      setIsTextDragging(false);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
+  };
+
+  const moveText = (clientX: number, clientY: number) => {
+    if (!previewRef.current) return;
+    
+    const previewRect = previewRef.current.getBoundingClientRect();
+    
+    const x = ((clientX - previewRect.left) / previewRect.width) * 100;
+    const y = ((clientY - previewRect.top) / previewRect.height) * 100;
+    
+    const clampedX = Math.max(0, Math.min(100, x));
+    const clampedY = Math.max(0, Math.min(100, y));
+
+    onTextMove({ x: clampedX, y: clampedY });
   };
 
   const handleTouchStart = (e: React.TouchEvent, stickerId: string) => {
@@ -183,26 +242,35 @@ export function JournalPreview({
       className="w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn print:shadow-none print:rounded-none print:min-h-screen relative"
       onClick={handleBackgroundClick}
     >
-      <div className="w-full h-full p-8">
-        {mood && (
-          <div className="mb-4 text-lg">
-            Mood: {moodOptions.find(m => m.value === mood)?.icon}
-          </div>
-        )}
-        <div
-          style={{
-            fontFamily: font,
-            fontSize,
-            fontWeight,
-            color: fontColor,
-          }}
-          className="w-full h-full whitespace-pre-wrap"
-        >
-          {textStyle && textStyle !== 'normal' 
-            ? applyTextStyle(text || "Start writing your journal entry...", textStyle as any) 
-            : (text || "Start writing your journal entry...")}
+      {mood && (
+        <div className="absolute top-4 left-4 text-lg">
+          Mood: {moodOptions.find(m => m.value === mood)?.icon}
         </div>
+      )}
+      
+      <div
+        ref={textRef}
+        style={{
+          fontFamily: font,
+          fontSize,
+          fontWeight,
+          color: fontColor,
+          left: `${textPosition.x}%`,
+          top: `${textPosition.y}%`,
+          maxWidth: '80%',
+          transform: 'translate(-50%, -50%)',
+        }}
+        className={`absolute whitespace-pre-wrap p-6 cursor-move select-none transition-colors rounded-lg
+          ${isTextDragging ? 'bg-black/5 ring-2 ring-primary/30' : 'hover:bg-black/5'}
+        `}
+        onMouseDown={handleTextMouseDown}
+        onTouchStart={handleTextTouchStart}
+      >
+        {textStyle && textStyle !== 'normal' 
+          ? applyTextStyle(text || "Start writing your journal entry...", textStyle as any) 
+          : (text || "Start writing your journal entry...")}
       </div>
+      
       {stickers.map((sticker) => (
         <div
           key={sticker.id}
