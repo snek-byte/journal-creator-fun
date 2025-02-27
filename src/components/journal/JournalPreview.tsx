@@ -1,5 +1,4 @@
-
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Paintbrush } from 'lucide-react';
 import { moodOptions } from './config/editorConfig';
@@ -71,6 +70,12 @@ export function JournalPreview({
   const [isTextDragging, setIsTextDragging] = useState(false);
   const { removeSticker, removeIcon } = useJournalStore();
 
+  useEffect(() => {
+    if (textPosition.x === 50 && textPosition.y === 50) {
+      onTextMove({ x: 10, y: 10 });
+    }
+  }, []);
+
   const handleMouseDown = (e: React.MouseEvent, stickerId: string) => {
     e.preventDefault();
     e.stopPropagation();
@@ -82,7 +87,6 @@ export function JournalPreview({
     const startY = e.clientY;
     
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      // Check if moved more than a few pixels to count as dragging
       const diffX = Math.abs(moveEvent.clientX - startX);
       const diffY = Math.abs(moveEvent.clientY - startY);
       
@@ -96,13 +100,10 @@ export function JournalPreview({
     const handleMouseUp = (upEvent: MouseEvent) => {
       setSelectedStickerId(null);
       
-      // If this wasn't a drag, then show delete button or delete on second click
       if (!isDragging) {
-        // If delete button is already showing, delete on click
         if (showDeleteButton) {
           handleDeleteSticker(stickerId);
         } else {
-          // Otherwise show delete button
           setShowDeleteButton(true);
           setSelectedStickerId(stickerId);
         }
@@ -127,7 +128,6 @@ export function JournalPreview({
     const startY = e.clientY;
     
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      // Check if moved more than a few pixels to count as dragging
       const diffX = Math.abs(moveEvent.clientX - startX);
       const diffY = Math.abs(moveEvent.clientY - startY);
       
@@ -139,7 +139,6 @@ export function JournalPreview({
     };
 
     const handleMouseUp = (upEvent: MouseEvent) => {
-      // If this wasn't a drag, then show controls for icon
       if (!isDragging) {
         setShowIconControls(true);
       } else {
@@ -207,12 +206,10 @@ export function JournalPreview({
   };
 
   const handleTouchStart = (e: React.TouchEvent, stickerId: string) => {
-    // Prevent default to avoid scrolling
     e.preventDefault();
     setSelectedStickerId(stickerId);
     setSelectedIconId(null);
     
-    // Show delete button after long press (500ms)
     const timeoutId = window.setTimeout(() => {
       setShowDeleteButton(true);
     }, 500);
@@ -224,13 +221,11 @@ export function JournalPreview({
     let hasMoved = false;
 
     const handleTouchMove = (moveEvent: TouchEvent) => {
-      // Check if touch has moved more than a small threshold
       const diffX = Math.abs(moveEvent.touches[0].clientX - touchStartX);
       const diffY = Math.abs(moveEvent.touches[0].clientY - touchStartY);
       
       if (diffX > 5 || diffY > 5) {
         hasMoved = true;
-        // If moving, cancel the delete button timeout
         if (touchTimeout !== null) {
           clearTimeout(touchTimeout);
           setTouchTimeout(null);
@@ -247,7 +242,6 @@ export function JournalPreview({
         setTouchTimeout(null);
       }
       
-      // Only hide delete button if user moved the sticker
       if (hasMoved) {
         setShowDeleteButton(false);
       }
@@ -262,12 +256,10 @@ export function JournalPreview({
   };
 
   const handleIconTouchStart = (e: React.TouchEvent, iconId: string) => {
-    // Prevent default to avoid scrolling
     e.preventDefault();
     setSelectedIconId(iconId);
     setSelectedStickerId(null);
     
-    // Show controls after long press (500ms)
     const timeoutId = window.setTimeout(() => {
       setShowIconControls(true);
     }, 500);
@@ -279,13 +271,11 @@ export function JournalPreview({
     let hasMoved = false;
 
     const handleTouchMove = (moveEvent: TouchEvent) => {
-      // Check if touch has moved more than a small threshold
       const diffX = Math.abs(moveEvent.touches[0].clientX - touchStartX);
       const diffY = Math.abs(moveEvent.touches[0].clientY - touchStartY);
       
       if (diffX > 5 || diffY > 5) {
         hasMoved = true;
-        // If moving, cancel the controls timeout
         if (touchTimeout !== null) {
           clearTimeout(touchTimeout);
           setTouchTimeout(null);
@@ -302,7 +292,6 @@ export function JournalPreview({
         setTouchTimeout(null);
       }
       
-      // Only hide controls if user moved the icon
       if (hasMoved) {
         setShowIconControls(false);
         setSelectedIconId(null);
@@ -416,7 +405,8 @@ export function JournalPreview({
           left: `${textPosition.x}%`,
           top: `${textPosition.y}%`,
           maxWidth: '80%',
-          transform: 'translate(-50%, -50%)',
+          transform: 'translate(0, 0)',
+          transformOrigin: 'top left',
         }}
         className={`absolute whitespace-pre-wrap p-6 cursor-move select-none transition-colors rounded-lg
           ${isTextDragging ? 'bg-black/5 ring-2 ring-primary/30' : 'hover:bg-black/5'}
@@ -438,7 +428,8 @@ export function JournalPreview({
           style={{
             left: `${sticker.position.x}%`,
             top: `${sticker.position.y}%`,
-            transform: 'translate(-50%, -50%)',
+            transform: 'translate(0, 0)',
+            transformOrigin: 'top left',
             transition: selectedStickerId === sticker.id ? 'none' : 'all 0.2s ease',
             padding: '8px',
           }}
@@ -476,7 +467,8 @@ export function JournalPreview({
           style={{
             left: `${icon.position.x}%`,
             top: `${icon.position.y}%`,
-            transform: 'translate(-50%, -50%)',
+            transform: 'translate(0, 0)',
+            transformOrigin: 'top left',
             transition: selectedIconId === icon.id ? 'none' : 'all 0.2s ease',
             padding: '8px',
           }}
@@ -562,14 +554,12 @@ export function JournalPreview({
         </div>
       ))}
       
-      {/* Instructions - show when sticker is selected */}
       {selectedStickerId && showDeleteButton && (
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/80 p-2 rounded-md text-xs text-center shadow-md backdrop-blur-sm">
           Click the delete button to remove sticker
         </div>
       )}
       
-      {/* Instructions - show when icon is selected */}
       {selectedIconId && showIconControls && (
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/80 p-2 rounded-md text-xs text-center shadow-md backdrop-blur-sm">
           Use controls to resize, change color, or delete icon

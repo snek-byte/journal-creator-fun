@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Paintbrush, Search, RotateCw } from "lucide-react";
+import { Paintbrush, Search, RotateCw, Upload } from "lucide-react";
 import { useJournalStore } from '@/store/journalStore';
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -50,12 +50,14 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
     setGradient(gradient);
     setBackgroundImage(''); // Clear any existing background image
     onImageSelect('');
+    toast.success('Gradient background applied');
   };
 
   // Handle background image selection
   const handleBackgroundSelect = (imageUrl: string) => {
     setBackgroundImage(imageUrl);
     onImageSelect(imageUrl);
+    toast.success('Image background applied');
   };
 
   // Fetch new images when searching
@@ -133,6 +135,28 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
     }
   };
 
+  // Handle image upload
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (typeof e.target?.result === 'string') {
+        handleBackgroundSelect(e.target.result);
+      }
+    };
+    reader.onerror = () => {
+      toast.error('Failed to load image');
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -198,12 +222,13 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
                   size="icon"
                   onClick={shuffleImages}
                   disabled={isLoading}
+                  title="Get random images"
                 >
                   <RotateCw className="h-4 w-4" />
                 </Button>
               </div>
               
-              <ScrollArea className="h-[300px] w-full rounded-md border p-4">
+              <ScrollArea className="h-[250px] w-full rounded-md border p-4">
                 {isLoading ? (
                   <div className="h-40 flex items-center justify-center">
                     <p className="text-sm text-gray-500">Loading...</p>
@@ -222,6 +247,22 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
                   </div>
                 )}
               </ScrollArea>
+
+              <div className="flex items-center gap-2">
+                <label htmlFor="upload-bg" className="flex-1">
+                  <div className="flex items-center justify-center h-10 px-4 py-2 border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                    <Upload className="w-4 h-4 mr-2" />
+                    <span>Upload image</span>
+                  </div>
+                  <input
+                    id="upload-bg"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="sr-only"
+                  />
+                </label>
+              </div>
             </div>
           </TabsContent>
         </Tabs>

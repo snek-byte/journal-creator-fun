@@ -74,7 +74,7 @@ export const useJournalStore = create<JournalState>()(
         textStyle: 'normal',
         stickers: [],
         icons: [],
-        textPosition: { x: 50, y: 50 },
+        textPosition: { x: 10, y: 10 }, // Position at top left
         backgroundImage: undefined
       },
       entries: [],
@@ -243,7 +243,7 @@ export const useJournalStore = create<JournalState>()(
               textStyle: 'normal',
               stickers: [],
               icons: [],
-              textPosition: { x: 50, y: 50 },
+              textPosition: { x: 10, y: 10 }, // Reset to top left
               backgroundImage: undefined
             }
           }));
@@ -294,7 +294,7 @@ export const useJournalStore = create<JournalState>()(
           textStyle: entry.text_style || undefined,
           stickers: entry.stickers as Sticker[] || [],
           icons: entry.icons as Icon[] || [],
-          textPosition: entry.text_position as { x: number, y: number } || { x: 50, y: 50 },
+          textPosition: entry.text_position as { x: number, y: number } || { x: 10, y: 10 }, // Default to top left
           backgroundImage: entry.background_image as string | undefined
         }));
 
