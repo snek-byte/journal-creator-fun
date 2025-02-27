@@ -27,7 +27,7 @@ export function DailyChallenge({ prompt, onRefresh, onApply }: DailyChallengePro
         </Button>
       </div>
       
-      <div className="flex flex-col items-center justify-between min-h-[70px] py-0.5 space-y-1.5">
+      <div className="flex flex-col items-center justify-center min-h-[70px] space-y-3">
         <p className="text-[11px] font-medium text-gray-800 italic font-merriweather text-center px-1.5">
           {prompt}
         </p>
