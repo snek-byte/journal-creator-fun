@@ -27,8 +27,8 @@ export function DailyChallenge({ prompt, onRefresh, onApply }: DailyChallengePro
         </Button>
       </div>
       
-      <div className="flex flex-col items-center justify-center min-h-[60px] space-y-2 mt-1">
-        <p className="text-[11px] font-medium text-gray-800 italic font-merriweather text-center px-1">
+      <div className="flex flex-col items-start justify-center min-h-[60px] space-y-2 mt-1">
+        <p className="text-[11px] font-medium text-gray-800 italic font-merriweather text-center w-full px-1">
           {prompt}
         </p>
         
@@ -36,7 +36,7 @@ export function DailyChallenge({ prompt, onRefresh, onApply }: DailyChallengePro
           variant="ghost"
           size="sm"
           onClick={onApply}
-          className="text-[10px] font-medium text-violet-600 hover:bg-violet-100 px-1.5 py-0 h-4"
+          className="text-[10px] font-medium text-violet-600 hover:bg-violet-100 px-1.5 py-0 h-4 self-start ml-1"
         >
           Use this prompt
         </Button>
