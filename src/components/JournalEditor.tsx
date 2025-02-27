@@ -8,6 +8,8 @@ import { MoodSelector } from './journal/MoodSelector';
 import { JournalStylingControls } from './journal/JournalStylingControls';
 import { JournalPreview } from './journal/JournalPreview';
 import { StickerSelector } from './journal/StickerSelector';
+import { IconSelector } from './journal/IconSelector';
+import { BackgroundImageSelector } from './journal/BackgroundImageSelector';
 import { EmailDialog } from './journal/EmailDialog';
 import { ProgressCard } from './journal/ProgressCard';
 import { DailyChallenge } from './journal/DailyChallenge';
@@ -16,6 +18,7 @@ import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export function JournalEditor() {
   const {
@@ -34,6 +37,7 @@ export function JournalEditor() {
     setStickers,
     setIcons,
     setTextPosition,
+    setBackgroundImage,
     addSticker,
     addIcon,
     updateIcon,
@@ -48,6 +52,7 @@ export function JournalEditor() {
   const [isSending, setIsSending] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
+  const [showProgress, setShowProgress] = useState(false);
 
   useEffect(() => {
     loadChallenge();
@@ -68,6 +73,7 @@ export function JournalEditor() {
 
   const handleIconAdd = (icon: Icon) => {
     addIcon(icon);
+    toast.success('Icon added! Drag it to position on your journal.');
   };
 
   const handleStickerMove = (stickerId: string, position: { x: number, y: number }) => {
@@ -92,6 +98,10 @@ export function JournalEditor() {
 
   const handleTextMove = (position: { x: number, y: number }) => {
     setTextPosition(position);
+  };
+
+  const handleBackgroundSelect = (imageUrl: string) => {
+    setBackgroundImage(imageUrl);
   };
 
   const handleEmojiSelect = (emojiData: EmojiClickData) => {
@@ -161,14 +171,34 @@ export function JournalEditor() {
       <div className="w-full lg:w-1/3 p-6 border-r bg-white print:hidden">
         <div className="space-y-6">
           {dailyChallenge && (
-            <DailyChallenge
-              prompt={dailyChallenge.prompt}
-              onRefresh={loadChallenge}
-              onApply={applyChallenge}
-            />
+            <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-lg border border-blue-100 shadow-sm mb-6">
+              <DailyChallenge
+                prompt={dailyChallenge.prompt}
+                onRefresh={loadChallenge}
+                onApply={applyChallenge}
+              />
+            </div>
           )}
 
-          <ProgressCard />
+          <Collapsible 
+            open={showProgress} 
+            onOpenChange={setShowProgress}
+            className="bg-gray-50 rounded-md border border-gray-100 shadow-sm overflow-hidden transition-all"
+          >
+            <CollapsibleTrigger asChild>
+              <div className="flex justify-between items-center p-2 cursor-pointer hover:bg-gray-100 transition-colors">
+                <span className="text-xs font-medium text-gray-500">Your Progress</span>
+                <span className="text-xs text-blue-500">
+                  {showProgress ? "Hide" : "Show"}
+                </span>
+              </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="p-2 pt-0">
+                <ProgressCard />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
           <MoodSelector
             mood={currentEntry.mood}
@@ -263,12 +293,14 @@ export function JournalEditor() {
         stickers={currentEntry.stickers || []}
         icons={currentEntry.icons || []}
         textPosition={currentEntry.textPosition || { x: 50, y: 50 }}
+        backgroundImage={currentEntry.backgroundImage}
         onStickerAdd={handleStickerAdd}
         onIconAdd={handleIconAdd}
         onStickerMove={handleStickerMove}
         onIconMove={handleIconMove}
         onIconUpdate={handleIconUpdate}
         onTextMove={handleTextMove}
+        onBackgroundSelect={handleBackgroundSelect}
         onTogglePreview={togglePreview}
       />
     </div>

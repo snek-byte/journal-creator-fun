@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { JournalEntry, Challenge, Badge, UserProgress, Mood, Sticker, Icon } from '@/types/journal';
@@ -20,6 +21,7 @@ interface JournalState {
     stickers: Sticker[];
     icons: Icon[];
     textPosition: { x: number, y: number };
+    backgroundImage?: string;
   };
   // Collections
   entries: JournalEntry[];
@@ -43,6 +45,7 @@ interface JournalState {
   setStickers: (stickers: Sticker[]) => void;
   setIcons: (icons: Icon[]) => void;
   setTextPosition: (position: { x: number, y: number }) => void;
+  setBackgroundImage: (url: string) => void;
   addSticker: (sticker: Sticker) => void;
   addIcon: (icon: Icon) => void;
   removeSticker: (stickerId: string) => void;
@@ -71,7 +74,8 @@ export const useJournalStore = create<JournalState>()(
         textStyle: 'normal',
         stickers: [],
         icons: [],
-        textPosition: { x: 50, y: 50 }
+        textPosition: { x: 50, y: 50 },
+        backgroundImage: undefined
       },
       entries: [],
       dailyChallenge: null,
@@ -150,34 +154,41 @@ export const useJournalStore = create<JournalState>()(
       setTextPosition: (textPosition) => set((state) => ({
         currentEntry: { ...state.currentEntry, textPosition }
       })),
+      setBackgroundImage: (url) => set((state) => ({
+        currentEntry: { ...state.currentEntry, backgroundImage: url }
+      })),
       addSticker: (sticker) => set((state) => ({
         currentEntry: { 
           ...state.currentEntry, 
-          stickers: [...state.currentEntry.stickers, sticker]
+          stickers: [...(state.currentEntry.stickers || []), sticker]
         }
       })),
-      addIcon: (icon) => set((state) => ({
-        currentEntry: {
-          ...state.currentEntry,
-          icons: [...state.currentEntry.icons, icon]
-        }
-      })),
+      addIcon: (icon) => set((state) => {
+        // Ensure icons array exists before adding to it
+        const currentIcons = state.currentEntry.icons || [];
+        return {
+          currentEntry: {
+            ...state.currentEntry,
+            icons: [...currentIcons, icon]
+          }
+        };
+      }),
       removeSticker: (stickerId) => set((state) => ({
         currentEntry: {
           ...state.currentEntry,
-          stickers: state.currentEntry.stickers.filter(s => s.id !== stickerId)
+          stickers: (state.currentEntry.stickers || []).filter(s => s.id !== stickerId)
         }
       })),
       removeIcon: (iconId) => set((state) => ({
         currentEntry: {
           ...state.currentEntry,
-          icons: state.currentEntry.icons.filter(i => i.id !== iconId)
+          icons: (state.currentEntry.icons || []).filter(i => i.id !== iconId)
         }
       })),
       updateIcon: (iconId, updates) => set((state) => ({
         currentEntry: {
           ...state.currentEntry,
-          icons: state.currentEntry.icons.map(icon => 
+          icons: (state.currentEntry.icons || []).map(icon => 
             icon.id === iconId ? { ...icon, ...updates } : icon
           )
         }
@@ -212,7 +223,8 @@ export const useJournalStore = create<JournalState>()(
               text_style: state.currentEntry.textStyle || null,
               stickers: state.currentEntry.stickers,
               icons: state.currentEntry.icons,
-              text_position: state.currentEntry.textPosition
+              text_position: state.currentEntry.textPosition,
+              background_image: state.currentEntry.backgroundImage || null
             });
 
           if (entryError) throw entryError;
@@ -231,7 +243,8 @@ export const useJournalStore = create<JournalState>()(
               textStyle: 'normal',
               stickers: [],
               icons: [],
-              textPosition: { x: 50, y: 50 }
+              textPosition: { x: 50, y: 50 },
+              backgroundImage: undefined
             }
           }));
 
@@ -281,7 +294,8 @@ export const useJournalStore = create<JournalState>()(
           textStyle: entry.text_style || undefined,
           stickers: entry.stickers as Sticker[] || [],
           icons: entry.icons as Icon[] || [],
-          textPosition: entry.text_position as { x: number, y: number } || { x: 50, y: 50 }
+          textPosition: entry.text_position as { x: number, y: number } || { x: 50, y: 50 },
+          backgroundImage: entry.background_image as string | undefined
         }));
 
         set({ entries });

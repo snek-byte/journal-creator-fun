@@ -53,6 +53,7 @@ export interface JournalEntry {
     x: number;
     y: number;
   };
+  backgroundImage?: string;
 }
 
 export interface Challenge {

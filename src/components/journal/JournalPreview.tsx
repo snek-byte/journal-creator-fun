@@ -8,6 +8,7 @@ import { applyTextStyle } from '@/utils/unicodeTextStyles';
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { StickerSelector } from './StickerSelector';
 import { IconSelector } from './IconSelector';
+import { BackgroundImageSelector } from './BackgroundImageSelector';
 import { useJournalStore } from '@/store/journalStore';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HexColorPicker } from "react-colorful";
@@ -25,12 +26,14 @@ interface JournalPreviewProps {
   stickers: Sticker[];
   icons: Icon[];
   textPosition: { x: number, y: number };
+  backgroundImage?: string;
   onStickerAdd: (sticker: Sticker) => void;
   onIconAdd: (icon: Icon) => void;
   onStickerMove: (stickerId: string, position: { x: number, y: number }) => void;
   onIconMove: (iconId: string, position: { x: number, y: number }) => void;
   onIconUpdate: (iconId: string, updates: Partial<Icon>) => void;
   onTextMove: (position: { x: number, y: number }) => void;
+  onBackgroundSelect: (url: string) => void;
   onTogglePreview: () => void;
 }
 
@@ -47,12 +50,14 @@ export function JournalPreview({
   stickers,
   icons,
   textPosition,
+  backgroundImage,
   onStickerAdd,
   onIconAdd,
   onStickerMove,
   onIconMove,
   onIconUpdate,
   onTextMove,
+  onBackgroundSelect,
   onTogglePreview,
 }: JournalPreviewProps) {
   const previewRef = useRef<HTMLDivElement>(null);
@@ -64,7 +69,7 @@ export function JournalPreview({
   const [touchTimeout, setTouchTimeout] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isTextDragging, setIsTextDragging] = useState(false);
-  const { removeSticker, removeIcon, updateIcon } = useJournalStore();
+  const { removeSticker, removeIcon } = useJournalStore();
 
   const handleMouseDown = (e: React.MouseEvent, stickerId: string) => {
     e.preventDefault();
@@ -374,11 +379,18 @@ export function JournalPreview({
     setShowIconControls(false);
   };
 
+  const getBackground = () => {
+    if (backgroundImage) {
+      return `url(${backgroundImage})`;
+    }
+    return gradient;
+  };
+
   const PreviewContent = () => (
     <div
       ref={previewRef}
       style={{
-        backgroundImage: gradient,
+        background: getBackground(),
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -417,7 +429,7 @@ export function JournalPreview({
           : (text || "Start writing your journal entry...")}
       </div>
       
-      {stickers.map((sticker) => (
+      {stickers && stickers.map((sticker) => (
         <div
           key={sticker.id}
           className={`absolute touch-none select-none cursor-grab active:cursor-grabbing
@@ -455,7 +467,7 @@ export function JournalPreview({
         </div>
       ))}
 
-      {icons.map((icon) => (
+      {icons && icons.map((icon) => (
         <div
           key={icon.id}
           className={`absolute touch-none select-none cursor-grab active:cursor-grabbing
@@ -571,6 +583,7 @@ export function JournalPreview({
       <div className="absolute top-4 right-4 z-10 flex gap-2 print:hidden">
         <StickerSelector onStickerSelect={onStickerAdd} />
         <IconSelector onIconSelect={onIconAdd} />
+        <BackgroundImageSelector onImageSelect={onBackgroundSelect} />
         <Button
           onClick={onTogglePreview}
           variant="ghost"
