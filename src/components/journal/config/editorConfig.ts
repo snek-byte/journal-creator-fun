@@ -59,6 +59,7 @@ export const fontWeights = [
 ];
 
 export const gradients = [
+  // Original gradients
   { label: 'Sunset', value: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)' },
   { label: 'Ocean', value: 'linear-gradient(109.6deg, rgba(223,234,247,1) 11.2%, rgba(244,248,252,1) 91.1%)' },
   { label: 'Lavender', value: 'linear-gradient(102.3deg, rgba(147,39,143,1) 5.9%, rgba(234,172,232,1) 64%, rgba(246,219,245,1) 89%)' },
@@ -70,5 +71,19 @@ export const gradients = [
   { label: 'Warm Rose', value: 'linear-gradient(to right, #ffc3a0 0%, #ffafbd 100%)' },
   { label: 'Mint Sky', value: 'linear-gradient(60deg, #abecd6 0%, #fbed96 100%)' },
   { label: 'Soft Peach', value: 'linear-gradient(90deg, hsla(24, 100%, 83%, 1) 0%, hsla(341, 91%, 68%, 1) 100%)' },
-  { label: 'Clean', value: 'linear-gradient(to top, #e6e9f0 0%, #eef1f5 100%)' }
+  { label: 'Clean', value: 'linear-gradient(to top, #e6e9f0 0%, #eef1f5 100%)' },
+  
+  // New gradients (adding 12 more)
+  { label: 'Royal Purple', value: 'linear-gradient(90deg, hsla(277, 75%, 84%, 1) 0%, hsla(297, 50%, 51%, 1) 100%)' },
+  { label: 'Citrus Sunset', value: 'linear-gradient(90deg, hsla(39, 100%, 77%, 1) 0%, hsla(22, 90%, 57%, 1) 100%)' },
+  { label: 'Fresh Mint', value: 'linear-gradient(90deg, hsla(46, 73%, 75%, 1) 0%, hsla(176, 73%, 88%, 1) 100%)' },
+  { label: 'Summer Green', value: 'linear-gradient(90deg, hsla(59, 86%, 68%, 1) 0%, hsla(134, 36%, 53%, 1) 100%)' },
+  { label: 'Mango Tango', value: 'linear-gradient(90deg, hsla(22, 100%, 78%, 1) 0%, hsla(2, 78%, 62%, 1) 100%)' },
+  { label: 'Sakura', value: 'linear-gradient(90deg, rgb(245,152,168) 0%, rgb(246,237,178) 100%)' },
+  { label: 'Honey Gold', value: 'linear-gradient(90.5deg, rgba(255,207,139,0.50) 1.1%, rgba(255,207,139,1) 81.3%)' },
+  { label: 'Deep Ocean', value: 'linear-gradient(to right, #243949 0%, #517fa4 100%)' },
+  { label: 'Spring Meadow', value: 'linear-gradient(to right, #c1c161 0%, #c1c161 0%, #d4d4b1 100%)' },
+  { label: 'Soft Sky', value: 'linear-gradient(to top, #accbee 0%, #e7f0fd 100%)' },
+  { label: 'Rose Gold', value: 'linear-gradient(to top, #d299c2 0%, #fef9d7 100%)' },
+  { label: 'Desert Sand', value: 'linear-gradient(to top, #e6b980 0%, #eacda3 100%)' }
 ];
