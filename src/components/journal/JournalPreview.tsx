@@ -1,7 +1,7 @@
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Maximize2 } from 'lucide-react';
+import { Eye, EyeOff, Maximize2, Trash2 } from 'lucide-react';
 import { moodOptions } from './config/editorConfig';
 import type { Mood, Sticker } from '@/types/journal';
 import { applyTextStyle } from '@/utils/unicodeTextStyles';
@@ -40,34 +40,102 @@ export function JournalPreview({
   onTogglePreview,
 }: JournalPreviewProps) {
   const previewRef = useRef<HTMLDivElement>(null);
+  const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
+  const [showDeleteButton, setShowDeleteButton] = useState(false);
+  const [touchTimeout, setTouchTimeout] = useState<number | null>(null);
 
   const handleMouseDown = (e: React.MouseEvent, stickerId: string) => {
     e.preventDefault();
     const target = e.currentTarget as HTMLElement;
-    const rect = target.getBoundingClientRect();
-    const startX = e.clientX - rect.left;
-    const startY = e.clientY - rect.top;
-
+    setSelectedStickerId(stickerId);
+    
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      if (!previewRef.current) return;
-      const previewRect = previewRef.current.getBoundingClientRect();
-      
-      const x = ((moveEvent.clientX - previewRect.left) / previewRect.width) * 100;
-      const y = ((moveEvent.clientY - previewRect.top) / previewRect.height) * 100;
-      
-      const clampedX = Math.max(0, Math.min(100, x));
-      const clampedY = Math.max(0, Math.min(100, y));
-
-      onStickerMove(stickerId, { x: clampedX, y: clampedY });
+      moveSticker(moveEvent.clientX, moveEvent.clientY);
     };
 
     const handleMouseUp = () => {
+      setSelectedStickerId(null);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent, stickerId: string) => {
+    // Prevent default to avoid scrolling
+    e.preventDefault();
+    setSelectedStickerId(stickerId);
+    
+    // Show delete button after long press (500ms)
+    const timeoutId = window.setTimeout(() => {
+      setShowDeleteButton(true);
+    }, 500);
+    
+    setTouchTimeout(timeoutId);
+
+    const touchStartX = e.touches[0].clientX;
+    const touchStartY = e.touches[0].clientY;
+    let hasMoved = false;
+
+    const handleTouchMove = (moveEvent: TouchEvent) => {
+      // Check if touch has moved more than a small threshold
+      const diffX = Math.abs(moveEvent.touches[0].clientX - touchStartX);
+      const diffY = Math.abs(moveEvent.touches[0].clientY - touchStartY);
+      
+      if (diffX > 5 || diffY > 5) {
+        hasMoved = true;
+        // If moving, cancel the delete button timeout
+        if (touchTimeout !== null) {
+          clearTimeout(touchTimeout);
+          setTouchTimeout(null);
+        }
+        setShowDeleteButton(false);
+      }
+
+      moveSticker(moveEvent.touches[0].clientX, moveEvent.touches[0].clientY);
+    };
+
+    const handleTouchEnd = () => {
+      if (touchTimeout !== null) {
+        clearTimeout(touchTimeout);
+        setTouchTimeout(null);
+      }
+      
+      // Only hide delete button if user moved the sticker
+      if (hasMoved) {
+        setShowDeleteButton(false);
+      }
+      
+      setSelectedStickerId(null);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
+  };
+
+  const moveSticker = (clientX: number, clientY: number) => {
+    if (!previewRef.current || !selectedStickerId) return;
+    
+    const previewRect = previewRef.current.getBoundingClientRect();
+    
+    const x = ((clientX - previewRect.left) / previewRect.width) * 100;
+    const y = ((clientY - previewRect.top) / previewRect.height) * 100;
+    
+    const clampedX = Math.max(0, Math.min(100, x));
+    const clampedY = Math.max(0, Math.min(100, y));
+
+    onStickerMove(selectedStickerId, { x: clampedX, y: clampedY });
+  };
+
+  const deleteSticker = (stickerId: string) => {
+    const updatedStickers = stickers.filter(s => s.id !== stickerId);
+    onStickerAdd({ id: 'dummy', url: '', position: { x: 0, y: 0 } });
+    setSelectedStickerId(null);
+    setShowDeleteButton(false);
   };
 
   const PreviewContent = () => (
@@ -98,20 +166,21 @@ export function JournalPreview({
           }}
           className="w-full h-full whitespace-pre-wrap"
         >
-          {text || "Start writing your journal entry..."}
+          {textStyle !== 'normal' ? applyTextStyle(text || "Start writing your journal entry...", textStyle) : (text || "Start writing your journal entry...")}
         </div>
       </div>
       {stickers.map((sticker) => (
         <div
           key={sticker.id}
-          className="absolute cursor-move select-none"
+          className={`absolute touch-none select-none ${selectedStickerId === sticker.id ? 'z-50 scale-110' : 'z-10'}`}
           style={{
             left: `${sticker.position.x}%`,
             top: `${sticker.position.y}%`,
             transform: 'translate(-50%, -50%)',
-            touchAction: 'none',
+            transition: selectedStickerId === sticker.id ? 'none' : 'all 0.2s ease',
           }}
           onMouseDown={(e) => handleMouseDown(e, sticker.id)}
+          onTouchStart={(e) => handleTouchStart(e, sticker.id)}
         >
           <img
             src={sticker.url}
@@ -119,6 +188,16 @@ export function JournalPreview({
             className="w-16 h-16 object-contain pointer-events-none"
             draggable={false}
           />
+          {showDeleteButton && selectedStickerId === sticker.id && (
+            <Button
+              variant="destructive"
+              size="icon"
+              className="absolute -top-4 -right-4 h-8 w-8 rounded-full"
+              onClick={() => deleteSticker(sticker.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       ))}
     </div>
