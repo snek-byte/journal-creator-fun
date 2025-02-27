@@ -11,7 +11,6 @@ import { StickerSelector } from './journal/StickerSelector';
 import { IconSelector } from './journal/IconSelector';
 import { BackgroundImageSelector } from './journal/BackgroundImageSelector';
 import { EmailDialog } from './journal/EmailDialog';
-import { ProgressCard } from './journal/ProgressCard';
 import { DailyChallenge } from './journal/DailyChallenge';
 import type { Mood, Sticker, Icon } from '@/types/journal';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
@@ -53,7 +52,6 @@ export function JournalEditor() {
   const [isSending, setIsSending] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
-  const [showProgress, setShowProgress] = useState(false);
 
   useEffect(() => {
     try {
@@ -224,26 +222,6 @@ export function JournalEditor() {
               />
             </div>
           )}
-
-          <Collapsible 
-            open={showProgress} 
-            onOpenChange={setShowProgress}
-            className="bg-gray-50 rounded-md border border-gray-100 shadow-sm overflow-hidden transition-all"
-          >
-            <CollapsibleTrigger asChild>
-              <div className="flex justify-between items-center p-2 cursor-pointer hover:bg-gray-100 transition-colors">
-                <span className="text-xs font-medium text-gray-500">Your Progress</span>
-                <span className="text-xs text-blue-500">
-                  {showProgress ? "Hide" : "Show"}
-                </span>
-              </div>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="p-2 pt-0">
-                <ProgressCard />
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
 
           <MoodSelector
             mood={currentEntry.mood}
