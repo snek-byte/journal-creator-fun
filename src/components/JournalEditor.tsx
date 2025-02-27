@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useJournalStore } from '@/store/journalStore';
 import { useEffect, useRef, useState } from 'react';
-import { Printer, Smile, Mail } from 'lucide-react';
+import { Printer, Smile, Mail, Dock, Undock } from 'lucide-react';
 import { MoodSelector } from './journal/MoodSelector';
 import { JournalStylingControls } from './journal/JournalStylingControls';
 import { JournalPreview } from './journal/JournalPreview';
@@ -50,6 +50,7 @@ export function JournalEditor() {
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [emailAddress, setEmailAddress] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [isDocked, setIsDocked] = useState(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
 
@@ -209,9 +210,35 @@ export function JournalEditor() {
     }
   };
 
+  const toggleDocked = () => {
+    setIsDocked(!isDocked);
+    // When we toggle, ensure we reflow the preview
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 100);
+  };
+
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-      <div className="w-full lg:w-1/3 p-6 border-r bg-white print:hidden">
+    <div className={`flex flex-col lg:flex-row min-h-screen bg-gray-50 ${!isDocked ? 'relative' : ''}`}>
+      <div className={`${isDocked ? 'w-full lg:w-1/3' : 'w-96'} p-6 border-r bg-white print:hidden ${
+        !isDocked ? 'absolute left-0 top-0 z-10 h-full shadow-lg transition-all duration-300 transform' : ''
+      }`}>
+        <div className="flex justify-end mb-2">
+          <Button
+            onClick={toggleDocked}
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            title={isDocked ? "Undock panel" : "Dock panel"}
+          >
+            {isDocked ? (
+              <Undock className="h-4 w-4" />
+            ) : (
+              <Dock className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+        
         <div className="space-y-6">
           {dailyChallenge && (
             <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-lg border border-blue-100 shadow-sm mb-6">
