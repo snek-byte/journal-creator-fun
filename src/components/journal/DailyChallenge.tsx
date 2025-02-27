@@ -11,7 +11,7 @@ interface DailyChallengeProps {
 export function DailyChallenge({ prompt, onRefresh, onApply }: DailyChallengeProps) {
   return (
     <div className="bg-gradient-to-br from-blue-50 to-violet-50 rounded-lg p-3 w-full">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center mb-3">
         <div className="flex items-center gap-1">
           <Zap className="h-4 w-4 text-violet-500" />
           <span className="text-sm font-medium text-violet-500">Daily Challenge</span>
@@ -19,11 +19,11 @@ export function DailyChallenge({ prompt, onRefresh, onApply }: DailyChallengePro
         <Button
           variant="ghost"
           size="icon"
-          className="h-4 w-4 text-gray-400 hover:text-gray-600 hover:bg-transparent p-0 -mr-3"
+          className="h-5 w-5 text-gray-400 hover:text-gray-600 hover:bg-transparent p-0 ml-1"
           onClick={onRefresh}
           title="Get a new challenge"
         >
-          <RotateCcw className="h-2.5 w-2.5" />
+          <RotateCcw className="h-3 w-3" />
         </Button>
       </div>
       
