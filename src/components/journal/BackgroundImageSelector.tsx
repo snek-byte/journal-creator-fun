@@ -20,25 +20,30 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
-  // Default image categories to randomly select from
-  const imageCategories = [
-    'nature', 'landscape', 'abstract', 'pattern', 'texture', 
-    'minimal', 'sky', 'mountains', 'ocean', 'forest'
-  ];
-  
-  // Generate a set of Unsplash image URLs with unique tracking parameters
-  const generateImageSet = (query = '') => {
-    const timestamp = Date.now();
-    const selectedCategory = query || imageCategories[Math.floor(Math.random() * imageCategories.length)];
-    
-    return Array.from({ length: 8 }, (_, i) => ({
-      name: `${selectedCategory} ${i + 1}`,
-      url: `https://source.unsplash.com/random/800x600?${selectedCategory},${i}&t=${timestamp}`
-    }));
+  // Define sets of curated backgrounds
+  const imageSets = {
+    nature: [
+      { name: 'Mountain Lake', url: 'https://images.unsplash.com/photo-1439853949127-fa647821eba0?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Forest', url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Ocean', url: 'https://images.unsplash.com/photo-1468581264429-2548ef9eb732?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Desert', url: 'https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?auto=format&fit=crop&w=800&q=80' }
+    ],
+    abstract: [
+      { name: 'Paint', url: 'https://images.unsplash.com/photo-1543857778-c4a1a3e0b2eb?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Waves', url: 'https://images.unsplash.com/photo-1550859492-d5da9d8e45f3?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Texture', url: 'https://images.unsplash.com/photo-1553356084-58ef4a67b2a7?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Pattern', url: 'https://images.unsplash.com/photo-1550537687-c91072c4792d?auto=format&fit=crop&w=800&q=80' }
+    ],
+    minimal: [
+      { name: 'White Wall', url: 'https://images.unsplash.com/photo-1553356084-58ef4a67b2a7?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Paper', url: 'https://images.unsplash.com/photo-1516541196182-6bdb0516ed27?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Marble', url: 'https://images.unsplash.com/photo-1566041510639-8d95a2490bfb?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Concrete', url: 'https://images.unsplash.com/photo-1514483127413-f72f273478c3?auto=format&fit=crop&w=800&q=80' }
+    ]
   };
-  
-  // Initialize with a set of default images
-  const [backgroundImages, setBackgroundImages] = useState(generateImageSet());
+
+  const [currentCategory, setCurrentCategory] = useState('nature');
+  const [backgroundImages, setBackgroundImages] = useState(imageSets.nature);
 
   // Handle gradient selection
   const handleGradientSelect = (gradient: string) => {
@@ -55,50 +60,51 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
     toast.success('Image background applied');
   };
 
-  // Handle search submit
+  // Handle search/category change
   const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      toast.error('Please enter a search query');
-      return;
-    }
-    
     setIsLoading(true);
-    
     try {
-      // Generate new images for the search query
-      const newImages = generateImageSet(searchQuery.trim());
+      const query = searchQuery.toLowerCase().trim();
+      let newImages;
+      
+      if (query === 'nature' || query === 'landscape' || query === 'mountain') {
+        newImages = imageSets.nature;
+        setCurrentCategory('nature');
+      } else if (query === 'abstract' || query === 'art' || query === 'pattern') {
+        newImages = imageSets.abstract;
+        setCurrentCategory('abstract');
+      } else if (query === 'minimal' || query === 'simple' || query === 'clean') {
+        newImages = imageSets.minimal;
+        setCurrentCategory('minimal');
+      } else {
+        // Default to nature if no match
+        newImages = imageSets.nature;
+        setCurrentCategory('nature');
+      }
+      
       setBackgroundImages(newImages);
-      
-      // Brief delay to allow the browser to start loading the new images
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      toast.success(`Found new images for "${searchQuery}"`);
+      toast.success(`Showing ${currentCategory} backgrounds`);
     } catch (error) {
-      console.error('Error generating images:', error);
-      toast.error('Failed to generate new images');
+      console.error('Error changing category:', error);
+      toast.error('Failed to load images');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Fetch random new images
-  const shuffleImages = async () => {
+  // Rotate through categories
+  const shuffleImages = () => {
     setIsLoading(true);
-    
     try {
-      // Generate completely new random images
-      const randomCategory = imageCategories[Math.floor(Math.random() * imageCategories.length)];
-      const newImages = generateImageSet(randomCategory);
-      
-      setBackgroundImages(newImages);
-      
-      // Brief delay to allow the browser to start loading the new images
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      toast.success(`Found new ${randomCategory} images`);
+      const categories = ['nature', 'abstract', 'minimal'] as const;
+      const currentIndex = categories.indexOf(currentCategory as any);
+      const nextCategory = categories[(currentIndex + 1) % categories.length];
+      setCurrentCategory(nextCategory);
+      setBackgroundImages(imageSets[nextCategory]);
+      toast.success(`Showing ${nextCategory} backgrounds`);
     } catch (error) {
-      console.error('Error generating random images:', error);
-      toast.error('Failed to generate new images');
+      console.error('Error rotating categories:', error);
+      toast.error('Failed to load new images');
     } finally {
       setIsLoading(false);
     }
@@ -172,7 +178,7 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
               <div className="flex items-center gap-2">
                 <Input 
                   type="text" 
-                  placeholder="Search for backgrounds..." 
+                  placeholder="Try: nature, abstract, or minimal" 
                   value={searchQuery} 
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -191,7 +197,7 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
                   size="icon"
                   onClick={shuffleImages}
                   disabled={isLoading}
-                  title="Get random images"
+                  title="Browse different styles"
                 >
                   <RotateCw className="h-4 w-4" />
                 </Button>
@@ -206,15 +212,18 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
                   <div className="grid grid-cols-2 gap-4">
                     {backgroundImages.map((image, index) => (
                       <button
-                        key={`${image.url}-${index}`}
+                        key={index}
                         onClick={() => handleBackgroundSelect(image.url)}
-                        className="h-24 rounded-md overflow-hidden border hover:ring-2 hover:ring-primary transition-all bg-cover bg-center"
-                        style={{ backgroundImage: `url(${image.url})` }}
-                        aria-label={image.name}
+                        className="relative h-24 rounded-md overflow-hidden border hover:ring-2 hover:ring-primary transition-all"
                       >
-                        {/* Add a fallback for empty images */}
-                        <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-xs">
-                          {image.name}
+                        <img
+                          src={image.url}
+                          alt={image.name}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-black/30 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <span className="text-white text-xs font-medium">{image.name}</span>
                         </div>
                       </button>
                     ))}
