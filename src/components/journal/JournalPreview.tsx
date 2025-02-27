@@ -1,4 +1,3 @@
-
 import { useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Maximize2, Trash2 } from 'lucide-react';
@@ -7,6 +6,7 @@ import type { Mood, Sticker } from '@/types/journal';
 import { applyTextStyle } from '@/utils/unicodeTextStyles';
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { StickerSelector } from './StickerSelector';
+import { useJournalStore } from '@/store/journalStore';
 
 interface JournalPreviewProps {
   showPreview: boolean;
@@ -43,10 +43,10 @@ export function JournalPreview({
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const [touchTimeout, setTouchTimeout] = useState<number | null>(null);
+  const { removeSticker } = useJournalStore();
 
   const handleMouseDown = (e: React.MouseEvent, stickerId: string) => {
     e.preventDefault();
-    const target = e.currentTarget as HTMLElement;
     setSelectedStickerId(stickerId);
     
     const handleMouseMove = (moveEvent: MouseEvent) => {
@@ -131,11 +131,20 @@ export function JournalPreview({
     onStickerMove(selectedStickerId, { x: clampedX, y: clampedY });
   };
 
-  const deleteSticker = (stickerId: string) => {
-    const updatedStickers = stickers.filter(s => s.id !== stickerId);
-    onStickerAdd({ id: 'dummy', url: '', position: { x: 0, y: 0 } });
+  const handleDeleteSticker = (stickerId: string) => {
+    removeSticker(stickerId);
     setSelectedStickerId(null);
     setShowDeleteButton(false);
+  };
+  
+  const handleStickerClick = (e: React.MouseEvent, stickerId: string) => {
+    e.stopPropagation();
+    if (selectedStickerId === stickerId) {
+      setShowDeleteButton(!showDeleteButton);
+    } else {
+      setSelectedStickerId(stickerId);
+      setShowDeleteButton(true);
+    }
   };
 
   const PreviewContent = () => (
@@ -150,6 +159,10 @@ export function JournalPreview({
         printColorAdjust: 'exact',
       }}
       className="w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn print:shadow-none print:rounded-none print:min-h-screen relative"
+      onClick={() => {
+        setSelectedStickerId(null);
+        setShowDeleteButton(false);
+      }}
     >
       <div className="w-full h-full p-8">
         {mood && (
@@ -166,7 +179,9 @@ export function JournalPreview({
           }}
           className="w-full h-full whitespace-pre-wrap"
         >
-          {textStyle !== 'normal' ? applyTextStyle(text || "Start writing your journal entry...", textStyle) : (text || "Start writing your journal entry...")}
+          {textStyle && textStyle !== 'normal' 
+            ? applyTextStyle(text || "Start writing your journal entry...", textStyle as any) 
+            : (text || "Start writing your journal entry...")}
         </div>
       </div>
       {stickers.map((sticker) => (
@@ -181,6 +196,7 @@ export function JournalPreview({
           }}
           onMouseDown={(e) => handleMouseDown(e, sticker.id)}
           onTouchStart={(e) => handleTouchStart(e, sticker.id)}
+          onClick={(e) => handleStickerClick(e, sticker.id)}
         >
           <img
             src={sticker.url}
@@ -193,7 +209,10 @@ export function JournalPreview({
               variant="destructive"
               size="icon"
               className="absolute -top-4 -right-4 h-8 w-8 rounded-full"
-              onClick={() => deleteSticker(sticker.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteSticker(sticker.id);
+              }}
             >
               <Trash2 className="h-4 w-4" />
             </Button>

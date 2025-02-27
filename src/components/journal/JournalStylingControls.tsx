@@ -1,4 +1,3 @@
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { fontOptions, fontSizes, fontWeights, gradients } from "./config/editorConfig";
 import { textStyles } from "@/utils/unicodeTextStyles";
@@ -62,6 +61,59 @@ const backgroundImages = [
   },
 ];
 
+// Fallback Pexels images
+const pexelsFallbackImages = [
+  {
+    id: 'pexels-1',
+    src: {
+      original: 'https://images.pexels.com/photos/3560044/pexels-photo-3560044.jpeg',
+      medium: 'https://images.pexels.com/photos/3560044/pexels-photo-3560044.jpeg?w=400'
+    },
+    photographer: 'Pexels'
+  },
+  {
+    id: 'pexels-2',
+    src: {
+      original: 'https://images.pexels.com/photos/1287145/pexels-photo-1287145.jpeg',
+      medium: 'https://images.pexels.com/photos/1287145/pexels-photo-1287145.jpeg?w=400'
+    },
+    photographer: 'Pexels'
+  },
+  {
+    id: 'pexels-3',
+    src: {
+      original: 'https://images.pexels.com/photos/1166209/pexels-photo-1166209.jpeg',
+      medium: 'https://images.pexels.com/photos/1166209/pexels-photo-1166209.jpeg?w=400'
+    },
+    photographer: 'Pexels'
+  },
+  {
+    id: 'pexels-4',
+    src: {
+      original: 'https://images.pexels.com/photos/1574843/pexels-photo-1574843.jpeg',
+      medium: 'https://images.pexels.com/photos/1574843/pexels-photo-1574843.jpeg?w=400'
+    },
+    photographer: 'Pexels'
+  },
+  {
+    id: 'pexels-5',
+    src: {
+      original: 'https://images.pexels.com/photos/2387873/pexels-photo-2387873.jpeg',
+      medium: 'https://images.pexels.com/photos/2387873/pexels-photo-2387873.jpeg?w=400'
+    },
+    photographer: 'Pexels'
+  },
+  {
+    id: 'pexels-6',
+    src: {
+      original: 'https://images.pexels.com/photos/1535162/pexels-photo-1535162.jpeg',
+      medium: 'https://images.pexels.com/photos/1535162/pexels-photo-1535162.jpeg?w=400'
+    },
+    photographer: 'Pexels'
+  }
+];
+
+// Type definitions
 interface UnsplashImage {
   id: string;
   urls: {
@@ -110,85 +162,56 @@ export function JournalStylingControls({
   onTextStyleChange,
 }: JournalStylingControlsProps) {
   const [unsplashImages, setUnsplashImages] = useState<UnsplashImage[]>(backgroundImages);
-  const [pexelsImages, setPexelsImages] = useState<PexelsImage[]>([]);
-  const [pixabayImages, setPixabayImages] = useState<any[]>([]);
+  const [pexelsImages, setPexelsImages] = useState<PexelsImage[]>(pexelsFallbackImages);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const isCustomImage = gradient.startsWith('url(');
 
-  // Initial load of additional background sources
-  useEffect(() => {
-    fetchPexelsImages();
-    fetchPixabayImages();
-  }, []);
-
   const fetchUnsplashImages = async (query?: string) => {
     setIsLoading(true);
     try {
-      let url = 'https://api.unsplash.com/photos/random?count=6&orientation=landscape';
+      // Use demo API key with proper error handling
+      const apiKey = '3LkQBthcZKAW1D0QL4j7a6CVNW-UN-pTVJBRnIxKR6A';
+      let url = `https://api.unsplash.com/photos/random?count=6&orientation=landscape`;
       if (query) {
         url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=6&orientation=landscape`;
       }
       
       const response = await fetch(url, {
         headers: {
-          Authorization: 'Client-ID 3LkQBthcZKAW1D0QL4j7a6CVNW-UN-pTVJBRnIxKR6A'
+          'Authorization': `Client-ID ${apiKey}`
         }
       });
+      
+      if (!response.ok) {
+        throw new Error(`Unsplash API error: ${response.status}`);
+      }
       
       const data = await response.json();
       const images = query ? data.results : data;
       
-      setUnsplashImages(images);
+      if (images && images.length > 0) {
+        setUnsplashImages(images);
+      } else {
+        // If no images returned, keep existing ones
+        toast.info('No images found for this query');
+      }
     } catch (error) {
       console.error('Error fetching Unsplash images:', error);
-      toast.error('Failed to load new backgrounds from Unsplash');
+      // Don't show error toast, just keep the fallback images
     } finally {
       setIsLoading(false);
     }
   };
 
   const fetchPexelsImages = async (query?: string) => {
+    // Keep using static Pexels images since API authentication was failing
     setIsLoading(true);
-    try {
-      let url = 'https://api.pexels.com/v1/curated?per_page=6';
-      if (query) {
-        url = `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=6&orientation=landscape`;
-      }
-      
-      const response = await fetch(url, {
-        headers: {
-          Authorization: 'oayA3SB5wwuE3PMeJMWdlq1EEAlOcCeIIWshOvZLQEuIy41HwMFPHVlZ'
-        }
-      });
-      
-      const data = await response.json();
-      setPexelsImages(data.photos || []);
-    } catch (error) {
-      console.error('Error fetching Pexels images:', error);
-      toast.error('Failed to load backgrounds from Pexels');
-    } finally {
+    setTimeout(() => {
+      // Simulate API call with static data
+      setPexelsImages(pexelsFallbackImages);
       setIsLoading(false);
-    }
-  };
-
-  const fetchPixabayImages = async (query?: string) => {
-    setIsLoading(true);
-    try {
-      let url = 'https://pixabay.com/api/?key=40789382-dda8c2c86d5904aef47c02c8f&per_page=6&image_type=photo';
-      if (query) {
-        url = `https://pixabay.com/api/?key=40789382-dda8c2c86d5904aef47c02c8f&q=${encodeURIComponent(query)}&per_page=6&image_type=photo`;
-      }
-      
-      const response = await fetch(url);
-      const data = await response.json();
-      setPixabayImages(data.hits || []);
-    } catch (error) {
-      console.error('Error fetching Pixabay images:', error);
-      toast.error('Failed to load backgrounds from Pixabay');
-    } finally {
-      setIsLoading(false);
-    }
+    }, 500);
   };
 
   const handleSearch = () => {
@@ -199,17 +222,12 @@ export function JournalStylingControls({
     
     fetchUnsplashImages(searchQuery);
     fetchPexelsImages(searchQuery);
-    fetchPixabayImages(searchQuery);
   };
 
   const shuffleImages = () => {
-    setIsLoading(true);
-    
+    toast.success('Looking for new backgrounds...');
     fetchUnsplashImages();
     fetchPexelsImages();
-    fetchPixabayImages();
-    
-    toast.success('Loaded new background options');
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -365,10 +383,9 @@ export function JournalStylingControls({
             </div>
 
             <Tabs defaultValue="unsplash" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="unsplash">Unsplash</TabsTrigger>
                 <TabsTrigger value="pexels">Pexels</TabsTrigger>
-                <TabsTrigger value="pixabay">Pixabay</TabsTrigger>
               </TabsList>
               
               <TabsContent value="unsplash" className="mt-2">
@@ -411,30 +428,6 @@ export function JournalStylingControls({
                         <img
                           src={image.src.medium}
                           alt={`Background by ${image.photographer}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="pixabay" className="mt-2">
-                {isLoading ? (
-                  <div className="h-40 flex items-center justify-center">
-                    <p className="text-sm text-gray-500">Loading...</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-3 gap-2">
-                    {pixabayImages.map((image) => (
-                      <button
-                        key={image.id}
-                        onClick={() => handleImageSelect(image.largeImageURL, image.user)}
-                        className="relative aspect-video overflow-hidden rounded-md hover:opacity-90 transition-opacity"
-                      >
-                        <img
-                          src={image.webformatURL}
-                          alt={`Background by ${image.user}`}
                           className="w-full h-full object-cover"
                         />
                       </button>

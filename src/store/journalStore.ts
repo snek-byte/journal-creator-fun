@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { JournalEntry, Challenge, Badge, UserProgress, Mood, Sticker } from '@/types/journal';
@@ -39,6 +40,8 @@ interface JournalState {
   setIsPublic: (isPublic: boolean) => void;
   setTextStyle: (style: string) => void;
   setStickers: (stickers: Sticker[]) => void;
+  addSticker: (sticker: Sticker) => void;
+  removeSticker: (stickerId: string) => void;
   togglePreview: () => void;
   saveEntry: () => Promise<void>;
   loadEntries: () => Promise<void>;
@@ -133,6 +136,18 @@ export const useJournalStore = create<JournalState>()(
       setStickers: (stickers) => set((state) => ({
         currentEntry: { ...state.currentEntry, stickers }
       })),
+      addSticker: (sticker) => set((state) => ({
+        currentEntry: { 
+          ...state.currentEntry, 
+          stickers: [...state.currentEntry.stickers, sticker]
+        }
+      })),
+      removeSticker: (stickerId) => set((state) => ({
+        currentEntry: {
+          ...state.currentEntry,
+          stickers: state.currentEntry.stickers.filter(s => s.id !== stickerId)
+        }
+      })),
       togglePreview: () => set((state) => ({ 
         showPreview: !state.showPreview 
       })),
@@ -225,7 +240,8 @@ export const useJournalStore = create<JournalState>()(
           moodNote: entry.mood_note || undefined,
           isPublic: entry.is_public,
           challengeId: entry.challenge_id || undefined,
-          textStyle: entry.text_style || undefined
+          textStyle: entry.text_style || undefined,
+          stickers: entry.stickers as Sticker[] || []
         }));
 
         set({ entries });
