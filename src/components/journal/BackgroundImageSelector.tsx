@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Paintbrush } from "lucide-react";
+import { Paintbrush, Search, RotateCw } from "lucide-react";
 import { useJournalStore } from '@/store/journalStore';
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
 
 interface BackgroundImageSelectorProps {
   onImageSelect: (url: string) => void;
@@ -14,6 +16,18 @@ interface BackgroundImageSelectorProps {
 export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelectorProps) {
   const [activeTab, setActiveTab] = useState('gradient');
   const { setBackgroundImage, setGradient } = useJournalStore();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [backgroundImages, setBackgroundImages] = useState([
+    { name: 'Paper Texture', url: 'https://images.unsplash.com/photo-1516541196182-6bdb0516ed27?q=80&w=1000&auto=format&fit=crop' },
+    { name: 'Marble', url: 'https://images.unsplash.com/photo-1566041510639-8d95a2490bfb?q=80&w=1000&auto=format&fit=crop' },
+    { name: 'Wooden', url: 'https://images.unsplash.com/photo-1531685250784-7569952593d2?q=80&w=1000&auto=format&fit=crop' },
+    { name: 'Nature', url: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=1000&auto=format&fit=crop' },
+    { name: 'Mountains', url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000&auto=format&fit=crop' },
+    { name: 'Ocean', url: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?q=80&w=1000&auto=format&fit=crop' },
+    { name: 'Clouds', url: 'https://images.unsplash.com/photo-1536514072410-5019a3c69182?q=80&w=1000&auto=format&fit=crop' },
+    { name: 'Night Sky', url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1000&auto=format&fit=crop' }
+  ]);
 
   // Predefined gradients
   const gradients = [
@@ -31,18 +45,6 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
     { name: 'Clean', value: 'linear-gradient(to top, #e6e9f0 0%, #eef1f5 100%)' }
   ];
 
-  // Predefined background images
-  const backgroundImages = [
-    { name: 'Paper Texture', url: 'https://images.unsplash.com/photo-1516541196182-6bdb0516ed27?q=80&w=1000&auto=format&fit=crop' },
-    { name: 'Marble', url: 'https://images.unsplash.com/photo-1566041510639-8d95a2490bfb?q=80&w=1000&auto=format&fit=crop' },
-    { name: 'Wooden', url: 'https://images.unsplash.com/photo-1531685250784-7569952593d2?q=80&w=1000&auto=format&fit=crop' },
-    { name: 'Nature', url: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=1000&auto=format&fit=crop' },
-    { name: 'Mountains', url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000&auto=format&fit=crop' },
-    { name: 'Ocean', url: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?q=80&w=1000&auto=format&fit=crop' },
-    { name: 'Clouds', url: 'https://images.unsplash.com/photo-1536514072410-5019a3c69182?q=80&w=1000&auto=format&fit=crop' },
-    { name: 'Night Sky', url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1000&auto=format&fit=crop' }
-  ];
-
   // Handle gradient selection
   const handleGradientSelect = (gradient: string) => {
     setGradient(gradient);
@@ -54,6 +56,81 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
   const handleBackgroundSelect = (imageUrl: string) => {
     setBackgroundImage(imageUrl);
     onImageSelect(imageUrl);
+  };
+
+  // Fetch new images when searching
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      toast.error('Please enter a search query');
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      // Use Unsplash API for search
+      const response = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&per_page=8&orientation=landscape`, {
+        headers: {
+          'Authorization': 'Client-ID 3LkQBthcZKAW1D0QL4j7a6CVNW-UN-pTVJBRnIxKR6A'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Unsplash API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.results && data.results.length > 0) {
+        const newImages = data.results.map((img: any) => ({
+          name: img.alt_description || 'Unsplash Image',
+          url: img.urls.regular
+        }));
+        
+        setBackgroundImages(newImages);
+        toast.success('Found new background images');
+      } else {
+        toast.info('No images found for this query');
+      }
+    } catch (error) {
+      console.error('Error fetching images:', error);
+      toast.error('Failed to fetch images. Using default images instead.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch random new images
+  const shuffleImages = async () => {
+    setIsLoading(true);
+    try {
+      // Use Unsplash API for random photos
+      const response = await fetch('https://api.unsplash.com/photos/random?count=8&orientation=landscape', {
+        headers: {
+          'Authorization': 'Client-ID 3LkQBthcZKAW1D0QL4j7a6CVNW-UN-pTVJBRnIxKR6A'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Unsplash API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        const newImages = data.map((img: any) => ({
+          name: img.alt_description || 'Unsplash Image',
+          url: img.urls.regular
+        }));
+        
+        setBackgroundImages(newImages);
+        toast.success('Found new background images');
+      }
+    } catch (error) {
+      console.error('Error fetching random images:', error);
+      toast.error('Failed to fetch new images. Using default images instead.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -98,19 +175,54 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
           </TabsContent>
           
           <TabsContent value="image">
-            <ScrollArea className="h-[300px] w-full rounded-md border p-4">
-              <div className="grid grid-cols-2 gap-4">
-                {backgroundImages.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleBackgroundSelect(image.url)}
-                    className="h-24 rounded-md overflow-hidden border hover:ring-2 hover:ring-primary transition-all bg-cover bg-center"
-                    style={{ backgroundImage: `url(${image.url})` }}
-                    aria-label={image.name}
-                  />
-                ))}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Input 
+                  type="text" 
+                  placeholder="Search for backgrounds..." 
+                  value={searchQuery} 
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  className="flex-1"
+                />
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={handleSearch} 
+                  disabled={isLoading}
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={shuffleImages}
+                  disabled={isLoading}
+                >
+                  <RotateCw className="h-4 w-4" />
+                </Button>
               </div>
-            </ScrollArea>
+              
+              <ScrollArea className="h-[300px] w-full rounded-md border p-4">
+                {isLoading ? (
+                  <div className="h-40 flex items-center justify-center">
+                    <p className="text-sm text-gray-500">Loading...</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4">
+                    {backgroundImages.map((image, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleBackgroundSelect(image.url)}
+                        className="h-24 rounded-md overflow-hidden border hover:ring-2 hover:ring-primary transition-all bg-cover bg-center"
+                        style={{ backgroundImage: `url(${image.url})` }}
+                        aria-label={image.name}
+                      />
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </div>
           </TabsContent>
         </Tabs>
       </DialogContent>
