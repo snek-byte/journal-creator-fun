@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PaintBrush } from "lucide-react";
+import { Paintbrush } from "lucide-react";
 import { useJournalStore } from '@/store/journalStore';
 
 interface BackgroundImageSelectorProps {
@@ -64,7 +64,7 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
           size="icon" 
           className="hover:bg-accent hover:text-accent-foreground"
         >
-          <PaintBrush className="w-4 h-4" />
+          <Paintbrush className="w-4 h-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
