@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { JournalEntry, Challenge, Badge, UserProgress, Mood, Sticker, Icon } from '@/types/journal';
@@ -153,6 +154,9 @@ export const useJournalStore = create<JournalState>()(
       })),
       setBackgroundImage: (url) => set((state) => ({
         currentEntry: { ...state.currentEntry, backgroundImage: url }
+      })),
+      setDrawing: (drawing) => set((state) => ({
+        currentEntry: { ...state.currentEntry, drawing }
       })),
       addSticker: (sticker) => set((state) => ({
         currentEntry: { 

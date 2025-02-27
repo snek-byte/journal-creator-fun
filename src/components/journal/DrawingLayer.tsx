@@ -1,7 +1,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Paintbrush, Eraser, UndoIcon, Redo } from "lucide-react";
+import { Paintbrush, Eraser, UndoIcon, RedoIcon, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Point {
@@ -16,6 +16,18 @@ interface DrawingLayerProps {
   onDrawingChange?: (dataUrl: string) => void;
 }
 
+// Drawing colors
+const colors = [
+  { name: 'Black', value: '#000000' },
+  { name: 'Dark Gray', value: '#403E43' },
+  { name: 'Medium Gray', value: '#8E9196' },
+  { name: 'Primary Purple', value: '#9b87f5' },
+  { name: 'Red', value: '#ea384c' },
+  { name: 'Blue', value: '#0EA5E9' },
+  { name: 'Green', value: '#4CAF50' },
+  { name: 'Orange', value: '#F97316' },
+];
+
 export function DrawingLayer({ className, width, height, onDrawingChange }: DrawingLayerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -23,6 +35,8 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
   const [lastPoint, setLastPoint] = useState<Point | null>(null);
   const [undoStack, setUndoStack] = useState<string[]>([]);
   const [redoStack, setRedoStack] = useState<string[]>([]);
+  const [currentColor, setCurrentColor] = useState('#000000');
+  const [lineWidth, setLineWidth] = useState(2);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -32,14 +46,22 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
     if (!ctx) return;
 
     // Set initial canvas properties
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = currentColor;
+    ctx.lineWidth = lineWidth;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
     // Save initial state
     saveState();
   }, []);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const ctx = canvasRef.current.getContext('2d');
+    if (!ctx) return;
+    
+    ctx.strokeStyle = isErasing ? '#ffffff' : currentColor;
+  }, [currentColor, isErasing]);
 
   const saveState = () => {
     if (!canvasRef.current) return;
@@ -64,7 +86,10 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
     const currentPoint = getPoint(e);
     
     ctx.globalCompositeOperation = isErasing ? 'destination-out' : 'source-over';
-    ctx.lineWidth = isErasing ? 20 : 2;
+    ctx.lineWidth = isErasing ? 20 : lineWidth;
+    if (!isErasing) {
+      ctx.strokeStyle = currentColor;
+    }
     
     ctx.beginPath();
     ctx.moveTo(lastPoint.x, lastPoint.y);
@@ -153,43 +178,94 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
     saveState();
   };
 
+  const handleLineWidthChange = (newWidth: number) => {
+    setLineWidth(newWidth);
+    if (!canvasRef.current) return;
+    const ctx = canvasRef.current.getContext('2d');
+    if (!ctx) return;
+    ctx.lineWidth = newWidth;
+  };
+
   return (
     <div className={cn("relative", className)}>
-      <div className="absolute top-2 left-2 flex gap-2 z-10 bg-white/80 p-1 rounded-lg shadow-sm">
-        <Button
-          variant={isErasing ? "secondary" : "ghost"}
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => setIsErasing(false)}
-        >
-          <Paintbrush className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={isErasing ? "ghost" : "secondary"}
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => setIsErasing(true)}
-        >
-          <Eraser className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={undo}
-          disabled={undoStack.length <= 1}
-        >
-          <UndoIcon className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={redo}
-          disabled={redoStack.length === 0}
-        >
-          <Redo className="h-4 w-4" />
-        </Button>
+      <div className="absolute top-2 left-2 flex flex-col gap-2 z-10 bg-white/80 p-2 rounded-lg shadow-sm">
+        <div className="flex gap-2">
+          <Button
+            variant={isErasing ? "secondary" : "ghost"}
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setIsErasing(false)}
+          >
+            <Paintbrush className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={isErasing ? "ghost" : "secondary"}
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setIsErasing(true)}
+          >
+            <Eraser className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={undo}
+            disabled={undoStack.length <= 1}
+          >
+            <UndoIcon className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={redo}
+            disabled={redoStack.length === 0}
+          >
+            <RedoIcon className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={clearCanvas}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="flex flex-wrap gap-1 mt-1">
+          {colors.map((color) => (
+            <button
+              key={color.value}
+              className={`w-6 h-6 rounded-full border ${currentColor === color.value ? 'ring-2 ring-offset-1 ring-primary' : 'border-gray-300'}`}
+              style={{ backgroundColor: color.value }}
+              onClick={() => setCurrentColor(color.value)}
+              title={color.name}
+            />
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2 mt-1">
+          <span className="text-xs">Size:</span>
+          <div className="flex gap-1">
+            {[2, 4, 6, 8].map((size) => (
+              <button
+                key={size}
+                className={`w-6 h-6 flex items-center justify-center border rounded ${lineWidth === size ? 'bg-primary/20 border-primary' : 'border-gray-300'}`}
+                onClick={() => handleLineWidthChange(size)}
+              >
+                <div 
+                  className="rounded-full bg-black" 
+                  style={{ 
+                    width: `${size}px`, 
+                    height: `${size}px` 
+                  }}
+                />
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
       <canvas
         ref={canvasRef}
