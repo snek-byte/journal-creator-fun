@@ -72,6 +72,20 @@ export function JournalPreview({
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const [showIconControls, setShowIconControls] = useState(false);
   const [iconSize, setIconSize] = useState<number>(48);
+  
+  // Prevent form submission on button clicks
+  useEffect(() => {
+    const handleFormSubmit = (e: Event) => {
+      if (isDrawingMode) {
+        e.preventDefault();
+      }
+    };
+    
+    document.addEventListener('submit', handleFormSubmit);
+    return () => {
+      document.removeEventListener('submit', handleFormSubmit);
+    };
+  }, [isDrawingMode]);
 
   useEffect(() => {
     if (selectedIconId) {
@@ -269,8 +283,11 @@ export function JournalPreview({
     setShowIconControls(false);
   };
 
-  const toggleDrawingMode = () => {
-    setIsDrawingMode(!isDrawingMode);
+  // Toggle drawing mode
+  const toggleDrawingMode = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDrawingMode(prev => !prev);
   };
 
   const PreviewContent = () => (
@@ -371,6 +388,7 @@ export function JournalPreview({
               size="sm"
               className="absolute z-10 right-4 bottom-4"
               onClick={handleRemoveSticker}
+              type="button"
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Remove Sticker
@@ -383,6 +401,7 @@ export function JournalPreview({
                 variant="outline"
                 size="sm"
                 onClick={() => handleIconSizeChange(false)}
+                type="button"
               >
                 <MinusSquare className="w-4 h-4" />
               </Button>
@@ -390,6 +409,7 @@ export function JournalPreview({
                 variant="outline"
                 size="sm"
                 onClick={() => handleIconSizeChange(true)}
+                type="button"
               >
                 <PlusSquare className="w-4 h-4" />
               </Button>
@@ -397,6 +417,7 @@ export function JournalPreview({
                 variant="destructive"
                 size="sm"
                 onClick={handleRemoveIcon}
+                type="button"
               >
                 <Trash2 className="w-4 h-4" />
               </Button>
@@ -427,6 +448,7 @@ export function JournalPreview({
           variant={isDrawingMode ? "secondary" : "ghost"}
           size="icon"
           title={isDrawingMode ? "Exit drawing mode" : "Enter drawing mode"}
+          type="button"
         >
           <Pencil className="w-4 h-4" />
         </Button>
@@ -434,6 +456,7 @@ export function JournalPreview({
           onClick={onTogglePreview}
           variant="ghost"
           size="icon"
+          type="button"
         >
           {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
         </Button>
@@ -441,7 +464,7 @@ export function JournalPreview({
         {showPreview && (
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" type="button">
                 <Maximize2 className="w-4 h-4" />
               </Button>
             </DialogTrigger>

@@ -40,6 +40,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
   const [currentColor, setCurrentColor] = useState('#000000');
   const [lineWidth, setLineWidth] = useState(2);
 
+  // Initialize canvas only once on component mount
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -54,9 +55,16 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
     ctx.lineJoin = 'round';
 
     // Save initial state
-    saveState();
+    const dataUrl = canvas.toDataURL();
+    setUndoStack([dataUrl]);
+    
+    // Only call onDrawingChange if there's actual drawing data
+    if (dataUrl && dataUrl !== 'data:,') {
+      onDrawingChange?.(dataUrl);
+    }
   }, []);
 
+  // Update stroke style when color or erasing mode changes
   useEffect(() => {
     if (!canvasRef.current) return;
     const ctx = canvasRef.current.getContext('2d');
@@ -68,9 +76,14 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
   const saveState = () => {
     if (!canvasRef.current) return;
     const dataUrl = canvasRef.current.toDataURL();
+    
+    // Only update state if we're not already processing
     setUndoStack(prev => [...prev, dataUrl]);
     setRedoStack([]);
-    onDrawingChange?.(dataUrl);
+    
+    if (dataUrl && dataUrl !== 'data:,') {
+      onDrawingChange?.(dataUrl);
+    }
   };
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
@@ -197,6 +210,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
             size="icon"
             className="h-8 w-8"
             onClick={() => setIsErasing(false)}
+            type="button"
           >
             <Paintbrush className="h-4 w-4" />
           </Button>
@@ -205,6 +219,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
             size="icon"
             className="h-8 w-8"
             onClick={() => setIsErasing(true)}
+            type="button"
           >
             <Eraser className="h-4 w-4" />
           </Button>
@@ -214,6 +229,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
             className="h-8 w-8"
             onClick={undo}
             disabled={undoStack.length <= 1}
+            type="button"
           >
             <UndoIcon className="h-4 w-4" />
           </Button>
@@ -223,6 +239,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
             className="h-8 w-8"
             onClick={redo}
             disabled={redoStack.length === 0}
+            type="button"
           >
             <RedoIcon className="h-4 w-4" />
           </Button>
@@ -231,6 +248,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
             size="icon"
             className="h-8 w-8"
             onClick={clearCanvas}
+            type="button"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -244,6 +262,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
               style={{ backgroundColor: color.value }}
               onClick={() => setCurrentColor(color.value)}
               title={color.name}
+              type="button"
             />
           ))}
           <Popover>
@@ -257,6 +276,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
                   backgroundPosition: "0 0, 3px 3px"
                 }}
                 title="Custom Color"
+                type="button"
               />
             </PopoverTrigger>
             <PopoverContent className="w-auto p-3">
@@ -273,6 +293,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
                 key={size}
                 className={`w-6 h-6 flex items-center justify-center border rounded ${lineWidth === size ? 'bg-primary/20 border-primary' : 'border-gray-300'}`}
                 onClick={() => handleLineWidthChange(size)}
+                type="button"
               >
                 <div 
                   className="rounded-full bg-black" 
