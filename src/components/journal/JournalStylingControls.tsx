@@ -1,10 +1,9 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { fontOptions, fontSizes, fontWeights, gradients } from "./config/editorConfig";
+import { fontOptions, fontSizes, fontWeights } from "./config/editorConfig";
 import { textStyles } from "@/utils/unicodeTextStyles";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
 
 interface JournalStylingControlsProps {
   font: string;
@@ -33,8 +32,6 @@ export function JournalStylingControls({
   onGradientChange,
   onTextStyleChange,
 }: JournalStylingControlsProps) {
-  const isCustomImage = gradient.startsWith('url(');
-
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -110,27 +107,9 @@ export function JournalStylingControls({
           className="w-full h-10 rounded-md cursor-pointer"
         />
       </div>
-
-      <div className="space-y-4">
-        <Label className="text-sm font-medium">Gradient Background</Label>
-        <div className="space-y-4">
-          <Select value={isCustomImage ? '' : gradient} onValueChange={onGradientChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a gradient" />
-            </SelectTrigger>
-            <SelectContent>
-              {gradients.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <div className="text-sm text-muted-foreground">
-            <p>For image backgrounds, use the background selector in the journal toolbar.</p>
-          </div>
-        </div>
+      
+      <div className="text-sm text-muted-foreground">
+        <p>Use the background selector in the journal toolbar to set gradients or images.</p>
       </div>
     </div>
   );

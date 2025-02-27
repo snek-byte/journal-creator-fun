@@ -71,12 +71,31 @@ export function JournalPreview({
   const [isTextDragging, setIsTextDragging] = useState(false);
   const { removeSticker, removeIcon } = useJournalStore();
 
+  // This effect ensures text is positioned at the top left
   useEffect(() => {
-    // If text is in the default center position, move it to top left
-    if (textPosition.x === 50 && textPosition.y === 50) {
+    // If text is in the default center position or not at top left, move it to top left
+    if (textPosition.x !== 10 || textPosition.y !== 10) {
       onTextMove({ x: 10, y: 10 });
     }
   }, []);
+
+  const handleAddIcon = (icon: Icon) => {
+    // Position new icons at the top left
+    const newIcon = {
+      ...icon,
+      position: { x: 10, y: 10 }
+    };
+    onIconAdd(newIcon);
+  };
+
+  const handleAddSticker = (sticker: Sticker) => {
+    // Position new stickers at the top left
+    const newSticker = {
+      ...sticker,
+      position: { x: 10, y: 10 }
+    };
+    onStickerAdd(newSticker);
+  };
 
   const handleMouseDown = (e: React.MouseEvent, stickerId: string) => {
     e.preventDefault();
@@ -592,8 +611,8 @@ export function JournalPreview({
   return (
     <div className="w-full lg:w-3/4 p-6 relative print:w-full print:p-0 min-h-[800px]">
       <div className="absolute top-4 right-4 z-10 flex gap-2 print:hidden">
-        <StickerSelector onStickerSelect={onStickerAdd} />
-        <IconSelector onIconSelect={onIconAdd} />
+        <StickerSelector onStickerSelect={handleAddSticker} />
+        <IconSelector onIconSelect={handleAddIcon} />
         <BackgroundImageSelector onImageSelect={onBackgroundSelect} />
         <Button
           onClick={onTogglePreview}
