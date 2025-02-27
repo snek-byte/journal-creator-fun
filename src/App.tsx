@@ -27,6 +27,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Write />} />
             <Route path="/write" element={<Write />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
