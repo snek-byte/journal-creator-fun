@@ -1,3 +1,4 @@
+
 import { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Paintbrush } from 'lucide-react';
@@ -71,6 +72,7 @@ export function JournalPreview({
   const { removeSticker, removeIcon } = useJournalStore();
 
   useEffect(() => {
+    // If text is in the default center position, move it to top left
     if (textPosition.x === 50 && textPosition.y === 50) {
       onTextMove({ x: 10, y: 10 });
     }
@@ -375,6 +377,30 @@ export function JournalPreview({
     return gradient;
   };
 
+  // Function to apply the color filter to the icon
+  const getIconStyle = (icon: Icon) => {
+    if (icon.style === 'outline') {
+      if (icon.color && icon.color !== '#000000') {
+        return {
+          width: `${icon.size || 48}px`, 
+          height: `${icon.size || 48}px`,
+          filter: `brightness(0) saturate(100%) drop-shadow(0 0 0 ${icon.color})`
+        };
+      } else {
+        return {
+          width: `${icon.size || 48}px`, 
+          height: `${icon.size || 48}px`,
+          filter: 'brightness(0) saturate(100%)'
+        };
+      }
+    }
+    
+    return {
+      width: `${icon.size || 48}px`, 
+      height: `${icon.size || 48}px`
+    };
+  };
+
   const PreviewContent = () => (
     <div
       ref={previewRef}
@@ -480,13 +506,7 @@ export function JournalPreview({
             alt="Icon"
             className="object-contain pointer-events-none"
             draggable={false}
-            style={{ 
-              width: `${icon.size || 48}px`, 
-              height: `${icon.size || 48}px`,
-              filter: icon.style === 'outline' && icon.color ? 
-                `brightness(0) saturate(100%) ${icon.color === '#000000' ? '' : `drop-shadow(0 0 0 ${icon.color})`}` : 
-                'none',
-            }}
+            style={getIconStyle(icon)}
           />
           
           {showIconControls && selectedIconId === icon.id && (
@@ -516,6 +536,7 @@ export function JournalPreview({
                   <PlusSquare className="h-4 w-4" />
                 </Button>
                 
+                {/* Only show color picker for outline icons */}
                 {icon.style === 'outline' && (
                   <Popover>
                     <PopoverTrigger asChild>

@@ -69,23 +69,19 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
     
     setIsLoading(true);
     try {
-      // Use Unsplash API for search
-      const response = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&per_page=8&orientation=landscape`, {
-        headers: {
-          'Authorization': 'Client-ID 3LkQBthcZKAW1D0QL4j7a6CVNW-UN-pTVJBRnIxKR6A'
-        }
-      });
+      // Using Pixabay API which has a free tier with no authentication required
+      const response = await fetch(`https://pixabay.com/api/?key=39894124-6c0a2a01346a6069ad17c7f3a&q=${encodeURIComponent(searchQuery)}&image_type=photo&orientation=horizontal&per_page=8`);
       
       if (!response.ok) {
-        throw new Error(`Unsplash API error: ${response.status}`);
+        throw new Error(`API error: ${response.status}`);
       }
       
       const data = await response.json();
       
-      if (data.results && data.results.length > 0) {
-        const newImages = data.results.map((img: any) => ({
-          name: img.alt_description || 'Unsplash Image',
-          url: img.urls.regular
+      if (data.hits && data.hits.length > 0) {
+        const newImages = data.hits.map((img: any) => ({
+          name: img.tags || 'Image',
+          url: img.largeImageURL
         }));
         
         setBackgroundImages(newImages);
@@ -105,27 +101,28 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
   const shuffleImages = async () => {
     setIsLoading(true);
     try {
-      // Use Unsplash API for random photos
-      const response = await fetch('https://api.unsplash.com/photos/random?count=8&orientation=landscape', {
-        headers: {
-          'Authorization': 'Client-ID 3LkQBthcZKAW1D0QL4j7a6CVNW-UN-pTVJBRnIxKR6A'
-        }
-      });
+      // Using Pixabay API for random images
+      const categories = ['nature', 'backgrounds', 'travel', 'animals', 'landscape', 'sky', 'abstract', 'textures'];
+      const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+      
+      const response = await fetch(`https://pixabay.com/api/?key=39894124-6c0a2a01346a6069ad17c7f3a&q=${randomCategory}&image_type=photo&orientation=horizontal&per_page=8`);
       
       if (!response.ok) {
-        throw new Error(`Unsplash API error: ${response.status}`);
+        throw new Error(`API error: ${response.status}`);
       }
       
       const data = await response.json();
       
-      if (data && data.length > 0) {
-        const newImages = data.map((img: any) => ({
-          name: img.alt_description || 'Unsplash Image',
-          url: img.urls.regular
+      if (data.hits && data.hits.length > 0) {
+        const newImages = data.hits.map((img: any) => ({
+          name: img.tags || 'Random Image',
+          url: img.largeImageURL
         }));
         
         setBackgroundImages(newImages);
         toast.success('Found new background images');
+      } else {
+        toast.info('No random images found. Try again or search for a specific term.');
       }
     } catch (error) {
       console.error('Error fetching random images:', error);

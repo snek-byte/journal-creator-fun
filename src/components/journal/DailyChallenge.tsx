@@ -1,6 +1,7 @@
 
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Lightbulb, RotateCw } from "lucide-react";
+import { RotateCcw, Zap } from "lucide-react";
 
 interface DailyChallengeProps {
   prompt: string;
@@ -10,31 +11,39 @@ interface DailyChallengeProps {
 
 export function DailyChallenge({ prompt, onRefresh, onApply }: DailyChallengeProps) {
   return (
-    <div className="rounded-lg border border-yellow-200 bg-yellow-50/50 p-4">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Lightbulb className="h-4 w-4 text-yellow-600" />
-          <h3 className="font-medium">Daily Challenge</h3>
+    <Card className="border-none shadow-none bg-transparent">
+      <CardHeader className="p-0 space-y-1">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <Zap className="h-3.5 w-3.5 mr-1 text-amber-500" />
+            <CardTitle className="text-xs font-medium text-gray-600">Daily Challenge</CardTitle>
+            <span className="ml-1 text-xs text-amber-500 font-medium">+20 XP</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={onRefresh}
+            title="Get a new challenge"
+          >
+            <RotateCcw className="h-3 w-3" />
+          </Button>
         </div>
-        <span className="text-sm font-medium text-yellow-800">+20 XP</span>
-      </div>
-      <div className="flex items-start gap-2 mb-4">
-        <button 
-          onClick={onRefresh}
-          className="text-yellow-600 hover:text-yellow-700 transition-colors mt-0.5"
-          title="Get a new prompt"
+        <CardDescription className="text-sm font-medium text-gray-700 mt-1">
+          {prompt}
+        </CardDescription>
+      </CardHeader>
+      
+      <div className="flex justify-end mt-3">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onApply}
+          className="text-xs px-2 py-1 h-7"
         >
-          <RotateCw className="h-4 w-4" />
-        </button>
-        <p className="text-gray-600">{prompt}</p>
+          Use this prompt
+        </Button>
       </div>
-      <Button 
-        className="w-full bg-white hover:bg-gray-50 text-gray-900 border border-gray-200"
-        variant="ghost"
-        onClick={onApply}
-      >
-        Use This Prompt
-      </Button>
-    </div>
+    </Card>
   );
 }
