@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,15 +24,17 @@ export function IconSelector({ onIconSelect }: IconSelectorProps) {
   // Categories for icons
   const categories = [
     { value: 'all', label: 'All Icons' },
-    { value: 'arrow', label: 'Arrows' },
+    { value: 'arrows', label: 'Arrows' },
     { value: 'weather', label: 'Weather' },
-    { value: 'animal', label: 'Animals' },
+    { value: 'animals', label: 'Animals' },
     { value: 'food', label: 'Food' },
-    { value: 'technology', label: 'Technology' },
-    { value: 'transportation', label: 'Transportation' },
+    { value: 'tech', label: 'Technology' },
+    { value: 'transport', label: 'Transportation' },
     { value: 'people', label: 'People' },
     { value: 'nature', label: 'Nature' },
     { value: 'health', label: 'Health' },
+    { value: 'business', label: 'Business' },
+    { value: 'social', label: 'Social' },
   ];
 
   // Load recent icons by default
@@ -67,61 +70,129 @@ export function IconSelector({ onIconSelect }: IconSelectorProps) {
     }
   };
 
+  // Function to get random icons for specific categories and styles
   const fetchIcons = async () => {
     setLoading(true);
-    // Use different API endpoints based on style
-    const apiUrl = style === 'outline' 
-      ? `https://api.iconify.design/search?query=${category !== 'all' ? category : ''}&limit=32`
-      : `https://api.flaticon.com/v3/search/icons?q=${category !== 'all' ? category : 'popular'}&limit=32&color=color`;
-      
+    
     try {
-      // For a real implementation, you'd need proper API keys for flaticon or use other free icon APIs
-      // For this demo, we'll simulate responses with placeholder data
+      // For consistent icon sets, use these predefined sets based on category and style
+      const iconSets: Record<string, Record<string, string[]>> = {
+        outline: {
+          all: ['home', 'mail', 'settings', 'heart', 'tag', 'user', 'star', 'globe', 'phone', 'bell', 'gift', 'code', 'map-pin', 'image', 'calendar', 'message'],
+          arrows: ['arrow-up', 'arrow-down', 'arrow-left', 'arrow-right', 'corner-up-left', 'corner-up-right', 'corner-down-left', 'corner-down-right', 'chevron-up', 'chevron-down', 'refresh-cw', 'rotate-cw', 'rotate-ccw', 'move'],
+          weather: ['cloud', 'sun', 'moon', 'cloud-rain', 'cloud-snow', 'cloud-lightning', 'cloud-drizzle', 'wind', 'umbrella', 'thermometer'],
+          animals: ['bird', 'cat', 'dog', 'rabbit', 'fish', 'turtle', 'butterfly', 'bee'],
+          food: ['coffee', 'pizza', 'cake', 'ice-cream', 'fruit', 'salad', 'drink', 'bottle'],
+          tech: ['cpu', 'database', 'server', 'smartphone', 'tablet', 'laptop', 'monitor', 'printer', 'keyboard', 'mouse', 'battery', 'bluetooth', 'wifi'],
+          transport: ['car', 'truck', 'bus', 'train', 'ship', 'plane', 'bicycle', 'navigation'],
+          people: ['user', 'users', 'user-plus', 'user-minus', 'user-check', 'user-x', 'baby', 'walk', 'run', 'accessibility'],
+          nature: ['leaf', 'tree', 'flower', 'sun', 'mountain', 'water', 'drop'],
+          health: ['activity', 'heart', 'thermometer', 'first-aid', 'pill', 'stethoscope', 'dumbbell'],
+          business: ['briefcase', 'clipboard', 'file', 'folder', 'chart', 'pie-chart', 'bar-chart', 'layers', 'trending-up', 'trending-down'],
+          social: ['facebook', 'twitter', 'instagram', 'linkedin', 'youtube', 'github', 'mail', 'share']
+        },
+        color: {
+          all: ['1/1', '2/2', '3/3', '4/4', '5/5', '6/6', '7/7', '8/8', '9/9', '10/10', '11/11', '12/12', '13/13', '14/14', '15/15', '16/16'],
+          arrows: ['17/17', '18/18', '19/19', '20/20', '21/21', '22/22', '23/23', '24/24'],
+          weather: ['25/25', '26/26', '27/27', '28/28', '29/29', '30/30', '31/31', '32/32'],
+          animals: ['33/33', '34/34', '35/35', '36/36', '37/37', '38/38', '39/39', '40/40'],
+          food: ['41/41', '42/42', '43/43', '44/44', '45/45', '46/46', '47/47', '48/48'],
+          tech: ['49/49', '50/50', '51/51', '52/52', '53/53', '54/54', '55/55', '56/56'],
+          transport: ['57/57', '58/58', '59/59', '60/60', '61/61', '62/62', '63/63', '64/64'],
+          people: ['65/65', '66/66', '67/67', '68/68', '69/69', '70/70', '71/71', '72/72'],
+          nature: ['73/73', '74/74', '75/75', '76/76', '77/77', '78/78', '79/79', '80/80'],
+          health: ['81/81', '82/82', '83/83', '84/84', '85/85', '86/86', '87/87', '88/88'],
+          business: ['89/89', '90/90', '91/91', '92/92', '93/93', '94/94', '95/95', '96/96'],
+          social: ['97/97', '98/98', '99/99', '100/100', '101/101', '102/102', '103/103', '104/104']
+        }
+      };
       
-      // Simulate API response with placeholder URLs
-      const simulatedResponse = Array.from({ length: 32 }, (_, i) => ({
-        id: `icon-${style}-${category}-${i}`,
-        name: `${style} ${category} icon ${i}`,
-        url: style === 'outline'
-          ? `https://api.iconify.design/mdi/${category === 'all' ? 'star' : category}-outline.svg?color=black`
-          : `https://cdn-icons-png.flaticon.com/128/1/1438.png`,
-      }));
+      // Get the icon set based on style and category
+      const selectedCategory = category !== 'all' ? category : 'all';
+      const iconNames = iconSets[style][selectedCategory] || iconSets[style]['all'];
       
-      setTimeout(() => {
-        setIcons(simulatedResponse);
-        setLoading(false);
-      }, 500);
+      // Generate the icon URLs based on the selected style and names
+      const iconData = iconNames.map((name, index) => {
+        const id = `icon-${style}-${name}-${index}`;
+        let url;
+        
+        if (style === 'outline') {
+          // Using Lucide SVG URLs for outline icons
+          url = `https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/${name}.svg`;
+        } else {
+          // Using Flaticon for color icons
+          url = `https://cdn-icons-png.flaticon.com/128/${name}.png`;
+        }
+        
+        return {
+          id,
+          name: name.replace(/-/g, ' '),
+          url,
+          style
+        };
+      });
       
+      setIcons(iconData);
     } catch (error) {
       console.error('Error fetching icons:', error);
+    } finally {
       setLoading(false);
     }
   };
 
   const searchIcons = async () => {
-    if (!search) {
+    if (!search.trim()) {
       fetchIcons();
       return;
     }
     
     setLoading(true);
     try {
-      // Simulate search API call
-      setTimeout(() => {
-        const simulatedResults = Array.from({ length: 16 }, (_, i) => ({
-          id: `icon-search-${style}-${i}`,
-          name: `${search} ${style} icon ${i}`,
-          url: style === 'outline'
-            ? `https://api.iconify.design/mdi/${search.toLowerCase().replace(/\s/g, '-')}.svg?color=black`
-            : `https://cdn-icons-png.flaticon.com/128/2/2231.png`,
+      const query = search.toLowerCase().trim();
+      
+      // For outline icons, search through Lucide icons
+      if (style === 'outline') {
+        // Get all possible outline icons
+        const allIcons = [
+          ...categories.flatMap(cat => {
+            if (cat.value === 'all') return [];
+            return ['outline', cat.value];
+          })
+        ];
+        
+        // Filter icons based on search
+        const filteredIcons = allIcons.filter(name => 
+          name.toLowerCase().includes(query)
+        ).slice(0, 16);
+        
+        const searchResults = filteredIcons.map((name, index) => ({
+          id: `icon-search-outline-${name}-${index}`,
+          name: name.replace(/-/g, ' '),
+          url: `https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/${name}.svg`,
+          style: 'outline'
         }));
         
-        setIcons(simulatedResults);
-        setLoading(false);
-      }, 500);
-      
+        setIcons(searchResults.length > 0 ? searchResults : [{
+          id: 'icon-search-outline-tag-0',
+          name: 'tag',
+          url: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/tag.svg',
+          style: 'outline'
+        }]);
+      } else {
+        // For color icons, use a set of colorful icons as search results
+        const searchNumbers = Array.from({ length: 16 }, (_, i) => i + 1);
+        const searchResults = searchNumbers.map(num => ({
+          id: `icon-search-color-${num}`,
+          name: `${search} icon ${num}`,
+          url: `https://cdn-icons-png.flaticon.com/128/${num}/${num}.png`,
+          style: 'color'
+        }));
+        
+        setIcons(searchResults);
+      }
     } catch (error) {
       console.error('Error searching icons:', error);
+    } finally {
       setLoading(false);
     }
   };
@@ -131,7 +202,7 @@ export function IconSelector({ onIconSelect }: IconSelectorProps) {
       id: icon.id,
       url: icon.url,
       position: { x: 50, y: 50 },
-      style: style,
+      style: style, 
       size: 48,
       color: style === 'color' ? undefined : '#000000'
     };
