@@ -10,25 +10,25 @@ interface DailyChallengeProps {
 
 export function DailyChallenge({ prompt, onRefresh, onApply }: DailyChallengeProps) {
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-violet-50 max-w-[180px] rounded-lg p-1">
-      <div className="flex items-center justify-between mb-0">
-        <div className="flex items-center gap-0.5">
-          <Zap className="h-2.5 w-2.5 text-violet-500" />
-          <span className="text-[10px] font-medium text-violet-500">Daily Challenge</span>
+    <div className="bg-gradient-to-br from-blue-50 to-violet-50 rounded-lg p-3 w-full">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-1">
+          <Zap className="h-4 w-4 text-violet-500" />
+          <span className="text-sm font-medium text-violet-500">Daily Challenge</span>
         </div>
         <Button
           variant="ghost"
           size="icon"
-          className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-0"
+          className="h-6 w-6 text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-0"
           onClick={onRefresh}
           title="Get a new challenge"
         >
-          <RotateCcw className="h-2 w-2" />
+          <RotateCcw className="h-3 w-3" />
         </Button>
       </div>
       
-      <div className="flex flex-col items-start justify-center min-h-[50px] mt-0.5">
-        <p className="text-[11px] font-medium text-gray-800 italic font-merriweather mb-1 w-full">
+      <div className="flex flex-col gap-2">
+        <p className="text-sm font-medium text-gray-800 italic font-merriweather">
           {prompt}
         </p>
         
@@ -36,7 +36,7 @@ export function DailyChallenge({ prompt, onRefresh, onApply }: DailyChallengePro
           variant="ghost"
           size="sm"
           onClick={onApply}
-          className="text-[10px] font-medium text-violet-600 hover:bg-violet-100 px-1.5 py-0 h-4 self-start -mt-0.5"
+          className="text-xs font-medium text-violet-600 hover:bg-violet-100 self-start px-2 py-1 h-7"
         >
           Use this prompt
         </Button>
