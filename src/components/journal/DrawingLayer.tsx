@@ -1,7 +1,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Paintbrush, Eraser, UndoIcon, RedoIcon, Trash2, CircleDashed, PaintBucket, Pencil, Highlighter, GripVertical, X } from "lucide-react";
+import { Paintbrush, Eraser, UndoIcon, RedoIcon, Trash2, CircleDashed, PaintBucket, Pencil, Highlighter, GripVertical, X, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HexColorPicker } from "react-colorful";
@@ -492,7 +492,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
               onClick={() => setMinimized(!minimized)}
               type="button"
             >
-              {minimized ? <Paintbrush className="h-3 w-3" /> : <MinusSquare className="h-3 w-3" />}
+              {minimized ? <Paintbrush className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
             </Button>
             <Button
               variant="ghost"
