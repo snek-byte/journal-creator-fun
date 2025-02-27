@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Paintbrush, Eraser, UndoIcon, RedoIcon, Trash2, CircleDashed, PaintBucket, Pencil, Highlighter, X, GripVertical, Minus } from "lucide-react";
@@ -59,6 +58,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
   const [position, setPosition] = useState({ x: 10, y: 10 });
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [compactMode, setCompactMode] = useState(false);
+  const [isActive, setIsActive] = useState(false);
 
   // Initialize canvas on mount
   useEffect(() => {
@@ -504,7 +504,10 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
               variant="ghost"
               size="icon"
               className="h-4 w-4 p-0 text-gray-400 hover:text-gray-600"
-              onClick={() => onDrawingChange && onDrawingChange('')}
+              onClick={() => {
+                setIsActive(false);
+                onDrawingChange && onDrawingChange('');
+              }}
               type="button"
             >
               <X className="h-2.5 w-2.5" />
@@ -554,7 +557,10 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
                     variant={brushType === brush.value ? "secondary" : "ghost"}
                     size="sm"
                     className="h-5 p-0"
-                    onClick={() => handleBrushTypeChange(brush.value)}
+                    onClick={() => {
+                      handleBrushTypeChange(brush.value);
+                      setIsActive(true);
+                    }}
                     title={brush.name}
                     type="button"
                   >
@@ -604,12 +610,12 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
               </div>
             )}
             
-            {/* Control buttons */}
-            <div className="flex justify-between gap-0.5">
+            {/* Control buttons - Redesigned to be narrower */}
+            <div className="grid grid-cols-3 gap-0.5">
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 p-0.5 text-[9px]"
+                className="h-5 px-0 py-0 text-[8px]"
                 onClick={undo}
                 disabled={undoStack.length <= 1}
                 type="button"
@@ -621,7 +627,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 p-0.5 text-[9px]"
+                className="h-5 px-0 py-0 text-[8px]"
                 onClick={redo}
                 disabled={redoStack.length === 0}
                 type="button"
@@ -633,12 +639,12 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 p-0.5 text-[9px]"
+                className="h-5 px-0 py-0 text-[8px]"
                 onClick={clearCanvas}
                 type="button"
               >
                 <Trash2 className="h-2 w-2 mr-0.5" />
-                Clear
+                Clr
               </Button>
             </div>
           </div>
@@ -649,14 +655,31 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
         ref={canvasRef}
         width={width}
         height={height}
-        className="touch-none cursor-crosshair"
-        onMouseDown={startDrawing}
-        onMouseMove={draw}
-        onMouseUp={stopDrawing}
-        onMouseOut={stopDrawing}
-        onTouchStart={startDrawing}
-        onTouchMove={draw}
-        onTouchEnd={stopDrawing}
+        className={cn(
+          "touch-none",
+          isActive ? "cursor-crosshair" : "cursor-default"
+        )}
+        onMouseDown={(e) => {
+          if (isActive) startDrawing(e);
+        }}
+        onMouseMove={(e) => {
+          if (isActive) draw(e);
+        }}
+        onMouseUp={() => {
+          if (isActive) stopDrawing();
+        }}
+        onMouseOut={() => {
+          if (isActive) stopDrawing();
+        }}
+        onTouchStart={(e) => {
+          if (isActive) startDrawing(e);
+        }}
+        onTouchMove={(e) => {
+          if (isActive) draw(e);
+        }}
+        onTouchEnd={() => {
+          if (isActive) stopDrawing();
+        }}
       />
     </div>
   );
