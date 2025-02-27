@@ -1,7 +1,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Paintbrush, Eraser, UndoIcon, RedoIcon, Trash2, CircleDashed, PaintBucket, Pencil, Highlighter, X } from "lucide-react";
+import { Paintbrush, Eraser, UndoIcon, RedoIcon, Trash2, CircleDashed, PaintBucket, Pencil, Highlighter, X, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HexColorPicker } from "react-colorful";
@@ -18,32 +18,31 @@ interface DrawingLayerProps {
   onDrawingChange?: (dataUrl: string) => void;
 }
 
-// Basic color palette
+// Organized color palette - Primary colors
 const colors = [
-  '#000000', // Black
-  '#1E40AF', // Blue
-  '#7E22CE', // Purple
-  '#DC2626', // Red
-  '#EA580C', // Orange
-  '#CA8A04', // Yellow
-  '#16A34A', // Green
-  '#0D9488', // Teal
+  { value: '#000000', label: 'Black' },
+  { value: '#1e40af', label: 'Blue' },
+  { value: '#7e22ce', label: 'Purple' },
+  { value: '#dc2626', label: 'Red' },
+  { value: '#ea580c', label: 'Orange' },
+  { value: '#ca8a04', label: 'Yellow' },
+  { value: '#16a34a', label: 'Green' },
+  { value: '#0d9488', label: 'Teal' },
 ];
 
-// Pastel colors
-const pastelColors = [
-  '#E5DEFF', // Pastel Purple
-  '#D3E4FD', // Pastel Blue
-  '#F2FCE2', // Pastel Green
-  '#FEF7CD', // Pastel Yellow
-  '#FEC6A1', // Pastel Orange
-  '#FFDEE2', // Pastel Pink
-  '#FDE1D3', // Pastel Peach
-  '#F0F0F0', // Pastel Gray
+// Brush types
+const brushTypes = [
+  { name: 'Pen', value: 'pen', icon: <Pencil className="h-3 w-3" /> },
+  { name: 'Marker', value: 'marker', icon: <Paintbrush className="h-3 w-3" /> },
+  { name: 'Highlighter', value: 'highlighter', icon: <Highlighter className="h-3 w-3" /> },
+  { name: 'Spray', value: 'spray', icon: <CircleDashed className="h-3 w-3" /> },
+  { name: 'Fill', value: 'fill', icon: <PaintBucket className="h-3 w-3" /> },
+  { name: 'Eraser', value: 'eraser', icon: <Eraser className="h-3 w-3" /> },
 ];
 
 export function DrawingLayer({ className, width, height, onDrawingChange }: DrawingLayerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const toolbarRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [lastPoint, setLastPoint] = useState<Point | null>(null);
   const [currentColor, setCurrentColor] = useState('#000000');
@@ -51,9 +50,15 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
   const [brushType, setBrushType] = useState('pen');
   const [undoStack, setUndoStack] = useState<string[]>([]);
   const [redoStack, setRedoStack] = useState<string[]>([]);
-  const hasInitialized = useRef(false);
   const sprayInterval = useRef<number | null>(null);
   const [opacity, setOpacity] = useState(1);
+  const hasInitialized = useRef(false);
+  
+  // For dragging functionality
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 10, y: 10 });
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [compactMode, setCompactMode] = useState(false);
 
   // Initialize canvas on mount
   useEffect(() => {
@@ -104,6 +109,50 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
       }
     }
   }, [currentColor, brushType, opacity]);
+
+  // Dragging functionality
+  const handleDragStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!toolbarRef.current) return;
+    
+    const rect = toolbarRef.current.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+    
+    setIsDragging(true);
+  };
+
+  const handleDragMove = (e: MouseEvent) => {
+    if (!isDragging) return;
+    
+    setPosition({
+      x: e.clientX - dragOffset.x,
+      y: e.clientY - dragOffset.y
+    });
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleDragMove);
+      window.addEventListener('mouseup', handleDragEnd);
+    } else {
+      window.removeEventListener('mousemove', handleDragMove);
+      window.removeEventListener('mouseup', handleDragEnd);
+    }
+    
+    return () => {
+      window.removeEventListener('mousemove', handleDragMove);
+      window.removeEventListener('mouseup', handleDragEnd);
+    };
+  }, [isDragging]);
 
   const saveState = () => {
     if (!canvasRef.current || !isDrawing) return;
@@ -229,7 +278,6 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
     const targetColor = getColorAtPixel(imageData, Math.floor(point.x), Math.floor(point.y));
     const fillColor = hexToRgb(currentColor);
     
-    // Simple flood fill algorithm
     if (fillColor) {
       floodFill(imageData, Math.floor(point.x), Math.floor(point.y), targetColor, fillColor);
       ctx.putImageData(imageData, 0, 0);
@@ -420,207 +468,178 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
 
   return (
     <div className={cn("absolute inset-0", className)}>
-      <div className="absolute top-2 left-2 z-50 bg-white rounded-lg shadow-md p-2 border border-gray-200 space-y-2 max-w-[200px]">
-        <div className="flex justify-between items-center mb-2">
-          <div className="text-xs font-medium">Doodle Tool</div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0"
-            onClick={() => onDrawingChange && onDrawingChange('')}
-            type="button"
-          >
-            <X className="h-3 w-3" />
-          </Button>
-        </div>
-        
-        <div>
-          <p className="text-xs mb-1 font-medium">Colors</p>
-          <div className="flex flex-wrap gap-1 mb-2">
-            {colors.map((color) => (
-              <button
-                key={color}
-                className={`w-5 h-5 rounded-full ${currentColor === color ? 'ring-1 ring-offset-1 ring-black' : ''}`}
-                style={{ backgroundColor: color }}
-                onClick={() => setCurrentColor(color)}
-                type="button"
-              />
-            ))}
+      <div 
+        ref={toolbarRef}
+        style={{ 
+          left: `${position.x}px`, 
+          top: `${position.y}px`,
+          position: 'absolute',
+          zIndex: 50
+        }}
+        className={cn(
+          "bg-white rounded-lg shadow-md border border-gray-200",
+          compactMode ? "w-auto" : "w-[170px]"
+        )}
+      >
+        {/* Draggable header */}
+        <div 
+          className="flex items-center justify-between bg-gray-50 rounded-t-lg px-2 py-1 cursor-move border-b border-gray-100"
+          onMouseDown={handleDragStart}
+        >
+          <div className="flex items-center gap-1">
+            <GripVertical className="h-3 w-3 text-gray-400" />
+            <span className="text-xs font-medium text-gray-600">Draw Tool</span>
           </div>
-          
-          <div className="flex flex-wrap gap-1 mb-2">
-            {pastelColors.map((color) => (
-              <button
-                key={color}
-                className={`w-5 h-5 rounded-full ${currentColor === color ? 'ring-1 ring-offset-1 ring-black' : ''}`}
-                style={{ backgroundColor: color }}
-                onClick={() => setCurrentColor(color)}
-                type="button"
-              />
-            ))}
-          </div>
-          
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button 
-                variant="outline" 
-                className="w-full h-7 flex items-center justify-center gap-1 text-xs"
-              >
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: currentColor }}></div>
-                Custom Color
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-2">
-              <HexColorPicker color={currentColor} onChange={setCurrentColor} />
-            </PopoverContent>
-          </Popover>
-        </div>
-        
-        <div>
-          <p className="text-xs mb-1 font-medium">Brush Type</p>
-          <div className="grid grid-cols-3 gap-1 mb-2">
+          <div className="flex items-center gap-1">
             <Button
-              variant={brushType === 'pen' ? "secondary" : "ghost"}
-              size="sm"
-              className="h-7 w-full p-0"
-              onClick={() => handleBrushTypeChange('pen')}
-              title="Pen"
+              variant="ghost"
+              size="icon"
+              className="h-5 w-5 p-0 text-gray-400 hover:text-gray-600"
+              onClick={() => setCompactMode(!compactMode)}
               type="button"
             >
-              <Pencil className="h-3 w-3" />
+              {compactMode ? <Paintbrush className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
             </Button>
-            
             <Button
-              variant={brushType === 'marker' ? "secondary" : "ghost"}
-              size="sm"
-              className="h-7 w-full p-0"
-              onClick={() => handleBrushTypeChange('marker')}
-              title="Marker"
+              variant="ghost"
+              size="icon"
+              className="h-5 w-5 p-0 text-gray-400 hover:text-gray-600"
+              onClick={() => onDrawingChange && onDrawingChange('')}
               type="button"
             >
-              <Paintbrush className="h-3 w-3" />
-            </Button>
-            
-            <Button
-              variant={brushType === 'highlighter' ? "secondary" : "ghost"}
-              size="sm"
-              className="h-7 w-full p-0"
-              onClick={() => handleBrushTypeChange('highlighter')}
-              title="Highlighter"
-              type="button"
-            >
-              <Highlighter className="h-3 w-3" />
-            </Button>
-            
-            <Button
-              variant={brushType === 'spray' ? "secondary" : "ghost"}
-              size="sm"
-              className="h-7 w-full p-0"
-              onClick={() => handleBrushTypeChange('spray')}
-              title="Spray"
-              type="button"
-            >
-              <CircleDashed className="h-3 w-3" />
-            </Button>
-            
-            <Button
-              variant={brushType === 'fill' ? "secondary" : "ghost"}
-              size="sm"
-              className="h-7 w-full p-0"
-              onClick={() => handleBrushTypeChange('fill')}
-              title="Fill"
-              type="button"
-            >
-              <PaintBucket className="h-3 w-3" />
-            </Button>
-            
-            <Button
-              variant={brushType === 'eraser' ? "secondary" : "ghost"}
-              size="sm"
-              className="h-7 w-full p-0"
-              onClick={() => handleBrushTypeChange('eraser')}
-              title="Eraser"
-              type="button"
-            >
-              <Eraser className="h-3 w-3" />
+              <X className="h-3 w-3" />
             </Button>
           </div>
         </div>
         
-        <div>
-          <p className="text-xs mb-1 font-medium">Brush Size</p>
-          <div className="flex justify-between gap-1 mb-2">
-            {[2, 4, 6, 8].map((size) => (
-              <button
-                key={size}
-                className={`flex items-center justify-center rounded border ${lineWidth === size ? 'bg-primary/20 border-primary' : 'border-gray-300'} w-10 h-6`}
-                onClick={() => setLineWidth(size)}
-                type="button"
-              >
-                <div 
-                  className="rounded-full"
-                  style={{ 
-                    width: `${size}px`, 
-                    height: `${size}px`,
-                    backgroundColor: brushType === 'eraser' ? '#888' : currentColor
-                  }}
+        {!compactMode && (
+          <div className="p-2 space-y-2">
+            {/* Color palette */}
+            <div>
+              <div className="flex flex-wrap gap-1">
+                {colors.map((color) => (
+                  <button
+                    key={color.value}
+                    className={`w-4 h-4 rounded-full ${currentColor === color.value ? 'ring-1 ring-offset-1 ring-black' : ''}`}
+                    style={{ backgroundColor: color.value }}
+                    onClick={() => setCurrentColor(color.value)}
+                    title={color.label}
+                    type="button"
+                  />
+                ))}
+              </div>
+              
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-6 mt-1 flex items-center justify-center gap-1 text-xs"
+                  >
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: currentColor }}></div>
+                    Custom Color
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-2">
+                  <HexColorPicker color={currentColor} onChange={setCurrentColor} />
+                </PopoverContent>
+              </Popover>
+            </div>
+            
+            {/* Brush types */}
+            <div>
+              <div className="grid grid-cols-3 gap-1">
+                {brushTypes.map((brush) => (
+                  <Button
+                    key={brush.value}
+                    variant={brushType === brush.value ? "secondary" : "ghost"}
+                    size="sm"
+                    className="h-6 p-0"
+                    onClick={() => handleBrushTypeChange(brush.value)}
+                    title={brush.name}
+                    type="button"
+                  >
+                    {brush.icon}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Brush size */}
+            <div className="flex justify-between gap-1">
+              {[2, 4, 6, 8].map((size) => (
+                <button
+                  key={size}
+                  className={`flex-1 flex items-center justify-center rounded border ${lineWidth === size ? 'bg-primary/20 border-primary' : 'border-gray-300'} h-6`}
+                  onClick={() => setLineWidth(size)}
+                  type="button"
+                >
+                  <div 
+                    className="rounded-full"
+                    style={{ 
+                      width: `${size}px`, 
+                      height: `${size}px`,
+                      backgroundColor: brushType === 'eraser' ? '#888' : currentColor
+                    }}
+                  />
+                </button>
+              ))}
+            </div>
+            
+            {/* Opacity (only for certain brush types) */}
+            {brushType !== 'eraser' && brushType !== 'highlighter' && (
+              <div className="flex items-center gap-1">
+                <span className="text-xs w-12">Opacity:</span>
+                <input
+                  type="range"
+                  min="0.1"
+                  max="1"
+                  step="0.1"
+                  value={opacity}
+                  onChange={(e) => setOpacity(parseFloat(e.target.value))}
+                  className="flex-1 h-1"
                 />
-              </button>
-            ))}
-          </div>
-        </div>
-        
-        {brushType !== 'eraser' && brushType !== 'highlighter' && (
-          <div>
-            <p className="text-xs mb-1 font-medium">Opacity: {opacity}</p>
-            <input
-              type="range"
-              min="0.1"
-              max="1"
-              step="0.1"
-              value={opacity}
-              onChange={(e) => setOpacity(parseFloat(e.target.value))}
-              className="w-full h-1"
-            />
+              </div>
+            )}
+            
+            {/* Control buttons */}
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 p-0 flex-1"
+                onClick={undo}
+                disabled={undoStack.length <= 1}
+                type="button"
+              >
+                <UndoIcon className="h-3 w-3 mr-1" />
+                <span className="text-xs">Undo</span>
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 p-0 flex-1"
+                onClick={redo}
+                disabled={redoStack.length === 0}
+                type="button"
+              >
+                <RedoIcon className="h-3 w-3 mr-1" />
+                <span className="text-xs">Redo</span>
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 p-0 flex-1"
+                onClick={clearCanvas}
+                type="button"
+              >
+                <Trash2 className="h-3 w-3 mr-1" />
+                <span className="text-xs">Clear</span>
+              </Button>
+            </div>
           </div>
         )}
-        
-        <div className="flex gap-1 justify-between">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7"
-            onClick={undo}
-            disabled={undoStack.length <= 1}
-            type="button"
-          >
-            <UndoIcon className="h-3 w-3 mr-1" />
-            Undo
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7"
-            onClick={redo}
-            disabled={redoStack.length === 0}
-            type="button"
-          >
-            <RedoIcon className="h-3 w-3 mr-1" />
-            Redo
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7"
-            onClick={clearCanvas}
-            type="button"
-          >
-            <Trash2 className="h-3 w-3 mr-1" />
-            Clear
-          </Button>
-        </div>
       </div>
 
       <canvas
