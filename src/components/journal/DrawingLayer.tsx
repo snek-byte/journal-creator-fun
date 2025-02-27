@@ -1,7 +1,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Paintbrush, Eraser, UndoIcon, RedoIcon, Trash2, CircleDashed, PaintBucket, Pencil, Highlighter } from "lucide-react";
+import { Paintbrush, Eraser, UndoIcon, RedoIcon, Trash2, CircleDashed, PaintBucket, Pencil, Highlighter, GripVertical, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HexColorPicker } from "react-colorful";
@@ -43,6 +43,7 @@ const brushTypes = [
 
 export function DrawingLayer({ className, width, height, onDrawingChange }: DrawingLayerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const toolbarRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [lastPoint, setLastPoint] = useState<Point | null>(null);
   const [undoStack, setUndoStack] = useState<string[]>([]);
@@ -54,6 +55,10 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
   const hasInitialized = useRef(false);
   const spraying = useRef(false);
   const sprayInterval = useRef<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 10, y: 10 });
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [minimized, setMinimized] = useState(false);
 
   // Initialize canvas only once on component mount
   useEffect(() => {
@@ -421,139 +426,220 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
     }
   };
 
+  const handleDragStart = (e: React.MouseEvent) => {
+    if (toolbarRef.current) {
+      e.preventDefault();
+      const rect = toolbarRef.current.getBoundingClientRect();
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      });
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragMove = (e: MouseEvent) => {
+    if (isDragging) {
+      setPosition({
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y
+      });
+    }
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleDragMove);
+      window.addEventListener('mouseup', handleDragEnd);
+    }
+    
+    return () => {
+      window.removeEventListener('mousemove', handleDragMove);
+      window.removeEventListener('mouseup', handleDragEnd);
+    };
+  }, [isDragging]);
+
   return (
-    <div className={cn("relative", className)}>
-      <div className="absolute top-2 left-2 flex flex-col gap-2 z-10 bg-white/90 p-2 rounded-lg shadow-sm">
-        <Tabs defaultValue="brushes" className="w-[300px]">
-          <TabsList className="grid grid-cols-2">
-            <TabsTrigger value="brushes">Brushes</TabsTrigger>
-            <TabsTrigger value="colors">Colors</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="brushes" className="space-y-4">
-            <div className="flex flex-wrap gap-1 mt-1">
-              {brushTypes.map((brush) => (
-                <Button
-                  key={brush.value}
-                  variant={brushType === brush.value ? "secondary" : "ghost"}
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => handleBrushTypeChange(brush.value)}
-                  title={brush.name}
-                  type="button"
-                >
-                  {brush.icon}
-                </Button>
-              ))}
-            </div>
-            
-            <div>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-xs">Size:</span>
-                <div className="flex gap-1">
-                  {[2, 4, 6, 8].map((size) => (
-                    <button
-                      key={size}
-                      className={`w-6 h-6 flex items-center justify-center border rounded ${lineWidth === size ? 'bg-primary/20 border-primary' : 'border-gray-300'}`}
-                      onClick={() => handleLineWidthChange(size)}
+    <div className={cn("absolute inset-0", className)}>
+      <div 
+        ref={toolbarRef}
+        style={{ 
+          left: `${position.x}px`, 
+          top: `${position.y}px` 
+        }}
+        className={cn(
+          "absolute z-50 flex flex-col bg-white/95 rounded-lg shadow-md border border-gray-200 transition-all",
+          minimized ? "w-auto" : "w-[250px]"
+        )}
+      >
+        <div 
+          className="flex items-center justify-between bg-gray-50 rounded-t-lg p-1 cursor-move"
+          onMouseDown={handleDragStart}
+        >
+          <div className="flex items-center gap-1 px-1">
+            <GripVertical className="h-3 w-3 text-gray-400" />
+            <span className="text-xs font-medium text-gray-600">Doodle Tool</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={() => setMinimized(!minimized)}
+              type="button"
+            >
+              {minimized ? <Paintbrush className="h-3 w-3" /> : <MinusSquare className="h-3 w-3" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+              onClick={clearCanvas}
+              type="button"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
+
+        {!minimized && (
+          <div className="p-2 space-y-2">
+            <Tabs defaultValue="brushes" className="w-full">
+              <TabsList className="grid grid-cols-2 h-7">
+                <TabsTrigger value="brushes" className="text-xs">Brushes</TabsTrigger>
+                <TabsTrigger value="colors" className="text-xs">Colors</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="brushes" className="space-y-3 mt-2">
+                <div className="flex flex-wrap gap-1">
+                  {brushTypes.map((brush) => (
+                    <Button
+                      key={brush.value}
+                      variant={brushType === brush.value ? "secondary" : "ghost"}
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => handleBrushTypeChange(brush.value)}
+                      title={brush.name}
                       type="button"
                     >
-                      <div 
-                        className="rounded-full" 
-                        style={{ 
-                          width: `${size}px`, 
-                          height: `${size}px`,
-                          backgroundColor: brushType === 'eraser' ? '#888' : currentColor
-                        }}
-                      />
-                    </button>
+                      {brush.icon}
+                    </Button>
                   ))}
                 </div>
-              </div>
-              
-              {brushType !== 'eraser' && brushType !== 'highlighter' && (
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-xs">Opacity:</span>
-                  <input
-                    type="range"
-                    min="0.1"
-                    max="1"
-                    step="0.1"
-                    value={opacity}
-                    onChange={(e) => setOpacity(parseFloat(e.target.value))}
-                    className="flex-1"
-                  />
+                
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs">Size:</span>
+                    <div className="flex gap-1">
+                      {[2, 4, 6, 8].map((size) => (
+                        <button
+                          key={size}
+                          className={`w-5 h-5 flex items-center justify-center border rounded ${lineWidth === size ? 'bg-primary/20 border-primary' : 'border-gray-300'}`}
+                          onClick={() => handleLineWidthChange(size)}
+                          type="button"
+                        >
+                          <div 
+                            className="rounded-full" 
+                            style={{ 
+                              width: `${size}px`, 
+                              height: `${size}px`,
+                              backgroundColor: brushType === 'eraser' ? '#888' : currentColor
+                            }}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {brushType !== 'eraser' && brushType !== 'highlighter' && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-xs">Opacity:</span>
+                      <input
+                        type="range"
+                        min="0.1"
+                        max="1"
+                        step="0.1"
+                        value={opacity}
+                        onChange={(e) => setOpacity(parseFloat(e.target.value))}
+                        className="flex-1 h-1.5"
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="colors">
-            <div className="grid grid-cols-4 gap-2 mt-1">
-              {colors.map((color) => (
-                <button
-                  key={color.value}
-                  className={`w-full h-8 rounded-md ${currentColor === color.value ? 'ring-2 ring-offset-1 ring-primary' : 'border border-gray-300'}`}
-                  style={{ backgroundColor: color.value }}
-                  onClick={() => setCurrentColor(color.value)}
-                  title={color.name}
-                  type="button"
-                />
-              ))}
-            </div>
+              </TabsContent>
+              
+              <TabsContent value="colors" className="mt-2">
+                <div className="grid grid-cols-4 gap-1">
+                  {colors.map((color) => (
+                    <button
+                      key={color.value}
+                      className={`w-full h-6 rounded ${currentColor === color.value ? 'ring-1 ring-offset-1 ring-primary' : 'border border-gray-300'}`}
+                      style={{ backgroundColor: color.value }}
+                      onClick={() => setCurrentColor(color.value)}
+                      title={color.name}
+                      type="button"
+                    />
+                  ))}
+                </div>
+                
+                <div className="mt-2">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        className="w-full h-7 rounded flex items-center justify-center gap-1 border border-gray-300"
+                        style={{ backgroundColor: currentColor }}
+                        type="button"
+                      >
+                        <span className="bg-white px-1.5 py-0.5 rounded text-xs">
+                          Custom
+                        </span>
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-2">
+                      <HexColorPicker color={currentColor} onChange={setCurrentColor} />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </TabsContent>
+            </Tabs>
             
-            <div className="mt-3">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button
-                    className="w-full h-10 rounded-md flex items-center justify-center gap-2 border border-gray-300"
-                    style={{ backgroundColor: currentColor }}
-                    type="button"
-                  >
-                    <span className="bg-white px-2 py-1 rounded text-xs font-medium">
-                      Custom Color
-                    </span>
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-3">
-                  <HexColorPicker color={currentColor} onChange={setCurrentColor} />
-                </PopoverContent>
-              </Popover>
+            <div className="flex gap-1 justify-between">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={undo}
+                disabled={undoStack.length <= 1}
+                type="button"
+              >
+                <UndoIcon className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={redo}
+                disabled={redoStack.length === 0}
+                type="button"
+              >
+                <RedoIcon className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={clearCanvas}
+                type="button"
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
             </div>
-          </TabsContent>
-        </Tabs>
-        
-        <div className="flex gap-2 mt-2 justify-between">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={undo}
-            disabled={undoStack.length <= 1}
-            type="button"
-          >
-            <UndoIcon className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={redo}
-            disabled={redoStack.length === 0}
-            type="button"
-          >
-            <RedoIcon className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={clearCanvas}
-            type="button"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
+          </div>
+        )}
       </div>
       <canvas
         ref={canvasRef}
