@@ -1,7 +1,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Paintbrush } from 'lucide-react';
+import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare } from 'lucide-react';
 import { moodOptions } from './config/editorConfig';
 import type { Mood, Sticker, Icon } from '@/types/journal';
 import { applyTextStyle } from '@/utils/unicodeTextStyles';
@@ -10,8 +10,6 @@ import { StickerSelector } from './StickerSelector';
 import { IconSelector } from './IconSelector';
 import { BackgroundImageSelector } from './BackgroundImageSelector';
 import { useJournalStore } from '@/store/journalStore';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { HexColorPicker } from "react-colorful";
 
 interface JournalPreviewProps {
   showPreview: boolean;
@@ -378,10 +376,6 @@ export function JournalPreview({
     onIconUpdate(iconId, { size: newSize });
   };
   
-  const handleColorChange = (iconId: string, color: string) => {
-    onIconUpdate(iconId, { color });
-  };
-  
   const handleBackgroundClick = () => {
     setSelectedStickerId(null);
     setSelectedIconId(null);
@@ -396,24 +390,8 @@ export function JournalPreview({
     return gradient;
   };
 
-  // Function to apply the color filter to the icon
+  // Function to get icon style with size
   const getIconStyle = (icon: Icon) => {
-    if (icon.style === 'outline') {
-      if (icon.color && icon.color !== '#000000') {
-        return {
-          width: `${icon.size || 48}px`, 
-          height: `${icon.size || 48}px`,
-          filter: `brightness(0) saturate(100%) drop-shadow(0 0 0 ${icon.color})`
-        };
-      } else {
-        return {
-          width: `${icon.size || 48}px`, 
-          height: `${icon.size || 48}px`,
-          filter: 'brightness(0) saturate(100%)'
-        };
-      }
-    }
-    
     return {
       width: `${icon.size || 48}px`, 
       height: `${icon.size || 48}px`
@@ -555,28 +533,6 @@ export function JournalPreview({
                   <PlusSquare className="h-4 w-4" />
                 </Button>
                 
-                {/* Only show color picker for outline icons */}
-                {icon.style === 'outline' && (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        className="h-8 w-8 rounded-full shadow-md bg-white"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Paintbrush className="h-4 w-4" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-3" onClick={(e) => e.stopPropagation()}>
-                      <HexColorPicker 
-                        color={icon.color || '#000000'} 
-                        onChange={(color) => handleColorChange(icon.id, color)} 
-                      />
-                    </PopoverContent>
-                  </Popover>
-                )}
-                
                 <Button
                   variant="destructive"
                   size="icon"
@@ -602,7 +558,7 @@ export function JournalPreview({
       
       {selectedIconId && showIconControls && (
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/80 p-2 rounded-md text-xs text-center shadow-md backdrop-blur-sm">
-          Use controls to resize, change color, or delete icon
+          Use controls to resize or delete icon
         </div>
       )}
     </div>

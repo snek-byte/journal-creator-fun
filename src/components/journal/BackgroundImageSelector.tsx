@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -19,16 +19,26 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
   const { setBackgroundImage, setGradient } = useJournalStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [backgroundImages, setBackgroundImages] = useState([
-    { name: 'Paper Texture', url: 'https://images.unsplash.com/photo-1516541196182-6bdb0516ed27?q=80&w=1000&auto=format&fit=crop' },
-    { name: 'Marble', url: 'https://images.unsplash.com/photo-1566041510639-8d95a2490bfb?q=80&w=1000&auto=format&fit=crop' },
-    { name: 'Wooden', url: 'https://images.unsplash.com/photo-1531685250784-7569952593d2?q=80&w=1000&auto=format&fit=crop' },
-    { name: 'Nature', url: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=1000&auto=format&fit=crop' },
-    { name: 'Mountains', url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000&auto=format&fit=crop' },
-    { name: 'Ocean', url: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?q=80&w=1000&auto=format&fit=crop' },
-    { name: 'Clouds', url: 'https://images.unsplash.com/photo-1536514072410-5019a3c69182?q=80&w=1000&auto=format&fit=crop' },
-    { name: 'Night Sky', url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1000&auto=format&fit=crop' }
-  ]);
+  
+  // Default image categories to randomly select from
+  const imageCategories = [
+    'nature', 'landscape', 'abstract', 'pattern', 'texture', 
+    'minimal', 'sky', 'mountains', 'ocean', 'forest'
+  ];
+  
+  // Generate a set of Unsplash image URLs with unique tracking parameters
+  const generateImageSet = (query = '') => {
+    const timestamp = Date.now();
+    const selectedCategory = query || imageCategories[Math.floor(Math.random() * imageCategories.length)];
+    
+    return Array.from({ length: 8 }, (_, i) => ({
+      name: `${selectedCategory} ${i + 1}`,
+      url: `https://source.unsplash.com/random/800x600?${selectedCategory},${i}&t=${timestamp}`
+    }));
+  };
+  
+  // Initialize with a set of default images
+  const [backgroundImages, setBackgroundImages] = useState(generateImageSet());
 
   // Handle gradient selection
   const handleGradientSelect = (gradient: string) => {
@@ -45,56 +55,53 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
     toast.success('Image background applied');
   };
 
-  // Fetch new images using a reliable public image API
-  const fetchImages = async (query: string = '') => {
-    setIsLoading(true);
-    
-    try {
-      // Using raw Unsplash URLs since API has issues
-      const categories = [
-        'nature', 'landscape', 'architecture', 'food', 'travel', 
-        'animals', 'abstract', 'textures', 'patterns', 'sky'
-      ];
-      
-      let searchTerm = query || categories[Math.floor(Math.random() * categories.length)];
-      
-      // For demonstration, we're creating a set of predictable but different image URLs
-      // In a real app, this would use a working API
-      const hash = Date.now().toString();
-      const newImages = [];
-      
-      for (let i = 0; i < 8; i++) {
-        // Generate a unique URL for each image based on search term and current time
-        const imageUrl = `https://source.unsplash.com/featured/?${searchTerm},${i}&${hash}`;
-        newImages.push({
-          name: `${searchTerm} ${i+1}`,
-          url: imageUrl
-        });
-      }
-      
-      setBackgroundImages(newImages);
-      toast.success(`Found new ${query ? 'images for ' + query : 'random images'}`);
-    } catch (error) {
-      console.error('Error fetching images:', error);
-      toast.error('Failed to fetch images. Using default images instead.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // Handle search submit
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!searchQuery.trim()) {
       toast.error('Please enter a search query');
       return;
     }
     
-    fetchImages(searchQuery);
+    setIsLoading(true);
+    
+    try {
+      // Generate new images for the search query
+      const newImages = generateImageSet(searchQuery.trim());
+      setBackgroundImages(newImages);
+      
+      // Brief delay to allow the browser to start loading the new images
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      toast.success(`Found new images for "${searchQuery}"`);
+    } catch (error) {
+      console.error('Error generating images:', error);
+      toast.error('Failed to generate new images');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Fetch random new images
-  const shuffleImages = () => {
-    fetchImages();
+  const shuffleImages = async () => {
+    setIsLoading(true);
+    
+    try {
+      // Generate completely new random images
+      const randomCategory = imageCategories[Math.floor(Math.random() * imageCategories.length)];
+      const newImages = generateImageSet(randomCategory);
+      
+      setBackgroundImages(newImages);
+      
+      // Brief delay to allow the browser to start loading the new images
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      toast.success(`Found new ${randomCategory} images`);
+    } catch (error) {
+      console.error('Error generating random images:', error);
+      toast.error('Failed to generate new images');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Handle image upload
@@ -199,12 +206,17 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
                   <div className="grid grid-cols-2 gap-4">
                     {backgroundImages.map((image, index) => (
                       <button
-                        key={index}
+                        key={`${image.url}-${index}`}
                         onClick={() => handleBackgroundSelect(image.url)}
                         className="h-24 rounded-md overflow-hidden border hover:ring-2 hover:ring-primary transition-all bg-cover bg-center"
                         style={{ backgroundImage: `url(${image.url})` }}
                         aria-label={image.name}
-                      />
+                      >
+                        {/* Add a fallback for empty images */}
+                        <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-xs">
+                          {image.name}
+                        </div>
+                      </button>
                     ))}
                   </div>
                 )}
