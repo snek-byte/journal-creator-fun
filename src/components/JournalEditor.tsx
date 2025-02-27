@@ -34,7 +34,13 @@ export function JournalEditor() {
     togglePreview,
     saveEntry,
     applyChallenge,
-    loadChallenge
+    loadChallenge,
+    setFont,
+    setFontSize,
+    setFontWeight,
+    setFontColor,
+    setGradient,
+    setTextStyle
   } = useJournalEditor();
 
   return (
@@ -51,12 +57,12 @@ export function JournalEditor() {
         setText={setText}
         setMood={setMood}
         setIsPublic={setIsPublic}
-        setFont={currentEntry.setFont}
-        setFontSize={currentEntry.setFontSize}
-        setFontWeight={currentEntry.setFontWeight}
-        setFontColor={currentEntry.setFontColor}
-        setGradient={currentEntry.setGradient}
-        setTextStyle={currentEntry.setTextStyle}
+        setFont={setFont}
+        setFontSize={setFontSize}
+        setFontWeight={setFontWeight}
+        setFontColor={setFontColor}
+        setGradient={setGradient}
+        setTextStyle={setTextStyle}
         saveEntry={saveEntry}
         loadChallenge={loadChallenge}
         applyChallenge={applyChallenge}
