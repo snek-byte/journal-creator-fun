@@ -11,9 +11,9 @@ interface DailyChallengeProps {
 
 export function DailyChallenge({ prompt, onRefresh, onApply }: DailyChallengeProps) {
   return (
-    <Card className="border border-gray-100 shadow-sm bg-gradient-to-br from-blue-50 to-violet-50">
-      <CardHeader className="p-4">
-        <div className="flex items-center justify-between mb-2">
+    <Card className="border border-gray-100 shadow-sm bg-gradient-to-br from-blue-50 to-violet-50 max-w-sm">
+      <CardHeader className="p-3">
+        <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-1.5">
             <Zap className="h-3.5 w-3.5 text-violet-500" />
             <span className="text-xs font-medium text-violet-500">Daily Challenge</span>
@@ -30,11 +30,11 @@ export function DailyChallenge({ prompt, onRefresh, onApply }: DailyChallengePro
           </Button>
         </div>
         
-        <CardDescription className="text-sm font-medium text-gray-800 my-1 italic font-dancing-script">
+        <CardDescription className="text-sm font-medium text-gray-800 my-1 italic font-merriweather">
           "{prompt}"
         </CardDescription>
         
-        <div className="flex justify-end mt-3">
+        <div className="flex justify-end mt-2">
           <Button
             variant="ghost"
             size="sm"
