@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Paintbrush, Eraser, UndoIcon, RedoIcon, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { HexColorPicker } from "react-colorful";
 
 interface Point {
   x: number;
@@ -244,6 +246,23 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
               title={color.name}
             />
           ))}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                className={`w-6 h-6 rounded-full border ${!colors.some(c => c.value === currentColor) ? 'ring-2 ring-offset-1 ring-primary' : 'border-gray-300'}`}
+                style={{ 
+                  backgroundColor: currentColor,
+                  backgroundImage: "linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc)",
+                  backgroundSize: "6px 6px",
+                  backgroundPosition: "0 0, 3px 3px"
+                }}
+                title="Custom Color"
+              />
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-3">
+              <HexColorPicker color={currentColor} onChange={setCurrentColor} />
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div className="flex items-center gap-2 mt-1">

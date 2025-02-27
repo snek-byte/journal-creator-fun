@@ -38,6 +38,7 @@ export function JournalEditor() {
     setIcons,
     setTextPosition,
     setBackgroundImage,
+    setDrawing,
     addSticker,
     addIcon,
     updateIcon,
@@ -133,6 +134,14 @@ export function JournalEditor() {
       setBackgroundImage(imageUrl);
     } catch (error) {
       console.error("Error selecting background:", error);
+    }
+  };
+
+  const handleDrawingChange = (dataUrl: string) => {
+    try {
+      setDrawing(dataUrl);
+    } catch (error) {
+      console.error("Error updating drawing:", error);
     }
   };
 
@@ -330,6 +339,7 @@ export function JournalEditor() {
         icons={currentEntry.icons || []}
         textPosition={currentEntry.textPosition || { x: 50, y: 50 }}
         backgroundImage={currentEntry.backgroundImage}
+        drawing={currentEntry.drawing}
         onStickerAdd={handleStickerAdd}
         onIconAdd={handleIconAdd}
         onStickerMove={handleStickerMove}
@@ -337,6 +347,7 @@ export function JournalEditor() {
         onIconUpdate={handleIconUpdate}
         onTextMove={handleTextMove}
         onBackgroundSelect={handleBackgroundSelect}
+        onDrawingChange={handleDrawingChange}
         onTogglePreview={togglePreview}
       />
     </div>
