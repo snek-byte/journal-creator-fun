@@ -269,10 +269,15 @@ export function JournalPreview({
     setShowIconControls(false);
   };
 
-  const toggleDrawingMode = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const toggleDrawingMode = () => {
     setIsDrawingMode(!isDrawingMode);
+  };
+
+  const handleDrawingChange = (dataUrl: string) => {
+    if (dataUrl === '') {
+      setIsDrawingMode(false);
+    }
+    onDrawingChange(dataUrl);
   };
 
   return (
@@ -344,12 +349,12 @@ export function JournalPreview({
             </div>
           )}
           
-          {isDrawingMode && showPreview && (
+          {isDrawingMode && (
             <DrawingLayer
               width={previewRef.current?.clientWidth || 800}
               height={previewRef.current?.clientHeight || 600}
               className="absolute inset-0 z-50"
-              onDrawingChange={onDrawingChange}
+              onDrawingChange={handleDrawingChange}
             />
           )}
           
