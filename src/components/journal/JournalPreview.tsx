@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Maximize2, Trash2, Pencil, Filter, FileImage, X } from 'lucide-react';
@@ -90,12 +89,10 @@ export function JournalPreview({
     setIsUploadedImage(!!backgroundImage && backgroundImage.startsWith('data:'));
   }, [backgroundImage]);
 
-  // Pass selected icon ID to parent
   useEffect(() => {
     onIconSelect(selectedIconId);
   }, [selectedIconId, onIconSelect]);
 
-  // Global keyboard handler for deleting selected stickers and icons
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -208,7 +205,6 @@ export function JournalPreview({
     e.preventDefault();
     e.stopPropagation();
     
-    // Deselect any sticker or icon when interacting with text
     setSelectedIconId(null);
     setSelectedStickerId(null);
     
@@ -310,7 +306,6 @@ export function JournalPreview({
   const handleStickerMouseDown = (e: React.MouseEvent, stickerId: string) => {
     e.stopPropagation();
     
-    // Select this sticker and deselect any icon
     setSelectedIconId(null);
     setSelectedStickerId(stickerId);
     onIconSelect(null);
@@ -358,7 +353,6 @@ export function JournalPreview({
   const handleIconMouseDown = (e: React.MouseEvent, iconId: string) => {
     e.stopPropagation();
     
-    // Select this icon and deselect any sticker
     setSelectedIconId(iconId);
     setSelectedStickerId(null);
     onIconSelect(iconId);
@@ -400,7 +394,6 @@ export function JournalPreview({
   };
 
   const handleBackgroundClick = () => {
-    // Clicking background deselects everything
     setSelectedStickerId(null);
     setSelectedIconId(null);
     onIconSelect(null);
@@ -534,16 +527,28 @@ export function JournalPreview({
                 onClick={(e) => handleIconClick(e, icon.id)}
                 tabIndex={0}
               >
-                <img
-                  src={icon.url}
-                  alt="Icon"
-                  style={{
-                    width: `${icon.size || 48}px`,
-                    height: `${icon.size || 48}px`,
-                    filter: icon.color ? `drop-shadow(0 0 0 ${icon.color}) brightness(0) saturate(100%)` : undefined,
-                  }}
-                  draggable={false}
-                />
+                {icon.style === 'outline' ? (
+                  <img
+                    src={icon.url}
+                    alt="Icon"
+                    style={{
+                      width: `${icon.size || 48}px`,
+                      height: `${icon.size || 48}px`,
+                      filter: icon.color ? `invert(1) sepia(1) saturate(5) hue-rotate(calc(${getHueRotate(icon.color)}deg))` : undefined,
+                    }}
+                    draggable={false}
+                  />
+                ) : (
+                  <img
+                    src={icon.url}
+                    alt="Icon"
+                    style={{
+                      width: `${icon.size || 48}px`,
+                      height: `${icon.size || 48}px`,
+                    }}
+                    draggable={false}
+                  />
+                )}
               </div>
             ))}
 
@@ -559,6 +564,30 @@ export function JournalPreview({
         )}
       </>
     );
+  };
+
+  const getHueRotate = (hexColor: string): number => {
+    const r = parseInt(hexColor.slice(1, 3), 16) / 255;
+    const g = parseInt(hexColor.slice(3, 5), 16) / 255;
+    const b = parseInt(hexColor.slice(5, 7), 16) / 255;
+    
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0;
+    
+    if (max === min) {
+      h = 0; // achromatic
+    } else {
+      const d = max - min;
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h *= 60;
+    }
+    
+    return h;
   };
 
   return (
