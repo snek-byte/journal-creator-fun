@@ -51,7 +51,7 @@ export function JournalEditor() {
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
   const [emailAddress, setEmailAddress] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const [dailyChallenge, setDailyChallenge] = useState(null);
+  const [dailyChallenge, setDailyChallenge] = useState<any>(null);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
   const [currentDrawingTool, setCurrentDrawingTool] = useState("pen");
@@ -81,7 +81,7 @@ export function JournalEditor() {
   };
 
   const handleEmojiSelect = (emojiData: EmojiClickData) => {
-    const emoji = emojiData.native || emojiData.emoji;
+    const emoji = emojiData.emoji;
     if (textareaRef.current) {
       const start = textareaRef.current.selectionStart;
       const end = textareaRef.current.selectionEnd;
