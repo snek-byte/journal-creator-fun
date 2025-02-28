@@ -285,25 +285,13 @@ export function JournalPreview({
     onDrawingChange(dataUrl);
   };
 
-  const IconWithButton = ({ component: Component }: { component: React.ReactNode }) => (
-    <>{Component}</>
-  );
-
   return (
     <div className="w-full lg:w-3/4 p-6 relative print:w-full print:p-0 min-h-[800px]">
       <div className="absolute top-4 right-4 z-10 flex gap-2 print:hidden">
         <StickerSelector onStickerSelect={handleStickerAdd} />
         
-        <IconSelector onIconSelect={handleIconAdd}>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="hover:bg-accent hover:text-accent-foreground"
-            title="Add icons"
-          >
-            <FileImage className="w-4 h-4" />
-          </Button>
-        </IconSelector>
+        {/* Use the IconSelector without children */}
+        <IconSelector onIconSelect={handleIconAdd} />
         
         <BackgroundImageSelector onImageSelect={onBackgroundSelect} />
         
