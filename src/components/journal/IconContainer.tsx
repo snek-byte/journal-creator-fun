@@ -148,9 +148,9 @@ export function IconContainer({
         left: `${icon.position.x}%`,
         top: `${icon.position.y}%`,
         transform: 'translate(-50%, -50%)',
-        border: isDragging ? 'none' : selected ? '2px dashed rgba(59, 130, 246, 0.7)' : 'none',
+        border: 'none',
         borderRadius: '4px',
-        padding: isDragging ? '0' : selected ? '2px' : '0',
+        padding: '0',
         zIndex: selected ? 30 : 20,
         ...style
       }}
