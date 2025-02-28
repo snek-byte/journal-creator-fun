@@ -288,52 +288,49 @@ export function JournalPreview({
   return (
     <div className="w-full lg:w-3/4 p-6 relative print:w-full print:p-0 min-h-[800px]">
       <div className="absolute top-4 right-4 z-10 flex gap-2 print:hidden">
-        <StickerSelector onStickerSelect={handleStickerAdd}>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="hover:bg-accent hover:text-accent-foreground"
-            title="Add stickers"
-          >
-            <Sticker className="w-4 h-4" />
-          </Button>
-        </StickerSelector>
+        {/* Use Button alongside the selector components as they were originally intended */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="hover:bg-accent hover:text-accent-foreground"
+          title="Add stickers"
+        >
+          <Sticker className="w-4 h-4" />
+        </Button>
+        <StickerSelector onStickerSelect={handleStickerAdd} />
         
-        <IconSelector onIconSelect={handleIconAdd}>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="hover:bg-accent hover:text-accent-foreground"
-            title="Add icons"
-          >
-            <Bookmark className="w-4 h-4" />
-          </Button>
-        </IconSelector>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="hover:bg-accent hover:text-accent-foreground"
+          title="Add icons"
+        >
+          <Bookmark className="w-4 h-4" />
+        </Button>
+        <IconSelector onIconSelect={handleIconAdd} />
         
-        <BackgroundImageSelector onImageSelect={onBackgroundSelect}>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="hover:bg-accent hover:text-accent-foreground"
-            title="Choose background"
-          >
-            <ImagePlus className="w-4 h-4" />
-          </Button>
-        </BackgroundImageSelector>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="hover:bg-accent hover:text-accent-foreground"
+          title="Choose background"
+        >
+          <ImagePlus className="w-4 h-4" />
+        </Button>
+        <BackgroundImageSelector onImageSelect={onBackgroundSelect} />
         
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="hover:bg-accent hover:text-accent-foreground"
+          title="Apply filters"
+        >
+          <Palette className="w-4 h-4" />
+        </Button>
         <ImageFilterSelector 
           onFilterSelect={onFilterChange}
           currentFilter={filter || 'none'}
-        >
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="hover:bg-accent hover:text-accent-foreground"
-            title="Apply filters"
-          >
-            <Palette className="w-4 h-4" />
-          </Button>
-        </ImageFilterSelector>
+        />
         
         <Button
           onClick={toggleDrawingMode}
