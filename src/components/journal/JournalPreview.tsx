@@ -8,7 +8,6 @@ import { applyTextStyle } from '@/utils/unicodeTextStyles';
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { StickerSelector } from './StickerSelector';
 import { IconSelector } from './IconSelector';
-import { IconContainer } from './IconContainer';
 import { BackgroundImageSelector } from './BackgroundImageSelector';
 import { ImageFilterSelector } from './ImageFilterSelector';
 import { DrawingLayer } from './DrawingLayer';
@@ -301,42 +300,55 @@ export function JournalPreview({
     onIconAdd(icon);
   };
 
+  const handleStickerClick = (e: React.MouseEvent, stickerId: string) => {
+    e.stopPropagation();
+    setSelectedStickerId(stickerId);
+    setSelectedIconId(null);
+    onIconSelect(null);
+  };
+
   const handleStickerMouseDown = (e: React.MouseEvent, stickerId: string) => {
     e.stopPropagation();
     
     // Select this sticker and deselect any icon
     setSelectedIconId(null);
     setSelectedStickerId(stickerId);
+    onIconSelect(null);
     
     const sticker = stickers.find(s => s.id === stickerId);
     if (!sticker || !previewRef.current) return;
     
     const previewRect = previewRef.current.getBoundingClientRect();
-    const startX = (sticker.position.x / 100) * previewRect.width;
-    const startY = (sticker.position.y / 100) * previewRect.height;
-    const offsetX = e.clientX - startX;
-    const offsetY = e.clientY - startY;
+    const stickerElem = e.currentTarget;
+    const stickerRect = stickerElem.getBoundingClientRect();
+    
+    const offsetX = e.clientX - stickerRect.left;
+    const offsetY = e.clientY - stickerRect.top;
     
     const handleMouseMove = (e: MouseEvent) => {
       if (!previewRef.current) return;
       
       const previewRect = previewRef.current.getBoundingClientRect();
-      const x = ((e.clientX - offsetX) / previewRect.width) * 100;
-      const y = ((e.clientY - offsetY) / previewRect.height) * 100;
       
-      onStickerMove(stickerId, { x, y });
+      const x = ((e.clientX - offsetX - previewRect.left + stickerRect.width / 2) / previewRect.width) * 100;
+      const y = ((e.clientY - offsetY - previewRect.top + stickerRect.height / 2) / previewRect.height) * 100;
+      
+      const boundedX = Math.max(0, Math.min(100, x));
+      const boundedY = Math.max(0, Math.min(100, y));
+      
+      onStickerMove(stickerId, { x: boundedX, y: boundedY });
     };
     
     const handleMouseUp = () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
     
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
-  const handleIconSelect = (e: React.MouseEvent, iconId: string) => {
+  const handleIconClick = (e: React.MouseEvent, iconId: string) => {
     e.stopPropagation();
     setSelectedIconId(iconId);
     setSelectedStickerId(null);
@@ -484,23 +496,27 @@ export function JournalPreview({
             </div>
             
             {stickers.filter(sticker => sticker.position.x > -100 && sticker.position.y > -100).map((sticker) => (
-              <img
+              <div
                 key={sticker.id}
-                src={sticker.url}
-                alt={sticker.id}
+                className={`absolute cursor-move transition-all ${
+                  selectedStickerId === sticker.id ? 'ring-2 ring-primary z-50' : 'hover:ring-1 hover:ring-primary/30 z-40'
+                }`}
                 style={{
                   left: `${sticker.position.x}%`,
                   top: `${sticker.position.y}%`,
                   transform: 'translate(-50%, -50%)',
-                  position: 'absolute',
                 }}
-                className={`w-16 h-16 cursor-move transition-all 
-                  ${selectedStickerId === sticker.id ? 'ring-2 ring-primary z-50' : 'hover:ring-2 hover:ring-primary/30 z-40'}
-                `}
-                draggable={false}
                 onMouseDown={(e) => handleStickerMouseDown(e, sticker.id)}
+                onClick={(e) => handleStickerClick(e, sticker.id)}
                 tabIndex={0}
-              />
+              >
+                <img
+                  src={sticker.url}
+                  alt="Sticker"
+                  className="w-16 h-16"
+                  draggable={false}
+                />
+              </div>
             ))}
 
             {icons.filter(icon => icon.position.x > -100 && icon.position.y > -100).map((icon) => (
@@ -515,7 +531,7 @@ export function JournalPreview({
                   transform: 'translate(-50%, -50%)',
                 }}
                 onMouseDown={(e) => handleIconMouseDown(e, icon.id)}
-                onClick={(e) => handleIconSelect(e, icon.id)}
+                onClick={(e) => handleIconClick(e, icon.id)}
                 tabIndex={0}
               >
                 <img
