@@ -74,11 +74,16 @@ export function JournalPreview({
 }: JournalPreviewProps) {
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
+  const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const [previewWidth, setPreviewWidth] = useState(500);
   const [previewHeight, setPreviewHeight] = useState(500);
   const [isDraggingText, setIsDraggingText] = useState(false);
   const [textOffset, setTextOffset] = useState({ x: 0, y: 0 });
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizingStickerId, setResizingStickerId] = useState<string | null>(null);
+  const [initialSize, setInitialSize] = useState({ width: 0, height: 0 });
+  const [initialMousePos, setInitialMousePos] = useState({ x: 0, y: 0 });
   const [image, takeScreenshot] = useScreenshot({
     type: "image/jpeg",
     quality: 1.0
@@ -109,9 +114,35 @@ export function JournalPreview({
     }
   }, [drawing]);
 
+  // Handle keyboard delete for stickers
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (selectedStickerId && (e.key === 'Delete' || e.key === 'Backspace')) {
+        console.log("Delete key pressed for sticker:", selectedStickerId);
+        onStickerMove(selectedStickerId, { x: -999, y: -999 });
+        setSelectedStickerId(null);
+      }
+    };
+
+    if (selectedStickerId) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedStickerId, onStickerMove]);
+
   const handleIconSelect = (id: string) => {
     setSelectedIconId(id);
+    setSelectedStickerId(null);
     onIconSelect(id);
+  };
+
+  const handleStickerSelect = (id: string) => {
+    setSelectedStickerId(id);
+    setSelectedIconId(null);
+    onIconSelect(''); // Deselect any icon
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -136,6 +167,10 @@ export function JournalPreview({
 
   const handleMouseUp = () => {
     setIsDraggingText(false);
+    if (isResizing) {
+      setIsResizing(false);
+      setResizingStickerId(null);
+    }
   };
 
   const handleMouseLeave = () => {
@@ -145,6 +180,57 @@ export function JournalPreview({
   const toggleDrawingMode = () => {
     setIsDrawingMode(!isDrawingMode);
   };
+
+  // Start resizing a sticker
+  const handleResizeStart = (e: React.MouseEvent, sticker: Sticker) => {
+    e.stopPropagation();
+    setIsResizing(true);
+    setResizingStickerId(sticker.id);
+    setInitialSize({ width: sticker.width || 100, height: sticker.height || 100 });
+    setInitialMousePos({ x: e.clientX, y: e.clientY });
+  };
+
+  // Handle resizing during mouse move
+  const handleResize = (e: MouseEvent) => {
+    if (!isResizing || !resizingStickerId || !previewRef.current) return;
+
+    const sticker = stickers.find(s => s.id === resizingStickerId);
+    if (!sticker) return;
+
+    const deltaX = e.clientX - initialMousePos.x;
+    const deltaY = e.clientY - initialMousePos.y;
+    const scale = Math.max(deltaX, deltaY) / 100; // Simplified scaling logic
+    
+    const newWidth = Math.max(30, initialSize.width + (initialSize.width * scale));
+    const newHeight = Math.max(30, initialSize.height + (initialSize.height * scale));
+
+    // Update sticker size
+    const updatedStickers = stickers.map(s => 
+      s.id === resizingStickerId 
+        ? { ...s, width: newWidth, height: newHeight } 
+        : s
+    );
+
+    // Send the updated sticker to the parent component
+    onStickerAdd({
+      ...sticker,
+      width: newWidth,
+      height: newHeight
+    });
+  };
+
+  // Setup global mouse move handler for resizing
+  useEffect(() => {
+    if (isResizing) {
+      window.addEventListener('mousemove', handleResize);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleResize);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing, resizingStickerId, initialSize, initialMousePos]);
 
   return (
     <div className={cn("relative flex-1 overflow-hidden bg-white", className)}>
@@ -181,47 +267,76 @@ export function JournalPreview({
 
         {/* Stickers */}
         {stickers && stickers.map((sticker) => (
-          <img
+          <div
             key={sticker.id}
-            src={sticker.url}
-            alt="Sticker"
-            className="absolute cursor-move"
+            className={`absolute cursor-move ${
+              selectedStickerId === sticker.id ? 'ring-2 ring-primary z-50' : 'hover:ring-1 hover:ring-primary/30 z-30'
+            }`}
             style={{
               left: `${sticker.position.x}%`,
               top: `${sticker.position.y}%`,
               transform: 'translate(-50%, -50%)',
-              width: `${sticker.width || 48}px`,
-              height: `${sticker.height || 48}px`,
-              zIndex: 30,
+              width: `${sticker.width || 100}px`,
+              height: `${sticker.height || 100}px`,
             }}
-            draggable={false}
-            onMouseDown={(e) => {
+            onClick={(e) => {
               e.stopPropagation();
-              let offsetX = e.clientX - (sticker.position.x / 100) * previewRef.current!.offsetWidth;
-              let offsetY = e.clientY - (sticker.position.y / 100) * previewRef.current!.offsetHeight;
-
-              const handleMouseMove = (e: MouseEvent) => {
-                if (!previewRef.current) return;
-                const containerRect = previewRef.current.getBoundingClientRect();
-                const x = ((e.clientX - offsetX - containerRect.left) / containerRect.width) * 100;
-                const y = ((e.clientY - offsetY - containerRect.top) / containerRect.height) * 100;
-
-                // Ensure position stays within bounds (0-100%)
-                const boundedX = Math.max(0, Math.min(100, x));
-                const boundedY = Math.max(0, Math.min(100, y));
-
-                onStickerMove(sticker.id, { x: boundedX, y: boundedY });
-              };
-
-              const handleMouseUp = () => {
-                document.removeEventListener('mousemove', handleMouseMove);
-                document.removeEventListener('mouseup', handleMouseUp);
-              };
-
-              document.addEventListener('mousemove', handleMouseMove);
-              document.addEventListener('mouseup', handleMouseUp);
+              handleStickerSelect(sticker.id);
             }}
-          />
+            onMouseDown={(e) => {
+              if (selectedStickerId === sticker.id) {
+                e.stopPropagation();
+                let offsetX = e.clientX - (sticker.position.x / 100) * previewRef.current!.offsetWidth;
+                let offsetY = e.clientY - (sticker.position.y / 100) * previewRef.current!.offsetHeight;
+
+                const handleMouseMove = (e: MouseEvent) => {
+                  if (!previewRef.current) return;
+                  const containerRect = previewRef.current.getBoundingClientRect();
+                  const x = ((e.clientX - offsetX - containerRect.left) / containerRect.width) * 100;
+                  const y = ((e.clientY - offsetY - containerRect.top) / containerRect.height) * 100;
+
+                  // Ensure position stays within bounds (0-100%)
+                  const boundedX = Math.max(0, Math.min(100, x));
+                  const boundedY = Math.max(0, Math.min(100, y));
+
+                  onStickerMove(sticker.id, { x: boundedX, y: boundedY });
+                };
+
+                const handleMouseUp = () => {
+                  document.removeEventListener('mousemove', handleMouseMove);
+                  document.removeEventListener('mouseup', handleMouseUp);
+                };
+
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+              }
+            }}
+            tabIndex={0} // Make focusable for keyboard events
+          >
+            <img
+              src={sticker.url}
+              alt="Sticker"
+              className="w-full h-full object-contain"
+              draggable={false}
+            />
+            
+            {/* Resize handle - only shown when sticker is selected */}
+            {selectedStickerId === sticker.id && (
+              <div
+                className="absolute bottom-0 right-0 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center cursor-se-resize"
+                onMouseDown={(e) => handleResizeStart(e, sticker)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 3h6v6"></path>
+                  <path d="M10 14L21 3"></path>
+                  <path d="M18 21h-6"></path>
+                  <path d="M3 6v6"></path>
+                  <path d="M3 3v.01"></path>
+                  <path d="M21 21v.01"></path>
+                </svg>
+              </div>
+            )}
+          </div>
         ))}
 
         {/* Icons */}
@@ -259,6 +374,12 @@ export function JournalPreview({
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseLeave}
+          onClick={() => {
+            // Deselect any selected sticker or icon when clicking on text
+            setSelectedStickerId(null);
+            setSelectedIconId(null);
+            onIconSelect('');
+          }}
         >
           {text || 'Start typing to add text...'}
         </div>

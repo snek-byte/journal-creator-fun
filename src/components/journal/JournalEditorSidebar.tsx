@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { JournalStylingControls } from './JournalStylingControls';
 import { MoodSelector } from './MoodSelector';
 import { DailyChallenge } from './DailyChallenge';
@@ -60,8 +61,8 @@ interface JournalEditorSidebarProps {
   onClearDrawing?: () => void;
   onBrushSizeChange?: (size: number) => void;
   currentBrushSize?: number;
-  onStickerAdd?: (sticker: string) => void;
-  onIconAdd?: (icon: Icon) => void;
+  onStickerAdd?: (stickerUrl: string) => void;
+  onIconAdd?: (icon: { url: string, style: 'outline' | 'color' }) => void;
   onBackgroundSelect?: (imageUrl: string) => void;
   onFilterChange?: (filter: string) => void;
 }
@@ -150,18 +151,8 @@ export function JournalEditorSidebar({
     setText(e.target.value);
   };
 
-  // Helper function to preview gradient
-  const getGradientStyle = (gradientValue: string) => {
-    return {
-      backgroundImage: gradientValue,
-      width: '100%',
-      height: '24px',
-      borderRadius: '4px',
-    };
-  };
-
   return (
-    <aside className="w-full lg:w-1/4 border-r p-4 flex flex-col h-auto lg:h-screen min-h-[400px] bg-background overflow-hidden">
+    <aside className="w-full lg:w-96 border-r p-4 flex flex-col h-auto lg:h-screen min-h-[400px] bg-background overflow-hidden">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Journal Editor</h2>
         <div className="flex gap-1">
@@ -300,7 +291,7 @@ export function JournalEditorSidebar({
                     
                     {/* Tool Selection */}
                     <div className="space-y-2">
-                      <label className="text-[10px] font-medium">Select Tool</label>
+                      <Label className="text-[10px] font-medium">Select Tool</Label>
                       <div className="flex flex-wrap gap-2">
                         {drawingTools.map((tool) => (
                           <button
@@ -324,7 +315,7 @@ export function JournalEditorSidebar({
                     {/* Color Selection - Only for non-eraser tools */}
                     {currentDrawingTool !== 'eraser' && onDrawingColorChange && (
                       <div className="space-y-2">
-                        <label className="text-[10px] font-medium">Select Color</label>
+                        <Label className="text-[10px] font-medium">Select Color</Label>
                         <div className="flex flex-wrap gap-1.5">
                           {drawingColors.map((color) => (
                             <button
@@ -355,7 +346,7 @@ export function JournalEditorSidebar({
                     {/* Brush Size Selection */}
                     {onBrushSizeChange && currentDrawingTool !== 'fill' && (
                       <div className="space-y-2">
-                        <label className="text-[10px] font-medium">Brush Size</label>
+                        <Label className="text-[10px] font-medium">Brush Size</Label>
                         <div className="flex justify-between gap-1.5">
                           {brushSizes.map((size) => (
                             <button
@@ -417,25 +408,6 @@ export function JournalEditorSidebar({
               onTextStyleChange={setTextStyle}
               selectedIconId={selectedIconId}
             />
-            
-            {/* Gradient Presets - Only shown when styling text, not icons */}
-            {!selectedIconId && (
-              <div className="space-y-2 pt-4">
-                <h3 className="text-xs font-semibold tracking-tight">Gradients</h3>
-                <div className="grid grid-cols-3 gap-2">
-                  {gradients.slice(0, 9).map((gradient) => (
-                    <button
-                      key={gradient.label}
-                      className="p-0.5 rounded border border-gray-200 hover:border-primary"
-                      onClick={() => setGradient(gradient.value)}
-                      title={gradient.label}
-                    >
-                      <div style={getGradientStyle(gradient.value)} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </TabsContent>
         </ScrollArea>
 

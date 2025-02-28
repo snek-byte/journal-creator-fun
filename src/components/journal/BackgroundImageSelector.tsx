@@ -1,13 +1,12 @@
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Paintbrush, Search, RotateCw, Upload, ImagePlus } from "lucide-react";
-import { useJournalStore } from '@/store/journalStore';
+import { ImagePlus, Upload } from "lucide-react";
+import { ImageUploader } from './ImageUploader';
+import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
 import { gradients } from './config/editorConfig';
 
 interface BackgroundImageSelectorProps {
@@ -15,264 +14,186 @@ interface BackgroundImageSelectorProps {
 }
 
 export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageSelectorProps) {
-  const [activeTab, setActiveTab] = useState('gradient');
-  const { setBackgroundImage, setGradient } = useJournalStore();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  
-  const imageSets = {
-    nature: [
-      { name: 'Mountain Lake', url: 'https://images.unsplash.com/photo-1439853949127-fa647821eba0?auto=format&fit=crop&w=800&q=80' },
-      { name: 'Forest', url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80' },
-      { name: 'Ocean', url: 'https://images.unsplash.com/photo-1468581264429-2548ef9eb732?auto=format&fit=crop&w=800&q=80' },
-      { name: 'Desert', url: 'https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?auto=format&fit=crop&w=800&q=80' }
-    ],
-    abstract: [
-      { name: 'Paint', url: 'https://images.unsplash.com/photo-1543857778-c4a1a3e0b2eb?auto=format&fit=crop&w=800&q=80' },
-      { name: 'Waves', url: 'https://images.unsplash.com/photo-1550859492-d5da9d8e45f3?auto=format&fit=crop&w=800&q=80' },
-      { name: 'Texture', url: 'https://images.unsplash.com/photo-1553356084-58ef4a67b2a7?auto=format&fit=crop&w=800&q=80' },
-      { name: 'Pattern', url: 'https://images.unsplash.com/photo-1550537687-c91072c4792d?auto=format&fit=crop&w=800&q=80' }
-    ],
-    minimal: [
-      { name: 'White Wall', url: 'https://images.unsplash.com/photo-1553356084-58ef4a67b2a7?auto=format&fit=crop&w=800&q=80' },
-      { name: 'Paper', url: 'https://images.unsplash.com/photo-1516541196182-6bdb0516ed27?auto=format&fit=crop&w=800&q=80' },
-      { name: 'Marble', url: 'https://images.unsplash.com/photo-1566041510639-8d95a2490bfb?auto=format&fit=crop&w=800&q=80' },
-      { name: 'Concrete', url: 'https://images.unsplash.com/photo-1514483127413-f72f273478c3?auto=format&fit=crop&w=800&q=80' }
-    ],
-    paper: [
-      { name: 'Classic Paper', url: 'https://images.unsplash.com/photo-1516541196182-6bdb0516ed27?auto=format&fit=crop&w=800&q=80' },
-      { name: 'Vintage Paper', url: 'https://images.unsplash.com/photo-1587614298871-5c1c03aef307?auto=format&fit=crop&w=800&q=80' },
-      { name: 'Textured Paper', url: 'https://images.unsplash.com/photo-1583484963886-cfe2bff2945f?auto=format&fit=crop&w=800&q=80' },
-      { name: 'Kraft Paper', url: 'https://images.unsplash.com/photo-1517697471339-4aa32003c11a?auto=format&fit=crop&w=800&q=80' },
-      { name: 'Handmade Paper', url: 'https://images.unsplash.com/photo-1582902281043-dcea5e78c682?auto=format&fit=crop&w=800&q=80' }
-    ],
-    illustrated: [
-      { name: 'Stylized Tech', url: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80' },
-      { name: 'Modern Robot', url: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=800&q=80' },
-      { name: 'Digital Art', url: 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?auto=format&fit=crop&w=800&q=80' },
-      { name: 'Code Art', url: 'https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?auto=format&fit=crop&w=800&q=80' }
-    ]
+  const [activeTab, setActiveTab] = useState('unsplash');
+
+  // Helper function to preview gradient
+  const getGradientStyle = (gradientValue: string) => {
+    return {
+      backgroundImage: gradientValue,
+      width: '100%',
+      height: '80px',
+      borderRadius: '4px',
+    };
   };
 
-  const [currentCategory, setCurrentCategory] = useState('nature');
-  const [backgroundImages, setBackgroundImages] = useState(imageSets.nature);
+  // Unsplash background images
+  const unsplashImages = [
+    {
+      id: 'nature1',
+      url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80',
+      alt: 'Foggy mountains',
+    },
+    {
+      id: 'nature2',
+      url: 'https://images.unsplash.com/photo-1547471080-91f798e60c3e?auto=format&fit=crop&w=800&q=80',
+      alt: 'Northern lights',
+    },
+    {
+      id: 'nature3',
+      url: 'https://images.unsplash.com/photo-1418065460487-3e41a6c84dc5?auto=format&fit=crop&w=800&q=80',
+      alt: 'Mountain peak',
+    },
+    {
+      id: 'nature4',
+      url: 'https://images.unsplash.com/photo-1431794062232-2a99a5431c6c?auto=format&fit=crop&w=800&q=80',
+      alt: 'Valley view',
+    },
+    {
+      id: 'abstract1',
+      url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=800&q=80',
+      alt: 'Abstract gradient',
+    },
+    {
+      id: 'abstract2',
+      url: 'https://images.unsplash.com/photo-1567095761054-7a02e69e5c43?auto=format&fit=crop&w=800&q=80',
+      alt: 'Colorful waves',
+    },
+    {
+      id: 'abstract3',
+      url: 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?auto=format&fit=crop&w=800&q=80',
+      alt: 'Abstract colors',
+    },
+    {
+      id: 'abstract4',
+      url: 'https://images.unsplash.com/photo-1579548122080-c35fd6820ecb?auto=format&fit=crop&w=800&q=80',
+      alt: 'Geometric pattern',
+    },
+    {
+      id: 'minimal1',
+      url: 'https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?auto=format&fit=crop&w=800&q=80',
+      alt: 'Minimal white',
+    },
+    {
+      id: 'minimal2',
+      url: 'https://images.unsplash.com/photo-1553356084-58ef4a67b2a7?auto=format&fit=crop&w=800&q=80',
+      alt: 'Minimal texture',
+    },
+    {
+      id: 'minimal3',
+      url: 'https://images.unsplash.com/photo-1520333789090-1afc82db536a?auto=format&fit=crop&w=800&q=80',
+      alt: 'Minimal paper',
+    },
+    {
+      id: 'minimal4',
+      url: 'https://images.unsplash.com/photo-1566041510639-8d95a2490bfb?auto=format&fit=crop&w=800&q=80',
+      alt: 'Minimal marble',
+    },
+  ];
 
-  const handleGradientSelect = (gradient: string) => {
-    setGradient(gradient);
-    setBackgroundImage('');
-    onBackgroundSelect('');
-    toast.success('Gradient background applied');
-  };
+  // Solid colors backgrounds
+  const solidColors = [
+    { id: 'white', color: '#ffffff', name: 'White' },
+    { id: 'light', color: '#f8f9fa', name: 'Light' },
+    { id: 'cream', color: '#f5f5dc', name: 'Cream' },
+    { id: 'gray', color: '#e9ecef', name: 'Gray' },
+    { id: 'blue', color: '#e6f4ff', name: 'Blue' },
+    { id: 'green', color: '#e6ffea', name: 'Green' },
+    { id: 'yellow', color: '#fffde6', name: 'Yellow' },
+    { id: 'pink', color: '#ffe6f2', name: 'Pink' },
+    { id: 'lavender', color: '#f2e6ff', name: 'Lavender' },
+    { id: 'mint', color: '#e6fff4', name: 'Mint' },
+    { id: 'peach', color: '#ffe6e6', name: 'Peach' },
+    { id: 'darkmode', color: '#1c1c1c', name: 'Dark Mode' },
+  ];
 
-  const handleBackgroundSelect = (imageUrl: string) => {
-    setBackgroundImage(imageUrl);
+  // Handle image upload completion
+  const handleUploadComplete = (imageUrl: string) => {
     onBackgroundSelect(imageUrl);
-    toast.success('Image background applied');
+    toast.success('Background image uploaded!');
   };
 
-  const handleSearch = async () => {
-    setIsLoading(true);
-    try {
-      const query = searchQuery.toLowerCase().trim();
-      let newImages;
-      let category;
-      
-      if (query.includes('paper') || query.includes('texture')) {
-        newImages = imageSets.paper;
-        category = 'paper';
-      } else if (query.includes('art') || query.includes('illustration') || query.includes('digital')) {
-        newImages = imageSets.illustrated;
-        category = 'illustrated';
-      } else if (query.includes('nature') || query.includes('landscape')) {
-        newImages = imageSets.nature;
-        category = 'nature';
-      } else if (query.includes('abstract') || query.includes('pattern')) {
-        newImages = imageSets.abstract;
-        category = 'abstract';
-      } else if (query.includes('minimal') || query.includes('simple')) {
-        newImages = imageSets.minimal;
-        category = 'minimal';
-      } else {
-        newImages = imageSets.paper;
-        category = 'paper';
-      }
-      
-      setCurrentCategory(category);
-      setBackgroundImages(newImages);
-      toast.success(`Showing ${category} backgrounds`);
-    } catch (error) {
-      console.error('Error changing category:', error);
-      toast.error('Failed to load images');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const shuffleImages = () => {
-    setIsLoading(true);
-    try {
-      const categories = ['nature', 'abstract', 'minimal', 'paper', 'illustrated'] as const;
-      const currentIndex = categories.indexOf(currentCategory as any);
-      const nextCategory = categories[(currentIndex + 1) % categories.length];
-      setCurrentCategory(nextCategory);
-      setBackgroundImages(imageSets[nextCategory as keyof typeof imageSets]);
-      toast.success(`Showing ${nextCategory} backgrounds`);
-    } catch (error) {
-      console.error('Error rotating categories:', error);
-      toast.error('Failed to load new images');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (typeof e.target?.result === 'string') {
-        handleBackgroundSelect(e.target.result);
-      }
-    };
-    reader.onerror = () => {
-      toast.error('Failed to load image');
-    };
-    reader.readAsDataURL(file);
+  // Set solid color background
+  const handleColorSelect = (color: string) => {
+    onBackgroundSelect(`linear-gradient(to bottom, ${color}, ${color})`);
   };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="hover:bg-accent hover:text-accent-foreground"
-        >
-          <ImagePlus className="w-4 h-4" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Choose a Background</DialogTitle>
-          <DialogDescription>
-            Select a gradient or image background for your journal
-          </DialogDescription>
-        </DialogHeader>
-
-        <Tabs defaultValue="gradient" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="gradient">Gradients</TabsTrigger>
-            <TabsTrigger value="image">Images</TabsTrigger>
-            <TabsTrigger value="upload">Upload</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="gradient">
-            <ScrollArea className="h-[300px] w-full rounded-md border p-4">
-              <div className="grid grid-cols-2 gap-4">
-                {gradients.map((gradient, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleGradientSelect(gradient.value)}
-                    className="h-24 rounded-md overflow-hidden border hover:ring-2 hover:ring-primary transition-all"
-                    style={{ background: gradient.value }}
-                    aria-label={gradient.label}
+    <div className="space-y-4">
+      <h3 className="text-xs font-semibold tracking-tight">Background</h3>
+      
+      <Tabs defaultValue="unsplash" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="w-full grid grid-cols-3 mb-4">
+          <TabsTrigger value="unsplash" className="text-xs">Unsplash</TabsTrigger>
+          <TabsTrigger value="gradients" className="text-xs">Gradients</TabsTrigger>
+          <TabsTrigger value="upload" className="text-xs">Upload</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="unsplash" className="mt-0">
+          <ScrollArea className="h-[250px]">
+            <div className="grid grid-cols-2 gap-2">
+              {unsplashImages.map((image) => (
+                <button
+                  key={image.id}
+                  className="relative overflow-hidden rounded-md border border-input hover:border-primary transition-colors"
+                  onClick={() => onBackgroundSelect(image.url)}
+                  title={image.alt}
+                >
+                  <img 
+                    src={image.url} 
+                    alt={image.alt}
+                    className="aspect-[4/3] object-cover w-full h-full"
                   />
-                ))}
-              </div>
-            </ScrollArea>
-          </TabsContent>
-          
-          <TabsContent value="image">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Input 
-                  type="text" 
-                  placeholder="Try: nature, abstract, or minimal" 
-                  value={searchQuery} 
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="flex-1"
-                />
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  onClick={handleSearch} 
-                  disabled={isLoading}
+                </button>
+              ))}
+            </div>
+          </ScrollArea>
+        </TabsContent>
+        
+        <TabsContent value="gradients" className="mt-0 space-y-4">
+          <ScrollArea className="h-[250px]">
+            <div className="grid grid-cols-2 gap-2">
+              {gradients.map((gradient) => (
+                <button
+                  key={gradient.label}
+                  className="overflow-hidden rounded-md border border-input hover:border-primary transition-colors"
+                  onClick={() => onBackgroundSelect(gradient.value)}
+                  title={gradient.label}
                 >
-                  <Search className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={shuffleImages}
-                  disabled={isLoading}
-                  title="Browse different styles"
-                >
-                  <RotateCw className="h-4 w-4" />
-                </Button>
-              </div>
+                  <div style={getGradientStyle(gradient.value)} />
+                </button>
+              ))}
               
-              <ScrollArea className="h-[250px] w-full rounded-md border p-4">
-                {isLoading ? (
-                  <div className="h-40 flex items-center justify-center">
-                    <p className="text-sm text-gray-500">Loading...</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-4">
-                    {backgroundImages.map((image, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleBackgroundSelect(image.url)}
-                        className="relative h-24 rounded-md overflow-hidden border hover:ring-2 hover:ring-primary transition-all"
-                      >
-                        <img
-                          src={image.url}
-                          alt={image.name}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                        <div className="absolute inset-0 bg-black/30 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <span className="text-white text-xs font-medium">{image.name}</span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="upload" className="space-y-4">
-            <div className="flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/20 rounded-lg p-8">
-              <Upload className="w-10 h-10 text-muted-foreground mb-4" />
-              <p className="text-center text-muted-foreground mb-4">
-                Drag and drop your image here, or click to browse
-              </p>
-              <Button variant="outline" asChild>
-                <label htmlFor="image-upload" className="cursor-pointer">
-                  Choose image
-                  <input
-                    id="image-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="sr-only"
+              <h4 className="col-span-2 mt-4 mb-2 text-xs font-medium text-muted-foreground">Solid Colors</h4>
+              
+              {solidColors.map((color) => (
+                <button
+                  key={color.id}
+                  className="overflow-hidden rounded-md border border-input hover:border-primary transition-colors"
+                  onClick={() => handleColorSelect(color.color)}
+                  title={color.name}
+                >
+                  <div 
+                    style={{ 
+                      backgroundColor: color.color,
+                      width: '100%',
+                      height: '40px',
+                      borderRadius: '4px',
+                    }} 
                   />
-                </label>
-              </Button>
-              <p className="text-xs text-muted-foreground/70 mt-4">
-                Supports JPG, PNG, WebP, and GIF formats
-              </p>
+                </button>
+              ))}
             </div>
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+          </ScrollArea>
+        </TabsContent>
+        
+        <TabsContent value="upload" className="mt-0">
+          <Card className="border-dashed">
+            <CardContent className="pt-6">
+              <ImageUploader onUploadComplete={handleUploadComplete} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

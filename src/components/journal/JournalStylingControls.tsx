@@ -1,10 +1,15 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card } from "@/components/ui/card";
+import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { fontOptions, fontSizes, fontWeights } from "./config/editorConfig";
 import { textStyles } from "@/utils/unicodeTextStyles";
 import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertTriangle, Bold, Italic, AlignCenter, AlignLeft, Underline } from "lucide-react";
 
 interface JournalStylingControlsProps {
   font: string;
@@ -35,125 +40,169 @@ export function JournalStylingControls({
   onTextStyleChange,
   selectedIconId
 }: JournalStylingControlsProps) {
-  const [iconSize, setIconSize] = useState("48");
-  const [iconColor, setIconColor] = useState("#000000");
+  const [activeTab, setActiveTab] = useState("font");
+  const [iconSize, setIconSize] = useState(48);
+  const [iconColor, setIconColor] = useState(fontColor || "#000000");
+  const [textStyle, setTextStyle] = useState("normal");
 
-  // When an icon is selected, update the local state to show its properties
+  // Update local state when props change
   useEffect(() => {
     if (selectedIconId) {
-      // Use default values initially, the actual icon properties would be set by the parent
-      setIconSize("48");
+      // For icons, we focus on size and color
+      const numericSize = parseInt(fontSize);
+      if (!isNaN(numericSize)) {
+        setIconSize(numericSize);
+      }
       setIconColor(fontColor || "#000000");
     }
-  }, [selectedIconId, fontColor]);
+  }, [selectedIconId, fontSize, fontColor]);
 
-  // Handle icon size change and pass it to the parent
-  const handleIconSizeChange = (value: string) => {
-    setIconSize(value);
-    onFontSizeChange(value);
+  // Handle icon size change
+  const handleIconSizeChange = (value: number[]) => {
+    setIconSize(value[0]);
+    onFontSizeChange(`${value[0]}px`);
   };
 
-  // Handle icon color change and pass it to the parent
+  // Handle icon color change
   const handleIconColorChange = (value: string) => {
     setIconColor(value);
     onFontColorChange(value);
   };
 
+  // Handle individual text style toggles
+  const handleStyleToggle = (style: string) => {
+    let newStyles: string[] = textStyle.split(" ").filter(s => s !== "");
+    
+    if (style === "normal") {
+      // Reset all styles
+      newStyles = ["normal"];
+    } else if (newStyles.includes(style)) {
+      // Remove this style
+      newStyles = newStyles.filter(s => s !== style);
+      if (newStyles.length === 0) newStyles = ["normal"];
+    } else {
+      // Add this style, remove 'normal' if present
+      newStyles = newStyles.filter(s => s !== "normal");
+      newStyles.push(style);
+    }
+    
+    const newStyleString = newStyles.join(" ");
+    setTextStyle(newStyleString);
+    onTextStyleChange(newStyleString);
+  };
+
   return (
     <div className="space-y-4">
       {selectedIconId ? (
-        // Icon Styling Section - Only visible when icon is selected
+        // Icon Styling Controls
         <div className="space-y-3">
-          <h3 className="text-xs font-semibold tracking-tight">Icon Styling</h3>
-          <div className="space-y-2 border-2 border-primary/10 bg-primary/5 p-3 rounded-md">
-            <p className="text-[10px] text-primary/70 font-medium">
-              Editing Icon
-            </p>
-            
-            <div className="space-y-0.5">
-              <Label className="text-[10px] font-medium">Icon Size</Label>
-              <Select value={iconSize} onValueChange={handleIconSizeChange}>
-                <SelectTrigger className="h-7 text-[10px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[
-                    { value: "24", label: "Small (24px)" },
-                    { value: "48", label: "Medium (48px)" },
-                    { value: "64", label: "Large (64px)" },
-                    { value: "96", label: "X-Large (96px)" }
-                  ].map((option) => (
-                    <SelectItem key={option.value} value={option.value} className="text-[10px]">
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-0.5">
-              <Label className="text-[10px] font-medium">Icon Color</Label>
-              <input
-                type="color"
-                value={iconColor}
-                onChange={(e) => handleIconColorChange(e.target.value)}
-                className="w-full h-7 rounded-md cursor-pointer"
-              />
+          <div className="flex justify-between items-center">
+            <h3 className="text-xs font-semibold tracking-tight">Icon Styling</h3>
+            <div className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-sm">
+              Icon Selected
             </div>
           </div>
+          
+          <Card className="p-4 space-y-4 bg-accent/30">
+            {/* Icon Size Slider */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <Label className="text-[11px] font-medium">Size</Label>
+                <span className="text-[11px] font-mono">{iconSize}px</span>
+              </div>
+              <Slider
+                value={[iconSize]}
+                min={16}
+                max={128}
+                step={4}
+                onValueChange={handleIconSizeChange}
+              />
+            </div>
+            
+            {/* Icon Color Picker */}
+            <div className="space-y-2">
+              <Label className="text-[11px] font-medium">Icon Color</Label>
+              <div className="flex gap-2">
+                <div
+                  className="w-8 h-8 rounded-full border flex-shrink-0"
+                  style={{ backgroundColor: iconColor }}
+                ></div>
+                <Input
+                  type="color"
+                  value={iconColor}
+                  onChange={(e) => handleIconColorChange(e.target.value)}
+                  className="w-full h-8"
+                />
+              </div>
+            </div>
+            
+            {/* Delete Icon Reminder */}
+            <div className="bg-muted/50 p-2 rounded-sm text-[10px] flex items-center gap-1 text-muted-foreground">
+              <AlertTriangle className="h-3 w-3" />
+              <span>Press Delete key to remove the selected icon</span>
+            </div>
+          </Card>
         </div>
       ) : (
-        // Text Styling Controls Section - Visible when no icon is selected
-        <Tabs defaultValue="font" className="w-full">
-          <TabsList className="grid grid-cols-3 mb-4">
+        // Text Styling Controls
+        <Tabs defaultValue="font" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="w-full grid grid-cols-3">
             <TabsTrigger value="font" className="text-[10px]">Font</TabsTrigger>
             <TabsTrigger value="color" className="text-[10px]">Color</TabsTrigger>
             <TabsTrigger value="style" className="text-[10px]">Style</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="font" className="space-y-3">
-            <div className="space-y-2">
-              <div className="space-y-1">
-                <Label className="text-[10px] font-medium">Font Family</Label>
+          {/* Font Selection Tab */}
+          <TabsContent value="font" className="mt-4 space-y-4">
+            <div className="space-y-3">
+              {/* Font Family */}
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-medium">Font Family</Label>
                 <Select value={font} onValueChange={onFontChange}>
-                  <SelectTrigger className="h-7 text-[10px]">
-                    <SelectValue />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select font" />
                   </SelectTrigger>
                   <SelectContent>
                     {fontOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value} className="text-[10px]">
+                      <SelectItem 
+                        key={option.value} 
+                        value={option.value}
+                        style={{ fontFamily: option.value }}
+                      >
                         {option.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-
-              <div className="space-y-1">
-                <Label className="text-[10px] font-medium">Font Size</Label>
+              
+              {/* Font Size */}
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-medium">Font Size</Label>
                 <Select value={fontSize} onValueChange={onFontSizeChange}>
-                  <SelectTrigger className="h-7 text-[10px]">
-                    <SelectValue />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select size" />
                   </SelectTrigger>
                   <SelectContent>
                     {fontSizes.map((option) => (
-                      <SelectItem key={option.value} value={option.value} className="text-[10px]">
+                      <SelectItem key={option.value} value={option.value}>
                         {option.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-
-              <div className="space-y-1">
-                <Label className="text-[10px] font-medium">Font Weight</Label>
+              
+              {/* Font Weight */}
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-medium">Font Weight</Label>
                 <Select value={fontWeight} onValueChange={onFontWeightChange}>
-                  <SelectTrigger className="h-7 text-[10px]">
-                    <SelectValue />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select weight" />
                   </SelectTrigger>
                   <SelectContent>
                     {fontWeights.map((option) => (
-                      <SelectItem key={option.value} value={option.value} className="text-[10px]">
+                      <SelectItem key={option.value} value={option.value}>
                         {option.label}
                       </SelectItem>
                     ))}
@@ -163,70 +212,178 @@ export function JournalStylingControls({
             </div>
           </TabsContent>
           
-          <TabsContent value="color" className="space-y-3">
-            <div className="space-y-1">
-              <Label className="text-[10px] font-medium">Font Color</Label>
-              <input
-                type="color"
-                value={fontColor}
-                onChange={(e) => onFontColorChange(e.target.value)}
-                className="w-full h-7 rounded-md cursor-pointer"
-              />
-            </div>
-            
-            <div className="space-y-1 pt-2">
-              <Label className="text-[10px] font-medium">Preview</Label>
-              <div 
-                className="w-full h-12 rounded-md flex items-center justify-center text-sm"
-                style={{ 
-                  backgroundColor: 'white',
-                  color: fontColor,
-                  fontFamily: font,
-                  fontSize: fontSize,
-                  fontWeight: fontWeight
-                }}
-              >
-                Sample Text
+          {/* Color Selection Tab */}
+          <TabsContent value="color" className="mt-4 space-y-4">
+            <div className="space-y-3">
+              {/* Font Color */}
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-medium">Font Color</Label>
+                <div className="flex gap-2">
+                  <div
+                    className="w-8 h-8 rounded-full border flex-shrink-0"
+                    style={{ backgroundColor: fontColor }}
+                  ></div>
+                  <Input
+                    type="color"
+                    value={fontColor}
+                    onChange={(e) => onFontColorChange(e.target.value)}
+                    className="w-full h-8"
+                  />
+                </div>
+              </div>
+              
+              {/* Text Gradient */}
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-medium">Text Gradient</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {/* No gradient option */}
+                  <button
+                    className={`p-0.5 rounded border ${!gradient ? 'border-primary' : 'border-muted'} hover:border-primary`}
+                    onClick={() => onGradientChange('')}
+                  >
+                    <div className="h-8 flex items-center justify-center text-[10px]">
+                      No Gradient
+                    </div>
+                  </button>
+                  
+                  {/* Gradient options */}
+                  <button
+                    className={`p-0.5 rounded border ${gradient === 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)' ? 'border-primary' : 'border-muted'} hover:border-primary`}
+                    onClick={() => onGradientChange('linear-gradient(135deg, #f6d365 0%, #fda085 100%)')}
+                    style={{ background: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)' }}
+                  >
+                    <div className="h-8"></div>
+                  </button>
+                  <button
+                    className={`p-0.5 rounded border ${gradient === 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' ? 'border-primary' : 'border-muted'} hover:border-primary`}
+                    onClick={() => onGradientChange('linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)')}
+                    style={{ background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' }}
+                  >
+                    <div className="h-8"></div>
+                  </button>
+                  <button
+                    className={`p-0.5 rounded border ${gradient === 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' ? 'border-primary' : 'border-muted'} hover:border-primary`}
+                    onClick={() => onGradientChange('linear-gradient(135deg, #fa709a 0%, #fee140 100%)')}
+                    style={{ background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' }}
+                  >
+                    <div className="h-8"></div>
+                  </button>
+                  <button
+                    className={`p-0.5 rounded border ${gradient === 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' ? 'border-primary' : 'border-muted'} hover:border-primary`}
+                    onClick={() => onGradientChange('linear-gradient(135deg, #667eea 0%, #764ba2 100%)')}
+                    style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+                  >
+                    <div className="h-8"></div>
+                  </button>
+                  <button
+                    className={`p-0.5 rounded border ${gradient === 'linear-gradient(135deg, #ff0844 0%, #ffb199 100%)' ? 'border-primary' : 'border-muted'} hover:border-primary`}
+                    onClick={() => onGradientChange('linear-gradient(135deg, #ff0844 0%, #ffb199 100%)')}
+                    style={{ background: 'linear-gradient(135deg, #ff0844 0%, #ffb199 100%)' }}
+                  >
+                    <div className="h-8"></div>
+                  </button>
+                </div>
+              </div>
+              
+              {/* Preview */}
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-medium">Preview</Label>
+                <div className="border rounded-md p-3 min-h-12 flex items-center justify-center">
+                  <div
+                    className="text-center"
+                    style={{
+                      fontFamily: font,
+                      fontSize: fontSize,
+                      fontWeight: fontWeight,
+                      color: fontColor,
+                      backgroundImage: gradient,
+                      WebkitBackgroundClip: gradient ? 'text' : 'unset',
+                      WebkitTextFillColor: gradient ? 'transparent' : 'unset',
+                    }}
+                  >
+                    Sample Text
+                  </div>
+                </div>
               </div>
             </div>
           </TabsContent>
           
-          <TabsContent value="style" className="space-y-3">
-            <div className="space-y-1">
-              <Label className="text-[10px] font-medium">Text Style</Label>
-              <Select 
-                onValueChange={onTextStyleChange} 
-                defaultValue="normal"
-              >
-                <SelectTrigger className="h-7 text-[10px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {textStyles.map((style) => (
-                    <SelectItem key={style.value} value={style.value} className="text-[10px]">
-                      {style.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-1 pt-2">
-              <Label className="text-[10px] font-medium">Style Preview</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {textStyles.slice(0, 6).map((style) => (
-                  <div 
-                    key={style.value}
-                    className="p-2 text-[10px] border border-gray-200 rounded-md hover:bg-accent text-center cursor-default"
-                    style={{
-                      fontStyle: style.value.includes('italic') ? 'italic' : 'normal',
-                      textDecoration: style.value.includes('underline') ? 'underline' : 'none',
-                      textAlign: style.value.includes('center') ? 'center' : 'left',
-                    }}
+          {/* Style Selection Tab */}
+          <TabsContent value="style" className="mt-4 space-y-4">
+            <div className="space-y-3">
+              {/* Text Style Buttons */}
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-medium">Text Style</Label>
+                <div className="flex gap-1">
+                  <Button
+                    variant={textStyle.includes("normal") ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleStyleToggle("normal")}
+                    title="Normal"
                   >
-                    {style.label}
-                  </div>
-                ))}
+                    Normal
+                  </Button>
+                  <Button
+                    variant={textStyle.includes("italic") ? "default" : "outline"}
+                    size="icon"
+                    onClick={() => handleStyleToggle("italic")}
+                    title="Italic"
+                  >
+                    <Italic className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={textStyle.includes("underline") ? "default" : "outline"}
+                    size="icon"
+                    onClick={() => handleStyleToggle("underline")}
+                    title="Underline"
+                  >
+                    <Underline className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={textStyle.includes("bold") ? "default" : "outline"}
+                    size="icon"
+                    onClick={() => handleStyleToggle("bold")}
+                    title="Bold"
+                  >
+                    <Bold className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={textStyle.includes("center") ? "default" : "outline"}
+                    size="icon"
+                    onClick={() => handleStyleToggle("center")}
+                    title="Center"
+                  >
+                    <AlignCenter className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Special Text Styles */}
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-medium">Special Styles</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {textStyles.map((style) => (
+                    <button
+                      key={style.value}
+                      className={`p-2 rounded border ${textStyle === style.value ? 'border-primary bg-primary/10' : 'border-muted'} hover:border-primary`}
+                      onClick={() => {
+                        setTextStyle(style.value);
+                        onTextStyleChange(style.value);
+                      }}
+                    >
+                      <div 
+                        className="text-center text-xs"
+                        style={{
+                          fontStyle: style.value.includes('italic') ? 'italic' : 'normal',
+                          textDecoration: style.value.includes('underline') ? 'underline' : 'none',
+                          textAlign: style.value.includes('center') ? 'center' : 'left',
+                        }}
+                      >
+                        {style.label}
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </TabsContent>
