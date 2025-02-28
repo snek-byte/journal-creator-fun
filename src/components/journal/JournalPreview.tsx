@@ -137,11 +137,13 @@ export function JournalPreview({
     };
   }, [isTextSelected]);
 
+  // Initialize drawing mode if drawing already exists
   useEffect(() => {
-    if (drawing) {
+    if (drawing && drawing.length > 0) {
+      console.log("Setting drawing mode to true because drawing exists");
       setIsDrawingMode(true);
     }
-  }, [drawing]);
+  }, []);
 
   const handleIconSelect = (id: string) => {
     setSelectedIconId(id);
@@ -175,6 +177,11 @@ export function JournalPreview({
   const toggleDrawingMode = () => {
     console.log("Toggling drawing mode from", isDrawingMode, "to", !isDrawingMode);
     setIsDrawingMode(!isDrawingMode);
+  };
+
+  const handleDrawingChange = (dataUrl: string) => {
+    console.log("Drawing changed, passing to parent component");
+    onDrawingChange(dataUrl);
   };
 
   // Function to process text and apply special Unicode text styles
@@ -411,7 +418,7 @@ export function JournalPreview({
             <div className="absolute top-4 right-4 z-50 flex gap-2">
               <button
                 onClick={toggleDrawingMode}
-                className={`p-2 rounded-full ${isDrawingMode ? 'bg-primary text-white' : 'bg-gray-100'}`}
+                className={`p-2 rounded-full ${isDrawingMode ? 'bg-primary text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
                 title={isDrawingMode ? "Exit Drawing Mode" : "Enter Drawing Mode"}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -423,20 +430,37 @@ export function JournalPreview({
               </button>
             </div>
 
+            {/* Drawing Layer - Must be below text and stickers for visibility but with pointer-events to catch mouse actions */}
+            {isDrawingMode && (
+              <div className="absolute inset-0 z-25">
+                <DrawingLayer
+                  width={previewWidth}
+                  height={previewHeight}
+                  onDrawingChange={handleDrawingChange}
+                  tool={drawingTool}
+                  color={drawingColor}
+                  brushSize={brushSize}
+                  initialDrawing={drawing}
+                />
+              </div>
+            )}
+
             {/* Text element with proper gradient styling */}
             <div
               ref={textRef}
-              className="absolute z-50 cursor-move whitespace-pre-wrap"
+              className="absolute z-30 cursor-move whitespace-pre-wrap"
               style={{
                 ...getTextStyles(),
                 left: `${textPosition.x}%`,
                 top: `${textPosition.y}%`,
                 transform: 'translate(-50%, -50%)',
                 // Apply filter to text if no background image
-                filter: !backgroundImage ? getCssFilter() : undefined
+                filter: !backgroundImage ? getCssFilter() : undefined,
+                pointerEvents: isDrawingMode ? 'none' : 'auto'
               }}
               onMouseDown={handleTextElementDrag}
               onClick={(e) => {
+                if (isDrawingMode) return;
                 e.stopPropagation();
                 setSelectedStickerId(null);
                 setSelectedIconId(null);
@@ -459,7 +483,9 @@ export function JournalPreview({
                 onResize={handleStickerResize}
                 containerRef={previewRef}
                 style={{ 
-                  filter: !backgroundImage ? getCssFilter() : undefined 
+                  filter: !backgroundImage ? getCssFilter() : undefined,
+                  pointerEvents: isDrawingMode ? 'none' : 'auto',
+                  zIndex: 30 
                 }}
               />
             ))}
@@ -475,31 +501,20 @@ export function JournalPreview({
                 onUpdate={onIconUpdate}
                 containerRef={previewRef}
                 style={{ 
-                  filter: !backgroundImage ? getCssFilter() : undefined 
+                  filter: !backgroundImage ? getCssFilter() : undefined,
+                  pointerEvents: isDrawingMode ? 'none' : 'auto',
+                  zIndex: 30 
                 }}
               />
             ))}
-          
-            {/* Drawing Layer */}
-            {isDrawingMode && (
-              <DrawingLayer
-                width={previewWidth}
-                height={previewHeight}
-                onDrawingChange={onDrawingChange}
-                tool={drawingTool}
-                color={drawingColor}
-                brushSize={brushSize}
-                initialDrawing={drawing}
-              />
-            )}
           </div>
 
-          {/* Display existing drawing */}
+          {/* Display existing drawing when not in drawing mode */}
           {drawing && !isDrawingMode && (
             <img
               src={drawing}
               alt="Drawing"
-              className="absolute inset-0 z-10 pointer-events-none"
+              className="absolute inset-0 z-20 pointer-events-none"
               style={{
                 width: '100%',
                 height: '100%',

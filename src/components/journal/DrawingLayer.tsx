@@ -49,13 +49,17 @@ export function DrawingLayer({
   const [undoStack, setUndoStack] = useState<string[]>([]);
   const [redoStack, setRedoStack] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(true);
+  const canvasInitialized = useRef(false);
 
-  // Initialize canvas on mount
+  // Initialize canvas on mount and when dimensions change
   useEffect(() => {
-    if (hasInitialized.current) return;
-    
+    console.log("Initializing canvas with width:", width, "height:", height);
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    // Set canvas dimensions
+    canvas.width = width;
+    canvas.height = height;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -65,16 +69,21 @@ export function DrawingLayer({
     ctx.lineWidth = brushSize;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    const emptyState = canvas.toDataURL();
-    setUndoStack([emptyState]);
-    
-    hasInitialized.current = true;
-
-    // Load initial drawing if provided
-    if (initialDrawing) {
-      loadState(initialDrawing);
+    if (!canvasInitialized.current) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      const emptyState = canvas.toDataURL();
+      setUndoStack([emptyState]);
+      
+      canvasInitialized.current = true;
+      console.log("Canvas initialized");
+      
+      // Load initial drawing if provided
+      if (initialDrawing) {
+        console.log("Loading initial drawing");
+        loadState(initialDrawing);
+      }
     }
 
     return () => {
@@ -82,7 +91,7 @@ export function DrawingLayer({
         window.clearInterval(sprayInterval.current);
       }
     };
-  }, [initialDrawing, color, brushSize]);
+  }, [width, height, initialDrawing]);
 
   // Update brush settings when they change
   useEffect(() => {
@@ -109,16 +118,11 @@ export function DrawingLayer({
     ctx.lineWidth = brushSize;
   }, [color, tool, brushSize, opacity]);
 
-  // Handle tool changes from parent
-  useEffect(() => {
-    console.log("Tool changed in DrawingLayer:", tool);
-    setIsActive(true);
-  }, [tool]);
-
   const saveState = () => {
-    if (!canvasRef.current || !isDrawing) return;
+    if (!canvasRef.current) return;
     
     const dataUrl = canvasRef.current.toDataURL();
+    console.log("Saving drawing state");
     setUndoStack(prev => [...prev, dataUrl]);
     setRedoStack([]);
     
@@ -127,23 +131,11 @@ export function DrawingLayer({
     }
   };
 
-  // Expose undo/redo functions to parent
-  useEffect(() => {
-    if (onUndo) {
-      onUndo = () => undo();
-    }
-    if (onRedo) {
-      onRedo = () => redo();
-    }
-    if (onClear) {
-      onClear = () => clearCanvas();
-    }
-  }, [onUndo, onRedo, onClear]);
-
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!isActive) return;
     console.log("Starting drawing with tool:", tool);
     e.preventDefault();
+    e.stopPropagation();
+    
     setIsDrawing(true);
     const point = getPoint(e);
     setLastPoint(point);
@@ -178,8 +170,10 @@ export function DrawingLayer({
   };
 
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!isActive || !isDrawing || !canvasRef.current || !lastPoint) return;
+    if (!isDrawing || !canvasRef.current || !lastPoint) return;
+    
     e.preventDefault();
+    e.stopPropagation();
 
     const ctx = canvasRef.current.getContext('2d');
     if (!ctx) return;
@@ -327,6 +321,7 @@ export function DrawingLayer({
   const stopDrawing = () => {
     if (!isDrawing) return;
     
+    console.log("Stopping drawing");
     setIsDrawing(false);
     setLastPoint(null);
     saveState();
@@ -419,22 +414,19 @@ export function DrawingLayer({
   };
 
   return (
-    <div className={cn("absolute inset-0", className)}>
+    <div className={cn("absolute inset-0", className)} style={{ zIndex: 20 }}>
       <canvas
         ref={canvasRef}
         width={width}
         height={height}
-        className={cn(
-          "touch-none",
-          isActive ? "cursor-crosshair" : "cursor-default"
-        )}
-        onMouseDown={(e) => startDrawing(e)}
-        onMouseMove={(e) => draw(e)}
-        onMouseUp={() => stopDrawing()}
-        onMouseOut={() => stopDrawing()}
-        onTouchStart={(e) => startDrawing(e)}
-        onTouchMove={(e) => draw(e)}
-        onTouchEnd={() => stopDrawing()}
+        className="touch-none cursor-crosshair w-full h-full"
+        onMouseDown={startDrawing}
+        onMouseMove={draw}
+        onMouseUp={stopDrawing}
+        onMouseOut={stopDrawing}
+        onTouchStart={startDrawing}
+        onTouchMove={draw}
+        onTouchEnd={stopDrawing}
       />
     </div>
   );
