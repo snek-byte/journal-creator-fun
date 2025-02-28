@@ -106,7 +106,7 @@ export function JournalEditorSidebar({
         
         <TabsContent value="write" className="space-y-4">
           <DailyChallenge 
-            challenge={dailyChallenge} 
+            dailyChallenge={dailyChallenge} 
             onRefresh={loadChallenge}
             onApply={applyChallenge}
           />
@@ -146,8 +146,10 @@ export function JournalEditorSidebar({
           
           <div className="space-y-2">
             <MoodSelector 
-              selected={currentEntry.mood} 
-              onSelect={setMood} 
+              mood={currentEntry.mood} 
+              isPublic={currentEntry.isPublic}
+              onMoodChange={setMood}
+              onIsPublicChange={setIsPublic}
             />
           </div>
           
@@ -293,8 +295,17 @@ export function JournalEditorSidebar({
             </div>
             
             <JournalStylingControls 
-              value={currentEntry.textStyle} 
-              onChange={handleChangeTextStyle}
+              font={currentEntry.font}
+              fontSize={currentEntry.fontSize}
+              fontWeight={currentEntry.fontWeight}
+              fontColor={currentEntry.fontColor}
+              gradient={currentEntry.gradient}
+              onFontChange={handleChangeFont}
+              onFontSizeChange={handleChangeFontSize}
+              onFontWeightChange={handleChangeFontWeight}
+              onFontColorChange={handleChangeFontColor}
+              onGradientChange={handleChangeGradient}
+              onTextStyleChange={handleChangeTextStyle}
             />
           </div>
         </TabsContent>
