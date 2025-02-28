@@ -1,194 +1,71 @@
 
-import React, { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ImagePlus, UploadCloud, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Upload } from "lucide-react";
+import { useCallback } from "react";
+import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 interface ImageUploaderProps {
-  onImageSelect: (url: string) => void;
+  onImageUpload: (file: File) => Promise<string>;
 }
 
-export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  const fetchUserImages = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('user_images')
-        .select('url')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      if (data && data.length) {
-        setUploadedImages(data.map(item => item.url));
+export function ImageUploader({ onImageUpload }: ImageUploaderProps) {
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      try {
+        if (acceptedFiles.length === 0) return;
+        
+        const file = acceptedFiles[0];
+        if (!file.type.startsWith("image/")) {
+          toast.error("Please upload an image file");
+          return;
+        }
+        
+        const imageUrl = await onImageUpload(file);
+        console.log("Image uploaded successfully:", imageUrl.substring(0, 50) + "...");
+        toast.success("Image uploaded successfully");
+      } catch (error: any) {
+        console.error("Error uploading image:", error);
+        toast.error(error.message || "Failed to upload image");
       }
-    } catch (error) {
-      console.error('Error fetching user images:', error);
-    }
-  };
+    },
+    [onImageUpload]
+  );
 
-  React.useEffect(() => {
-    fetchUserImages();
-  }, []);
-
-  const handleFileSelect = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Check file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image too large. Maximum size is 5MB.');
-      return;
-    }
-
-    // Check file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Only image files are allowed.');
-      return;
-    }
-
-    setIsUploading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('Please sign in to upload images');
-        return;
-      }
-
-      // Generate a unique filename
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      
-      // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from('journal-images')
-        .upload(fileName, file);
-
-      if (error) throw error;
-
-      // Get the public URL
-      const { data: publicUrlData } = supabase.storage
-        .from('journal-images')
-        .getPublicUrl(fileName);
-
-      if (!publicUrlData.publicUrl) throw new Error('Failed to get public URL');
-
-      // Store reference in database
-      const { error: dbError } = await supabase
-        .from('user_images')
-        .insert({
-          user_id: user.id,
-          url: publicUrlData.publicUrl,
-          filename: fileName
-        });
-
-      if (dbError) throw dbError;
-
-      // Update local state
-      setUploadedImages(prev => [publicUrlData.publicUrl, ...prev]);
-      toast.success('Image uploaded successfully!');
-    } catch (error: any) {
-      console.error('Error uploading image:', error);
-      toast.error(error.message || 'Failed to upload image');
-    } finally {
-      setIsUploading(false);
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
-
-  const handleImageSelect = (url: string) => {
-    onImageSelect(url);
-    toast.success('Image selected for your journal');
-  };
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/*': []
+    },
+    maxSize: 5242880, // 5MB
+    maxFiles: 1
+  });
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="hover:bg-accent hover:text-accent-foreground"
-          title="Upload or select image"
-        >
-          <ImagePlus className="w-4 h-4" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Your Journal Images</DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-4">
-          <div className="flex justify-center">
-            <Button 
-              onClick={handleFileSelect} 
-              disabled={isUploading}
-              className="w-full"
-            >
-              {isUploading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Uploading...
-                </>
-              ) : (
-                <>
-                  <UploadCloud className="mr-2 h-4 w-4" />
-                  Upload Image
-                </>
-              )}
-            </Button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept="image/*"
-              className="hidden"
-            />
-          </div>
-          
-          {uploadedImages.length > 0 ? (
-            <div className="grid grid-cols-3 gap-2">
-              {uploadedImages.map((url, index) => (
-                <div 
-                  key={index} 
-                  className="relative aspect-square overflow-hidden border rounded-md cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => handleImageSelect(url)}
-                >
-                  <img 
-                    src={url} 
-                    alt={`Uploaded image ${index + 1}`} 
-                    className="object-cover w-full h-full"
-                    loading="lazy"
-                  />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <ImageIcon className="mx-auto h-12 w-12 opacity-20" />
-              <p className="mt-2">No images uploaded yet</p>
-            </div>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+    <div
+      {...getRootProps()}
+      className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+        isDragActive ? "border-primary bg-primary/5" : "border-gray-300 hover:border-primary/50"
+      }`}
+    >
+      <input {...getInputProps()} />
+      <Upload className="w-10 h-10 mx-auto mb-4 text-gray-400" />
+      <p className="text-sm text-gray-500">
+        {isDragActive
+          ? "Drop the image here..."
+          : "Drag and drop an image, or click to browse"}
+      </p>
+      <p className="mt-2 text-xs text-gray-400">
+        Supports JPG, PNG and GIF up to 5MB
+      </p>
+      <Button 
+        variant="outline" 
+        className="mt-4" 
+        type="button"
+        onClick={(e) => e.stopPropagation()}
+      >
+        Choose File
+      </Button>
+    </div>
   );
 }

@@ -119,7 +119,6 @@ export function useJournalEditor() {
   const handleTextMove = (position: { x: number, y: number }) => {
     try {
       setTextPosition(position);
-      console.log("Text moved to:", position);
     } catch (error) {
       console.error("Error moving text:", error);
     }
@@ -128,7 +127,7 @@ export function useJournalEditor() {
   const handleBackgroundSelect = (imageUrl: string) => {
     try {
       setBackgroundImage(imageUrl);
-      console.log("Background image set to:", imageUrl ? (imageUrl.length > 100 ? `${imageUrl.substring(0, 100)}...` : imageUrl) : "none");
+      console.log("[DEBUG] Background image set to:", imageUrl ? (imageUrl.length > 100 ? `${imageUrl.substring(0, 100)}...` : imageUrl) : "none");
     } catch (error) {
       console.error("Error selecting background:", error);
     }
@@ -174,26 +173,43 @@ export function useJournalEditor() {
     }
   };
 
-  const handleImageUpload = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      if (!file.type.startsWith('image/')) {
-        reject(new Error('Please upload an image file'));
-        return;
-      }
+  const handleImageUpload = async (file: File): Promise<string> => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      throw new Error('Please upload an image file');
+    }
 
+    return new Promise((resolve, reject) => {
       const reader = new FileReader();
+      
       reader.onload = (e) => {
         if (typeof e.target?.result === 'string') {
-          // Apply the image immediately to the journal
-          setBackgroundImage(e.target.result);
-          resolve(e.target.result);
+          try {
+            console.log("[DEBUG] Image loaded, setting background image");
+            // Store the data URL in the journal store
+            setBackgroundImage(e.target.result);
+            // Log a truncated version of the URL for debugging
+            console.log("[DEBUG] Data URL length:", e.target.result.length);
+            console.log("[DEBUG] Data URL type:", e.target.result.substring(0, 30));
+            
+            toast.success("Image applied to journal");
+            resolve(e.target.result);
+          } catch (error) {
+            console.error("[DEBUG] Error in handleImageUpload:", error);
+            reject(error);
+          }
         } else {
+          console.error("[DEBUG] Result is not a string:", e.target?.result);
           reject(new Error('Failed to read image'));
         }
       };
-      reader.onerror = () => {
+      
+      reader.onerror = (error) => {
+        console.error("[DEBUG] FileReader error:", error);
         reject(new Error('Failed to read image'));
       };
+      
+      console.log("[DEBUG] Reading file as data URL, file size:", file.size);
       reader.readAsDataURL(file);
     });
   };
