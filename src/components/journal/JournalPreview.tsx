@@ -83,8 +83,8 @@ export function JournalPreview({
   const [previewWidth, setPreviewWidth] = useState(500);
   const [previewHeight, setPreviewHeight] = useState(500);
   const [isDraggingText, setIsDraggingText] = useState(false);
-  const [startDragPos, setStartDragPos] = useState({ x: 0, y: 0 });
-  const [startTextPos, setStartTextPos] = useState({ x: 50, y: 50 });
+  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
+  const [startTextPos, setStartTextPos] = useState({ x: 0, y: 0 });
   const [image, takeScreenshot] = useScreenshot({
     type: "image/jpeg",
     quality: 1.0
@@ -156,47 +156,6 @@ export function JournalPreview({
     };
   }, [selectedStickerId, onStickerMove]);
 
-  // Set up global mouse move and up handlers for text dragging
-  useEffect(() => {
-    if (!isDraggingText) return;
-
-    const handleGlobalMouseMove = (e: MouseEvent) => {
-      if (!previewRef.current) return;
-      
-      const rect = previewRef.current.getBoundingClientRect();
-      const deltaX = (e.clientX - startDragPos.x) / rect.width * 100;
-      const deltaY = (e.clientY - startDragPos.y) / rect.height * 100;
-      
-      // Calculate new position by adding the delta to the start position
-      let newX = startTextPos.x + deltaX;
-      let newY = startTextPos.y + deltaY;
-      
-      // Ensure position stays within bounds
-      newX = Math.max(5, Math.min(95, newX));
-      newY = Math.max(5, Math.min(95, newY));
-      
-      onTextMove({ x: newX, y: newY });
-    };
-
-    const handleGlobalMouseUp = () => {
-      setIsDraggingText(false);
-      
-      if (textRef.current) {
-        textRef.current.style.cursor = 'grab';
-      }
-      
-      document.body.style.cursor = 'default';
-    };
-
-    document.addEventListener('mousemove', handleGlobalMouseMove);
-    document.addEventListener('mouseup', handleGlobalMouseUp);
-
-    return () => {
-      document.removeEventListener('mousemove', handleGlobalMouseMove);
-      document.removeEventListener('mouseup', handleGlobalMouseUp);
-    };
-  }, [isDraggingText, startDragPos, startTextPos, onTextMove]);
-
   const handleIconSelect = (id: string) => {
     setSelectedIconId(id);
     setSelectedStickerId(null);
@@ -210,27 +169,6 @@ export function JournalPreview({
     onStickerSelect(id);
     setSelectedIconId(null);
     onIconSelect('');
-  };
-
-  // Simplified text drag start handler
-  const handleTextDragStart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (textRef.current) {
-      textRef.current.style.cursor = 'grabbing';
-    }
-    
-    document.body.style.cursor = 'grabbing';
-    
-    setIsDraggingText(true);
-    setStartDragPos({ x: e.clientX, y: e.clientY });
-    setStartTextPos({ x: textPosition.x, y: textPosition.y });
-    
-    console.log("Text drag started", { 
-      mousePos: { x: e.clientX, y: e.clientY },
-      textPos: textPosition
-    });
   };
 
   // This stops the general page click from affecting text position
@@ -301,6 +239,64 @@ export function JournalPreview({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+  // NEW TEXT DRAGGING FUNCTIONS
+  const handleTextDragStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Save the starting position of the drag
+    setDragStartPos({ x: e.clientX, y: e.clientY });
+    
+    // Save the starting position of the text
+    setStartTextPos({ x: textPosition.x, y: textPosition.y });
+    
+    // Set dragging flag
+    setIsDraggingText(true);
+    
+    // Add global event listeners for mousemove and mouseup
+    document.addEventListener('mousemove', handleTextDragMove);
+    document.addEventListener('mouseup', handleTextDragEnd);
+  };
+  
+  const handleTextDragMove = (e: MouseEvent) => {
+    if (!isDraggingText || !previewRef.current) return;
+    
+    e.preventDefault();
+    
+    // Get the container dimensions
+    const rect = previewRef.current.getBoundingClientRect();
+    
+    // Calculate how much the mouse has moved since starting the drag
+    const deltaX = e.clientX - dragStartPos.x;
+    const deltaY = e.clientY - dragStartPos.y;
+    
+    // Convert the delta to a percentage of the container dimensions
+    const deltaXPercent = (deltaX / rect.width) * 100;
+    const deltaYPercent = (deltaY / rect.height) * 100;
+    
+    // Add the delta to the original position
+    const newX = startTextPos.x + deltaXPercent;
+    const newY = startTextPos.y + deltaYPercent;
+    
+    // Enforce boundaries
+    const boundedX = Math.max(10, Math.min(90, newX));
+    const boundedY = Math.max(10, Math.min(90, newY));
+    
+    // Move the text
+    onTextMove({ x: boundedX, y: boundedY });
+  };
+  
+  const handleTextDragEnd = (e: MouseEvent) => {
+    e.preventDefault();
+    
+    // Reset dragging flag
+    setIsDraggingText(false);
+    
+    // Remove event listeners
+    document.removeEventListener('mousemove', handleTextDragMove);
+    document.removeEventListener('mouseup', handleTextDragEnd);
+  };
+
   // Check if the gradient string indicates it's a text gradient
   const isTextGradient = gradient && gradient.includes('text');
 
@@ -367,10 +363,10 @@ export function JournalPreview({
               </button>
             </div>
 
-            {/* Text Area - Simplified dragging with improved indicators */}
+            {/* FIXED TEXT DRAGGING ELEMENT */}
             <div
               ref={textRef}
-              className="absolute z-30 break-words w-[80%] font-normal cursor-grab p-4 rounded-md hover:bg-gray-50/10 border border-transparent hover:border-gray-200/20"
+              className="absolute bg-transparent z-50 break-words p-4 rounded"
               style={{
                 left: `${textPosition.x}%`,
                 top: `${textPosition.y}%`,
@@ -385,20 +381,30 @@ export function JournalPreview({
                 fontStyle: textStyle?.includes('italic') ? 'italic' : 'normal',
                 textDecoration: textStyle?.includes('underline') ? 'underline' : 'none',
                 textAlign: textStyle?.includes('center') ? 'center' : 'left',
-                minHeight: '2em', // Ensure text area is always visible
-                minWidth: '100px',
-                maxHeight: '80%', // Prevent text from extending too far
-                overflow: 'visible', // Allow text to flow outside if needed
-                opacity: isDraggingText ? 0.8 : 1, // Visual feedback when dragging
-                boxShadow: isDraggingText ? '0 0 10px rgba(0,0,0,0.1)' : 'none',
-                transition: 'box-shadow 0.1s, opacity 0.1s',
+                width: 'auto',
+                maxWidth: '80%',
+                minHeight: '30px',
+                cursor: isDraggingText ? 'grabbing' : 'grab',
+                boxShadow: isDraggingText ? '0 0 10px rgba(0,0,0,0.2)' : 'none',
                 userSelect: 'none',
-                touchAction: 'none',
+                opacity: isDraggingText ? 0.8 : 1,
+                border: '2px dashed rgba(0,0,0,0.0)',
+                transition: 'border 0.2s',
+                backdropFilter: 'blur(1px)',
               }}
               onMouseDown={handleTextDragStart}
+              onMouseOver={() => {
+                if (textRef.current) {
+                  textRef.current.style.border = '2px dashed rgba(0,0,0,0.1)';
+                }
+              }}
+              onMouseOut={() => {
+                if (textRef.current && !isDraggingText) {
+                  textRef.current.style.border = '2px dashed rgba(0,0,0,0.0)';
+                }
+              }}
               onClick={(e) => {
                 e.stopPropagation();
-                // Deselect any selected sticker or icon when clicking on text
                 setSelectedStickerId(null);
                 setSelectedIconId(null);
                 onIconSelect('');
@@ -430,7 +436,7 @@ export function JournalPreview({
                   handleStickerSelect(sticker.id);
                   handleStickerDrag(sticker.id, e);
                 }}
-                tabIndex={0} // Make focusable for keyboard events
+                tabIndex={0}
                 title={`Sticker (ID: ${sticker.id})`}
               >
                 <img
