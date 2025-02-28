@@ -99,40 +99,27 @@ export function JournalEditor() {
     
     // If a sticker is selected, update its size
     if (selectedStickerId) {
-      const updatedStickers = currentEntry.stickers.map(sticker => 
-        sticker.id === selectedStickerId 
-          ? { ...sticker, width: size, height: size } 
-          : sticker
-      );
+      console.log("Resizing sticker:", selectedStickerId, "to size:", size);
       
-      // Update all stickers with the new array
-      currentEntry.stickers.forEach(sticker => {
-        if (sticker.id === selectedStickerId) {
-          handleStickerUpdate(sticker.id, { width: size, height: size });
-        }
-      });
+      // Find the sticker to update
+      const stickerToUpdate = currentEntry.stickers.find(s => s.id === selectedStickerId);
+      if (stickerToUpdate) {
+        // Create updated sticker with new size
+        const updatedSticker: Sticker = {
+          ...stickerToUpdate,
+          width: size,
+          height: size
+        };
+        
+        // Update the sticker by passing the entire updated sticker object
+        handleStickerAdd(updatedSticker);
+      }
     }
-  };
-
-  // Handler to update sticker with new properties
-  const handleStickerUpdate = (id: string, updates: Partial<Sticker>) => {
-    const updatedStickers = currentEntry.stickers.map(sticker => 
-      sticker.id === id ? { ...sticker, ...updates } : sticker
-    );
-    
-    // Use the existing state setter to update stickers
-    handleStickerReplace(updatedStickers);
-  };
-
-  // Function to replace all stickers (used for updates)
-  const handleStickerReplace = (newStickers: Sticker[]) => {
-    const updatedEntry = { ...currentEntry, stickers: newStickers };
-    // Set directly in the editor state
-    setText(updatedEntry.text); // Trigger state update via any setter
   };
 
   // Handler for sticker selection
   const handleStickerSelect = (id: string | null) => {
+    console.log("Sticker selected:", id);
     setSelectedStickerId(id);
     
     // If a sticker is selected, update the size slider to match
@@ -145,6 +132,8 @@ export function JournalEditor() {
   };
 
   console.log("Current stickers in entry:", currentEntry.stickers);
+  console.log("Selected sticker ID:", selectedStickerId);
+  console.log("Current sticker size:", stickerSize);
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">

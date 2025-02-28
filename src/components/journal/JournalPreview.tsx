@@ -31,7 +31,7 @@ interface JournalPreviewProps {
   onIconMove: (id: string, position: { x: number; y: number }) => void;
   onIconUpdate: (id: string, updates: Partial<Icon>) => void;
   onIconSelect: (id: string) => void;
-  onStickerSelect: (id: string | null) => void; // Added missing prop
+  onStickerSelect: (id: string | null) => void;
   onTextMove: (position: { x: number; y: number }) => void;
   onBackgroundSelect: (image: string) => void;
   onDrawingChange: (dataUrl: string) => void;
@@ -65,6 +65,7 @@ export function JournalPreview({
   onIconMove,
   onIconUpdate,
   onIconSelect,
+  onStickerSelect,
   onTextMove,
   onBackgroundSelect,
   onDrawingChange,
@@ -179,6 +180,7 @@ export function JournalPreview({
 
   const handleStickerSelect = (id: string) => {
     setSelectedStickerId(id);
+    onStickerSelect(id);
     setSelectedIconId(null);
     onIconSelect(''); // Deselect any icon
   };
@@ -205,10 +207,6 @@ export function JournalPreview({
 
   const handleMouseUp = () => {
     setIsDraggingText(false);
-    if (isResizing) {
-      setIsResizing(false);
-      setResizingStickerId(null);
-    }
   };
 
   const handleMouseLeave = () => {
@@ -218,57 +216,6 @@ export function JournalPreview({
   const toggleDrawingMode = () => {
     setIsDrawingMode(!isDrawingMode);
   };
-
-  // Start resizing a sticker
-  const handleResizeStart = (e: React.MouseEvent, sticker: Sticker) => {
-    e.stopPropagation();
-    setIsResizing(true);
-    setResizingStickerId(sticker.id);
-    setInitialSize({ width: sticker.width || 100, height: sticker.height || 100 });
-    setInitialMousePos({ x: e.clientX, y: e.clientY });
-  };
-
-  // Handle resizing during mouse move
-  const handleResize = (e: MouseEvent) => {
-    if (!isResizing || !resizingStickerId || !previewRef.current) return;
-
-    const sticker = stickers.find(s => s.id === resizingStickerId);
-    if (!sticker) return;
-
-    const deltaX = e.clientX - initialMousePos.x;
-    const deltaY = e.clientY - initialMousePos.y;
-    const scale = Math.max(deltaX, deltaY) / 100; // Simplified scaling logic
-    
-    const newWidth = Math.max(30, initialSize.width + (initialSize.width * scale));
-    const newHeight = Math.max(30, initialSize.height + (initialSize.height * scale));
-
-    // Update sticker size
-    const updatedStickers = stickers.map(s => 
-      s.id === resizingStickerId 
-        ? { ...s, width: newWidth, height: newHeight } 
-        : s
-    );
-
-    // Send the updated sticker to the parent component
-    onStickerAdd({
-      ...sticker,
-      width: newWidth,
-      height: newHeight
-    });
-  };
-
-  // Setup global mouse move handler for resizing
-  useEffect(() => {
-    if (isResizing) {
-      window.addEventListener('mousemove', handleResize);
-      window.addEventListener('mouseup', handleMouseUp);
-    }
-
-    return () => {
-      window.removeEventListener('mousemove', handleResize);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isResizing, resizingStickerId, initialSize, initialMousePos]);
 
   // Function to process text and apply special Unicode text styles
   const processText = (text: string) => {
@@ -320,7 +267,7 @@ export function JournalPreview({
             <div
               key={sticker.id}
               className={`absolute cursor-move ${
-                selectedStickerId === sticker.id ? 'ring-2 ring-primary z-50' : 'hover:ring-1 hover:ring-primary/30 z-30'
+                selectedStickerId === sticker.id ? 'ring-2 ring-primary z-40' : 'z-30'
               }`}
               style={{
                 left: `${sticker.position.x}%`,
@@ -373,23 +320,6 @@ export function JournalPreview({
                   e.currentTarget.src = '/stickers/star.svg';
                 }}
               />
-              
-              {/* Resize handle - only shown when sticker is selected */}
-              {selectedStickerId === sticker.id && (
-                <div
-                  className="absolute bottom-0 right-0 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center cursor-se-resize"
-                  onMouseDown={(e) => handleResizeStart(e, sticker)}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M15 3h6v6"></path>
-                    <path d="M10 14L21 3"></path>
-                    <path d="M18 21h-6"></path>
-                    <path d="M3 6v6"></path>
-                    <path d="M3 3v.01"></path>
-                    <path d="M21 21v.01"></path>
-                  </svg>
-                </div>
-              )}
             </div>
           ))}
 
@@ -433,6 +363,7 @@ export function JournalPreview({
               setSelectedStickerId(null);
               setSelectedIconId(null);
               onIconSelect('');
+              onStickerSelect(null);
             }}
           >
             {processText(text) || 'Start typing to add text...'}
