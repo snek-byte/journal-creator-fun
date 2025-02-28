@@ -15,6 +15,7 @@ interface DrawingLayerProps {
   tool?: string;
   color?: string;
   brushSize?: number;
+  initialDrawing?: string;
   onUndo?: () => void;
   onRedo?: () => void;
   onClear?: () => void;
@@ -31,6 +32,7 @@ export function DrawingLayer({
   tool = 'pen',
   color = '#000000',
   brushSize = 3,
+  initialDrawing,
   onUndo,
   onRedo,
   onClear,
@@ -69,12 +71,17 @@ export function DrawingLayer({
     
     hasInitialized.current = true;
 
+    // Load initial drawing if provided
+    if (initialDrawing) {
+      loadState(initialDrawing);
+    }
+
     return () => {
       if (sprayInterval.current !== null) {
         window.clearInterval(sprayInterval.current);
       }
     };
-  }, []);
+  }, [initialDrawing]);
 
   // Update brush settings when they change
   useEffect(() => {

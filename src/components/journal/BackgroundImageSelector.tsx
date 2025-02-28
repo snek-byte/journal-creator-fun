@@ -11,10 +11,10 @@ import { Input } from "@/components/ui/input";
 import { gradients } from './config/editorConfig';
 
 interface BackgroundImageSelectorProps {
-  onImageSelect: (url: string) => void;
+  onBackgroundSelect: (imageUrl: string) => void;
 }
 
-export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelectorProps) {
+export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageSelectorProps) {
   const [activeTab, setActiveTab] = useState('gradient');
   const { setBackgroundImage, setGradient } = useJournalStore();
   const [searchQuery, setSearchQuery] = useState("");
@@ -60,13 +60,13 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
   const handleGradientSelect = (gradient: string) => {
     setGradient(gradient);
     setBackgroundImage('');
-    onImageSelect('');
+    onBackgroundSelect('');
     toast.success('Gradient background applied');
   };
 
   const handleBackgroundSelect = (imageUrl: string) => {
     setBackgroundImage(imageUrl);
-    onImageSelect(imageUrl);
+    onBackgroundSelect(imageUrl);
     toast.success('Image background applied');
   };
 

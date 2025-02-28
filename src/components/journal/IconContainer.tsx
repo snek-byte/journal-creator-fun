@@ -7,6 +7,7 @@ interface IconContainerProps {
   selected: boolean;
   onSelect: (id: string) => void;
   onMove: (id: string, position: { x: number; y: number }) => void;
+  onUpdate: (id: string, updates: Partial<Icon>) => void;
   containerRef: React.RefObject<HTMLDivElement>;
 }
 
@@ -15,6 +16,7 @@ export function IconContainer({
   selected,
   onSelect,
   onMove,
+  onUpdate,
   containerRef
 }: IconContainerProps) {
   const iconRef = useRef<HTMLDivElement>(null);
