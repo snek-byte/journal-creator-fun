@@ -37,6 +37,8 @@ export function DrawingLayer({
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const sprayIntervalRef = useRef<number | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
+  // Store the current drawing state
+  const [currentDrawing, setCurrentDrawing] = useState<string>(initialDrawing || '');
 
   // Initialize canvas
   useEffect(() => {
@@ -65,6 +67,7 @@ export function DrawingLayer({
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
         setHasLoaded(true);
+        setCurrentDrawing(initialDrawing);
       };
       img.src = initialDrawing;
     }
@@ -340,10 +343,11 @@ export function DrawingLayer({
   const endDrawing = () => {
     if (!isDrawing) return;
     
-    setIsDrawing(false);
-    
-    // Save the drawing BEFORE resetting states
+    // Save drawing before clearing state
     saveDrawing();
+    
+    setIsDrawing(false);
+    setLastPoint(null);
     
     console.log("DrawingLayer: Ended drawing");
     
@@ -358,11 +362,16 @@ export function DrawingLayer({
     const canvas = canvasRef.current;
     if (!canvas || !onDrawingChange) return;
     
+    // Generate dataURL from canvas
     const dataUrl = canvas.toDataURL('image/png');
+    
+    // Track the current drawing state
+    setCurrentDrawing(dataUrl);
     
     // Debug: check if dataUrl is not empty
     console.log("DrawingLayer: Saving drawing, data URL length:", dataUrl.length);
     
+    // Send drawing to parent component
     onDrawingChange(dataUrl);
   };
 
@@ -402,6 +411,8 @@ export function DrawingLayer({
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
+    setCurrentDrawing('');
+    
     if (onDrawingChange) {
       onDrawingChange('');
     }
@@ -413,6 +424,26 @@ export function DrawingLayer({
     toast.info("Canvas cleared");
     console.log("DrawingLayer: Canvas cleared");
   };
+
+  // Ensure drawing is saved when component unmounts
+  useEffect(() => {
+    return () => {
+      if (isDrawing) {
+        saveDrawing();
+      }
+    };
+  }, [isDrawing]);
+
+  // Add continuous drawing capture
+  useEffect(() => {
+    const captureInterval = setInterval(() => {
+      if (isDrawing) {
+        saveDrawing();
+      }
+    }, 1000); // Save every second while drawing
+
+    return () => clearInterval(captureInterval);
+  }, [isDrawing]);
 
   return (
     <div 

@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { DrawingLayer } from './DrawingLayer';
@@ -93,6 +94,14 @@ export function JournalPreview({
     type: "image/jpeg",
     quality: 1.0
   });
+  const [localDrawing, setLocalDrawing] = useState<string>(drawing || '');
+
+  // Update local drawing when prop changes
+  useEffect(() => {
+    if (drawing) {
+      setLocalDrawing(drawing);
+    }
+  }, [drawing]);
 
   // Journal page styles
   const journalPageStyle = {
@@ -172,7 +181,10 @@ export function JournalPreview({
   };
 
   const handleDrawingChange = (dataUrl: string) => {
-    console.log("JournalPreview: Drawing changed, passing to parent component");
+    console.log("JournalPreview: Drawing changed, data URL length:", dataUrl.length);
+    // Update local state immediately
+    setLocalDrawing(dataUrl);
+    // Then propagate to parent
     onDrawingChange(dataUrl);
   };
 
@@ -418,16 +430,16 @@ export function JournalPreview({
                   tool={drawingTool}
                   color={drawingColor}
                   brushSize={brushSize}
-                  initialDrawing={drawing}
-                  onClear={() => onDrawingChange('')}
+                  initialDrawing={localDrawing}
+                  onClear={() => handleDrawingChange('')}
                 />
               </div>
             )}
 
             {/* Display existing drawing when not in drawing mode */}
-            {drawing && !isDrawingMode && (
+            {localDrawing && !isDrawingMode && (
               <img
-                src={drawing}
+                src={localDrawing}
                 alt="Drawing"
                 className="absolute inset-0 z-20 pointer-events-none"
                 style={{
