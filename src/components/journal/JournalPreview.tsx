@@ -316,13 +316,16 @@ export function JournalPreview({
     }
   };
 
+  // Check if the background is a paper texture (from transparenttextures.com)
+  const isPaperTexture = backgroundImage && backgroundImage.includes('transparenttextures.com');
+
   return (
     <div className={cn("relative flex-1 overflow-hidden bg-gray-50", className)}>
       <div className="absolute inset-0 flex items-center justify-center" onClick={handlePageClick}>
         {/* Journal page with proper styling */}
         <div style={journalPageStyle} className="journal-page">
-          {/* Background image layer */}
-          {backgroundImage && !isGradientBackground && (
+          {/* Background image layer - Handling for photo backgrounds */}
+          {backgroundImage && !isGradientBackground && !isPaperTexture && (
             <div 
               style={{
                 position: 'absolute',
@@ -334,6 +337,27 @@ export function JournalPreview({
                 backgroundColor: backgroundImage.includes('placehold.co') ? backgroundImage.split('/')[3] : undefined,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
+                filter: filter && filter !== 'none' ? getCssFilter(filter) : undefined,
+                zIndex: 1,
+                border: '1px solid #e0e0e0'
+              }}
+              className="journal-page"
+            />
+          )}
+          
+          {/* Paper texture background layer - Special handling for paper textures */}
+          {backgroundImage && isPaperTexture && (
+            <div 
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                backgroundImage: `url(${backgroundImage})`,
+                backgroundColor: '#faf9f6', // Off-white background for paper
+                backgroundSize: 'auto',
+                backgroundRepeat: 'repeat',
                 filter: filter && filter !== 'none' ? getCssFilter(filter) : undefined,
                 zIndex: 1,
                 border: '1px solid #e0e0e0'

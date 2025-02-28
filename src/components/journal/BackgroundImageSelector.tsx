@@ -12,14 +12,17 @@ interface BackgroundImageSelectorProps {
 export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageSelectorProps) {
   const [activeTab, setActiveTab] = useState("papers");
   
-  // Paper backgrounds with updated reliable URLs
+  // Paper backgrounds with actual paper textures
   const paperBackgrounds = [
-    { name: "White Paper", url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&h=1000&q=80" },
-    { name: "Kraft Paper", url: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=800&h=1000&q=80" },
-    { name: "Textured Paper", url: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&h=1000&q=80" },
-    { name: "Lined Paper", url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&h=1000&q=80" },
-    { name: "Grid Paper", url: "https://images.unsplash.com/photo-1426604966848-d7adac402bff?auto=format&fit=crop&w=800&h=1000&q=80" },
-    { name: "Vintage Paper", url: "https://images.unsplash.com/photo-1641154748135-8032a61a3f80?auto=format&fit=crop&w=800&h=1000&q=80" }
+    { name: "Plain White Paper", url: "https://www.transparenttextures.com/patterns/white-paper.png" },
+    { name: "Lined Paper", url: "https://www.transparenttextures.com/patterns/lined-paper.png" },
+    { name: "Handmade Paper", url: "https://www.transparenttextures.com/patterns/handmade-paper.png" },
+    { name: "Old Paper", url: "https://www.transparenttextures.com/patterns/old-paper.png" },
+    { name: "Textured Paper", url: "https://www.transparenttextures.com/patterns/textured-paper.png" },
+    { name: "Notebook Paper", url: "https://www.transparenttextures.com/patterns/notebook.png" },
+    { name: "Rice Paper", url: "https://www.transparenttextures.com/patterns/rice-paper.png" },
+    { name: "Cardboard", url: "https://www.transparenttextures.com/patterns/cardboard.png" },
+    { name: "Sandpaper", url: "https://www.transparenttextures.com/patterns/sandpaper.png" }
   ];
   
   // Nature background images
@@ -62,6 +65,17 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     console.log("Selected background:", url);
     onBackgroundSelect(url);
   };
+
+  // Helper function to generate a full CSS background for papers
+  const getPaperBackgroundStyle = (url: string) => {
+    // For paper textures, we want to tile them as patterns with a light color background
+    return {
+      backgroundImage: `url(${url})`,
+      backgroundSize: 'auto',
+      backgroundRepeat: 'repeat',
+      backgroundColor: '#faf9f6', // Slight off-white for paper
+    };
+  };
   
   return (
     <div className="space-y-2">
@@ -88,11 +102,8 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                 >
                   <div 
                     className="w-full h-full"
-                    style={{ 
-                      backgroundImage: `url(${bg.url})`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center'
-                    }}
+                    style={getPaperBackgroundStyle(bg.url)}
+                    title={bg.name}
                   />
                 </button>
               ))}
@@ -115,6 +126,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                       backgroundSize: 'cover',
                       backgroundPosition: 'center'
                     }}
+                    title={bg.name}
                   />
                 </button>
               ))}
@@ -137,6 +149,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                       backgroundSize: 'cover',
                       backgroundPosition: 'center'
                     }}
+                    title={bg.name}
                   />
                 </button>
               ))}
@@ -155,6 +168,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                   <div 
                     className="w-full h-full rounded" 
                     style={{ background: bg.url }}
+                    title={bg.name}
                   />
                 </button>
               ))}
