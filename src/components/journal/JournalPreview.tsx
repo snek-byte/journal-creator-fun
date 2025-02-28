@@ -1,7 +1,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Pencil, ImagePlus, Filter, FileImage, X } from 'lucide-react';
+import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Pencil, ImagePlus, Filter, FileImage } from 'lucide-react';
 import { moodOptions } from './config/editorConfig';
 import type { Mood, Sticker as StickerType, Icon } from '@/types/journal';
 import { applyTextStyle } from '@/utils/unicodeTextStyles';
@@ -86,7 +86,6 @@ export function JournalPreview({
   const [bgImagePosition, setBgImagePosition] = useState({ x: 50, y: 50 });
   const [isDraggingBgImage, setIsDraggingBgImage] = useState(false);
   const [isUploadedImage, setIsUploadedImage] = useState(false);
-  const [showImageDeleteButton, setShowImageDeleteButton] = useState(false);
 
   useEffect(() => {
     // Detect if the current background image is an uploaded image (data URL)
@@ -357,7 +356,6 @@ export function JournalPreview({
 
   const handleRemoveBackgroundImage = () => {
     onBackgroundSelect('');
-    setShowImageDeleteButton(false);
   };
 
   const handleBackgroundClick = () => {
@@ -365,7 +363,6 @@ export function JournalPreview({
     setShowDeleteButton(false);
     setSelectedIconId(null);
     setShowIconControls(false);
-    setShowImageDeleteButton(false);
   };
 
   const toggleDrawingMode = () => {
@@ -392,46 +389,33 @@ export function JournalPreview({
         {/* Render uploaded background image as a draggable element */}
         {isUploadedImage && backgroundImage && (
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="relative">
-              <img
-                ref={backgroundImageRef}
-                src={backgroundImage}
-                alt="Background"
-                className={`absolute max-w-[80%] max-h-[80%] 
-                  ${isDraggingBgImage ? 'ring-2 ring-primary/50' : 'hover:ring-2 hover:ring-primary/30'} 
-                  pointer-events-auto cursor-move transition-all
-                  ${showImageDeleteButton ? 'ring-2 ring-primary/30' : ''}
-                `}
-                style={{
-                  left: `${bgImagePosition.x}%`,
-                  top: `${bgImagePosition.y}%`,
-                  transform: 'translate(-50%, -50%)',
-                  filter: getFilterStyle(),
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowImageDeleteButton(prev => !prev);
-                }}
-                onMouseDown={handleBgImageMouseDown}
-                draggable={false}
-              />
-              
-              {/* Subtle delete button */}
-              {showImageDeleteButton && !isDialog && (
-                <button 
-                  className="absolute z-10 opacity-70 hover:opacity-100 transition-opacity bg-white/80 rounded-full p-1 shadow-sm"
-                  style={{
-                    left: `calc(${bgImagePosition.x}% + 40%)`, // Positioned relative to the image
-                    top: `calc(${bgImagePosition.y}% - 40%)`,
-                    transform: 'translate(-50%, -50%)',
-                  }}
-                  onClick={handleRemoveBackgroundImage}
-                  title="Remove image"
-                >
-                  <X className="h-4 w-4 text-gray-700" />
-                </button>
-              )}
-            </div>
+            <img
+              ref={backgroundImageRef}
+              src={backgroundImage}
+              alt="Background"
+              className={`absolute max-w-[80%] max-h-[80%] ${isDraggingBgImage ? 'ring-2 ring-primary/50' : 'hover:ring-2 hover:ring-primary/30'} pointer-events-auto cursor-move transition-all`}
+              style={{
+                left: `${bgImagePosition.x}%`,
+                top: `${bgImagePosition.y}%`,
+                transform: 'translate(-50%, -50%)',
+                filter: getFilterStyle(),
+              }}
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={handleBgImageMouseDown}
+              draggable={false}
+            />
+            {isUploadedImage && !isDialog && (
+              <Button
+                variant="destructive"
+                size="sm"
+                className="absolute z-10 right-4 top-4 pointer-events-auto"
+                onClick={handleRemoveBackgroundImage}
+                type="button"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Remove Image
+              </Button>
+            )}
           </div>
         )}
         
