@@ -147,7 +147,18 @@ export function useJournalEditor() {
 
   const handleIconAdd = (icon: Icon) => {
     try {
-      addIcon(icon);
+      console.log("Adding icon with ID:", icon.id, "and URL:", icon.url);
+      // First, make sure we're working with a complete icon object
+      const completeIcon: Icon = {
+        id: icon.id,
+        url: icon.url,
+        position: icon.position || { x: 50, y: 50 },
+        size: icon.size || 48,
+        color: icon.color || '#000000',
+        style: icon.style || 'outline'
+      };
+      
+      addIcon(completeIcon);
     } catch (error) {
       console.error("Error adding icon:", error);
     }
@@ -175,17 +186,20 @@ export function useJournalEditor() {
 
   const handleIconMove = (iconId: string, position: { x: number, y: number }) => {
     try {
+      console.log("Moving icon:", iconId, "to position:", position);
       // If position is off-screen, it's a deletion
       if (position.x < -900 || position.y < -900) {
         console.log("Removing icon with ID:", iconId);
         removeIcon(iconId);
         setSelectedIconId(null);
       } else {
-        setIcons(
-          (currentEntry.icons || []).map(i => 
-            i.id === iconId ? { ...i, position } : i
-          )
+        // Create updated icons array with the new position
+        const updatedIcons = (currentEntry.icons || []).map(i => 
+          i.id === iconId ? { ...i, position } : i
         );
+        
+        console.log("Updated icons:", updatedIcons);
+        setIcons(updatedIcons);
       }
     } catch (error) {
       console.error("Error moving/removing icon:", error);
@@ -259,7 +273,7 @@ export function useJournalEditor() {
       const end = textareaRef.current.selectionEnd;
       const text = currentEntry.text;
       
-      // Insert the emoji character directly, not a unicode reference
+      // Insert the emoji character directly
       const newText = text.substring(0, start) + emojiData.emoji + text.substring(end);
       
       // Update text with the emoji

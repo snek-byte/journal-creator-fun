@@ -45,7 +45,8 @@ export function IconContainer({
     const startPositionY = icon.position.y;
     
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging) return;
+      e.preventDefault();
+      e.stopPropagation();
       
       // Calculate the move delta in pixels
       const deltaX = e.clientX - startX;
@@ -60,10 +61,14 @@ export function IconContainer({
       const newY = startPositionY + deltaYPercent;
       
       // Update icon position
+      console.log(`Moving icon ${icon.id} to: (${newX}, ${newY})`);
       onMove(icon.id, { x: newX, y: newY });
     };
     
-    const handleMouseUp = () => {
+    const handleMouseUp = (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
       setIsDragging(false);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
@@ -80,7 +85,7 @@ export function IconContainer({
   return (
     <div
       ref={iconRef}
-      className={`absolute cursor-move select-none touch-none ${selected ? 'z-30' : 'z-20'}`}
+      className="absolute cursor-move select-none touch-none"
       style={{
         left: `${icon.position.x}%`,
         top: `${icon.position.y}%`,
@@ -88,6 +93,7 @@ export function IconContainer({
         border: selected ? '2px dashed rgba(59, 130, 246, 0.7)' : 'none',
         borderRadius: '4px',
         padding: selected ? '2px' : '0',
+        zIndex: selected ? 30 : 20,
         ...style
       }}
       onMouseDown={handleDragStart}
