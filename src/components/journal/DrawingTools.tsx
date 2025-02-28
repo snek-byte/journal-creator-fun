@@ -6,7 +6,7 @@ import {
   Eraser, 
   Highlighter, 
   Paintbrush, 
-  Spray, 
+  Droplets, // Replacing Spray with Droplets which is available in lucide-react
   Trash2,
   PaintBucket
 } from "lucide-react";
@@ -41,7 +41,7 @@ export function DrawingTools({
     { id: 'marker', name: 'Marker', icon: Paintbrush },
     { id: 'highlighter', name: 'Highlighter', icon: Highlighter },
     { id: 'eraser', name: 'Eraser', icon: Eraser },
-    { id: 'spray', name: 'Spray', icon: Spray },
+    { id: 'spray', name: 'Spray', icon: Droplets }, // Changed Spray to Droplets icon
     { id: 'fill', name: 'Fill', icon: PaintBucket },
   ];
   
