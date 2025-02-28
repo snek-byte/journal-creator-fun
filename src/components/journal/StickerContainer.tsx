@@ -1,5 +1,5 @@
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Sticker } from '@/types/journal';
 
 interface StickerContainerProps {
@@ -28,6 +28,73 @@ export function StickerContainer({
   const width = sticker.width || 100;
   const height = sticker.height || 100;
   
+  // Handle keyboard navigation when sticker is selected
+  useEffect(() => {
+    if (!selected || !stickerRef.current) return;
+    
+    // Make the sticker focusable when selected
+    stickerRef.current.tabIndex = 0;
+    stickerRef.current.focus();
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!selected) return;
+      
+      const STEP = 1; // movement step in percentage
+      const container = containerRef.current;
+      if (!container) return;
+      
+      // Get current position
+      const { x, y } = sticker.position;
+      
+      switch (e.key) {
+        case 'ArrowLeft':
+          e.preventDefault();
+          onMove(sticker.id, { x: x - STEP, y });
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          onMove(sticker.id, { x: x + STEP, y });
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          onMove(sticker.id, { x, y: y - STEP });
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          onMove(sticker.id, { x, y: y + STEP });
+          break;
+        case 'Delete':
+        case 'Backspace':
+          e.preventDefault();
+          // Move the sticker far off-screen to trigger deletion
+          onMove(sticker.id, { x: -1000, y: -1000 });
+          break;
+        case '+':
+        case '=':
+          if (onResize) {
+            e.preventDefault();
+            onResize(sticker.id, width + 10);
+          }
+          break;
+        case '-':
+          if (onResize) {
+            e.preventDefault();
+            onResize(sticker.id, Math.max(20, width - 10));
+          }
+          break;
+      }
+    };
+    
+    // Add event listener for keyboard navigation
+    stickerRef.current.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      if (stickerRef.current) {
+        stickerRef.current.removeEventListener('keydown', handleKeyDown);
+      }
+    };
+  }, [selected, sticker.id, sticker.position, onMove, onResize, width, containerRef]);
+  
   const handleDragStart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -48,7 +115,8 @@ export function StickerContainer({
     const startPositionY = sticker.position.y;
     
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging) return;
+      e.preventDefault();
+      e.stopPropagation();
       
       // Calculate the move delta in pixels
       const deltaX = e.clientX - startX;
@@ -66,7 +134,10 @@ export function StickerContainer({
       onMove(sticker.id, { x: newX, y: newY });
     };
     
-    const handleMouseUp = () => {
+    const handleMouseUp = (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
       setIsDragging(false);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
@@ -89,7 +160,8 @@ export function StickerContainer({
     const startWidth = width;
     
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizing) return;
+      e.preventDefault();
+      e.stopPropagation();
       
       // Calculate the resize delta
       const deltaX = e.clientX - startX;
@@ -103,7 +175,10 @@ export function StickerContainer({
       }
     };
     
-    const handleMouseUp = () => {
+    const handleMouseUp = (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
       setIsResizing(false);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
@@ -116,7 +191,7 @@ export function StickerContainer({
   return (
     <div
       ref={stickerRef}
-      className={`absolute cursor-move select-none touch-none ${selected ? 'z-30' : 'z-20'}`}
+      className="absolute cursor-move select-none touch-none"
       style={{
         left: `${sticker.position.x}%`,
         top: `${sticker.position.y}%`,
@@ -124,6 +199,7 @@ export function StickerContainer({
         width: `${width}px`,
         height: `${height}px`,
         border: selected ? '2px dashed rgba(59, 130, 246, 0.7)' : 'none',
+        zIndex: selected ? 30 : 20,
         ...style
       }}
       onMouseDown={handleDragStart}
@@ -131,6 +207,9 @@ export function StickerContainer({
         e.stopPropagation();
         onSelect(sticker.id);
       }}
+      role="button"
+      aria-label={`Sticker (use arrow keys to move, Delete to remove${onResize ? ', plus/minus to resize' : ''})`}
+      tabIndex={selected ? 0 : -1}
     >
       <img
         src={sticker.url}
@@ -145,6 +224,9 @@ export function StickerContainer({
         <div
           className="absolute bottom-0 right-0 w-5 h-5 bg-white border border-gray-300 rounded-full cursor-se-resize transform translate-x-1/3 translate-y-1/3 flex items-center justify-center"
           onMouseDown={handleResizeStart}
+          aria-label="Resize handle"
+          role="button"
+          tabIndex={-1}
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
