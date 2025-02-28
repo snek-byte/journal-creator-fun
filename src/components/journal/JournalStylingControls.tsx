@@ -43,10 +43,10 @@ export function JournalStylingControls({
   const currentSize = parseInt(fontSize.replace('px', '')) || 16;
   
   return (
-    <div className="mt-0 pt-0 -mx-4 -mt-2">
+    <div>
       {/* Text Styling Controls Section - Only visible when no emoji or icon is selected */}
       {!selectedIconId && !selectedEmojiId && (
-        <div className="space-y-1">
+        <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="text-[10px] font-medium">Text Style</label>
             <Select 
@@ -114,7 +114,7 @@ export function JournalStylingControls({
             </Select>
           </div>
 
-          <div>
+          <div className="col-span-2">
             <label className="text-[10px] font-medium">Font Color</label>
             <input
               type="color"
