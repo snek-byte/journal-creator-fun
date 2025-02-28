@@ -2,7 +2,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useJournalStore } from '@/store/journalStore';
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import type { Mood, Sticker, Icon } from '@/types/journal';
 import { EmojiClickData } from 'emoji-picker-react';
 
@@ -105,17 +104,14 @@ export function useJournalEditor() {
     try {
       console.log("Adding sticker to journal:", sticker);
       addSticker(sticker);
-      toast.success('Sticker added! Drag it to position on your journal.');
     } catch (error) {
       console.error("Error adding sticker:", error);
-      toast.error('Failed to add sticker. Please try again.');
     }
   };
 
   const handleIconAdd = (icon: Icon) => {
     try {
       addIcon(icon);
-      toast.success('Icon added! Drag it to position on your journal.');
     } catch (error) {
       console.error("Error adding icon:", error);
     }
@@ -129,7 +125,6 @@ export function useJournalEditor() {
         setStickers(
           (currentEntry.stickers || []).filter(s => s.id !== stickerId)
         );
-        toast.info('Sticker removed');
       } else {
         setStickers(
           (currentEntry.stickers || []).map(s => 
@@ -317,12 +312,10 @@ export function useJournalEditor() {
 
   const handleSendEmail = async () => {
     if (!emailAddress) {
-      toast.error("Please enter an email address");
       return;
     }
 
     if (!currentEntry.text.trim()) {
-      toast.error("Please write something in your journal before sending");
       return;
     }
 
@@ -330,7 +323,6 @@ export function useJournalEditor() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error("Please sign in to send emails");
         return;
       }
 
@@ -347,11 +339,9 @@ export function useJournalEditor() {
         throw new Error(response.error.message);
       }
 
-      toast.success("Journal entry sent to your email!");
       setShowEmailDialog(false);
     } catch (error: any) {
       console.error("Error sending email:", error);
-      toast.error("Failed to send email. Please try again.");
     } finally {
       setIsSending(false);
     }
@@ -380,7 +370,6 @@ export function useJournalEditor() {
     const defaultState = JSON.parse(JSON.stringify(currentEntry));
     setHistory([defaultState]);
     setCurrentHistoryIndex(0);
-    toast.success("Reset to default settings");
   };
 
   // New undo, redo, and reset functions
@@ -407,9 +396,6 @@ export function useJournalEditor() {
       setFilter(previousState.filter || 'none');
       
       setCurrentHistoryIndex(currentHistoryIndex - 1);
-      toast.info("Undid last change");
-    } else {
-      toast.info("Nothing to undo");
     }
   };
 
@@ -436,9 +422,6 @@ export function useJournalEditor() {
       setFilter(nextState.filter || 'none');
       
       setCurrentHistoryIndex(currentHistoryIndex + 1);
-      toast.info("Redid last change");
-    } else {
-      toast.info("Nothing to redo");
     }
   };
 

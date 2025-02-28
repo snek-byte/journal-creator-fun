@@ -197,11 +197,10 @@ export function JournalEditorSidebar({
         <TabsList className="w-full mb-4">
           <TabsTrigger value="write" className="flex-1">Write</TabsTrigger>
           <TabsTrigger value="decorate" className="flex-1">Decorate</TabsTrigger>
-          <TabsTrigger value="style" className="flex-1">Style</TabsTrigger>
         </TabsList>
 
         <ScrollArea className="flex-1 w-full pr-2">
-          {/* WRITING TAB - For text entry and mood selection */}
+          {/* WRITING TAB - For text entry, mood selection, and now text styling */}
           <TabsContent value="write" className="mt-0 h-full flex flex-col gap-4">
             <div className="space-y-4">
               <MoodSelector 
@@ -223,6 +222,22 @@ export function JournalEditorSidebar({
                 <span>{charCount} characters</span>
                 <span>{wordCount} words</span>
               </div>
+              
+              {/* Text Styling Controls moved here */}
+              <JournalStylingControls
+                font={currentEntry.font}
+                fontSize={currentEntry.fontSize}
+                fontWeight={currentEntry.fontWeight}
+                fontColor={currentEntry.fontColor}
+                gradient={currentEntry.gradient}
+                onFontChange={setFont}
+                onFontSizeChange={setFontSize}
+                onFontWeightChange={setFontWeight}
+                onFontColorChange={setFontColor}
+                onGradientChange={setGradient}
+                onTextStyleChange={setTextStyle}
+                selectedIconId={selectedIconId}
+              />
               
               <div>
                 <Popover>
@@ -389,25 +404,6 @@ export function JournalEditorSidebar({
                 )}
               </TabsContent>
             </Tabs>
-          </TabsContent>
-
-          {/* STYLE TAB - Text and icon styling */}
-          <TabsContent value="style" className="mt-0 space-y-4">
-            {/* Text/Icon styling controls */}
-            <JournalStylingControls
-              font={currentEntry.font}
-              fontSize={currentEntry.fontSize}
-              fontWeight={currentEntry.fontWeight}
-              fontColor={currentEntry.fontColor}
-              gradient={currentEntry.gradient}
-              onFontChange={setFont}
-              onFontSizeChange={setFontSize}
-              onFontWeightChange={setFontWeight}
-              onFontColorChange={setFontColor}
-              onGradientChange={setGradient}
-              onTextStyleChange={setTextStyle}
-              selectedIconId={selectedIconId}
-            />
           </TabsContent>
         </ScrollArea>
 

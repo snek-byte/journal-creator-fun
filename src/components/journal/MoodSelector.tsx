@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { moodOptions } from './config/editorConfig';
 import type { Mood } from '@/types/journal';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface MoodSelectorProps {
   mood?: Mood;
@@ -20,23 +21,23 @@ export function MoodSelector({
 }: MoodSelectorProps) {
   return (
     <div className="space-y-4">
-      <div>
-        <h3 className="text-sm font-medium mb-2">Today's Mood</h3>
-        <div className="grid grid-cols-5 gap-1">
-          {moodOptions.map((option) => (
-            <Button
-              key={option.value}
-              variant={mood === option.value ? "default" : "outline"}
-              className="h-10 px-0"
-              onClick={() => onMoodChange(option.value as Mood)}
-              title={option.label}
-            >
-              <span className="emoji" role="img" aria-label={option.label}>
-                {option.icon}
-              </span>
-            </Button>
-          ))}
-        </div>
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-medium">Today's Mood</label>
+        <Select value={mood} onValueChange={(value) => onMoodChange(value as Mood)}>
+          <SelectTrigger className="w-36">
+            <SelectValue placeholder="Select mood" />
+          </SelectTrigger>
+          <SelectContent>
+            {moodOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                <div className="flex items-center">
+                  <span className="mr-2">{option.icon}</span>
+                  <span>{option.label}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="flex items-center justify-between">

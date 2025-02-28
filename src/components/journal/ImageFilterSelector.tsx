@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Palette } from "lucide-react";
-import { toast } from "sonner";
 
 interface ImageFilterSelectorProps {
   onFilterChange: (filter: string) => void;
@@ -30,7 +29,6 @@ export function ImageFilterSelector({ onFilterChange }: ImageFilterSelectorProps
   const handleFilterSelect = (filter: string) => {
     setSelectedFilter(filter);
     onFilterChange(filter);
-    toast.success(`${filter === 'none' ? 'Filter removed' : 'Filter applied'}`);
   };
   
   return (

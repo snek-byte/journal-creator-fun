@@ -90,35 +90,41 @@ export function JournalPreview({
     quality: 1.0
   });
 
-  // Journal page styles
+  // Journal page styles - simplified for better gradient display
   const journalPageStyle = {
     backgroundColor: '#fff',
     boxShadow: '0 0 20px rgba(0, 0, 0, 0.1)',
-    borderRadius: '8px',
+    borderRadius: '8px', 
     width: '95%',
     height: '95%',
     margin: '2.5%',
     position: 'absolute' as 'absolute',
     overflow: 'hidden',
-    backgroundImage: backgroundImage 
-      ? `url(${backgroundImage})` 
-      : 'none',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
   };
 
-  // Gradient overlay for the journal page
-  const gradientOverlayStyle = {
+  // Separate background image and gradient containers
+  const backgroundImageStyle = backgroundImage ? {
     position: 'absolute' as 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundImage: gradient || 'none',
-    opacity: 0.8,
-    pointerEvents: 'none' as 'none',
+    backgroundImage: `url(${backgroundImage})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
     filter: filter && filter !== 'none' ? filter : undefined,
-  };
+  } : {};
+  
+  // Gradient overlay with full opacity
+  const gradientStyle = gradient ? {
+    position: 'absolute' as 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundImage: gradient,
+    filter: filter && filter !== 'none' ? filter : undefined,
+  } : {};
 
   useEffect(() => {
     if (!previewRef.current) return;
@@ -285,8 +291,11 @@ export function JournalPreview({
     <div className={cn("relative flex-1 overflow-hidden bg-gray-50", className)}>
       {/* Journal page with proper styling */}
       <div style={journalPageStyle}>
-        {/* Gradient overlay */}
-        {gradient && <div style={gradientOverlayStyle}></div>}
+        {/* Background image layer */}
+        {backgroundImage && <div style={backgroundImageStyle}></div>}
+        
+        {/* Gradient layer - separate from background image for better display */}
+        {gradient && <div style={gradientStyle}></div>}
 
         <div className="relative h-full w-full" ref={previewRef}>
           {/* Control overlay buttons */}
