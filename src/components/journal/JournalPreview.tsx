@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { DrawingLayer } from './DrawingLayer';
@@ -79,6 +78,7 @@ export function JournalPreview({
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
   const [previewWidth, setPreviewWidth] = useState(500);
   const [previewHeight, setPreviewHeight] = useState(500);
   const [isDraggingText, setIsDraggingText] = useState(false);
@@ -170,35 +170,48 @@ export function JournalPreview({
     onIconSelect('');
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleTextMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Add visual feedback for dragging
+    if (textRef.current) {
+      textRef.current.style.cursor = 'grabbing';
+    }
+    
     setIsDraggingText(true);
     
     if (!previewRef.current) return;
     
     const rect = previewRef.current.getBoundingClientRect();
-    // Calculate offset from click position to text center
-    const centerX = (textPosition.x / 100) * rect.width;
-    const centerY = (textPosition.y / 100) * rect.height;
+    const textRect = textRef.current?.getBoundingClientRect();
+    
+    if (!textRect) return;
+    
+    // Calculate the offset from the mouse position to the text's center
+    const textCenterX = textRect.left + textRect.width / 2;
+    const textCenterY = textRect.top + textRect.height / 2;
     
     setTextOffset({
-      x: e.clientX - rect.left - centerX,
-      y: e.clientY - rect.top - centerY
+      x: e.clientX - textCenterX,
+      y: e.clientY - textCenterY
     });
+    
+    // Add event listeners to handle dragging globally
+    document.addEventListener('mousemove', handleTextMouseMove);
+    document.addEventListener('mouseup', handleTextMouseUp);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleTextMouseMove = (e: MouseEvent) => {
     if (!isDraggingText || !previewRef.current) return;
     e.preventDefault();
-    e.stopPropagation();
     
     const rect = previewRef.current.getBoundingClientRect();
     
-    // Calculate new position based on mouse position and original offset
-    // Make sure we're calculating from the top-left of the container
-    const x = (e.clientX - rect.left - textOffset.x) / rect.width * 100;
-    const y = (e.clientY - rect.top - textOffset.y) / rect.height * 100;
+    // Calculate new position as percentage of container
+    // Adjust for the offset to keep the grab point consistent
+    const x = ((e.clientX - textOffset.x - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - textOffset.y - rect.top) / rect.height) * 100;
     
     // Ensure position stays within bounds (5%-95% to avoid going off-screen)
     const boundedX = Math.max(5, Math.min(95, x));
@@ -207,13 +220,18 @@ export function JournalPreview({
     onTextMove({ x: boundedX, y: boundedY });
   };
 
-  const handleMouseUp = (e: React.MouseEvent) => {
+  const handleTextMouseUp = (e: MouseEvent) => {
     e.preventDefault();
     setIsDraggingText(false);
-  };
-
-  const handleMouseLeave = () => {
-    setIsDraggingText(false);
+    
+    // Reset cursor
+    if (textRef.current) {
+      textRef.current.style.cursor = 'grab';
+    }
+    
+    // Remove the global event listeners
+    document.removeEventListener('mousemove', handleTextMouseMove);
+    document.removeEventListener('mouseup', handleTextMouseUp);
   };
 
   // This stops the general page click from affecting text position
@@ -350,9 +368,10 @@ export function JournalPreview({
               </button>
             </div>
 
-            {/* Text Area - Keep this at the top to ensure it doesn't disappear behind other elements */}
+            {/* Text Area - Improved dragging with visual indicators */}
             <div
-              className="absolute z-30 break-words w-[80%] font-normal cursor-move p-4 rounded hover:bg-gray-50/10"
+              ref={textRef}
+              className="absolute z-30 break-words w-[80%] font-normal cursor-grab p-4 rounded hover:bg-gray-50/10 border border-transparent hover:border-gray-200/20"
               style={{
                 left: `${textPosition.x}%`,
                 top: `${textPosition.y}%`,
@@ -370,11 +389,11 @@ export function JournalPreview({
                 minHeight: '2em', // Ensure text area is always visible
                 maxHeight: '80%', // Prevent text from extending too far
                 overflow: 'visible', // Allow text to flow outside if needed
+                opacity: isDraggingText ? 0.8 : 1, // Visual feedback when dragging
+                boxShadow: isDraggingText ? '0 0 10px rgba(0,0,0,0.1)' : 'none',
+                transition: 'box-shadow 0.1s, opacity 0.1s',
               }}
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseLeave}
+              onMouseDown={handleTextMouseDown}
               onClick={(e) => {
                 e.stopPropagation();
                 // Deselect any selected sticker or icon when clicking on text
