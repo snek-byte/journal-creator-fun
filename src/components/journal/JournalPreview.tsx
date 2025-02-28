@@ -1,6 +1,7 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Pencil } from 'lucide-react';
+import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Pencil, ImagePlus, Palette } from 'lucide-react';
 import { moodOptions } from './config/editorConfig';
 import type { Mood, Sticker, Icon } from '@/types/journal';
 import { applyTextStyle } from '@/utils/unicodeTextStyles';
@@ -85,12 +86,36 @@ export function JournalPreview({
   const [showIconControls, setShowIconControls] = useState(false);
   const [iconSize, setIconSize] = useState<number>(48);
   
+  // Icon grouping state
   const [iconGroups, setIconGroups] = useState<IconGroup[]>([]);
   const [ungroupedIcons, setUngroupedIcons] = useState<Icon[]>([]);
 
+  // Group icons when there are 3 or more
   useEffect(() => {
-    setUngroupedIcons(icons);
+    // Group management - initialize with all icons as ungrouped
+    const visibleIcons = icons.filter(icon => 
+      icon.position.x > -100 && icon.position.y > -100
+    );
+    setUngroupedIcons(visibleIcons);
   }, [icons]);
+
+  // Auto-group icons when there are 3 or more ungrouped
+  useEffect(() => {
+    if (ungroupedIcons.length >= 3) {
+      // Create a new group with all ungrouped icons
+      const avgX = ungroupedIcons.reduce((sum, icon) => sum + icon.position.x, 0) / ungroupedIcons.length;
+      const avgY = ungroupedIcons.reduce((sum, icon) => sum + icon.position.y, 0) / ungroupedIcons.length;
+      
+      const newGroup: IconGroup = {
+        id: `group-${Date.now()}`,
+        position: { x: avgX, y: avgY },
+        icons: [...ungroupedIcons]
+      };
+      
+      setIconGroups(prev => [...prev, newGroup]);
+      setUngroupedIcons([]);
+    }
+  }, [ungroupedIcons]);
 
   useEffect(() => {
     if (selectedIconId) {
@@ -334,37 +359,18 @@ export function JournalPreview({
     }
     onDrawingChange(dataUrl);
   };
-
-  useEffect(() => {
-    if (ungroupedIcons.length >= 3) {
-      const avgX = ungroupedIcons.reduce((sum, icon) => sum + icon.position.x, 0) / ungroupedIcons.length;
-      const avgY = ungroupedIcons.reduce((sum, icon) => sum + icon.position.y, 0) / ungroupedIcons.length;
-      
-      const newGroup: IconGroup = {
-        id: `group-${Date.now()}`,
-        position: { x: avgX, y: avgY },
-        icons: [...ungroupedIcons]
-      };
-      
-      setIconGroups(prev => [...prev, newGroup]);
-      setUngroupedIcons([]);
-      
-      ungroupedIcons.forEach(icon => {
-        onIconMove(icon.id, { x: -999, y: -999 });
-      });
-    }
-  }, [ungroupedIcons]);
-
+  
   const handleContainerMove = (groupId: string, position: { x: number, y: number }) => {
     setIconGroups(prev => 
       prev.map(group => group.id === groupId ? { ...group, position } : group)
     );
   };
-
+  
   const handleRemoveContainer = (groupId: string) => {
     const group = iconGroups.find(g => g.id === groupId);
     if (!group) return;
     
+    // Move all icons in the group back to visible positions
     group.icons.forEach((icon, index) => {
       const position = {
         x: group.position.x + (index * 5),
@@ -373,22 +379,56 @@ export function JournalPreview({
       onIconMove(icon.id, position);
     });
     
+    // Remove the group
     setIconGroups(prev => prev.filter(g => g.id !== groupId));
     
+    // Add icons back to ungrouped list
     setUngroupedIcons(prev => [...prev, ...group.icons]);
   };
 
   return (
     <div className="w-full lg:w-3/4 p-6 relative print:w-full print:p-0 min-h-[800px]">
       <div className="absolute top-4 right-4 z-10 flex gap-2 print:hidden">
+        {/* Use different icons for each selector */}
         <StickerSelector onStickerSelect={handleStickerAdd} />
         <IconSelector onIconSelect={handleIconAdd} />
         <BackgroundImageSelector onImageSelect={onBackgroundSelect} />
-        <ImageUploader onImageSelect={onBackgroundSelect} />
+        
+        {/* Image uploader with unique icon */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="hover:bg-accent hover:text-accent-foreground"
+          title="Upload an image"
+          onClick={() => {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            fileInput.onchange = (e) => {
+              const target = e.target as HTMLInputElement;
+              if (target.files && target.files[0]) {
+                const file = target.files[0];
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                  if (e.target && typeof e.target.result === 'string') {
+                    onBackgroundSelect(e.target.result);
+                  }
+                };
+                reader.readAsDataURL(file);
+              }
+            };
+            fileInput.click();
+          }}
+        >
+          <ImagePlus className="w-4 h-4" />
+        </Button>
+        
+        {/* Filter selector with unique icon */}
         <ImageFilterSelector 
           onFilterSelect={onFilterChange}
           currentFilter={filter || 'none'}
         />
+        
         <Button
           onClick={toggleDrawingMode}
           variant={isDrawingMode ? "secondary" : "ghost"}
@@ -398,6 +438,7 @@ export function JournalPreview({
         >
           <Pencil className="w-4 h-4" />
         </Button>
+        
         <Button
           onClick={onTogglePreview}
           variant="ghost"
@@ -506,6 +547,7 @@ export function JournalPreview({
                 />
               ))}
 
+              {/* Display icon containers */}
               {iconGroups.map((group) => (
                 <IconContainer
                   key={group.id}
@@ -517,6 +559,7 @@ export function JournalPreview({
                 />
               ))}
 
+              {/* Display ungrouped icons */}
               {ungroupedIcons.map((icon) => (
                 <img
                   key={icon.id}
