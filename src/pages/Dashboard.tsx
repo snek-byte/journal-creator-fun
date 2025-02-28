@@ -11,7 +11,7 @@ export default function Dashboard() {
   useEffect(() => {
     loadEntries();
     loadProgress();
-  }, []);
+  }, [loadEntries, loadProgress]);
 
   return (
     <div className="container mx-auto px-4 py-8">
