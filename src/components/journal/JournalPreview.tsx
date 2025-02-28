@@ -285,6 +285,61 @@ export function JournalPreview({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+  // Touch event handler for dragging text
+  const handleTextTouchStart = (e: React.TouchEvent) => {
+    if (isDrawingMode) return;
+    
+    e.stopPropagation();
+    if (e.touches.length !== 1) return;
+    
+    onTextDragStart();
+    setIsTextDragging(true);
+    setIsTextSelected(true);
+    
+    const touch = e.touches[0];
+    const startX = touch.clientX;
+    const startY = touch.clientY;
+    
+    const initialPosition = { ...textPosition };
+    
+    const containerRect = previewRef.current?.getBoundingClientRect();
+    if (!containerRect) return;
+    
+    const containerWidth = containerRect.width;
+    const containerHeight = containerRect.height;
+    
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (e.touches.length !== 1) return;
+      
+      const touch = e.touches[0];
+      
+      const deltaX = touch.clientX - startX;
+      const deltaY = touch.clientY - startY;
+      
+      const deltaXPercent = (deltaX / containerWidth) * 100;
+      const deltaYPercent = (deltaY / containerHeight) * 100;
+      
+      const newX = Math.max(10, Math.min(90, initialPosition.x + deltaXPercent));
+      const newY = Math.max(10, Math.min(90, initialPosition.y + deltaYPercent));
+      
+      onTextMove({ x: newX, y: newY });
+    };
+    
+    const handleTouchEnd = () => {
+      onTextDragEnd();
+      setIsTextDragging(false);
+      
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+    
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
+  };
+
   const getTextStyles = () => {
     const usingGradient = gradient && gradient !== '';
     
@@ -520,6 +575,7 @@ export function JournalPreview({
                   pointerEvents: isDrawingMode ? 'none' : 'auto'
                 }}
                 onMouseDown={handleTextElementDrag}
+                onTouchStart={handleTextTouchStart}
                 onClick={(e) => {
                   if (isDrawingMode) return;
                   e.stopPropagation();
@@ -533,6 +589,11 @@ export function JournalPreview({
                 }}
               >
                 {processText(text) || 'Start typing to add text...'}
+                {isTextSelected && !isTextDragging && (
+                  <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-primary/70 text-primary-foreground px-2 py-1 rounded text-xs whitespace-nowrap">
+                    Touch and drag to move
+                  </div>
+                )}
               </div>
 
               {textBoxes.map((textBox) => (
