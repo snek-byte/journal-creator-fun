@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { DrawingLayer } from './DrawingLayer';
@@ -172,6 +173,7 @@ export function JournalPreview({
   };
 
   const toggleDrawingMode = () => {
+    console.log("Toggling drawing mode from", isDrawingMode, "to", !isDrawingMode);
     setIsDrawingMode(!isDrawingMode);
   };
 

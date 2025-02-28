@@ -60,6 +60,7 @@ export function DrawingLayer({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Set initial canvas context properties
     ctx.strokeStyle = color;
     ctx.lineWidth = brushSize;
     ctx.lineCap = 'round';
@@ -81,10 +82,11 @@ export function DrawingLayer({
         window.clearInterval(sprayInterval.current);
       }
     };
-  }, [initialDrawing]);
+  }, [initialDrawing, color, brushSize]);
 
   // Update brush settings when they change
   useEffect(() => {
+    console.log("Tool changed:", tool, "Color:", color, "Size:", brushSize);
     if (!canvasRef.current) return;
     const ctx = canvasRef.current.getContext('2d');
     if (!ctx) return;
@@ -109,10 +111,9 @@ export function DrawingLayer({
 
   // Handle tool changes from parent
   useEffect(() => {
-    if (onToolChange) {
-      setIsActive(true);
-    }
-  }, [tool, onToolChange]);
+    console.log("Tool changed in DrawingLayer:", tool);
+    setIsActive(true);
+  }, [tool]);
 
   const saveState = () => {
     if (!canvasRef.current || !isDrawing) return;
@@ -141,6 +142,7 @@ export function DrawingLayer({
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isActive) return;
+    console.log("Starting drawing with tool:", tool);
     e.preventDefault();
     setIsDrawing(true);
     const point = getPoint(e);
@@ -426,27 +428,13 @@ export function DrawingLayer({
           "touch-none",
           isActive ? "cursor-crosshair" : "cursor-default"
         )}
-        onMouseDown={(e) => {
-          if (isActive) startDrawing(e);
-        }}
-        onMouseMove={(e) => {
-          if (isActive) draw(e);
-        }}
-        onMouseUp={() => {
-          if (isActive) stopDrawing();
-        }}
-        onMouseOut={() => {
-          if (isActive) stopDrawing();
-        }}
-        onTouchStart={(e) => {
-          if (isActive) startDrawing(e);
-        }}
-        onTouchMove={(e) => {
-          if (isActive) draw(e);
-        }}
-        onTouchEnd={() => {
-          if (isActive) stopDrawing();
-        }}
+        onMouseDown={(e) => startDrawing(e)}
+        onMouseMove={(e) => draw(e)}
+        onMouseUp={() => stopDrawing()}
+        onMouseOut={() => stopDrawing()}
+        onTouchStart={(e) => startDrawing(e)}
+        onTouchMove={(e) => draw(e)}
+        onTouchEnd={() => stopDrawing()}
       />
     </div>
   );
