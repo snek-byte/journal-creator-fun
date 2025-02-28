@@ -1,57 +1,69 @@
 
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { RefreshCw } from "lucide-react";
+import { RotateCcw, Zap } from "lucide-react";
+import type { Challenge } from '@/types/journal';
 
 interface DailyChallengeProps {
-  prompt: string;
-  onApply: () => void;
+  dailyChallenge: Challenge | null;
   onRefresh: () => void;
+  onApply: () => void;
 }
 
-export function DailyChallenge({ prompt, onRefresh }: DailyChallengeProps) {
-  const handleApplyPrompt = () => {
-    // Apply prompt automatically when clicked
-    onRefresh();
-  };
+export function DailyChallenge({ dailyChallenge, onRefresh, onApply }: DailyChallengeProps) {
+  if (!dailyChallenge) {
+    return (
+      <div className="bg-gradient-to-br from-blue-50 to-violet-50 rounded-lg p-1.5 w-full">
+        <div className="flex items-center mb-1">
+          <Zap className="h-2.5 w-2.5 text-violet-500 mr-0.5" />
+          <span className="text-[10px] font-medium text-violet-500 mr-0.5">Daily Challenge</span>
+          <button
+            className="ml-auto inline-flex p-0 bg-transparent border-0 text-gray-400 hover:text-gray-600 cursor-pointer"
+            onClick={onRefresh}
+            title="Get a new challenge"
+            type="button"
+          >
+            <RotateCcw className="h-2 w-2" />
+          </button>
+        </div>
+        
+        <div className="flex flex-col gap-1">
+          <p className="text-[10px] font-medium text-gray-800 italic font-merriweather line-clamp-2">
+            Loading challenge...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="p-2 h-auto">
-          🌟 Challenge
+    <div className="bg-gradient-to-br from-blue-50 to-violet-50 rounded-lg p-1.5 w-full">
+      <div className="flex items-center mb-1">
+        <Zap className="h-2.5 w-2.5 text-violet-500 mr-0.5" />
+        <span className="text-[10px] font-medium text-violet-500 mr-0.5">Daily Challenge</span>
+        <button
+          className="ml-auto inline-flex p-0 bg-transparent border-0 text-gray-400 hover:text-gray-600 cursor-pointer"
+          onClick={onRefresh}
+          title="Get a new challenge"
+          type="button"
+        >
+          <RotateCcw className="h-2 w-2" />
+        </button>
+      </div>
+      
+      <div className="flex flex-col gap-1">
+        <p className="text-[10px] font-medium text-gray-800 italic font-merriweather line-clamp-2">
+          {dailyChallenge.prompt}
+        </p>
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onApply}
+          className="text-[10px] font-medium text-violet-600 hover:bg-violet-100 self-start px-1 py-0 h-5"
+        >
+          Use this prompt
         </Button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="p-3 w-[260px]">
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <h4 className="text-sm font-medium">Daily Challenge</h4>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-5 w-5" 
-              onClick={onRefresh}
-              title="Get new challenge"
-            >
-              <RefreshCw className="h-3 w-3" />
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Write about:
-          </p>
-          <blockquote className="border-l-2 pl-2 text-sm italic">
-            {prompt || "Loading challenge..."}
-          </blockquote>
-          <Button 
-            size="sm" 
-            variant="secondary" 
-            className="w-full" 
-            onClick={handleApplyPrompt}
-          >
-            Get New Challenge
-          </Button>
-        </div>
-      </PopoverContent>
-    </Popover>
+      </div>
+    </div>
   );
 }

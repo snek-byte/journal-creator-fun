@@ -13,10 +13,9 @@ interface Point {
 
 interface DrawingLayerProps {
   className?: string;
-  width?: number;
-  height?: number;
+  width: number;
+  height: number;
   onDrawingChange?: (dataUrl: string) => void;
-  initialDrawing?: string;
 }
 
 // Organized color palette - Primary colors
@@ -41,7 +40,7 @@ const brushTypes = [
   { name: 'Eraser', value: 'eraser', icon: <Eraser className="h-2.5 w-2.5" /> },
 ];
 
-export function DrawingLayer({ className, width = 800, height = 600, onDrawingChange, initialDrawing }: DrawingLayerProps) {
+export function DrawingLayer({ className, width, height, onDrawingChange }: DrawingLayerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -61,7 +60,7 @@ export function DrawingLayer({ className, width = 800, height = 600, onDrawingCh
   const dragStartPos = useRef({ x: 0, y: 0 });
   const initialPos = useRef({ x: 0, y: 0 });
   const [compactMode, setCompactMode] = useState(false);
-  const [isActive, setIsActive] = useState(true);
+  const [isActive, setIsActive] = useState(false);
 
   // Initialize canvas on mount
   useEffect(() => {
@@ -79,15 +78,6 @@ export function DrawingLayer({ className, width = 800, height = 600, onDrawingCh
     ctx.lineJoin = 'round';
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Load initial drawing if provided
-    if (initialDrawing) {
-      const img = new Image();
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0);
-      };
-      img.src = initialDrawing;
-    }
-    
     const emptyState = canvas.toDataURL();
     setUndoStack([emptyState]);
     
@@ -98,7 +88,7 @@ export function DrawingLayer({ className, width = 800, height = 600, onDrawingCh
         window.clearInterval(sprayInterval.current);
       }
     };
-  }, [initialDrawing]);
+  }, []);
 
   // Update brush settings when they change
   useEffect(() => {
@@ -152,24 +142,6 @@ export function DrawingLayer({ className, width = 800, height = 600, onDrawingCh
 
   const handleDragEnd = () => {
     setIsDragging(false);
-  };
-
-  const handleCloseDrawTool = () => {
-    // Set isActive to false to hide the toolbar
-    setIsActive(false);
-    
-    // Clear the canvas
-    if (canvasRef.current) {
-      const ctx = canvasRef.current.getContext('2d');
-      if (ctx) {
-        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-      }
-    }
-    
-    // Notify parent that drawing is cleared
-    if (onDrawingChange) {
-      onDrawingChange('');
-    }
   };
 
   useEffect(() => {
@@ -507,8 +479,7 @@ export function DrawingLayer({ className, width = 800, height = 600, onDrawingCh
           left: `${position.x}px`, 
           top: `${position.y}px`,
           position: 'absolute',
-          zIndex: 50,
-          display: isActive ? 'block' : 'none'
+          zIndex: 50
         }}
         className={cn(
           "bg-white rounded-lg shadow-md border border-gray-200",
@@ -537,10 +508,12 @@ export function DrawingLayer({ className, width = 800, height = 600, onDrawingCh
             <Button
               variant="ghost"
               size="icon"
-              className="h-4 w-4 p-0 text-red-400 hover:text-red-600"
-              onClick={handleCloseDrawTool}
+              className="h-4 w-4 p-0 text-gray-400 hover:text-gray-600"
+              onClick={() => {
+                setIsActive(false);
+                onDrawingChange && onDrawingChange('');
+              }}
               type="button"
-              aria-label="Close drawing tool"
             >
               <X className="h-2.5 w-2.5" />
             </Button>
@@ -591,6 +564,7 @@ export function DrawingLayer({ className, width = 800, height = 600, onDrawingCh
                     className="h-5 p-0"
                     onClick={() => {
                       handleBrushTypeChange(brush.value);
+                      setIsActive(true);
                     }}
                     title={brush.name}
                     type="button"

@@ -40,7 +40,6 @@ export function IconContainer({
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation();
-    e.preventDefault();
     
     // Select this icon
     onSelect(icon.id);
@@ -62,16 +61,12 @@ export function IconContainer({
       const containerRect = containerRef.current.getBoundingClientRect();
       
       // Calculate the new position as a percentage of the container
-      const x = e.clientX - offsetX - containerRect.left;
-      const y = e.clientY - offsetY - containerRect.top;
-      
-      // Calculate position as a percentage
-      const percentX = (x / containerRect.width) * 100;
-      const percentY = (y / containerRect.height) * 100;
+      const x = ((e.clientX - offsetX - containerRect.left + iconRect.width / 2) / containerRect.width) * 100;
+      const y = ((e.clientY - offsetY - containerRect.top + iconRect.height / 2) / containerRect.height) * 100;
       
       // Ensure position stays within bounds (0-100%)
-      const boundedX = Math.max(0, Math.min(100, percentX));
-      const boundedY = Math.max(0, Math.min(100, percentY));
+      const boundedX = Math.max(0, Math.min(100, x));
+      const boundedY = Math.max(0, Math.min(100, y));
       
       onMove(icon.id, { x: boundedX, y: boundedY });
     };
@@ -97,10 +92,6 @@ export function IconContainer({
         transform: 'translate(-50%, -50%)',
       }}
       onMouseDown={handleMouseDown}
-      onClick={(e) => {
-        e.stopPropagation();
-        e.preventDefault();
-      }}
       tabIndex={0} // Make focusable for keyboard events
     >
       <img
@@ -112,7 +103,6 @@ export function IconContainer({
           filter: icon.color ? `drop-shadow(0 0 0 ${icon.color})` : undefined,
         }}
         draggable={false}
-        onDragStart={(e) => e.preventDefault()}
       />
     </div>
   );
