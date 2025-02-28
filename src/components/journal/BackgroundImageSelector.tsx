@@ -14,20 +14,22 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
   
   // Paper backgrounds with reliable URLs
   const paperBackgrounds = [
-    { name: "White Paper", url: "https://placehold.co/800x1000/FFFFFF/FFFFFF" },
-    { name: "Kraft Paper", url: "https://placehold.co/800x1000/D2B48C/D2B48C" },
-    { name: "Textured Paper", url: "https://placehold.co/800x1000/F5F5F5/F5F5F5" },
-    { name: "Lined Paper", url: "https://placehold.co/800x1000/FFFFFF/FFFFFF" },
-    { name: "Grid Paper", url: "https://placehold.co/800x1000/FFFFFF/FFFFFF" },
-    { name: "Vintage Paper", url: "https://placehold.co/800x1000/F8F0E3/F8F0E3" }
+    { name: "White Paper", url: "https://images.unsplash.com/photo-1528459105426-b9548367069b?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Kraft Paper", url: "https://images.unsplash.com/photo-1517016006573-2eef11b85cc4?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Textured Paper", url: "https://images.unsplash.com/photo-1523529364348-e930dcb39642?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Lined Paper", url: "https://images.unsplash.com/photo-1544114017-b6389c8c570b?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Grid Paper", url: "https://images.unsplash.com/photo-1600456899121-68eda5705257?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Vintage Paper", url: "https://images.unsplash.com/photo-1543857778-c4a1a3e0b2eb?auto=format&fit=crop&w=800&h=1000&q=80" }
   ];
   
   // Nature background images
   const natureBackgrounds = [
-    { name: "Mountains", url: "https://placehold.co/800x1000/2E8BC0/2E8BC0" },
-    { name: "Beach", url: "https://placehold.co/800x1000/87CEEB/87CEEB" },
-    { name: "Forest", url: "https://placehold.co/800x1000/228B22/228B22" },
-    { name: "Sunset", url: "https://placehold.co/800x1000/FFA500/FFA500" }
+    { name: "Mountains", url: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Beach", url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Forest", url: "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Sunset", url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Waterfall", url: "https://images.unsplash.com/photo-1467890947394-8171244e5410?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Desert", url: "https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?auto=format&fit=crop&w=800&h=1000&q=80" }
   ];
   
   // Background gradients (not for text)
@@ -48,10 +50,12 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
 
   // Patterns and textures with reliable URLs
   const patternBackgrounds = [
-    { name: "Abstract", url: "https://placehold.co/800x1000/E0E0E0/E0E0E0" },
-    { name: "Geometric", url: "https://placehold.co/800x1000/D0D0D0/D0D0D0" },
-    { name: "Marble", url: "https://placehold.co/800x1000/F0F0F0/F0F0F0" },
-    { name: "Wood", url: "https://placehold.co/800x1000/CD853F/CD853F" }
+    { name: "Abstract", url: "https://images.unsplash.com/photo-1550537687-c91072c4792d?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Geometric", url: "https://images.unsplash.com/photo-1528459105426-b9548367069b?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Marble", url: "https://images.unsplash.com/photo-1517479149777-5f3b1511d5ad?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Wood", url: "https://images.unsplash.com/photo-1566041510639-8d95a2490bfb?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Clouds", url: "https://images.unsplash.com/photo-1513002749550-c59d786b8e6c?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Concrete", url: "https://images.unsplash.com/photo-1523821741446-edb2b68bb7a0?auto=format&fit=crop&w=800&h=1000&q=80" }
   ];
   
   const handleBackgroundSelect = (url: string) => {
@@ -85,8 +89,9 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                   <div 
                     className="w-full h-full"
                     style={{ 
-                      backgroundColor: bg.url.includes('placehold.co') ? bg.url.split('/')[3] : 'white',
-                      border: '1px solid #e0e0e0'
+                      backgroundImage: `url(${bg.url})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
                     }}
                   />
                 </button>
@@ -106,8 +111,9 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                   <div 
                     className="w-full h-full"
                     style={{ 
-                      backgroundColor: bg.url.includes('placehold.co') ? bg.url.split('/')[3] : 'lightblue',
-                      border: '1px solid #e0e0e0'
+                      backgroundImage: `url(${bg.url})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
                     }}
                   />
                 </button>
@@ -127,8 +133,9 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                   <div 
                     className="w-full h-full"
                     style={{ 
-                      backgroundColor: bg.url.includes('placehold.co') ? bg.url.split('/')[3] : 'gray',
-                      border: '1px solid #e0e0e0'
+                      backgroundImage: `url(${bg.url})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
                     }}
                   />
                 </button>
