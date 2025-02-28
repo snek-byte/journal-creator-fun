@@ -63,6 +63,7 @@ export function EmojiContainer({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isSelected && (e.key === 'Delete' || e.key === 'Backspace')) {
+        console.log("Delete key pressed for emoji:", emoji.id);
         onMove(emoji.id, { x: -999, y: -999 });
       }
     };
@@ -125,34 +126,28 @@ export function EmojiContainer({
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
-        userSelect: 'none',
         transform: `rotate(${rotateDeg}deg)`,
+        userSelect: 'none',
       }}
       onMouseDown={handleMouseDown}
       onDoubleClick={handleDoubleClick}
-      onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
-      onContextMenu={(e) => { e.stopPropagation(); e.preventDefault(); }}
+      onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+      }}
     >
-      <div
-        className="emoji-container"
-        style={{
-          fontSize: `${emoji.size}px`,
-          lineHeight: 1,
-          textAlign: 'center',
-          fontFamily: '"Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Symbol", sans-serif',
-          display: 'inline-block',
-          width: '1em',
-          height: '1em',
-        }}
-      >
+      <div className="emoji-container" style={{ fontSize: `${emoji.size}px` }}>
         {emoji.symbol}
       </div>
       
       {isSelected && (
-        <div
-          className="absolute -bottom-2 -right-2 w-4 h-4 bg-white border border-gray-400 rounded-full cursor-se-resize z-20"
-          onMouseDown={handleResizeStart}
-        />
+        <>
+          {/* Resize handle */}
+          <div
+            className="absolute -bottom-2 -right-2 w-4 h-4 bg-white border border-gray-400 rounded-full cursor-se-resize z-20"
+            onMouseDown={handleResizeStart}
+          />
+        </>
       )}
     </div>
   );

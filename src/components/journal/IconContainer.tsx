@@ -23,6 +23,7 @@ export function IconContainer({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (selected && (e.key === 'Delete' || e.key === 'Backspace')) {
+        console.log("Delete key pressed for icon:", icon.id);
         onMove(icon.id, { x: -999, y: -999 });
       }
     };
@@ -41,13 +42,15 @@ export function IconContainer({
     e.stopPropagation();
     e.preventDefault();
     
-    // Immediately select this icon without popup
+    // Select this icon
     onSelect(icon.id);
     
-    if (!containerRef.current || !iconRef.current) return;
+    if (!containerRef.current) return;
     
     const containerRect = containerRef.current.getBoundingClientRect();
-    const iconRect = iconRef.current.getBoundingClientRect();
+    const iconRect = iconRef.current?.getBoundingClientRect();
+    
+    if (!iconRect) return;
     
     // Calculate the offset from the mouse position to the icon's top-left corner
     const offsetX = e.clientX - iconRect.left;
@@ -59,12 +62,16 @@ export function IconContainer({
       const containerRect = containerRef.current.getBoundingClientRect();
       
       // Calculate the new position as a percentage of the container
-      const x = ((e.clientX - offsetX - containerRect.left + iconRect.width / 2) / containerRect.width) * 100;
-      const y = ((e.clientY - offsetY - containerRect.top + iconRect.height / 2) / containerRect.height) * 100;
+      const x = e.clientX - offsetX - containerRect.left;
+      const y = e.clientY - offsetY - containerRect.top;
+      
+      // Calculate position as a percentage
+      const percentX = (x / containerRect.width) * 100;
+      const percentY = (y / containerRect.height) * 100;
       
       // Ensure position stays within bounds (0-100%)
-      const boundedX = Math.max(0, Math.min(100, x));
-      const boundedY = Math.max(0, Math.min(100, y));
+      const boundedX = Math.max(0, Math.min(100, percentX));
+      const boundedY = Math.max(0, Math.min(100, percentY));
       
       onMove(icon.id, { x: boundedX, y: boundedY });
     };
@@ -90,10 +97,11 @@ export function IconContainer({
         transform: 'translate(-50%, -50%)',
       }}
       onMouseDown={handleMouseDown}
-      onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
-      onContextMenu={(e) => { e.stopPropagation(); e.preventDefault(); }}
-      onDoubleClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
-      tabIndex={0}
+      onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+      }}
+      tabIndex={0} // Make focusable for keyboard events
     >
       <img
         src={icon.url}
@@ -104,7 +112,7 @@ export function IconContainer({
           filter: icon.color ? `drop-shadow(0 0 0 ${icon.color})` : undefined,
         }}
         draggable={false}
-        onDragStart={(e) => { e.preventDefault(); }}
+        onDragStart={(e) => e.preventDefault()}
       />
     </div>
   );

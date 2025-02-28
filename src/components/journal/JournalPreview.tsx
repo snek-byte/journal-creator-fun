@@ -217,7 +217,13 @@ export function JournalPreview({
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => setSelectedSidebarItem(null)}
+                onClick={() => {
+                  if (selectedSidebarItem === 'drawing') {
+                    handleCloseDrawingTool();
+                  } else {
+                    setSelectedSidebarItem(null);
+                  }
+                }}
                 className="h-6 w-6 p-0"
               >
                 <X className="h-4 w-4" />
