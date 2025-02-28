@@ -19,6 +19,7 @@ import { HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface DrawingToolsProps {
   onToolSelect: (tool: string) => void;
@@ -44,7 +45,6 @@ export function DrawingTools({
   onDrawingModeToggle
 }: DrawingToolsProps) {
   const [selectedType, setSelectedType] = useState<'brush' | 'fill'>('brush');
-  const [showColorPicker, setShowColorPicker] = useState(true);
   
   const tools = [
     { 
@@ -106,9 +106,21 @@ export function DrawingTools({
     }
   };
   
-  const toggleColorPicker = () => {
-    setShowColorPicker(!showColorPicker);
-  };
+  // Define common color presets
+  const colorPresets = [
+    "#000000", // Black
+    "#FFFFFF", // White
+    "#FF0000", // Red
+    "#00FF00", // Green
+    "#0000FF", // Blue
+    "#FFFF00", // Yellow
+    "#FF00FF", // Magenta
+    "#00FFFF", // Cyan
+    "#FFA500", // Orange
+    "#800080", // Purple
+    "#A52A2A", // Brown
+    "#808080", // Gray
+  ];
   
   return (
     <div className="space-y-4">
@@ -198,37 +210,50 @@ export function DrawingTools({
       
       <Separator className="my-2" />
       
-      {/* Color Picker Section */}
+      {/* Color Picker Section - Using Popover for better positioning */}
       <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <Label className="text-xs">Color</Label>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-6 w-6 p-0" 
-            onClick={toggleColorPicker}
-          >
-            {showColorPicker ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
-          </Button>
-        </div>
+        <Label className="text-xs">Color</Label>
         
-        {/* Color Preview */}
-        <div className="flex gap-2 items-center">
-          <div 
-            className="w-8 h-8 rounded-full border border-gray-200" 
-            style={{ backgroundColor: currentColor }}
-          />
-          <div className="text-xs font-mono">{currentColor}</div>
+        <div className="flex items-center gap-2">
+          {/* Color Display */}
+          <div className="flex items-center gap-2 flex-1">
+            <div 
+              className="w-8 h-8 rounded-full border border-gray-200 shadow-sm" 
+              style={{ backgroundColor: currentColor }}
+            />
+            <div className="text-xs font-mono">{currentColor}</div>
+          </div>
+          
+          {/* Color Picker Popover */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8 px-2">
+                Pick Color
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-3" align="end">
+              <div className="space-y-3">
+                <HexColorPicker 
+                  color={currentColor} 
+                  onChange={onColorChange}
+                  style={{ width: '200px', height: '200px' }}
+                />
+                
+                <div className="grid grid-cols-6 gap-1 mt-2">
+                  {colorPresets.map((color) => (
+                    <button
+                      key={color}
+                      className="w-6 h-6 rounded-full border border-gray-200 cursor-pointer hover:scale-110 transition-transform"
+                      style={{ backgroundColor: color }}
+                      onClick={() => onColorChange(color)}
+                      title={color}
+                    />
+                  ))}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
-        
-        {/* Expandable Color Picker */}
-        {showColorPicker && (
-          <HexColorPicker 
-            color={currentColor} 
-            onChange={onColorChange} 
-            className="w-full"
-          />
-        )}
       </div>
       
       <Separator className="my-2" />

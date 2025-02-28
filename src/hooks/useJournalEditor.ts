@@ -2,33 +2,11 @@
 import { useState, useRef, useEffect, useReducer } from 'react';
 import { useJournalStore } from '@/store/journalStore';
 import { supabase } from "@/integrations/supabase/client";
-import type { Mood, Sticker, Icon } from '@/types/journal';
+import type { Mood, Sticker, Icon, HistoryEntry } from '@/types/journal';
 import { EmojiClickData } from 'emoji-picker-react';
 import { toast } from "sonner";
 
-// Define actions for our reducer
-type Action = 
-  | { type: 'UPDATE_ENTRY', payload: Partial<typeof initialState> }
-  | { type: 'SET_TEXT', payload: string }
-  | { type: 'SET_FONT', payload: string }
-  | { type: 'SET_FONT_SIZE', payload: string }
-  | { type: 'SET_FONT_WEIGHT', payload: string }
-  | { type: 'SET_FONT_COLOR', payload: string }
-  | { type: 'SET_GRADIENT', payload: string }
-  | { type: 'SET_MOOD', payload: Mood | undefined }
-  | { type: 'SET_IS_PUBLIC', payload: boolean }
-  | { type: 'SET_TEXT_STYLE', payload: string }
-  | { type: 'SET_STICKERS', payload: Sticker[] }
-  | { type: 'SET_ICONS', payload: Icon[] }
-  | { type: 'SET_TEXT_POSITION', payload: { x: number, y: number } }
-  | { type: 'SET_BACKGROUND_IMAGE', payload: string }
-  | { type: 'SET_DRAWING', payload: string }
-  | { type: 'SET_FILTER', payload: string }
-  | { type: 'RESET' }
-  | { type: 'UNDO' }
-  | { type: 'REDO' };
-
-// Our initial state
+// Define initial state
 const initialState = {
   text: '',
   font: 'sans-serif',
@@ -47,136 +25,326 @@ const initialState = {
   filter: 'none'
 };
 
-// History state type
-type HistoryState = {
-  past: typeof initialState[];
-  present: typeof initialState;
-  future: typeof initialState[];
+// We use this type for both the state and the history entries
+type JournalState = typeof initialState;
+
+// Action types
+type Action = 
+  | { type: 'SET_STATE'; payload: JournalState }
+  | { type: 'SET_TEXT'; payload: string }
+  | { type: 'SET_FONT'; payload: string }
+  | { type: 'SET_FONT_SIZE'; payload: string }
+  | { type: 'SET_FONT_WEIGHT'; payload: string }
+  | { type: 'SET_FONT_COLOR'; payload: string }
+  | { type: 'SET_GRADIENT'; payload: string }
+  | { type: 'SET_MOOD'; payload: Mood | undefined }
+  | { type: 'SET_IS_PUBLIC'; payload: boolean }
+  | { type: 'SET_TEXT_STYLE'; payload: string }
+  | { type: 'SET_STICKERS'; payload: Sticker[] }
+  | { type: 'SET_ICONS'; payload: Icon[] }
+  | { type: 'SET_TEXT_POSITION'; payload: { x: number, y: number } }
+  | { type: 'SET_BACKGROUND_IMAGE'; payload: string }
+  | { type: 'SET_DRAWING'; payload: string }
+  | { type: 'SET_FILTER'; payload: string }
+  | { type: 'RESET' }
+  | { type: 'UNDO' }
+  | { type: 'REDO' };
+
+interface EditorState {
+  currentState: JournalState;
+  history: JournalState[];
+  historyIndex: number;
+}
+
+// Initialize the editor state
+const initialEditorState: EditorState = {
+  currentState: { ...initialState },
+  history: [],
+  historyIndex: -1
 };
 
-// Our reducer function
-function historyReducer(state: HistoryState, action: Action): HistoryState {
-  const { past, present, future } = state;
+// Create a deep copy function
+const deepCopy = <T>(obj: T): T => {
+  return JSON.parse(JSON.stringify(obj));
+};
 
+// Editor reducer
+function editorReducer(state: EditorState, action: Action): EditorState {
+  console.log("REDUCER ACTION:", action.type);
+  
+  // Helper to add current state to history
+  const addToHistory = (currentState: JournalState) => {
+    // Get a copy of the current history up to the current index
+    const newHistory = state.history.slice(0, state.historyIndex + 1);
+    // Add the current state to history
+    return [...newHistory, deepCopy(currentState)];
+  };
+  
   switch (action.type) {
-    case 'UPDATE_ENTRY':
+    case 'SET_STATE': {
       return {
-        past: [...past, present],
-        present: { ...present, ...action.payload },
-        future: []
+        ...state,
+        currentState: action.payload,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
       };
-    case 'SET_TEXT':
+    }
+    
+    case 'SET_TEXT': {
+      const newState = {
+        ...state.currentState,
+        text: action.payload
+      };
+      
       return {
-        past: [...past, present],
-        present: { ...present, text: action.payload },
-        future: []
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
       };
-    case 'SET_FONT':
+    }
+    
+    case 'SET_FONT': {
+      const newState = {
+        ...state.currentState,
+        font: action.payload
+      };
+      
       return {
-        past: [...past, present],
-        present: { ...present, font: action.payload },
-        future: []
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
       };
-    case 'SET_FONT_SIZE':
+    }
+    
+    case 'SET_FONT_SIZE': {
+      const newState = {
+        ...state.currentState,
+        fontSize: action.payload
+      };
+      
       return {
-        past: [...past, present],
-        present: { ...present, fontSize: action.payload },
-        future: []
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
       };
-    case 'SET_FONT_WEIGHT':
+    }
+    
+    case 'SET_FONT_WEIGHT': {
+      const newState = {
+        ...state.currentState,
+        fontWeight: action.payload
+      };
+      
       return {
-        past: [...past, present],
-        present: { ...present, fontWeight: action.payload },
-        future: []
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
       };
-    case 'SET_FONT_COLOR':
+    }
+    
+    case 'SET_FONT_COLOR': {
+      const newState = {
+        ...state.currentState,
+        fontColor: action.payload
+      };
+      
       return {
-        past: [...past, present],
-        present: { ...present, fontColor: action.payload },
-        future: []
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
       };
-    case 'SET_GRADIENT':
+    }
+    
+    case 'SET_GRADIENT': {
+      const newState = {
+        ...state.currentState,
+        gradient: action.payload
+      };
+      
       return {
-        past: [...past, present],
-        present: { ...present, gradient: action.payload },
-        future: []
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
       };
-    case 'SET_MOOD':
+    }
+    
+    case 'SET_MOOD': {
+      const newState = {
+        ...state.currentState,
+        mood: action.payload
+      };
+      
       return {
-        past: [...past, present],
-        present: { ...present, mood: action.payload },
-        future: []
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
       };
-    case 'SET_IS_PUBLIC':
+    }
+    
+    case 'SET_IS_PUBLIC': {
+      const newState = {
+        ...state.currentState,
+        isPublic: action.payload
+      };
+      
       return {
-        past: [...past, present],
-        present: { ...present, isPublic: action.payload },
-        future: []
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
       };
-    case 'SET_TEXT_STYLE':
+    }
+    
+    case 'SET_TEXT_STYLE': {
+      const newState = {
+        ...state.currentState,
+        textStyle: action.payload
+      };
+      
       return {
-        past: [...past, present],
-        present: { ...present, textStyle: action.payload },
-        future: []
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
       };
-    case 'SET_STICKERS':
+    }
+    
+    case 'SET_STICKERS': {
+      const newState = {
+        ...state.currentState,
+        stickers: action.payload
+      };
+      
       return {
-        past: [...past, present],
-        present: { ...present, stickers: action.payload },
-        future: []
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
       };
-    case 'SET_ICONS':
+    }
+    
+    case 'SET_ICONS': {
+      const newState = {
+        ...state.currentState,
+        icons: action.payload
+      };
+      
       return {
-        past: [...past, present],
-        present: { ...present, icons: action.payload },
-        future: []
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
       };
-    case 'SET_TEXT_POSITION':
+    }
+    
+    case 'SET_TEXT_POSITION': {
+      const newState = {
+        ...state.currentState,
+        textPosition: action.payload
+      };
+      
       return {
-        past: [...past, present],
-        present: { ...present, textPosition: action.payload },
-        future: []
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
       };
-    case 'SET_BACKGROUND_IMAGE':
+    }
+    
+    case 'SET_BACKGROUND_IMAGE': {
+      const newState = {
+        ...state.currentState,
+        backgroundImage: action.payload
+      };
+      
       return {
-        past: [...past, present],
-        present: { ...present, backgroundImage: action.payload },
-        future: []
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
       };
-    case 'SET_DRAWING':
+    }
+    
+    case 'SET_DRAWING': {
+      const newState = {
+        ...state.currentState,
+        drawing: action.payload
+      };
+      
       return {
-        past: [...past, present],
-        present: { ...present, drawing: action.payload },
-        future: []
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
       };
-    case 'SET_FILTER':
+    }
+    
+    case 'SET_FILTER': {
+      const newState = {
+        ...state.currentState,
+        filter: action.payload
+      };
+      
       return {
-        past: [...past, present],
-        present: { ...present, filter: action.payload },
-        future: []
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
       };
-    case 'RESET':
+    }
+    
+    case 'RESET': {
       return {
-        past: [],
-        present: initialState,
-        future: []
+        ...state,
+        currentState: { ...initialState },
+        history: [...state.history, deepCopy(state.currentState)],
+        historyIndex: state.historyIndex + 1
       };
-    case 'UNDO':
-      if (past.length === 0) return state;
-      const previous = past[past.length - 1];
+    }
+    
+    case 'UNDO': {
+      console.log("UNDO: historyIndex =", state.historyIndex);
+      // Can't undo if we're at the beginning or have no history
+      if (state.historyIndex < 0 || state.history.length === 0) {
+        console.log("Cannot undo - no history or at beginning");
+        return state;
+      }
+      
+      const previousState = state.history[state.historyIndex];
+      console.log("UNDO: Previous state =", previousState);
+      
       return {
-        past: past.slice(0, past.length - 1),
-        present: previous,
-        future: [present, ...future]
+        ...state,
+        currentState: deepCopy(previousState),
+        historyIndex: state.historyIndex - 1
       };
-    case 'REDO':
-      if (future.length === 0) return state;
-      const next = future[0];
+    }
+    
+    case 'REDO': {
+      console.log("REDO: historyIndex =", state.historyIndex);
+      // Can't redo if we're at the end of the history
+      if (state.historyIndex >= state.history.length - 1) {
+        console.log("Cannot redo - at end of history");
+        return state;
+      }
+      
+      const nextState = state.history[state.historyIndex + 1];
+      console.log("REDO: Next state =", nextState);
+      
       return {
-        past: [...past, present],
-        present: next,
-        future: future.slice(1)
+        ...state,
+        currentState: deepCopy(nextState),
+        historyIndex: state.historyIndex + 1
       };
+    }
+    
     default:
       return state;
   }
@@ -203,21 +371,22 @@ export function useJournalEditor() {
     setBackgroundImage: setStoreBackgroundImage,
     setDrawing: setStoreDrawing,
     setFilter: setStoreFilter,
-    addSticker: storeAddSticker,
-    addIcon: storeAddIcon,
-    updateIcon: storeUpdateIcon,
-    removeIcon: storeRemoveIcon,
     togglePreview,
     saveEntry: storeSaveEntry,
     loadChallenge,
     applyChallenge,
   } = useJournalStore();
 
-  // Initialize history reducer with store's initial state
-  const [state, dispatch] = useReducer(historyReducer, {
-    past: [],
-    present: { ...initialState, ...storeEntry },
-    future: []
+  // Initialize state with values from the store
+  const initialStateFromStore = {
+    ...initialState,
+    ...storeEntry
+  };
+
+  // Set up reducer
+  const [editorState, dispatch] = useReducer(editorReducer, {
+    ...initialEditorState,
+    currentState: initialStateFromStore
   });
 
   const [showEmailDialog, setShowEmailDialog] = useState(false);
@@ -237,28 +406,29 @@ export function useJournalEditor() {
     });
   }, []);
 
-  // Sync reducer state to store
+  // Sync current state to store
   useEffect(() => {
-    syncStateToStore(state.present);
-  }, [state.present]);
+    syncStateToStore(editorState.currentState);
+  }, [editorState.currentState]);
 
-  // Function to sync our state to the store
-  const syncStateToStore = (entry: typeof initialState) => {
-    setStoreText(entry.text);
-    setStoreFont(entry.font);
-    setStoreFontSize(entry.fontSize);
-    setStoreFontWeight(entry.fontWeight);
-    setStoreFontColor(entry.fontColor);
-    setStoreGradient(entry.gradient);
-    setStoreMood(entry.mood);
-    setStoreIsPublic(entry.isPublic);
-    setStoreTextStyle(entry.textStyle);
-    setStoreStickers(entry.stickers);
-    setStoreIcons(entry.icons);
-    setStoreTextPosition(entry.textPosition);
-    setStoreBackgroundImage(entry.backgroundImage);
-    setStoreDrawing(entry.drawing);
-    setStoreFilter(entry.filter);
+  // Function to sync state to store
+  const syncStateToStore = (state: JournalState) => {
+    console.log("Syncing state to store:", state);
+    setStoreText(state.text);
+    setStoreFont(state.font);
+    setStoreFontSize(state.fontSize);
+    setStoreFontWeight(state.fontWeight);
+    setStoreFontColor(state.fontColor);
+    setStoreGradient(state.gradient);
+    setStoreMood(state.mood);
+    setStoreIsPublic(state.isPublic);
+    setStoreTextStyle(state.textStyle);
+    setStoreStickers(state.stickers);
+    setStoreIcons(state.icons);
+    setStoreTextPosition(state.textPosition);
+    setStoreBackgroundImage(state.backgroundImage);
+    setStoreDrawing(state.drawing);
+    setStoreFilter(state.filter);
   };
 
   // Print function
@@ -329,29 +499,29 @@ export function useJournalEditor() {
 
   // Helper functions
   const addSticker = (sticker: Sticker) => {
-    if (sticker.id && state.present.stickers.some(s => s.id === sticker.id)) {
+    if (sticker.id && editorState.currentState.stickers.some(s => s.id === sticker.id)) {
       setStickers(
-        state.present.stickers.map(s => s.id === sticker.id ? sticker : s)
+        editorState.currentState.stickers.map(s => s.id === sticker.id ? sticker : s)
       );
     } else {
-      setStickers([...state.present.stickers, sticker]);
+      setStickers([...editorState.currentState.stickers, sticker]);
     }
   };
 
   const addIcon = (icon: Icon) => {
-    setIcons([...state.present.icons, icon]);
+    setIcons([...editorState.currentState.icons, icon]);
   };
 
   const updateIcon = (iconId: string, updates: Partial<Icon>) => {
     setIcons(
-      state.present.icons.map(icon => 
+      editorState.currentState.icons.map(icon => 
         icon.id === iconId ? { ...icon, ...updates } : icon
       )
     );
   };
 
   const removeIcon = (iconId: string) => {
-    setIcons(state.present.icons.filter(i => i.id !== iconId));
+    setIcons(editorState.currentState.icons.filter(i => i.id !== iconId));
   };
 
   // Handler functions
@@ -387,11 +557,11 @@ export function useJournalEditor() {
       if (position.x < -900 || position.y < -900) {
         console.log("Removing sticker with ID:", stickerId);
         setStickers(
-          (state.present.stickers || []).filter(s => s.id !== stickerId)
+          (editorState.currentState.stickers || []).filter(s => s.id !== stickerId)
         );
       } else {
         setStickers(
-          (state.present.stickers || []).map(s => 
+          (editorState.currentState.stickers || []).map(s => 
             s.id === stickerId ? { ...s, position } : s
           )
         );
@@ -409,7 +579,7 @@ export function useJournalEditor() {
         removeIcon(iconId);
         setSelectedIconId(null);
       } else {
-        const updatedIcons = (state.present.icons || []).map(i => 
+        const updatedIcons = (editorState.currentState.icons || []).map(i => 
           i.id === iconId ? { ...i, position } : i
         );
         
@@ -485,7 +655,7 @@ export function useJournalEditor() {
 
       const start = textareaRef.current.selectionStart;
       const end = textareaRef.current.selectionEnd;
-      const text = state.present.text;
+      const text = editorState.currentState.text;
       
       const newText = text.substring(0, start) + emojiData.emoji + text.substring(end);
       
@@ -578,7 +748,7 @@ export function useJournalEditor() {
       return;
     }
 
-    if (!state.present.text.trim()) {
+    if (!editorState.currentState.text.trim()) {
       return;
     }
 
@@ -592,8 +762,8 @@ export function useJournalEditor() {
       const response = await supabase.functions.invoke('send-journal', {
         body: {
           to: emailAddress,
-          text: state.present.text,
-          mood: state.present.mood,
+          text: editorState.currentState.text,
+          mood: editorState.currentState.mood,
           date: new Date().toISOString(),
         },
       });
@@ -612,6 +782,7 @@ export function useJournalEditor() {
 
   // Reset function
   const handleResetToDefault = () => {
+    console.log("Resetting journal to default");
     dispatch({ type: 'RESET' });
     toast.success("Journal reset to default");
   };
@@ -619,11 +790,13 @@ export function useJournalEditor() {
   // Undo function
   const handleUndo = () => {
     try {
+      console.log("Attempting UNDO - History index:", editorState.historyIndex, "History length:", editorState.history.length);
       dispatch({ type: 'UNDO' });
-      console.log("Performing UNDO - Past length:", state.past.length);
+      toast.success("Undo successful");
       return true;
     } catch (error) {
       console.error("Error during undo:", error);
+      toast.error("Undo failed");
       return false;
     }
   };
@@ -631,11 +804,13 @@ export function useJournalEditor() {
   // Redo function
   const handleRedo = () => {
     try {
+      console.log("Attempting REDO - History index:", editorState.historyIndex, "History length:", editorState.history.length);
       dispatch({ type: 'REDO' });
-      console.log("Performing REDO - Future length:", state.future.length);
+      toast.success("Redo successful");
       return true;
     } catch (error) {
       console.error("Error during redo:", error);
+      toast.error("Redo failed");
       return false;
     }
   };
@@ -643,9 +818,10 @@ export function useJournalEditor() {
   // Save function
   const saveEntry = async () => {
     try {
-      syncStateToStore(state.present);
+      syncStateToStore(editorState.currentState);
       await storeSaveEntry();
       dispatch({ type: 'RESET' });
+      toast.success("Entry saved successfully");
     } catch (error) {
       console.error("Error saving entry:", error);
       toast.error("Failed to save entry");
@@ -653,7 +829,7 @@ export function useJournalEditor() {
   };
 
   return {
-    currentEntry: state.present,
+    currentEntry: editorState.currentState,
     showPreview,
     dailyChallenge,
     showEmailDialog,
@@ -696,7 +872,7 @@ export function useJournalEditor() {
     handleUndo,
     handleRedo,
     handleResetToDefault,
-    canUndo: state.past.length > 0,
-    canRedo: state.future.length > 0,
+    canUndo: editorState.historyIndex >= 0,
+    canRedo: editorState.historyIndex < editorState.history.length - 1,
   };
 }
