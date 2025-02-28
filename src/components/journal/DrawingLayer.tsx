@@ -30,6 +30,11 @@ export function DrawingLayer({
   const forceUpdate = useRef<boolean>(false);
   const initialDrawingRef = useRef<string | undefined>(initialDrawing);
   const previousInitialDrawing = useRef<string | undefined>(initialDrawing);
+  
+  // Track the last used tool to detect changes
+  const lastToolRef = useRef<string>(tool);
+  const lastColorRef = useRef<string>(color);
+  const lastBrushSizeRef = useRef<number>(brushSize);
 
   // Initialize canvas
   useEffect(() => {
@@ -52,28 +57,14 @@ export function DrawingLayer({
     // Set default styles
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    updateBrushStyles();
     
     // Update initialDrawingRef
     initialDrawingRef.current = initialDrawing;
     
     // Load initial drawing if provided
-    if (initialDrawing && initialDrawing !== previousInitialDrawing.current) {
+    if (initialDrawing) {
       console.log("DrawingLayer: Loading initial drawing");
-      const img = new Image();
-      img.onload = () => {
-        if (ctxRef.current) {
-          // Don't clear the canvas here, just draw on top
-          ctxRef.current.drawImage(img, 0, 0);
-          console.log("DrawingLayer: Initial drawing loaded successfully");
-          setHasLoaded(true);
-          previousInitialDrawing.current = initialDrawing;
-        }
-      };
-      img.onerror = (err) => {
-        console.error("DrawingLayer: Error loading initial drawing:", err);
-      };
-      img.src = initialDrawing;
+      loadDrawingToCanvas(initialDrawing);
     }
     
     console.log("DrawingLayer: Canvas initialized with dimensions", width, "x", height);
@@ -93,9 +84,59 @@ export function DrawingLayer({
         }
       }
     };
-  }, [width, height, initialDrawing]);
+  }, [width, height]);
 
-  // Update brush styles when props change
+  // Helper function to load drawing to canvas
+  const loadDrawingToCanvas = (drawingDataUrl: string) => {
+    const canvas = canvasRef.current;
+    const ctx = ctxRef.current;
+    if (!canvas || !ctx || !drawingDataUrl) return;
+
+    const img = new Image();
+    img.onload = () => {
+      if (ctxRef.current) {
+        ctxRef.current.drawImage(img, 0, 0);
+        console.log("DrawingLayer: Drawing loaded successfully");
+        setHasLoaded(true);
+        previousInitialDrawing.current = drawingDataUrl;
+      }
+    };
+    img.onerror = (err) => {
+      console.error("DrawingLayer: Error loading drawing:", err);
+    };
+    img.src = drawingDataUrl;
+  };
+
+  // Effect to handle initialDrawing changes
+  useEffect(() => {
+    if (initialDrawing !== previousInitialDrawing.current) {
+      console.log("DrawingLayer: initialDrawing changed, updating canvas");
+      loadDrawingToCanvas(initialDrawing || '');
+    }
+  }, [initialDrawing]);
+
+  // Update brush styles when props change, but preserve drawing
+  useEffect(() => {
+    // Store the current canvas state if a tool/color/size change is detected
+    if (lastToolRef.current !== tool || 
+        lastColorRef.current !== color || 
+        lastBrushSizeRef.current !== brushSize) {
+      
+      // Log the tool change
+      console.log("DrawingLayer: Tool or style changed from", 
+                 lastToolRef.current, "to", tool);
+      
+      // Update last used tool/color/size
+      lastToolRef.current = tool;
+      lastColorRef.current = color;
+      lastBrushSizeRef.current = brushSize;
+      
+      // Apply the new brush styles
+      updateBrushStyles();
+    }
+  }, [tool, color, brushSize]);
+
+  // Update brush styles
   const updateBrushStyles = () => {
     const ctx = ctxRef.current;
     if (!ctx) return;
@@ -104,10 +145,6 @@ export function DrawingLayer({
     
     console.log("DrawingLayer: Updated brush settings:", settings);
   };
-  
-  useEffect(() => {
-    updateBrushStyles();
-  }, [tool, color, brushSize]);
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
@@ -117,13 +154,14 @@ export function DrawingLayer({
     const canvas = canvasRef.current;
     if (!ctx || !canvas) return;
     
+    // Always ensure brush settings are applied before drawing
     updateBrushStyles();
     
     const point = getPointFromEvent(e, canvas);
     setIsDrawing(true);
     setLastPoint(point);
     
-    console.log("DrawingLayer: Started drawing at", point);
+    console.log("DrawingLayer: Started drawing at", point, "with tool:", tool);
     
     // Special handling for different tools
     if (tool === 'spray') {

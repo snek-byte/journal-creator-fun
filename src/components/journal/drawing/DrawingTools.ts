@@ -8,6 +8,7 @@ export const drawStroke = (
   currentPoint: Point,
   tool: string
 ) => {
+  // Begin a new path for this stroke
   ctx.beginPath();
   
   if (tool === 'marker') {
@@ -30,6 +31,9 @@ export const drawStroke = (
     ctx.lineTo(currentPoint.x, currentPoint.y);
     ctx.stroke();
   }
+  
+  // Close the current path
+  ctx.closePath();
 };
 
 // Draw a dot at the specified point
@@ -49,6 +53,7 @@ export const drawDot = (
   }
   
   ctx.fill();
+  ctx.closePath();
 };
 
 // Spray paint effect
@@ -73,6 +78,7 @@ export const sprayPaint = (
       ctx.beginPath();
       ctx.arc(point.x + offsetX, point.y + offsetY, 0.5, 0, Math.PI * 2);
       ctx.fill();
+      ctx.closePath();
     }
   }
 };
@@ -84,6 +90,12 @@ export const floodFill = (
   point: Point,
   color: string
 ) => {
+  // Remember original composite operation and restore at the end
+  const originalComposite = ctx.globalCompositeOperation;
+  
+  // Always use source-over for flood fill
+  ctx.globalCompositeOperation = 'source-over';
+  
   // Get image data from the canvas
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
@@ -101,7 +113,11 @@ export const floodFill = (
   
   // Parse the fill color
   const fillColorMatch = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
-  if (!fillColorMatch) return;
+  if (!fillColorMatch) {
+    // Restore original composite operation
+    ctx.globalCompositeOperation = originalComposite;
+    return;
+  }
   
   const fillR = parseInt(fillColorMatch[1], 16);
   const fillG = parseInt(fillColorMatch[2], 16);
@@ -115,6 +131,8 @@ export const floodFill = (
     targetB === fillB &&
     targetA === fillA
   ) {
+    // Restore original composite operation
+    ctx.globalCompositeOperation = originalComposite;
     return; // No need to fill with the same color
   }
   
@@ -165,4 +183,7 @@ export const floodFill = (
   
   // Update the canvas with the filled area
   ctx.putImageData(imageData, 0, 0);
+  
+  // Restore original composite operation
+  ctx.globalCompositeOperation = originalComposite;
 };

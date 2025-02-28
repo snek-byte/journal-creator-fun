@@ -10,8 +10,12 @@ export const configureBrushStyles = (
   color: string, 
   brushSize: number
 ) => {
+  // Save the current context state
+  ctx.save();
+  
   // Set color (use white for eraser)
   ctx.strokeStyle = tool === 'eraser' ? '#ffffff' : color;
+  ctx.fillStyle = tool === 'eraser' ? '#ffffff' : color;
   
   // Different line widths based on tool
   if (tool === 'pen') {
