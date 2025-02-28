@@ -499,9 +499,9 @@ export function JournalPreview({
     const newTextBox: TextBox = {
       id: uuidv4(),
       text: 'Double-click to edit this text box',
-      position: { x: 50, y: 50 },
-      width: 200,
-      height: 100,
+      position: { x: 50, y: 15 }, // Center top of the page
+      width: 160, // Smaller width
+      height: 80, // Smaller height
       font: font,
       fontSize: fontSize,
       fontWeight: fontWeight,
