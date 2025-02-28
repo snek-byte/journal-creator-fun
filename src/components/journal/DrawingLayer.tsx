@@ -341,6 +341,8 @@ export function DrawingLayer({
     if (!isDrawing) return;
     
     setIsDrawing(false);
+    
+    // Save the drawing BEFORE resetting states
     saveDrawing();
     
     console.log("DrawingLayer: Ended drawing");
@@ -357,8 +359,11 @@ export function DrawingLayer({
     if (!canvas || !onDrawingChange) return;
     
     const dataUrl = canvas.toDataURL('image/png');
+    
+    // Debug: check if dataUrl is not empty
+    console.log("DrawingLayer: Saving drawing, data URL length:", dataUrl.length);
+    
     onDrawingChange(dataUrl);
-    console.log("DrawingLayer: Saved drawing");
   };
 
   const getPoint = (e: React.MouseEvent | React.TouchEvent): Point => {
