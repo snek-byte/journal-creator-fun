@@ -38,6 +38,8 @@ export function TextBoxComponent({
   const [isTouching, setIsTouching] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [startDragPosition, setStartDragPosition] = useState({ x: 0, y: 0 });
+  const [hasMoved, setHasMoved] = useState(false);
   const { toast } = useToast();
   
   // Detect when the page is being printed
@@ -118,9 +120,23 @@ export function TextBoxComponent({
     onUpdate(id, { width: newWidth, height: newHeight });
   };
   
-  const handleDragStart = () => {
+  const handleDragStart = (e: any) => {
     setIsDragging(true);
+    setHasMoved(false);
+    setStartDragPosition({ x: e.clientX, y: e.clientY });
     onSelect(id); // Make sure the text box is selected when dragging starts
+  };
+  
+  const handleDrag = (e: any) => {
+    if (!hasMoved) {
+      const dx = Math.abs(e.clientX - startDragPosition.x);
+      const dy = Math.abs(e.clientY - startDragPosition.y);
+      
+      // If moved more than 5px, consider it a drag rather than a tap
+      if (dx > 5 || dy > 5) {
+        setHasMoved(true);
+      }
+    }
   };
   
   const handleDragStop = (e: any, d: any) => {
@@ -197,38 +213,6 @@ export function TextBoxComponent({
     onUpdate(id, { rotation: newRotation });
   };
   
-  const handleDoubleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!isDrawingMode) {
-      setIsEditing(true);
-      onSelect(id);
-      
-      // Ensure focus happens after state updates
-      setTimeout(() => {
-        if (textAreaRef.current) {
-          textAreaRef.current.focus();
-        }
-      }, 10);
-    }
-  };
-  
-  const handleEditClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!isDrawingMode) {
-      setIsEditing(true);
-      onSelect(id);
-      
-      // Ensure focus happens after state updates
-      setTimeout(() => {
-        if (textAreaRef.current) {
-          textAreaRef.current.focus();
-        }
-      }, 10);
-    }
-  };
-  
   const handleBlur = () => {
     console.log(`TextBox ${id}: Blur event - saving text:`, editValue);
     setIsEditing(false);
@@ -265,6 +249,31 @@ export function TextBoxComponent({
       description: "Text box has been deleted."
     });
   };
+
+  const handleTextBoxClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (isDrawingMode) return;
+    
+    onSelect(id);
+    
+    if (!selected) {
+      // If not already selected, just select it first
+      return;
+    }
+    
+    // If already selected and not dragging, enter edit mode on a single click
+    if (!hasMoved && !isDragging) {
+      setIsEditing(true);
+      
+      // Ensure focus happens after state updates
+      setTimeout(() => {
+        if (textAreaRef.current) {
+          textAreaRef.current.focus();
+        }
+      }, 10);
+    }
+  };
   
   // Create a CSS class for printing that hides UI elements
   const printStyles = `
@@ -282,7 +291,7 @@ export function TextBoxComponent({
   `;
   
   // Convert text to a simple string without showing "Double-click to edit" when printing
-  const displayText = isPrinting ? (text || '') : (processText(text) || 'Double-click to edit');
+  const displayText = isPrinting ? (text || '') : (processText(text) || 'Tap to edit');
   
   // If editing or printing, hide all controls
   const showControls = selected && !isEditing && !isPrinting && !isDrawingMode;
@@ -296,19 +305,16 @@ export function TextBoxComponent({
           zIndex: selected ? zIndex + 10 : zIndex,
           pointerEvents: isDrawingMode ? 'none' : 'auto',
           opacity: isPrinting && !text ? 0 : 1, // Hide empty text boxes when printing
-          cursor: isEditing ? 'text' : 'move' 
+          cursor: isEditing ? 'text' : (selected ? 'move' : 'pointer')
         }}
         size={{ width: size.width, height: size.height }}
         position={calculatePosition()}
         onDragStart={handleDragStart}
-        onDrag={() => setIsDragging(true)}
+        onDrag={handleDrag}
         onDragStop={handleDragStop}
         onResizeStop={handleStopResize}
         bounds="parent"
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(id);
-        }}
+        onClick={handleTextBoxClick}
         enableResizing={selected && !isEditing && !isPrinting && !isDrawingMode}
         disableDragging={isEditing || isPrinting || isDrawingMode}
       >
@@ -318,7 +324,6 @@ export function TextBoxComponent({
             selected && !isPrinting && !isDrawingMode ? "ring-2 ring-primary ring-inset" : "ring-0 ring-transparent",
             !selected && !isPrinting && !isDrawingMode ? "hover:ring-1 hover:ring-gray-300" : ""
           )}
-          onDoubleClick={handleDoubleClick}
         >
           {/* Delete button */}
           {showControls && (
@@ -348,11 +353,22 @@ export function TextBoxComponent({
             </div>
           )}
           
-          {/* Edit button for mobile/touch devices */}
+          {/* Edit button for mobile/touch devices - only show if not in edit mode */}
           {showControls && (
             <button
               className="absolute -bottom-3 right-3 bg-primary text-primary-foreground hover:bg-primary/90 p-1 rounded-full shadow-lg z-10 text-box-controls"
-              onClick={handleEditClick}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsEditing(true);
+                
+                // Ensure focus happens after state updates
+                setTimeout(() => {
+                  if (textAreaRef.current) {
+                    textAreaRef.current.focus();
+                  }
+                }, 10);
+              }}
               aria-label="Edit text"
             >
               <Edit size={14} />
@@ -375,7 +391,7 @@ export function TextBoxComponent({
             />
           ) : (
             <div
-              className="w-full h-full whitespace-pre-wrap overflow-hidden"
+              className="w-full h-full whitespace-pre-wrap overflow-hidden flex items-center justify-center"
               style={getTextStyles()}
             >
               {displayText}
