@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useJournalStore } from '@/store/journalStore';
 import { supabase } from "@/integrations/supabase/client";
@@ -34,7 +33,6 @@ export function useJournalEditor() {
     saveEntry,
     loadChallenge,
     applyChallenge,
-    resetEntry,
   } = useJournalStore();
 
   const [showEmailDialog, setShowEmailDialog] = useState(false);
@@ -44,11 +42,6 @@ export function useJournalEditor() {
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
   const [isDraggingText, setIsDraggingText] = useState(false);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
-  
-  // History management
-  const [history, setHistory] = useState<Array<any>>([]);
-  const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
-  const [isUndoRedoAction, setIsUndoRedoAction] = useState(false);
 
   useEffect(() => {
     try {
@@ -62,41 +55,6 @@ export function useJournalEditor() {
       console.error("Error loading initial data:", error);
     }
   }, []);
-
-  // Add current state to history when it changes
-  useEffect(() => {
-    if (isUndoRedoAction) {
-      setIsUndoRedoAction(false);
-      return;
-    }
-    
-    // Create a snapshot of the current entry state
-    const snapshot = JSON.parse(JSON.stringify(currentEntry));
-    
-    // If we're not at the end of the history, truncate the future states
-    if (currentHistoryIndex < history.length - 1) {
-      setHistory(prev => prev.slice(0, currentHistoryIndex + 1));
-    }
-    
-    // Add the new state to history
-    setHistory(prev => [...prev, snapshot]);
-    setCurrentHistoryIndex(prev => prev + 1);
-  }, [
-    currentEntry.text,
-    currentEntry.font,
-    currentEntry.fontSize,
-    currentEntry.fontWeight,
-    currentEntry.fontColor,
-    currentEntry.gradient,
-    currentEntry.mood,
-    currentEntry.textStyle,
-    currentEntry.stickers,
-    currentEntry.icons,
-    currentEntry.textPosition,
-    currentEntry.backgroundImage,
-    currentEntry.drawing,
-    currentEntry.filter,
-  ]);
 
   const handlePrint = () => {
     window.print();
@@ -354,74 +312,6 @@ export function useJournalEditor() {
     }
   };
 
-  // New undo, redo, and reset functions
-  const handleUndo = () => {
-    if (currentHistoryIndex > 0) {
-      setIsUndoRedoAction(true);
-      const previousState = history[currentHistoryIndex - 1];
-      
-      // Set each property individually to ensure proper state update
-      setText(previousState.text);
-      setFont(previousState.font);
-      setFontSize(previousState.fontSize);
-      setFontWeight(previousState.fontWeight);
-      setFontColor(previousState.fontColor);
-      setGradient(previousState.gradient);
-      setMood(previousState.mood);
-      setIsPublic(previousState.isPublic);
-      setTextStyle(previousState.textStyle);
-      setStickers(previousState.stickers || []);
-      setIcons(previousState.icons || []);
-      setTextPosition(previousState.textPosition);
-      setBackgroundImage(previousState.backgroundImage || '');
-      setDrawing(previousState.drawing || '');
-      setFilter(previousState.filter || 'none');
-      
-      setCurrentHistoryIndex(currentHistoryIndex - 1);
-      toast.info("Undid last change");
-    } else {
-      toast.info("Nothing to undo");
-    }
-  };
-
-  const handleRedo = () => {
-    if (currentHistoryIndex < history.length - 1) {
-      setIsUndoRedoAction(true);
-      const nextState = history[currentHistoryIndex + 1];
-      
-      // Set each property individually to ensure proper state update
-      setText(nextState.text);
-      setFont(nextState.font);
-      setFontSize(nextState.fontSize);
-      setFontWeight(nextState.fontWeight);
-      setFontColor(nextState.fontColor);
-      setGradient(nextState.gradient);
-      setMood(nextState.mood);
-      setIsPublic(nextState.isPublic);
-      setTextStyle(nextState.textStyle);
-      setStickers(nextState.stickers || []);
-      setIcons(nextState.icons || []);
-      setTextPosition(nextState.textPosition);
-      setBackgroundImage(nextState.backgroundImage || '');
-      setDrawing(nextState.drawing || '');
-      setFilter(nextState.filter || 'none');
-      
-      setCurrentHistoryIndex(currentHistoryIndex + 1);
-      toast.info("Redid last change");
-    } else {
-      toast.info("Nothing to redo");
-    }
-  };
-
-  const handleResetToDefault = () => {
-    resetEntry();
-    // Reset history
-    const defaultState = JSON.parse(JSON.stringify(currentEntry));
-    setHistory([defaultState]);
-    setCurrentHistoryIndex(0);
-    toast.success("Reset to default settings");
-  };
-
   return {
     currentEntry,
     showPreview,
@@ -462,13 +352,6 @@ export function useJournalEditor() {
     togglePreview,
     saveEntry,
     applyChallenge,
-    loadChallenge,
-    // New undo/redo functions
-    handleUndo,
-    handleRedo,
-    handleResetToDefault,
-    // History status for UI
-    canUndo: currentHistoryIndex > 0,
-    canRedo: currentHistoryIndex < history.length - 1,
+    loadChallenge
   };
 }

@@ -22,14 +22,11 @@ export function JournalEditor() {
     handleIconUpdate,
     handleIconSelect,
     handleTextMove,
-    handleTextDragStart,
-    handleTextDragEnd,
     handleBackgroundSelect,
     handleDrawingChange,
     handleFilterChange,
     handleEmojiSelect,
     handleSendEmail,
-    handleImageUpload,
     handleFontSizeChange,
     handleFontWeightChange,
     handleFontChange,
@@ -45,12 +42,6 @@ export function JournalEditor() {
     saveEntry,
     applyChallenge,
     loadChallenge,
-    // New undo/redo functions
-    handleUndo,
-    handleRedo,
-    handleResetToDefault,
-    canUndo,
-    canRedo,
   } = useJournalEditor();
 
   return (
@@ -75,11 +66,6 @@ export function JournalEditor() {
         saveEntry={saveEntry}
         loadChallenge={loadChallenge}
         applyChallenge={applyChallenge}
-        handleUndo={handleUndo}
-        handleRedo={handleRedo}
-        handleResetToDefault={handleResetToDefault}
-        canUndo={canUndo}
-        canRedo={canRedo}
       />
 
       <EmailDialog
@@ -114,8 +100,6 @@ export function JournalEditor() {
         onIconUpdate={handleIconUpdate}
         onIconSelect={handleIconSelect}
         onTextMove={handleTextMove}
-        onTextDragStart={handleTextDragStart}
-        onTextDragEnd={handleTextDragEnd}
         onBackgroundSelect={handleBackgroundSelect}
         onDrawingChange={handleDrawingChange}
         onFilterChange={handleFilterChange}
