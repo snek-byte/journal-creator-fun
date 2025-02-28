@@ -102,7 +102,6 @@ export function JournalEditorSidebar({
   const [charCount, setCharCount] = useState(0);
   const [wordCount, setWordCount] = useState(0);
   const [toolsTab, setToolsTab] = useState<string | null>(null);
-  const [isDrawingActive, setIsDrawingActive] = useState(false);
 
   // Recalculate word and character counts when text changes
   useEffect(() => {
@@ -124,11 +123,6 @@ export function JournalEditorSidebar({
 
   const handleToolClick = (tool: string) => {
     setToolsTab(toolsTab === tool ? null : tool);
-    if (tool === 'drawing') {
-      setIsDrawingActive(!isDrawingActive);
-    } else if (toolsTab === 'drawing') {
-      setIsDrawingActive(false);
-    }
   };
 
   const handleEmojiPickerSelect = (emoji: any) => {

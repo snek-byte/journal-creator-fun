@@ -334,23 +334,7 @@ export function JournalPreview({
         >
         </div>
 
-        {/* Mood indicator */}
-        {mood && (
-          <div className="absolute top-4 right-4 text-4xl" title={`Mood: ${mood}`}>
-            <span className="emoji">
-              {mood === 'happy' ? '😊' :
-               mood === 'sad' ? '😢' :
-               mood === 'angry' ? '😠' :
-               mood === 'excited' ? '🤩' :
-               mood === 'relaxed' ? '😌' :
-               mood === 'anxious' ? '😰' :
-               mood === 'grateful' ? '🙏' :
-               mood === 'confused' ? '😕' :
-               mood === 'stressed' ? '😫' :
-               mood === 'calm' ? '😇' : '😐'}
-            </span>
-          </div>
-        )}
+        {/* Removed the automatic mood indicator display */}
       </div>
 
       {/* Toggle preview button */}
