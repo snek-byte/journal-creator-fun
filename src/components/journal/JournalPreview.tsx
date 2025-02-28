@@ -6,7 +6,7 @@ import { Sticker } from '@/types/journal';
 import { IconContainer } from './IconContainer';
 import { useScreenshot } from 'use-react-screenshot';
 import type { Icon } from '@/types/journal';
-import { applyTextStyle } from '@/utils/unicodeTextStyles';
+import { applyTextStyle, TextStyle } from '@/utils/unicodeTextStyles';
 
 interface JournalPreviewProps {
   className?: string;
@@ -237,7 +237,9 @@ export function JournalPreview({
   const processText = (text: string) => {
     // Handle special style transformations from the utility
     if (textStyle && textStyle !== 'normal' && !textStyle.includes(' ')) {
-      return applyTextStyle(text, textStyle);
+      // Type assertion to ensure textStyle is treated as a valid TextStyle
+      // This is safe assuming the textStyle values are controlled by our app
+      return applyTextStyle(text, textStyle as TextStyle);
     }
     
     // Return regular text if no special transformation is needed

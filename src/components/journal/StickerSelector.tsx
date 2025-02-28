@@ -74,6 +74,18 @@ export function StickerSelector({ onStickerSelect }: StickerSelectorProps) {
     ],
   };
 
+  // Add fallback stickers in case the API is unavailable
+  const fallbackStickers = [
+    '/stickers/happy.png',
+    '/stickers/sad.png',
+    '/stickers/star.png',
+    '/stickers/heart.png',
+    '/stickers/thumbsup.png',
+    '/stickers/cake.png',
+    '/stickers/gift.png',
+    '/stickers/camera.png',
+  ];
+
   const handleStickerSelect = (stickerUrl: string) => {
     onStickerSelect(stickerUrl);
     toast.success("Sticker added! Click and drag to position it.");
@@ -107,6 +119,12 @@ export function StickerSelector({ onStickerSelect }: StickerSelectorProps) {
                       src={sticker} 
                       alt={`Sticker ${index + 1}`}
                       className="h-10 w-10 object-contain" 
+                      onError={(e) => {
+                        // If image fails to load, replace with a fallback
+                        if (fallbackStickers.length > index % fallbackStickers.length) {
+                          e.currentTarget.src = fallbackStickers[index % fallbackStickers.length];
+                        }
+                      }}
                     />
                   </button>
                 ))}
