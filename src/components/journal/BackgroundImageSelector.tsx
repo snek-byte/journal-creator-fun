@@ -57,10 +57,11 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
       <h3 className="text-xs font-semibold tracking-tight">Background Images</h3>
       
       <Tabs defaultValue="papers" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-3 mb-2">
+        <TabsList className="grid grid-cols-4 mb-2">
           <TabsTrigger value="papers" className="text-[10px]">Papers</TabsTrigger>
           <TabsTrigger value="nature" className="text-[10px]">Nature</TabsTrigger>
           <TabsTrigger value="patterns" className="text-[10px]">Patterns</TabsTrigger>
+          <TabsTrigger value="upload" className="text-[10px]">Upload</TabsTrigger>
         </TabsList>
         
         <ScrollArea className="h-[150px]">
@@ -123,8 +124,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
           
           <TabsContent value="upload" className="mt-0 space-y-4">
             <ImageUploader 
-              onImageUploaded={handleBackgroundSelect} 
-              label="Upload Background" 
+              onImageSelect={handleBackgroundSelect} 
             />
           </TabsContent>
         </ScrollArea>
