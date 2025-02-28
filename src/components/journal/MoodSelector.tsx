@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface MoodSelectorProps {
   mood?: Mood;
   isPublic: boolean;
-  onMoodChange: (mood: Mood) => void;
+  onMoodChange: (mood: Mood | undefined) => void;
   onIsPublicChange: (isPublic: boolean) => void;
 }
 

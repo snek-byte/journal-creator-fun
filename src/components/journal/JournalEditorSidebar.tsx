@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -22,8 +23,9 @@ import {
   Redo2,
   RotateCcw,
   AlertTriangle,
+  Palette,
 } from "lucide-react";
-import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
+import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -139,8 +141,8 @@ export function JournalEditorSidebar({
           <TabsContent value="edit" className="space-y-4">
             <DailyChallenge
               dailyChallenge={dailyChallenge}
-              loadChallenge={loadChallenge}
-              applyChallenge={applyChallenge}
+              onRefresh={loadChallenge}
+              onApply={applyChallenge}
             />
 
             <Separator />
@@ -168,7 +170,12 @@ export function JournalEditorSidebar({
 
             <Separator />
 
-            <MoodSelector setMood={setMood} />
+            <MoodSelector
+              mood={currentEntry.mood}
+              isPublic={currentEntry.isPublic}
+              onMoodChange={setMood}
+              onIsPublicChange={setIsPublic}
+            />
 
             <Separator />
 
@@ -196,7 +203,7 @@ export function JournalEditorSidebar({
                 <PopoverContent className="w-[350px] shadow-md border border-gray-200">
                   <EmojiPicker
                     onEmojiClick={handleEmojiClick}
-                    theme="light"
+                    theme={"light" as Theme}
                   />
                 </PopoverContent>
               </Popover>
@@ -204,12 +211,18 @@ export function JournalEditorSidebar({
           </TabsContent>
           <TabsContent value="style" className="space-y-4">
             <JournalStylingControls
-              setFont={setFont}
-              setFontSize={setFontSize}
-              setFontWeight={setFontWeight}
-              setFontColor={setFontColor}
-              setGradient={setGradient}
-              setTextStyle={setTextStyle}
+              font={currentEntry.font}
+              fontSize={currentEntry.fontSize}
+              fontWeight={currentEntry.fontWeight}
+              fontColor={currentEntry.fontColor}
+              gradient={currentEntry.gradient}
+              onFontChange={setFont}
+              onFontSizeChange={setFontSize}
+              onFontWeightChange={setFontWeight}
+              onFontColorChange={setFontColor}
+              onGradientChange={setGradient}
+              onTextStyleChange={setTextStyle}
+              selectedIconId={selectedIconId}
             />
 
             <Separator />
@@ -223,11 +236,10 @@ export function JournalEditorSidebar({
             <Separator />
 
             <StickerSelector
-              onStickerAdd={onStickerAdd}
-              searchQuery={stickerSearchQuery}
-              setSearchQuery={setStickerSearchQuery}
+              onStickerSelect={onStickerAdd}
               onStickerResize={onStickerResize}
               currentStickerSize={currentStickerSize}
+              selectedStickerId={selectedStickerId}
             />
 
             <Separator />

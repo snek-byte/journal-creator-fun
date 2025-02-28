@@ -142,11 +142,18 @@ export function JournalEditor() {
     console.log("Current sticker size:", stickerSize);
   }, [currentEntry.stickers, selectedStickerId, stickerSize]);
 
+  // For TypeScript, we need to provide id and date properties for JournalEntry
+  const fullCurrentEntry = {
+    ...currentEntry,
+    id: 0, // Use a default ID
+    date: new Date().toISOString(), // Use current date
+  };
+
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
       <JournalEditorSidebar 
         textareaRef={textareaRef}
-        currentEntry={currentEntry}
+        currentEntry={fullCurrentEntry}
         dailyChallenge={dailyChallenge}
         selectedIconId={selectedIconId}
         selectedStickerId={selectedStickerId}
