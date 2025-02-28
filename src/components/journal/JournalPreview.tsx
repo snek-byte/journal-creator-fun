@@ -78,51 +78,74 @@ export function JournalPreview({
   const [startTextPosition, setStartTextPosition] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Process text to ensure emojis are properly displayed
-  const processText = (input: string) => {
+  // Helper to detect if a string segment is a flag emoji
+  const isFlagEmoji = (text: string): boolean => {
+    // Flag emojis consist of two regional indicator symbols (range U+1F1E6 to U+1F1FF)
+    if (text.length !== 4) return false;
+    
+    const firstChar = text.codePointAt(0);
+    const secondChar = text.codePointAt(2);
+    
+    return firstChar !== undefined && 
+           secondChar !== undefined && 
+           firstChar >= 0x1F1E6 && 
+           firstChar <= 0x1F1FF && 
+           secondChar >= 0x1F1E6 && 
+           secondChar <= 0x1F1FF;
+  };
+
+  // Process text to properly handle emojis and text styling
+  const processText = (input: string): string => {
     if (!textStyle || textStyle === 'normal') {
-      return input;
+      // Only wrap flags in special spans even if no text styling
+      let processed = '';
+      for (let i = 0; i < input.length; i++) {
+        const char = input[i];
+        const codePoint = input.codePointAt(i);
+        
+        // Check if this could be the start of a flag emoji
+        if (codePoint && codePoint >= 0x1F1E6 && codePoint <= 0x1F1FF && i + 3 < input.length) {
+          const potentialFlag = input.substring(i, i + 4);
+          if (isFlagEmoji(potentialFlag)) {
+            processed += `<span class="flag-emoji" role="img">${potentialFlag}</span>`;
+            i += 3; // Skip the next 3 characters (flag emoji takes 4 total)
+            continue;
+          }
+        }
+        
+        processed += char;
+      }
+      return processed;
     }
     
-    // Process each character, skipping emojis
+    // If we have text styling, process the text while preserving emojis
     let result = '';
-    let i = 0;
-    while (i < input.length) {
+    for (let i = 0; i < input.length; i++) {
       const codePoint = input.codePointAt(i);
       
-      // Check if this is an emoji (emoji range or multi-code sequence)
-      const isEmoji = 
-        (codePoint && codePoint >= 0x1F000 && codePoint <= 0x1FFFF) || // Emoji range
-        (codePoint && codePoint >= 0x1F1E6 && codePoint <= 0x1F1FF) || // Regional indicator symbols for flags
-        (codePoint && codePoint >= 0x1F3FB && codePoint <= 0x1F3FF); // Skin tone modifiers
-     
-      if (isEmoji) {
-        // For emoji, wrap in a span with the emoji class and skip the surrogate pair or sequence
-        // Flag emojis consist of two regional indicator symbols
-        const nextCodePoint = input.codePointAt(i + 2);
-        const isFlagEmoji = 
-          codePoint && codePoint >= 0x1F1E6 && codePoint <= 0x1F1FF && 
-          nextCodePoint && nextCodePoint >= 0x1F1E6 && nextCodePoint <= 0x1F1FF;
-          
-        if (isFlagEmoji) {
-          // Handle flag emoji (2 code points, each taking 2 UTF-16 code units)
-          const flag = input.substring(i, i + 4);
-          result += `<span class="emoji emoji-flags">${flag}</span>`;
-          i += 4; // Move past both regional indicator symbols
-        } else {
-          // Handle regular emoji (1 code point, may take 1 or 2 UTF-16 code units)
-          const charLength = codePoint! > 0xFFFF ? 2 : 1; // Surrogate pair check
-          const emoji = input.substring(i, i + charLength);
-          result += `<span class="emoji">${emoji}</span>`;
-          i += charLength;
+      // Check for flag emoji (two regional indicator symbols)
+      if (codePoint && codePoint >= 0x1F1E6 && codePoint <= 0x1F1FF && i + 3 < input.length) {
+        const potentialFlag = input.substring(i, i + 4);
+        if (isFlagEmoji(potentialFlag)) {
+          result += `<span class="flag-emoji" role="img">${potentialFlag}</span>`;
+          i += 3; // Skip the next 3 characters
+          continue;
         }
-      } else {
-        // For normal characters, apply text styling transformation
-        const char = input[i];
-        const transformed = applyTextStyle(char, textStyle);
-        result += transformed;
-        i += 1;
       }
+      
+      // Check for regular emoji
+      if (codePoint && codePoint >= 0x1F000 && codePoint <= 0x1FFFF) {
+        const charLength = codePoint > 0xFFFF ? 2 : 1; // Check if surrogate pair
+        const emoji = input.substring(i, i + charLength);
+        result += `<span class="emoji" role="img">${emoji}</span>`;
+        i += charLength - 1; // Skip surrogate pair if needed
+        continue;
+      }
+      
+      // Regular character - apply styling
+      const char = input[i];
+      const transformed = applyTextStyle(char, textStyle);
+      result += transformed;
     }
     
     return result;
@@ -208,35 +231,35 @@ export function JournalPreview({
             size="sm"
             onClick={() => selectedSidebarItem === 'stickers' ? setSelectedSidebarItem(null) : setSelectedSidebarItem('stickers')}
           >
-            <span className="emoji">📷</span>
+            <span className="emoji" role="img" aria-label="Camera">📷</span>
           </Button>
           <Button
             variant={selectedSidebarItem === 'icons' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => selectedSidebarItem === 'icons' ? setSelectedSidebarItem(null) : setSelectedSidebarItem('icons')}
           >
-            <span className="emoji">🎨</span>
+            <span className="emoji" role="img" aria-label="Paint">🎨</span>
           </Button>
           <Button
             variant={selectedSidebarItem === 'backgrounds' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => selectedSidebarItem === 'backgrounds' ? setSelectedSidebarItem(null) : setSelectedSidebarItem('backgrounds')}
           >
-            <span className="emoji">🖼️</span>
+            <span className="emoji" role="img" aria-label="Frame">🖼️</span>
           </Button>
           <Button
             variant={selectedSidebarItem === 'drawing' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => selectedSidebarItem === 'drawing' ? setSelectedSidebarItem(null) : setSelectedSidebarItem('drawing')}
           >
-            <span className="emoji">✏️</span>
+            <span className="emoji" role="img" aria-label="Pencil">✏️</span>
           </Button>
           <Button
             variant={selectedSidebarItem === 'filters' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => selectedSidebarItem === 'filters' ? setSelectedSidebarItem(null) : setSelectedSidebarItem('filters')}
           >
-            <span className="emoji">🔍</span>
+            <span className="emoji" role="img" aria-label="Magnifying Glass">🔍</span>
           </Button>
         </div>
 
@@ -407,19 +430,21 @@ export function JournalPreview({
         >
         </div>
 
-        {/* Mood indicator */}
+        {/* Mood indicator - using special flag-emoji class for any flags */}
         {mood && (
-          <div className="absolute top-4 right-4 text-4xl emoji" title={`Mood: ${mood}`}>
-            {mood === 'happy' ? '😊' :
-             mood === 'sad' ? '😢' :
-             mood === 'angry' ? '😠' :
-             mood === 'excited' ? '🤩' :
-             mood === 'relaxed' ? '😌' :
-             mood === 'anxious' ? '😰' :
-             mood === 'grateful' ? '🙏' :
-             mood === 'confused' ? '😕' :
-             mood === 'stressed' ? '😫' :
-             mood === 'calm' ? '😇' : '😐'}
+          <div className="absolute top-4 right-4 text-4xl" title={`Mood: ${mood}`}>
+            <span className="emoji">
+              {mood === 'happy' ? '😊' :
+               mood === 'sad' ? '😢' :
+               mood === 'angry' ? '😠' :
+               mood === 'excited' ? '🤩' :
+               mood === 'relaxed' ? '😌' :
+               mood === 'anxious' ? '😰' :
+               mood === 'grateful' ? '🙏' :
+               mood === 'confused' ? '😕' :
+               mood === 'stressed' ? '😫' :
+               mood === 'calm' ? '😇' : '😐'}
+            </span>
           </div>
         )}
       </div>

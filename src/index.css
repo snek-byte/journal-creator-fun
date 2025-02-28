@@ -76,24 +76,47 @@
   }
 }
 
-/* Emoji support */
+/* Basic emoji support */
 .emoji {
-  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Android Emoji", "EmojiSymbols", "EmojiOne Mozilla", "Twemoji Mozilla", sans-serif;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Android Emoji", "EmojiSymbols", sans-serif;
+  font-style: normal;
+  font-variant: normal;
   text-rendering: optimizeLegibility;
+  line-height: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-variant-emoji: emoji;
-  /* Support for flag emojis and other multi-code point emojis */
-  display: inline-block;
-  white-space: nowrap;
-  text-decoration: none;
 }
 
-/* Specific support for flag emojis */
-.emoji-flags {
-  letter-spacing: 0;
-  word-spacing: 0;
-  display: inline-block;
-  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+/* Special handling for flag emojis */
+.flag-emoji {
+  /* Critical for flag emojis */
+  display: inline-block !important;
+  width: auto !important;
+  height: 1.2em !important;
+  vertical-align: -0.1em !important;
+  
+  /* Prevent breaking of flag emojis */
+  letter-spacing: 0 !important;
+  word-spacing: 0 !important;
+  white-space: nowrap !important;
+  
+  /* Ensure consistent rendering across platforms */
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif !important;
+}
+
+/* Fix for emoji rendering in Firefox and other browsers */
+[aria-label].emoji::before {
+  content: attr(aria-label);
+  opacity: 0;
+  display: block;
+  height: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+/* Force emoji presentation */
+.emoji, .flag-emoji {
+  text-decoration: none;
+  text-shadow: none;
   font-variant-emoji: emoji;
 }
