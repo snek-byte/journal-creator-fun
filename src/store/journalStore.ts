@@ -51,8 +51,6 @@ interface JournalState {
   updateIcon: (iconId: string, updates: Partial<Icon>) => void;
   togglePreview: () => void;
   saveEntry: () => Promise<void>;
-  setCurrentEntryText: (text: string) => void;
-  saveCurrentEntry: () => Promise<void>;
   loadEntries: () => Promise<void>;
   loadProgress: () => Promise<void>;
   loadChallenge: () => void;
@@ -64,11 +62,6 @@ interface JournalState {
   addTextBox: (textBox: TextBox) => void;
   updateTextBox: (id: string, updates: Partial<TextBox>) => void;
   removeTextBox: (id: string) => void;
-  undo: () => void;
-  redo: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
-  resetCurrentEntry: () => void;
 }
 
 export const useJournalStore = create<JournalState>()(
@@ -130,9 +123,6 @@ export const useJournalStore = create<JournalState>()(
       },
       showPreview: true,
       setText: (text) => set((state) => ({ 
-        currentEntry: { ...state.currentEntry, text } 
-      })),
-      setCurrentEntryText: (text) => set((state) => ({ 
         currentEntry: { ...state.currentEntry, text } 
       })),
       setFont: (font) => set((state) => ({ 
@@ -320,9 +310,6 @@ export const useJournalStore = create<JournalState>()(
           toast.error('Failed to save entry');
         }
       },
-      saveCurrentEntry: async () => {
-        await get().saveEntry();
-      },
       loadEntries: async () => {
         const user = await supabase.auth.getUser();
         if (!user.data.user) return;
@@ -476,35 +463,6 @@ export const useJournalStore = create<JournalState>()(
         }));
 
         toast.success(`Earned ${amount} XP!`);
-      },
-      undo: () => {
-        // Simple implementation for undo
-        console.log("Undo functionality placeholder");
-      },
-      redo: () => {
-        // Simple implementation for redo
-        console.log("Redo functionality placeholder");
-      },
-      canUndo: false,
-      canRedo: false,
-      resetCurrentEntry: () => {
-        set((state) => ({
-          currentEntry: {
-            ...state.currentEntry,
-            text: '',
-            mood: undefined,
-            moodNote: undefined,
-            textStyle: 'normal',
-            stickers: [],
-            icons: [],
-            textPosition: { x: 50, y: 50 },
-            backgroundImage: undefined,
-            drawing: undefined,
-            filter: 'none',
-            textBoxes: []
-          }
-        }));
-        toast.success('Journal entry reset');
       }
     }),
     {

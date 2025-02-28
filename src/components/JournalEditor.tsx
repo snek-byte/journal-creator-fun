@@ -1,269 +1,287 @@
 
-import { useState, useEffect, useRef } from "react";
-import { useJournalStore } from "@/store/journalStore";
-import { JournalEditorSidebar } from "./JournalEditorSidebar";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Send } from "lucide-react";
-import { EmailDialog } from "./journal/EmailDialog";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { useMediaQuery } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
-import { type EmojiClickData } from 'emoji-picker-react';
-import { toast } from "sonner";
+import { useJournalEditor } from '@/hooks/useJournalEditor';
+import { JournalEditorSidebar } from './journal/JournalEditorSidebar';
+import { JournalPreview } from './journal/JournalPreview';
+import { EmailDialog } from './journal/EmailDialog';
+import { useState, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import type { Sticker, Icon, TextBox } from '@/types/journal';
 
 export function JournalEditor() {
-  // Store state and actions
-  const { 
-    togglePreview, 
-    showPreview, 
-    currentEntry, 
-    setCurrentEntryText,
+  const {
+    currentEntry,
+    showPreview,
+    dailyChallenge,
+    showEmailDialog,
+    emailAddress,
+    isSending,
+    textareaRef,
+    selectedIconId,
+    selectedTextBoxId,
+    handlePrint,
+    handleStickerAdd,
+    handleIconAdd,
+    handleStickerMove,
+    handleIconMove,
+    handleIconUpdate,
+    handleIconSelect,
+    handleTextBoxAdd,
+    handleTextBoxUpdate,
+    handleTextBoxRemove,
+    handleTextBoxSelect,
+    handleTextMove,
+    handleTextDragStart,
+    handleTextDragEnd,
+    handleBackgroundSelect,
+    handleDrawingChange,
+    handleFilterChange,
+    handleEmojiSelect,
+    handleSendEmail,
+    handleImageUpload,
+    handleFontSizeChange,
+    handleFontWeightChange,
+    handleFontChange,
+    handleFontColorChange,
+    handleGradientChange,
+    handleTextStyleChange,
+    setShowEmailDialog,
+    setEmailAddress,
     setMood,
     setIsPublic,
-    setFont,
-    setFontSize,
-    setFontWeight,
-    setFontColor,
-    setGradient,
-    setTextStyle,
-    setTextPosition,
-    saveCurrentEntry,
-    setBackgroundImage,
-    setDrawing,
-    setFilter,
-    addSticker,
-    addIcon,
-    updateIcon,
-    removeSticker,
-    removeIcon,
-    addTextBox,
-    updateTextBox,
-    removeTextBox,
-    undo,
-    redo,
+    setText,
+    togglePreview,
+    saveEntry,
+    applyChallenge,
+    loadChallenge,
+    handleUndo,
+    handleRedo,
+    handleResetToDefault,
     canUndo,
     canRedo,
-    resetCurrentEntry
-  } = useJournalStore();
+  } = useJournalEditor();
   
-  // Local state
-  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
-  const [emailAddress, setEmailAddress] = useState("");
-  const [isSending, setIsSending] = useState(false);
-  const [dailyChallenge, setDailyChallenge] = useState<any>(null);
-  const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
-  const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
-  const [currentDrawingTool, setCurrentDrawingTool] = useState("pen");
-  const [currentDrawingColor, setCurrentDrawingColor] = useState("#000000");
+  // Drawing tool state
+  const [currentDrawingTool, setCurrentDrawingTool] = useState('pen');
+  const [currentDrawingColor, setCurrentDrawingColor] = useState('#000000');
   const [currentBrushSize, setCurrentBrushSize] = useState(3);
-  const [currentStickerSize, setCurrentStickerSize] = useState(100);
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   
-  // Refs
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
-  // Responsive layout
-  const isMobile = useMediaQuery("(max-width: 768px)");
-  const [defaultLayout, setDefaultLayout] = useState([55, 45]);
-  
+  // Sticker resize state - default to 100px
+  const [stickerSize, setStickerSize] = useState(100);
+  const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
+
+  // Update sticker size when a new sticker is selected
   useEffect(() => {
-    if (isMobile) {
-      setDefaultLayout([100, 0]);
-    } else {
-      setDefaultLayout([55, 45]);
+    if (selectedStickerId) {
+      const sticker = currentEntry.stickers.find(s => s.id === selectedStickerId);
+      if (sticker && sticker.width) {
+        setStickerSize(sticker.width);
+        console.log("Set sticker size to:", sticker.width);
+      }
     }
-  }, [isMobile]);
-
-  // Handlers
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const handleEmojiSelect = (emojiData: EmojiClickData) => {
-    const emoji = emojiData.emoji;
-    if (textareaRef.current) {
-      const start = textareaRef.current.selectionStart;
-      const end = textareaRef.current.selectionEnd;
-      const text = currentEntry.text;
-      const newText = text.substring(0, start) + emoji + text.substring(end);
-      setCurrentEntryText(newText);
-      
-      // Set cursor position after the inserted emoji
-      setTimeout(() => {
-        if (textareaRef.current) {
-          textareaRef.current.selectionStart = start + emoji.length;
-          textareaRef.current.selectionEnd = start + emoji.length;
-          textareaRef.current.focus();
-        }
-      }, 0);
-    } else {
-      setCurrentEntryText(currentEntry.text + emoji);
-    }
-  };
-
-  const handleSendEmail = async () => {
-    setIsSending(true);
-    try {
-      // Simulate email sending
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      toast.success(`Journal entry sent to ${emailAddress}`);
-      setIsEmailDialogOpen(false);
-    } catch (error) {
-      toast.error("Failed to send email");
-    } finally {
-      setIsSending(false);
-    }
-  };
-
-  const loadChallenge = () => {
-    // For now, just a mock challenge
-    setDailyChallenge({
-      id: "challenge-1",
-      prompt: "Write about something that made you smile today",
-      date: new Date().toISOString(),
-      xpReward: 10
-    });
-  };
-
-  const applyChallenge = () => {
-    if (dailyChallenge) {
-      setCurrentEntryText(dailyChallenge.prompt);
-    }
-  };
-
-  const handleDrawingToolSelect = (tool: string) => {
-    setCurrentDrawingTool(tool);
-  };
-
-  const handleDrawingColorChange = (color: string) => {
-    setCurrentDrawingColor(color);
-  };
-
-  const handleClearDrawing = () => {
-    setDrawing("");
-  };
-
-  const handleBrushSizeChange = (size: number) => {
-    setCurrentBrushSize(size);
-  };
-
-  const handleStickerResize = (size: number) => {
-    setCurrentStickerSize(size);
-  };
+  }, [selectedStickerId, currentEntry.stickers]);
 
   const handleDrawingModeToggle = (enabled: boolean) => {
     setIsDrawingMode(enabled);
   };
 
+  const handleClearDrawing = () => {
+    handleDrawingChange('');
+  };
+
+  // Function to create a sticker object from a URL
+  const handleStickerAddFromUrl = (stickerUrl: string) => {
+    console.log("Creating sticker from URL:", stickerUrl);
+    const newSticker: Sticker = {
+      id: uuidv4(),
+      url: stickerUrl,
+      position: { x: 50, y: 50 },
+      width: stickerSize,
+      height: stickerSize
+    };
+    console.log("New sticker object:", newSticker);
+    handleStickerAdd(newSticker);
+  };
+
+  const handleIconAddWithId = (iconData: { url: string, style: 'outline' | 'color' }) => {
+    console.log("Adding icon with style:", iconData.style);
+    const newIcon: Icon = {
+      id: uuidv4(),
+      url: iconData.url,
+      position: { x: 50, y: 50 },
+      color: iconData.style === 'color' ? '#ff5555' : '#000000',
+      size: 48,
+      style: iconData.style
+    };
+    console.log("New icon created:", newIcon);
+    handleIconAdd(newIcon);
+  };
+
+  // Function to create a new empty text box
+  const handleCreateTextBox = () => {
+    console.log("Creating new text box");
+    const newTextBox: TextBox = {
+      id: uuidv4(),
+      text: '', // Empty by default
+      position: { x: 50, y: 50 },
+      width: 200,
+      height: 100,
+      font: currentEntry.font,
+      fontSize: currentEntry.fontSize,
+      fontWeight: currentEntry.fontWeight,
+      fontColor: currentEntry.fontColor,
+      gradient: currentEntry.gradient,
+      textStyle: currentEntry.textStyle,
+      rotation: 0,
+      zIndex: (currentEntry.textBoxes?.length || 0) + 10
+    };
+    
+    handleTextBoxAdd(newTextBox);
+    handleTextBoxSelect(newTextBox.id);
+  };
+
+  // Resize sticker handler
+  const handleStickerResize = (size: number) => {
+    console.log("JournalEditor: handleStickerResize called with size", size);
+    setStickerSize(size);
+    
+    // If a sticker is selected, update its size
+    if (selectedStickerId) {
+      console.log("Resizing sticker:", selectedStickerId, "to size:", size);
+      
+      // Find the sticker to update
+      const stickerToUpdate = currentEntry.stickers.find(s => s.id === selectedStickerId);
+      if (stickerToUpdate) {
+        // Create updated sticker with new size
+        const updatedSticker: Sticker = {
+          ...stickerToUpdate,
+          width: size,
+          height: size
+        };
+        
+        // Update the sticker by passing the entire updated sticker object
+        handleStickerAdd(updatedSticker);
+      }
+    } else if (currentEntry.stickers.length > 0) {
+      // No sticker is selected, but we'll set the size for the next sticker that's added
+      console.log("Setting default sticker size for new stickers:", size);
+    }
+  };
+
+  // Handler for sticker selection
+  const handleStickerSelect = (id: string | null) => {
+    console.log("Sticker selected in JournalEditor:", id);
+    setSelectedStickerId(id);
+    
+    // If we selected a new sticker, update the size state
+    if (id) {
+      const sticker = currentEntry.stickers.find(s => s.id === id);
+      if (sticker && sticker.width) {
+        setStickerSize(sticker.width);
+      }
+    }
+  };
+
+  // For TypeScript to accept currentEntry as JournalEntry
+  const fullEntry = {
+    ...currentEntry,
+    id: 0,
+    date: new Date().toISOString()
+  };
+
   return (
-    <div className="h-screen w-full flex flex-col overflow-hidden">
-      <ResizablePanelGroup
-        direction="horizontal"
-        className="min-h-screen w-full rounded-lg bg-background"
-      >
-        <ResizablePanel
-          defaultSize={defaultLayout[0]}
-          minSize={isMobile ? 100 : 30}
-          maxSize={isMobile ? 100 : 70}
-          className="p-4"
-        >
-          {/* Editor Top Bar */}
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold">Journal</h1>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={togglePreview}
-                title={showPreview ? "Hide Preview" : "Show Preview"}
-              >
-                {showPreview ? <EyeOff className="h-4 w-4 mr-1" /> : <Eye className="h-4 w-4 mr-1" />}
-                {showPreview ? "Hide Preview" : "Show Preview"}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEmailDialogOpen(true)}
-                title="Share via Email"
-              >
-                <Send className="h-4 w-4 mr-1" />
-                Send
-              </Button>
-            </div>
-          </div>
-
-          {/* Editor Content */}
-          <ScrollArea className="h-[calc(100vh-8rem)]">
-            <JournalEditorSidebar
-              textareaRef={textareaRef}
-              currentEntry={currentEntry}
-              dailyChallenge={dailyChallenge}
-              selectedIconId={selectedIconId}
-              selectedStickerId={selectedStickerId}
-              handlePrint={handlePrint}
-              handleEmojiSelect={handleEmojiSelect}
-              setShowEmailDialog={setIsEmailDialogOpen}
-              setText={setCurrentEntryText}
-              setMood={setMood}
-              setIsPublic={setIsPublic}
-              setFont={setFont}
-              setFontSize={setFontSize}
-              setFontWeight={setFontWeight}
-              setFontColor={setFontColor}
-              setGradient={setGradient}
-              setTextStyle={setTextStyle}
-              saveEntry={saveCurrentEntry}
-              loadChallenge={loadChallenge}
-              applyChallenge={applyChallenge}
-              onDrawingToolSelect={handleDrawingToolSelect}
-              currentDrawingTool={currentDrawingTool}
-              onDrawingColorChange={handleDrawingColorChange}
-              currentDrawingColor={currentDrawingColor}
-              onClearDrawing={handleClearDrawing}
-              onBrushSizeChange={handleBrushSizeChange}
-              currentBrushSize={currentBrushSize}
-              onStickerAdd={addSticker}
-              onStickerResize={handleStickerResize}
-              currentStickerSize={currentStickerSize}
-              onIconAdd={addIcon}
-              onBackgroundSelect={setBackgroundImage}
-              onFilterChange={setFilter}
-              handleUndo={undo}
-              handleRedo={redo}
-              handleResetToDefault={resetCurrentEntry}
-              canUndo={canUndo}
-              canRedo={canRedo}
-              isDrawingMode={isDrawingMode}
-              onDrawingModeToggle={handleDrawingModeToggle}
-            />
-          </ScrollArea>
-        </ResizablePanel>
-
-        {/* Hide the preview panel since it's now handled in App.tsx */}
-        {!isMobile && showPreview && (
-          <>
-            <ResizableHandle withHandle className={cn(!showPreview && "hidden")} />
-            <ResizablePanel
-              defaultSize={defaultLayout[1]}
-              minSize={30}
-              maxSize={70}
-              className={cn(!showPreview && "hidden")}
-            >
-              {/* We'll leave this empty as the preview is now rendered at the App level */}
-              <div className="h-full w-full"></div>
-            </ResizablePanel>
-          </>
-        )}
-      </ResizablePanelGroup>
+    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50 overflow-auto">
+      <JournalEditorSidebar 
+        textareaRef={textareaRef}
+        currentEntry={fullEntry}
+        dailyChallenge={dailyChallenge}
+        selectedIconId={selectedIconId}
+        selectedStickerId={selectedStickerId}
+        handlePrint={handlePrint}
+        handleEmojiSelect={handleEmojiSelect}
+        setShowEmailDialog={setShowEmailDialog}
+        setText={setText}
+        setMood={setMood}
+        setIsPublic={setIsPublic}
+        setFont={handleFontChange}
+        setFontSize={handleFontSizeChange}
+        setFontWeight={handleFontWeightChange}
+        setFontColor={handleFontColorChange}
+        setGradient={handleGradientChange}
+        setTextStyle={handleTextStyleChange}
+        saveEntry={saveEntry}
+        loadChallenge={loadChallenge}
+        applyChallenge={applyChallenge}
+        onDrawingToolSelect={setCurrentDrawingTool}
+        currentDrawingTool={currentDrawingTool}
+        onDrawingColorChange={setCurrentDrawingColor}
+        currentDrawingColor={currentDrawingColor}
+        onClearDrawing={handleClearDrawing}
+        onBrushSizeChange={setCurrentBrushSize}
+        currentBrushSize={currentBrushSize}
+        onStickerAdd={handleStickerAddFromUrl}
+        onStickerResize={handleStickerResize}
+        currentStickerSize={stickerSize}
+        onIconAdd={handleIconAddWithId}
+        onBackgroundSelect={handleBackgroundSelect}
+        onFilterChange={handleFilterChange}
+        handleUndo={handleUndo}
+        handleRedo={handleRedo}
+        handleResetToDefault={handleResetToDefault}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        isDrawingMode={isDrawingMode}
+        onDrawingModeToggle={handleDrawingModeToggle}
+      />
 
       <EmailDialog
-        open={isEmailDialogOpen}
-        onOpenChange={setIsEmailDialogOpen}
+        open={showEmailDialog}
+        onOpenChange={setShowEmailDialog}
         emailAddress={emailAddress}
         onEmailChange={setEmailAddress}
         onSend={handleSendEmail}
         isSending={isSending}
+      />
+
+      <JournalPreview
+        showPreview={showPreview}
+        text={currentEntry.text}
+        mood={currentEntry.mood}
+        font={currentEntry.font}
+        fontSize={currentEntry.fontSize}
+        fontWeight={currentEntry.fontWeight}
+        fontColor={currentEntry.fontColor}
+        gradient={currentEntry.gradient}
+        textStyle={currentEntry.textStyle}
+        stickers={currentEntry.stickers || []}
+        icons={currentEntry.icons || []}
+        textBoxes={currentEntry.textBoxes || []}
+        textPosition={currentEntry.textPosition}
+        backgroundImage={currentEntry.backgroundImage}
+        drawing={currentEntry.drawing}
+        filter={currentEntry.filter}
+        onStickerAdd={handleStickerAdd}
+        onIconAdd={handleIconAdd}
+        onStickerMove={handleStickerMove}
+        onIconMove={handleIconMove}
+        onIconUpdate={handleIconUpdate}
+        onIconSelect={handleIconSelect}
+        onStickerSelect={handleStickerSelect}
+        onTextBoxAdd={handleTextBoxAdd}
+        onTextBoxUpdate={handleTextBoxUpdate}
+        onTextBoxRemove={handleTextBoxRemove}
+        onTextBoxSelect={handleTextBoxSelect}
+        onTextMove={handleTextMove}
+        onTextDragStart={handleTextDragStart}
+        onTextDragEnd={handleTextDragEnd}
+        onBackgroundSelect={handleBackgroundSelect}
+        onDrawingChange={handleDrawingChange}
+        onFilterChange={handleFilterChange}
+        onTogglePreview={togglePreview}
+        drawingTool={currentDrawingTool}
+        drawingColor={currentDrawingColor}
+        brushSize={currentBrushSize}
+        isDrawingMode={isDrawingMode}
       />
     </div>
   );
