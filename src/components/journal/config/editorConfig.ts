@@ -59,7 +59,7 @@ export const fontWeights = [
 ];
 
 export const gradients = [
-  // Primary gradients (most common/popular)
+  // Primary gradients (for text)
   { label: 'Sunset', value: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)' },
   { label: 'Ocean', value: 'linear-gradient(109.6deg, rgba(223,234,247,1) 11.2%, rgba(244,248,252,1) 91.1%)' },
   { label: 'Lavender', value: 'linear-gradient(102.3deg, rgba(147,39,143,1) 5.9%, rgba(234,172,232,1) 64%, rgba(246,219,245,1) 89%)' },

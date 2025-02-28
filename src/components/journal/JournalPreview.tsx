@@ -297,8 +297,43 @@ export function JournalPreview({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-  // Check if the gradient string indicates it's a text gradient
-  const isTextGradient = gradient && gradient.includes('text');
+  // Generate text style based on the gradient
+  const getTextStyles = () => {
+    // Check if we're using a gradient for the text
+    const usingGradient = gradient && gradient !== '';
+    
+    // Base styles
+    const styles: React.CSSProperties = {
+      fontFamily: font || 'inherit',
+      fontSize: fontSize || 'inherit',
+      fontWeight: fontWeight || 'inherit',
+      fontStyle: textStyle?.includes('italic') ? 'italic' : 'normal',
+      textDecoration: textStyle?.includes('underline') ? 'underline' : 'none',
+      textAlign: textStyle?.includes('center') ? 'center' : 'left',
+      padding: '1rem',
+      maxWidth: '80%',
+      minHeight: '30px',
+      minWidth: '100px',
+      border: '2px dashed rgba(0,0,0,0.15)',
+      borderRadius: '4px',
+      userSelect: 'none',
+      touchAction: 'none',
+    };
+    
+    // If using gradient for text
+    if (usingGradient) {
+      styles.background = gradient;
+      styles.WebkitBackgroundClip = 'text';
+      styles.WebkitTextFillColor = 'transparent';
+      styles.backgroundClip = 'text';
+      styles.color = 'transparent';
+    } else {
+      // Normal text color
+      styles.color = fontColor || 'inherit';
+    }
+    
+    return styles;
+  };
 
   // Function to determine if backgroundImage is a URL or a gradient
   const isGradientBackground = backgroundImage && backgroundImage.includes('linear-gradient');
@@ -316,16 +351,48 @@ export function JournalPreview({
     }
   };
 
-  // Check if the background is a paper texture (from transparenttextures.com)
-  const isPaperTexture = backgroundImage && backgroundImage.includes('transparenttextures.com');
+  // Check if the background is a pattern or paper texture
+  const isPatternBackground = backgroundImage && backgroundImage.includes('transparenttextures.com');
+
+  // Get background style based on type
+  const getBackgroundStyle = () => {
+    if (!backgroundImage) return {};
+    
+    if (isGradientBackground) {
+      return {
+        background: backgroundImage,
+        opacity: 0.9,
+        filter: filter && filter !== 'none' ? getCssFilter(filter) : undefined,
+      };
+    }
+    
+    if (isPatternBackground) {
+      return {
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundColor: '#faf9f6', // Off-white background for patterns
+        backgroundSize: 'auto',
+        backgroundRepeat: 'repeat',
+        filter: filter && filter !== 'none' ? getCssFilter(filter) : undefined,
+      };
+    }
+    
+    // Regular image background
+    return {
+      backgroundImage: backgroundImage.includes('http') ? `url(${backgroundImage})` : backgroundImage,
+      backgroundColor: backgroundImage.includes('placehold.co') ? backgroundImage.split('/')[3] : undefined,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      filter: filter && filter !== 'none' ? getCssFilter(filter) : undefined,
+    };
+  };
 
   return (
     <div className={cn("relative flex-1 overflow-hidden bg-gray-50", className)}>
       <div className="absolute inset-0 flex items-center justify-center" onClick={handlePageClick}>
         {/* Journal page with proper styling */}
         <div style={journalPageStyle} className="journal-page">
-          {/* Background image layer - Handling for photo backgrounds */}
-          {backgroundImage && !isGradientBackground && !isPaperTexture && (
+          {/* Background layer */}
+          {backgroundImage && (
             <div 
               style={{
                 position: 'absolute',
@@ -333,52 +400,9 @@ export function JournalPreview({
                 left: 0,
                 width: '100%',
                 height: '100%',
-                backgroundImage: backgroundImage.includes('http') ? `url(${backgroundImage})` : backgroundImage,
-                backgroundColor: backgroundImage.includes('placehold.co') ? backgroundImage.split('/')[3] : undefined,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                filter: filter && filter !== 'none' ? getCssFilter(filter) : undefined,
+                ...getBackgroundStyle(),
                 zIndex: 1,
                 border: '1px solid #e0e0e0'
-              }}
-              className="journal-page"
-            />
-          )}
-          
-          {/* Paper texture background layer - Special handling for paper textures */}
-          {backgroundImage && isPaperTexture && (
-            <div 
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                backgroundImage: `url(${backgroundImage})`,
-                backgroundColor: '#faf9f6', // Off-white background for paper
-                backgroundSize: 'auto',
-                backgroundRepeat: 'repeat',
-                filter: filter && filter !== 'none' ? getCssFilter(filter) : undefined,
-                zIndex: 1,
-                border: '1px solid #e0e0e0'
-              }}
-              className="journal-page"
-            />
-          )}
-          
-          {/* Gradient background layer */}
-          {backgroundImage && isGradientBackground && (
-            <div 
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                background: backgroundImage,
-                opacity: 0.9,
-                filter: filter && filter !== 'none' ? getCssFilter(filter) : undefined,
-                zIndex: 1
               }}
               className="journal-page"
             />
@@ -401,32 +425,15 @@ export function JournalPreview({
               </button>
             </div>
 
-            {/* Text element - simplified and direct draggable implementation */}
+            {/* Text element with proper gradient styling */}
             <div
               ref={textRef}
               className="absolute z-50 cursor-move whitespace-pre-wrap"
               style={{
+                ...getTextStyles(),
                 left: `${textPosition.x}%`,
                 top: `${textPosition.y}%`,
                 transform: 'translate(-50%, -50%)',
-                padding: '1rem',
-                maxWidth: '80%',
-                minHeight: '30px',
-                minWidth: '100px',
-                fontFamily: font || 'inherit',
-                fontSize: fontSize || 'inherit',
-                fontWeight: fontWeight || 'inherit',
-                color: isTextGradient ? 'transparent' : (fontColor || 'inherit'),
-                background: isTextGradient ? gradient.replace(' text', '') : 'none',
-                WebkitBackgroundClip: isTextGradient ? 'text' : 'unset',
-                WebkitTextFillColor: isTextGradient ? 'transparent' : 'unset',
-                fontStyle: textStyle?.includes('italic') ? 'italic' : 'normal',
-                textDecoration: textStyle?.includes('underline') ? 'underline' : 'none',
-                textAlign: textStyle?.includes('center') ? 'center' : 'left',
-                border: '2px dashed rgba(0,0,0,0.15)',
-                borderRadius: '4px',
-                userSelect: 'none',
-                touchAction: 'none'
               }}
               onMouseDown={handleTextElementDrag}
               onClick={(e) => {

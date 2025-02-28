@@ -48,17 +48,23 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     { name: "Pink-Purple", url: "linear-gradient(to right, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%)" },
     { name: "Orange-Red", url: "linear-gradient(to right, #ff512f 0%, #f09819 100%)" },
     { name: "Green-Yellow", url: "linear-gradient(to right, #C6FFDD 0%, #FBD786 50%, #f7797d 100%)" },
-    { name: "Light Blue", url: "linear-gradient(to top, #accbee 0%, #e7f0fd 100%)" },
+    { name: "Light Blue", url: "linear-gradient(to top, #accbee 0%, #e7f0fd 100%)" }
   ];
 
-  // Patterns and textures with updated reliable URLs
+  // Actual repeating patterns (not photos)
   const patternBackgrounds = [
-    { name: "Abstract", url: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=800&h=1000&q=80" },
-    { name: "Geometric", url: "https://images.unsplash.com/photo-1520121378167-173c83c2a8cb?auto=format&fit=crop&w=800&h=1000&q=80" },
-    { name: "Marble", url: "https://images.unsplash.com/photo-1517479149777-5f3b1511d5ad?auto=format&fit=crop&w=800&h=1000&q=80" },
-    { name: "Wood", url: "https://images.unsplash.com/photo-1566041510639-8d95a2490bfb?auto=format&fit=crop&w=800&h=1000&q=80" },
-    { name: "Clouds", url: "https://images.unsplash.com/photo-1513002749550-c59d786b8e6c?auto=format&fit=crop&w=800&h=1000&q=80" },
-    { name: "Concrete", url: "https://images.unsplash.com/photo-1523821741446-edb2b68bb7a0?auto=format&fit=crop&w=800&h=1000&q=80" }
+    { name: "Subtle Dots", url: "https://www.transparenttextures.com/patterns/subtle-dots.png" },
+    { name: "Grid", url: "https://www.transparenttextures.com/patterns/grid.png" },
+    { name: "Checkered", url: "https://www.transparenttextures.com/patterns/checkered-pattern.png" },
+    { name: "Brick Wall", url: "https://www.transparenttextures.com/patterns/brick-wall.png" },
+    { name: "Stripes", url: "https://www.transparenttextures.com/patterns/stripes.png" },
+    { name: "Hexagons", url: "https://www.transparenttextures.com/patterns/hexellence.png" },
+    { name: "Diagonal Lines", url: "https://www.transparenttextures.com/patterns/diagonal-lines.png" },
+    { name: "Carbon Fiber", url: "https://www.transparenttextures.com/patterns/carbon-fibre.png" },
+    { name: "Cubes", url: "https://www.transparenttextures.com/patterns/3px-tile.png" },
+    { name: "Waves", url: "https://www.transparenttextures.com/patterns/asfalt.png" },
+    { name: "Diamonds", url: "https://www.transparenttextures.com/patterns/diamond-upholstery.png" },
+    { name: "Wood", url: "https://www.transparenttextures.com/patterns/wood-pattern.png" }
   ];
   
   const handleBackgroundSelect = (url: string) => {
@@ -66,9 +72,9 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     onBackgroundSelect(url);
   };
 
-  // Helper function to generate a full CSS background for papers
-  const getPaperBackgroundStyle = (url: string) => {
-    // For paper textures, we want to tile them as patterns with a light color background
+  // Helper function to generate a full CSS background for papers and patterns
+  const getPatternBackgroundStyle = (url: string) => {
+    // For paper textures and patterns, we want to tile them as patterns
     return {
       backgroundImage: `url(${url})`,
       backgroundSize: 'auto',
@@ -102,7 +108,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                 >
                   <div 
                     className="w-full h-full"
-                    style={getPaperBackgroundStyle(bg.url)}
+                    style={getPatternBackgroundStyle(bg.url)}
                     title={bg.name}
                   />
                 </button>
@@ -144,11 +150,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                 >
                   <div 
                     className="w-full h-full"
-                    style={{ 
-                      backgroundImage: `url(${bg.url})`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center'
-                    }}
+                    style={getPatternBackgroundStyle(bg.url)}
                     title={bg.name}
                   />
                 </button>
