@@ -14,35 +14,25 @@ export function JournalEditor() {
     isSending,
     textareaRef,
     selectedIconId,
-    selectedEmojiId,
-    emojiMode,
     handlePrint,
     handleStickerAdd,
     handleIconAdd,
     handleStickerMove,
     handleIconMove,
-    handleEmojiMove,
     handleIconUpdate,
-    handleEmojiUpdate,
     handleIconSelect,
-    handleEmojiSelect,
     handleTextMove,
-    handleTextDragStart,
-    handleTextDragEnd,
     handleBackgroundSelect,
     handleDrawingChange,
     handleFilterChange,
-    handleEmojiPickerSelect,
-    toggleEmojiMode,
+    handleEmojiSelect,
     handleSendEmail,
-    handleImageUpload,
-    handleSizeChange,
+    handleFontSizeChange,
     handleFontWeightChange,
     handleFontChange,
     handleFontColorChange,
     handleGradientChange,
     handleTextStyleChange,
-    handleRotateEmoji,
     setShowEmailDialog,
     setEmailAddress,
     setMood,
@@ -52,12 +42,6 @@ export function JournalEditor() {
     saveEntry,
     applyChallenge,
     loadChallenge,
-    // New undo/redo functions
-    handleUndo,
-    handleRedo,
-    handleResetToDefault,
-    canUndo,
-    canRedo,
   } = useJournalEditor();
 
   return (
@@ -67,30 +51,21 @@ export function JournalEditor() {
         currentEntry={currentEntry}
         dailyChallenge={dailyChallenge}
         selectedIconId={selectedIconId}
-        selectedEmojiId={selectedEmojiId}
-        emojiMode={emojiMode}
         handlePrint={handlePrint}
-        handleEmojiPickerSelect={handleEmojiPickerSelect}
-        toggleEmojiMode={toggleEmojiMode}
+        handleEmojiSelect={handleEmojiSelect}
         setShowEmailDialog={setShowEmailDialog}
         setText={setText}
         setMood={setMood}
         setIsPublic={setIsPublic}
         setFont={handleFontChange}
-        setFontSize={handleSizeChange}
+        setFontSize={handleFontSizeChange}
         setFontWeight={handleFontWeightChange}
         setFontColor={handleFontColorChange}
         setGradient={handleGradientChange}
         setTextStyle={handleTextStyleChange}
-        handleRotateEmoji={handleRotateEmoji}
         saveEntry={saveEntry}
         loadChallenge={loadChallenge}
         applyChallenge={applyChallenge}
-        handleUndo={handleUndo}
-        handleRedo={handleRedo}
-        handleResetToDefault={handleResetToDefault}
-        canUndo={canUndo}
-        canRedo={canRedo}
       />
 
       <EmailDialog
@@ -114,7 +89,6 @@ export function JournalEditor() {
         textStyle={currentEntry.textStyle}
         stickers={currentEntry.stickers || []}
         icons={currentEntry.icons || []}
-        emojis={currentEntry.emojis || []}
         textPosition={currentEntry.textPosition || { x: 50, y: 50 }}
         backgroundImage={currentEntry.backgroundImage}
         drawing={currentEntry.drawing}
@@ -123,14 +97,9 @@ export function JournalEditor() {
         onIconAdd={handleIconAdd}
         onStickerMove={handleStickerMove}
         onIconMove={handleIconMove}
-        onEmojiMove={handleEmojiMove}
         onIconUpdate={handleIconUpdate}
-        onEmojiUpdate={handleEmojiUpdate}
         onIconSelect={handleIconSelect}
-        onEmojiSelect={handleEmojiSelect}
         onTextMove={handleTextMove}
-        onTextDragStart={handleTextDragStart}
-        onTextDragEnd={handleTextDragEnd}
         onBackgroundSelect={handleBackgroundSelect}
         onDrawingChange={handleDrawingChange}
         onFilterChange={handleFilterChange}
