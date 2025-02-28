@@ -408,8 +408,8 @@ export function JournalPreview({
               <div 
                 className="absolute z-10 w-4 h-4 bg-white/30 hover:bg-white/60 rounded-full flex items-center justify-center cursor-pointer pointer-events-auto"
                 style={{
-                  left: `${bgImagePosition.x - 40}%`,
-                  top: `${bgImagePosition.y - 40}%`,
+                  left: `${bgImagePosition.x - 20}%`,
+                  top: `${bgImagePosition.y - 20}%`,
                 }}
                 onClick={handleRemoveBackgroundImage}
                 title="Remove image"
