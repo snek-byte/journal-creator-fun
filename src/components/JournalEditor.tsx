@@ -43,6 +43,11 @@ export function JournalEditor() {
     saveEntry,
     applyChallenge,
     loadChallenge,
+    handleUndo,
+    handleRedo,
+    handleResetToDefault,
+    canUndo,
+    canRedo,
   } = useJournalEditor();
   
   // Drawing tool state
@@ -83,6 +88,15 @@ export function JournalEditor() {
         onClearDrawing={handleClearDrawing}
         onBrushSizeChange={setCurrentBrushSize}
         currentBrushSize={currentBrushSize}
+        onStickerAdd={handleStickerAdd}
+        onIconAdd={handleIconAdd}
+        onBackgroundSelect={handleBackgroundSelect}
+        onFilterChange={handleFilterChange}
+        handleUndo={handleUndo}
+        handleRedo={handleRedo}
+        handleResetToDefault={handleResetToDefault}
+        canUndo={canUndo}
+        canRedo={canRedo}
       />
 
       <EmailDialog
