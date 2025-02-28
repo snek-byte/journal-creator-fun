@@ -197,7 +197,7 @@ export function JournalPreview({
               <IconSelector onIconSelect={onIconAdd} />
             )}
             {selectedSidebarItem === 'backgrounds' && (
-              <BackgroundImageSelector onBackgroundSelect={onBackgroundSelect} />
+              <BackgroundImageSelector onImageSelect={onBackgroundSelect} />
             )}
             {selectedSidebarItem === 'drawing' && (
               <DrawingLayer 
@@ -208,7 +208,10 @@ export function JournalPreview({
               />
             )}
             {selectedSidebarItem === 'filters' && (
-              <ImageFilterSelector onFilterSelect={onFilterChange} />
+              <ImageFilterSelector 
+                onFilterSelect={onFilterChange} 
+                currentFilter={filter || 'none'}
+              />
             )}
           </div>
         )}
