@@ -34,6 +34,7 @@ interface JournalEditorSidebarProps {
   };
   dailyChallenge: any;
   selectedIconId: string | null;
+  selectedStickerId?: string | null; // Added missing prop
   handlePrint: () => void;
   handleEmojiSelect: (emojiData: EmojiClickData) => void;
   setShowEmailDialog: (show: boolean) => void;
@@ -62,6 +63,8 @@ interface JournalEditorSidebarProps {
   onBrushSizeChange?: (size: number) => void;
   currentBrushSize?: number;
   onStickerAdd?: (stickerUrl: string) => void;
+  onStickerResize?: (size: number) => void; // Added missing prop
+  currentStickerSize?: number; // Added missing prop
   onIconAdd?: (icon: { url: string, style: 'outline' | 'color' }) => void;
   onBackgroundSelect?: (imageUrl: string) => void;
   onFilterChange?: (filter: string) => void;

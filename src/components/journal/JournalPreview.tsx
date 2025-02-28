@@ -31,6 +31,7 @@ interface JournalPreviewProps {
   onIconMove: (id: string, position: { x: number; y: number }) => void;
   onIconUpdate: (id: string, updates: Partial<Icon>) => void;
   onIconSelect: (id: string) => void;
+  onStickerSelect: (id: string | null) => void; // Added missing prop
   onTextMove: (position: { x: number; y: number }) => void;
   onBackgroundSelect: (image: string) => void;
   onDrawingChange: (dataUrl: string) => void;
