@@ -149,12 +149,16 @@ export function JournalPreview({
   return (
     <div className={cn("relative flex-1 overflow-hidden bg-white", className)}>
       <div
-        className="absolute inset-0 z-0 bg-white"
+        className="absolute inset-0 z-0"
         style={{
-          backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
+          backgroundImage: backgroundImage 
+            ? `url(${backgroundImage})` 
+            : gradient 
+              ? gradient 
+              : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          filter: filter || undefined,
+          filter: filter && filter !== 'none' ? filter : undefined,
         }}
       />
 
@@ -176,7 +180,7 @@ export function JournalPreview({
         </div>
 
         {/* Stickers */}
-        {stickers.map((sticker) => (
+        {stickers && stickers.map((sticker) => (
           <img
             key={sticker.id}
             src={sticker.url}
@@ -221,7 +225,7 @@ export function JournalPreview({
         ))}
 
         {/* Icons */}
-        {icons.map((icon) => (
+        {icons && icons.map((icon) => (
           <IconContainer
             key={icon.id}
             icon={icon}
@@ -244,7 +248,7 @@ export function JournalPreview({
             fontSize: fontSize || 'inherit',
             fontWeight: fontWeight || 'inherit',
             color: fontColor || 'inherit',
-            backgroundImage: gradient ? `${gradient}` : 'none',
+            backgroundImage: gradient ? gradient : 'none',
             WebkitBackgroundClip: gradient ? 'text' : 'unset',
             WebkitTextFillColor: gradient ? 'transparent' : 'unset',
             fontStyle: textStyle?.includes('italic') ? 'italic' : 'normal',

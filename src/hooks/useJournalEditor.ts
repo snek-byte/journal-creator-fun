@@ -104,6 +104,7 @@ export function useJournalEditor() {
   const handleStickerAdd = (sticker: Sticker) => {
     try {
       addSticker(sticker);
+      toast.success('Sticker added! Drag it to position on your journal.');
     } catch (error) {
       console.error("Error adding sticker:", error);
     }
@@ -245,11 +246,8 @@ export function useJournalEditor() {
       // Get the numeric value from the font size
       const sizeValue = parseInt(size);
       if (!isNaN(sizeValue)) {
-        // Make icon size directly proportional to the font size
-        const iconSize = sizeValue * 3; // Make icon 3x the font size
-        
         // Update the icon with the new size
-        handleIconUpdate(selectedIconId, { size: iconSize });
+        handleIconUpdate(selectedIconId, { size: sizeValue });
       }
     } else {
       // Normal text size change
@@ -281,6 +279,7 @@ export function useJournalEditor() {
 
   const handleGradientChange = (gradient: string) => {
     if (!selectedIconId) {
+      console.log("Setting gradient to:", gradient);
       setGradient(gradient);
     }
   }

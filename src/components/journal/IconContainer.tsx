@@ -82,6 +82,35 @@ export function IconContainer({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+  // Function to determine the appropriate styling for colored icons
+  const getIconStyle = () => {
+    if (!icon.color || icon.color === '#000000') {
+      return {}; // Default styling
+    }
+
+    if (icon.style === 'outline') {
+      // For outline icons, we apply the color as a stroke color
+      return {
+        filter: `invert(1) drop-shadow(0 0 0 ${icon.color})`
+      };
+    } else {
+      // For colored icons, we use a combination of filters to apply the color
+      return {
+        filter: `brightness(0) saturate(100%) ${getColorFilter(icon.color)}`
+      };
+    }
+  };
+
+  // Convert hex color to filter
+  const getColorFilter = (hexColor: string) => {
+    // Convert hex to RGB
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    
+    return `invert(${r/255*100}%) sepia(${g/255*100}%) saturate(${b/255*100}%)`;
+  };
+
   return (
     <div
       ref={iconRef}
@@ -102,7 +131,10 @@ export function IconContainer({
         style={{
           width: `${icon.size || 48}px`,
           height: `${icon.size || 48}px`,
-          filter: icon.color ? `drop-shadow(0 0 0 ${icon.color})` : undefined,
+          ...(icon.color && icon.color !== '#000000' ? {
+            filter: `drop-shadow(0 0 0 ${icon.color})`,
+            WebkitFilter: `drop-shadow(0 0 0 ${icon.color})`,
+          } : {})
         }}
         draggable={false}
       />
