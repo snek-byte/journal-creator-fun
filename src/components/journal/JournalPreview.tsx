@@ -91,6 +91,11 @@ export function JournalPreview({
     quality: 1.0
   });
 
+  // For debugging
+  useEffect(() => {
+    console.log("Current text content:", text);
+  }, [text]);
+
   // Journal page styles
   const journalPageStyle = {
     backgroundColor: '#fff',
@@ -182,6 +187,8 @@ export function JournalPreview({
 
   // Function to process text and apply special Unicode text styles
   const processText = (text: string) => {
+    if (!text) return '';
+    
     // Handle special style transformations from the utility
     if (textStyle && textStyle !== 'normal' && !textStyle.includes(' ')) {
       // Type assertion to ensure textStyle is treated as a valid TextStyle
@@ -296,6 +303,19 @@ export function JournalPreview({
   // Function to determine if backgroundImage is a URL or a gradient
   const isGradientBackground = backgroundImage && backgroundImage.includes('linear-gradient');
 
+  // Helper function to get CSS filter based on filter name
+  const getCssFilter = (filterName: string) => {
+    switch (filterName) {
+      case 'grayscale': return 'grayscale(1)';
+      case 'sepia': return 'sepia(0.7)';
+      case 'blur': return 'blur(2px)';
+      case 'brightness': return 'brightness(1.3)';
+      case 'contrast': return 'contrast(1.5)';
+      case 'invert': return 'invert(0.8)';
+      default: return 'none';
+    }
+  };
+
   return (
     <div className={cn("relative flex-1 overflow-hidden bg-gray-50", className)}>
       <div className="absolute inset-0 flex items-center justify-center" onClick={handlePageClick}>
@@ -314,7 +334,7 @@ export function JournalPreview({
                 backgroundColor: backgroundImage.includes('placehold.co') ? backgroundImage.split('/')[3] : undefined,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                filter: filter || undefined,
+                filter: filter && filter !== 'none' ? getCssFilter(filter) : undefined,
                 zIndex: 1,
                 border: '1px solid #e0e0e0'
               }}
@@ -333,6 +353,7 @@ export function JournalPreview({
                 height: '100%',
                 background: backgroundImage,
                 opacity: 0.9,
+                filter: filter && filter !== 'none' ? getCssFilter(filter) : undefined,
                 zIndex: 1
               }}
               className="journal-page"
@@ -359,7 +380,7 @@ export function JournalPreview({
             {/* Text element - simplified and direct draggable implementation */}
             <div
               ref={textRef}
-              className="absolute z-50 cursor-move"
+              className="absolute z-50 cursor-move whitespace-pre-wrap"
               style={{
                 left: `${textPosition.x}%`,
                 top: `${textPosition.y}%`,
@@ -367,6 +388,7 @@ export function JournalPreview({
                 padding: '1rem',
                 maxWidth: '80%',
                 minHeight: '30px',
+                minWidth: '100px',
                 fontFamily: font || 'inherit',
                 fontSize: fontSize || 'inherit',
                 fontWeight: fontWeight || 'inherit',
