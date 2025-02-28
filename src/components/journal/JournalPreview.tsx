@@ -5,7 +5,7 @@ import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Pencil, ImageP
 import { moodOptions } from './config/editorConfig';
 import type { Mood, Sticker as StickerType, Icon } from '@/types/journal';
 import { applyTextStyle } from '@/utils/unicodeTextStyles';
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 import { StickerSelector } from './StickerSelector';
 import { IconSelector } from './IconSelector';
 import { BackgroundImageSelector } from './BackgroundImageSelector';
@@ -69,6 +69,7 @@ export function JournalPreview({
 }: JournalPreviewProps) {
   const previewRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
+  const dialogTextRef = useRef<HTMLDivElement>(null);
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [isTextDragging, setIsTextDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -125,29 +126,40 @@ export function JournalPreview({
     }
   };
 
-  const handleTextMouseDown = (e: React.MouseEvent) => {
-    if (!textRef.current) return;
+  // Updated text dragging handling with more explicit logging
+  const handleTextMouseDown = (e: React.MouseEvent, isDialogText = false) => {
+    const element = isDialogText ? dialogTextRef.current : textRef.current;
+    const container = isDialogText ? e.currentTarget.closest('.dialog-content') : previewRef.current;
+    
+    if (!element || !container) {
+      console.log('Missing elements for dragging', { element, container });
+      return;
+    }
     
     e.preventDefault();
+    e.stopPropagation();
     
-    const rect = textRef.current.getBoundingClientRect();
+    const rect = element.getBoundingClientRect();
     const offsetX = e.clientX - rect.left;
     const offsetY = e.clientY - rect.top;
     
+    console.log('Starting text drag', { offsetX, offsetY });
     setDragOffset({ x: offsetX, y: offsetY });
     setIsTextDragging(true);
     
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isTextDragging || !previewRef.current) return;
+      if (!isTextDragging || !container) return;
       
-      const previewRect = previewRef.current.getBoundingClientRect();
-      const x = ((e.clientX - previewRect.left - dragOffset.x) / previewRect.width) * 100;
-      const y = ((e.clientY - previewRect.top - dragOffset.y) / previewRect.height) * 100;
+      const containerRect = container.getBoundingClientRect();
+      const x = ((e.clientX - containerRect.left - dragOffset.x) / containerRect.width) * 100;
+      const y = ((e.clientY - containerRect.top - dragOffset.y) / containerRect.height) * 100;
       
+      console.log('Moving text', { x, y });
       onTextMove({ x, y });
     };
     
     const handleMouseUp = () => {
+      console.log('Text drag ended');
       setIsTextDragging(false);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
@@ -157,29 +169,35 @@ export function JournalPreview({
     window.addEventListener('mouseup', handleMouseUp);
   };
 
-  const handleTextTouchStart = (e: React.TouchEvent) => {
-    if (!textRef.current) return;
+  const handleTextTouchStart = (e: React.TouchEvent, isDialogText = false) => {
+    const element = isDialogText ? dialogTextRef.current : textRef.current;
+    const container = isDialogText ? e.currentTarget.closest('.dialog-content') : previewRef.current;
+    
+    if (!element || !container) return;
     
     const touch = e.touches[0];
-    const rect = textRef.current.getBoundingClientRect();
+    const rect = element.getBoundingClientRect();
     const offsetX = touch.clientX - rect.left;
     const offsetY = touch.clientY - rect.top;
     
+    console.log('Starting text touch drag', { offsetX, offsetY });
     setDragOffset({ x: offsetX, y: offsetY });
     setIsTextDragging(true);
     
     const handleTouchMove = (e: TouchEvent) => {
-      if (!isTextDragging || !previewRef.current) return;
+      if (!isTextDragging || !container) return;
       
       const touch = e.touches[0];
-      const previewRect = previewRef.current.getBoundingClientRect();
-      const x = ((touch.clientX - previewRect.left - dragOffset.x) / previewRect.width) * 100;
-      const y = ((touch.clientY - previewRect.top - dragOffset.y) / previewRect.height) * 100;
+      const containerRect = container.getBoundingClientRect();
+      const x = ((touch.clientX - containerRect.left - dragOffset.x) / containerRect.width) * 100;
+      const y = ((touch.clientY - containerRect.top - dragOffset.y) / containerRect.height) * 100;
       
+      console.log('Moving text (touch)', { x, y });
       onTextMove({ x, y });
     };
     
     const handleTouchEnd = () => {
+      console.log('Text touch drag ended');
       setIsTextDragging(false);
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
@@ -284,9 +302,40 @@ export function JournalPreview({
     }
     onDrawingChange(dataUrl);
   };
+  
+  // Rendering the text element with proper dragging behavior
+  const renderText = (isDialogText = false) => {
+    const ref = isDialogText ? dialogTextRef : textRef;
+    
+    return (
+      <div
+        ref={ref}
+        style={{
+          fontFamily: font,
+          fontSize,
+          fontWeight,
+          color: fontColor,
+          left: `${textPosition.x}%`,
+          top: `${textPosition.y}%`,
+          position: 'absolute',
+          maxWidth: '80%',
+          zIndex: 10,
+        }}
+        className={`whitespace-pre-wrap p-6 cursor-move select-none transition-colors rounded-lg
+          ${isTextDragging ? 'bg-black/5 ring-2 ring-primary/30' : 'hover:bg-black/5'}
+        `}
+        onMouseDown={(e) => handleTextMouseDown(e, isDialogText)}
+        onTouchStart={(e) => handleTextTouchStart(e, isDialogText)}
+      >
+        {textStyle && textStyle !== 'normal' 
+          ? applyTextStyle(text || "Start writing your journal entry...", textStyle as any) 
+          : (text || "Start writing your journal entry...")}
+      </div>
+    );
+  };
 
   // Function to render the journal content (text, stickers, icons, etc.)
-  const renderJournalContent = () => {
+  const renderJournalContent = (isDialog = false) => {
     return (
       <>
         {mood && (
@@ -295,7 +344,7 @@ export function JournalPreview({
           </div>
         )}
         
-        {isDrawingMode && (
+        {isDrawingMode && !isDialog && (
           <DrawingLayer
             width={previewRef.current?.clientWidth || 800}
             height={previewRef.current?.clientHeight || 600}
@@ -306,29 +355,8 @@ export function JournalPreview({
         
         {!isDrawingMode && (
           <>
-            <div
-              ref={textRef}
-              style={{
-                fontFamily: font,
-                fontSize,
-                fontWeight,
-                color: fontColor,
-                left: `${textPosition.x}%`,
-                top: `${textPosition.y}%`,
-                maxWidth: '80%',
-                transform: 'translate(0, 0)',
-                transformOrigin: 'top left',
-              }}
-              className={`absolute whitespace-pre-wrap p-6 cursor-move select-none transition-colors rounded-lg
-                ${isTextDragging ? 'bg-black/5 ring-2 ring-primary/30' : 'hover:bg-black/5'}
-              `}
-              onMouseDown={handleTextMouseDown}
-              onTouchStart={handleTextTouchStart}
-            >
-              {textStyle && textStyle !== 'normal' 
-                ? applyTextStyle(text || "Start writing your journal entry...", textStyle as any) 
-                : (text || "Start writing your journal entry...")}
-            </div>
+            {/* Render text with dragging capabilities */}
+            {renderText(isDialog)}
             
             {stickers.map((sticker) => (
               <img
@@ -339,8 +367,9 @@ export function JournalPreview({
                   left: `${sticker.position.x}%`,
                   top: `${sticker.position.y}%`,
                   transform: 'translate(-50%, -50%)',
+                  position: 'absolute',
                 }}
-                className={`absolute w-16 h-16 cursor-move transition-all hover:ring-2 hover:ring-primary
+                className={`w-16 h-16 cursor-move transition-all hover:ring-2 hover:ring-primary
                   ${selectedStickerId === sticker.id ? 'ring-2 ring-primary' : ''}
                 `}
                 draggable={false}
@@ -359,9 +388,10 @@ export function JournalPreview({
                   width: `${icon.size || 48}px`,
                   height: `${icon.size || 48}px`,
                   transform: 'translate(-50%, -50%)',
+                  position: 'absolute',
                   color: icon.color,
                 }}
-                className={`absolute cursor-pointer transition-all hover:ring-2 hover:ring-primary
+                className={`cursor-pointer transition-all hover:ring-2 hover:ring-primary
                   ${selectedIconId === icon.id ? 'ring-2 ring-primary' : ''}
                 `}
                 onClick={() => handleIconClick(icon.id)}
@@ -369,7 +399,7 @@ export function JournalPreview({
               />
             ))}
             
-            {selectedStickerId && showDeleteButton && (
+            {selectedStickerId && showDeleteButton && !isDialog && (
               <Button
                 variant="destructive"
                 size="sm"
@@ -382,7 +412,7 @@ export function JournalPreview({
               </Button>
             )}
             
-            {selectedIconId && showIconControls && (
+            {selectedIconId && showIconControls && !isDialog && (
               <div className="absolute z-10 right-4 bottom-4 flex gap-2">
                 <Button
                   variant="outline"
@@ -478,7 +508,8 @@ export function JournalPreview({
                 <Maximize2 className="w-4 h-4" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="w-[90vw] h-[90vh] max-w-[90vw] max-h-[90vh]">
+            <DialogContent className="w-[90vw] h-[90vh] max-w-[90vw] max-h-[90vh] dialog-content">
+              <DialogTitle>Journal Preview</DialogTitle>
               <div
                 style={{
                   background: getBackground(),
@@ -492,8 +523,8 @@ export function JournalPreview({
                 }}
                 className="rounded-lg overflow-hidden shadow-lg"
               >
-                {/* We need to render the same content here as in the main preview */}
-                {renderJournalContent()}
+                {/* Render journal content for the dialog */}
+                {renderJournalContent(true)}
               </div>
             </DialogContent>
           </Dialog>
@@ -515,7 +546,7 @@ export function JournalPreview({
           className="w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn print:shadow-none print:rounded-none print:min-h-screen relative"
           onClick={handleBackgroundClick}
         >
-          {renderJournalContent()}
+          {renderJournalContent(false)}
         </div>
       )}
     </div>
