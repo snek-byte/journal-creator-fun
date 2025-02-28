@@ -195,25 +195,6 @@ export function TextBoxComponent({
     onUpdate(id, { rotation: newRotation });
   };
   
-  const startEditing = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    if (isDrawingMode) return;
-    
-    // Select this text box
-    onSelect(id);
-    
-    // Enter edit mode
-    setIsEditing(true);
-    
-    // Ensure focus happens after state updates
-    setTimeout(() => {
-      if (textAreaRef.current) {
-        textAreaRef.current.focus();
-      }
-    }, 10);
-  };
-  
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setEditValue(e.target.value);
   };
@@ -276,6 +257,35 @@ export function TextBoxComponent({
   // If editing or printing, hide all controls
   const showControls = selected && !isEditing && !isPrinting && !isDrawingMode;
   
+  // Create separate components for view mode and edit mode to simplify the logic
+  const ViewMode = () => (
+    <div
+      className="w-full h-full whitespace-pre-wrap overflow-hidden flex items-center justify-center"
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect(id);
+        setIsEditing(true);
+      }}
+    >
+      <div style={getTextStyles()}>
+        {displayText}
+      </div>
+    </div>
+  );
+  
+  const EditMode = () => (
+    <Textarea
+      ref={textAreaRef}
+      value={editValue}
+      onChange={handleTextChange}
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
+      className="w-full h-full resize-none border-none focus-visible:ring-0 focus-visible:outline-none p-2"
+      style={{ ...getTextStyles(), border: 'none' }}
+      autoFocus
+    />
+  );
+  
   return (
     <>
       <style>{printStyles}</style>
@@ -285,7 +295,7 @@ export function TextBoxComponent({
           zIndex: selected ? zIndex + 10 : zIndex,
           pointerEvents: isDrawingMode ? 'none' : 'auto',
           opacity: isPrinting && !text ? 0 : 1, // Hide empty text boxes when printing
-          cursor: isEditing ? 'text' : (selected ? 'move' : 'pointer')
+          cursor: isEditing ? 'text' : 'pointer'
         }}
         size={{ width: size.width, height: size.height }}
         position={calculatePosition()}
@@ -295,11 +305,6 @@ export function TextBoxComponent({
         bounds="parent"
         enableResizing={selected && !isEditing && !isPrinting && !isDrawingMode}
         disableDragging={isEditing || isPrinting || isDrawingMode}
-        onClick={(e) => {
-          if (!isEditing) {
-            startEditing(e);
-          }
-        }}
       >
         <div 
           className={cn(
@@ -336,34 +341,17 @@ export function TextBoxComponent({
           {showControls && (
             <button
               className="absolute -bottom-3 right-3 bg-primary text-primary-foreground hover:bg-primary/90 p-1 rounded-full shadow-lg z-10 text-box-controls"
-              onClick={startEditing}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditing(true);
+              }}
               aria-label="Edit text"
             >
               <Edit size={14} />
             </button>
           )}
           
-          {isEditing ? (
-            <Textarea
-              ref={textAreaRef}
-              value={editValue}
-              onChange={handleTextChange}
-              onBlur={handleBlur}
-              onKeyDown={handleKeyDown}
-              className="w-full h-full resize-none border-none focus-visible:ring-0 focus-visible:outline-none p-2"
-              style={{ ...getTextStyles(), border: 'none' }}
-              autoFocus
-            />
-          ) : (
-            <div
-              className="w-full h-full whitespace-pre-wrap overflow-hidden flex items-center justify-center"
-              onClick={startEditing}
-            >
-              <div style={getTextStyles()}>
-                {displayText}
-              </div>
-            </div>
-          )}
+          {isEditing ? <EditMode /> : <ViewMode />}
         </div>
       </Rnd>
     </>
