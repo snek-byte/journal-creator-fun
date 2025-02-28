@@ -103,10 +103,12 @@ export function useJournalEditor() {
 
   const handleStickerAdd = (sticker: Sticker) => {
     try {
+      console.log("Adding sticker to journal:", sticker);
       addSticker(sticker);
       toast.success('Sticker added! Drag it to position on your journal.');
     } catch (error) {
       console.error("Error adding sticker:", error);
+      toast.error('Failed to add sticker. Please try again.');
     }
   };
 
@@ -127,6 +129,7 @@ export function useJournalEditor() {
         setStickers(
           (currentEntry.stickers || []).filter(s => s.id !== stickerId)
         );
+        toast.info('Sticker removed');
       } else {
         setStickers(
           (currentEntry.stickers || []).map(s => 

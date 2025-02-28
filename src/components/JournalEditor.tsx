@@ -63,6 +63,7 @@ export function JournalEditor() {
 
   // Function to create a sticker object from a URL
   const handleStickerAddFromUrl = (stickerUrl: string) => {
+    console.log("Creating sticker from URL:", stickerUrl);
     const newSticker: Sticker = {
       id: uuidv4(),
       url: stickerUrl,
@@ -70,6 +71,7 @@ export function JournalEditor() {
       width: 100,
       height: 100
     };
+    console.log("New sticker object:", newSticker);
     handleStickerAdd(newSticker);
   };
 
@@ -84,6 +86,8 @@ export function JournalEditor() {
     };
     handleIconAdd(newIcon);
   };
+
+  console.log("Current stickers in entry:", currentEntry.stickers);
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">

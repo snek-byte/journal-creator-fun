@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { JournalEntry, Challenge, Badge, UserProgress, Mood, Sticker, Icon } from '@/types/journal';
@@ -72,7 +73,7 @@ export const useJournalStore = create<JournalState>()(
         textStyle: 'normal',
         stickers: [],
         icons: [],
-        textPosition: { x: 10, y: 10 },
+        textPosition: { x: 50, y: 50 },
         backgroundImage: undefined,
         drawing: undefined,
         filter: 'none'
@@ -145,9 +146,12 @@ export const useJournalStore = create<JournalState>()(
       setTextStyle: (textStyle) => set((state) => ({
         currentEntry: { ...state.currentEntry, textStyle }
       })),
-      setStickers: (stickers) => set((state) => ({
-        currentEntry: { ...state.currentEntry, stickers }
-      })),
+      setStickers: (stickers) => {
+        console.log("Setting stickers in store:", stickers);
+        set((state) => ({
+          currentEntry: { ...state.currentEntry, stickers }
+        }));
+      },
       setIcons: (icons) => set((state) => ({
         currentEntry: { ...state.currentEntry, icons }
       })),
@@ -163,12 +167,19 @@ export const useJournalStore = create<JournalState>()(
       setFilter: (filter) => set((state) => ({
         currentEntry: { ...state.currentEntry, filter }
       })),
-      addSticker: (sticker) => set((state) => ({
-        currentEntry: { 
-          ...state.currentEntry, 
-          stickers: [...(state.currentEntry.stickers || []), sticker]
-        }
-      })),
+      addSticker: (sticker) => {
+        console.log("Adding sticker to store:", sticker);
+        set((state) => {
+          const updatedStickers = [...(state.currentEntry.stickers || []), sticker];
+          console.log("Updated stickers array:", updatedStickers);
+          return {
+            currentEntry: { 
+              ...state.currentEntry, 
+              stickers: updatedStickers
+            }
+          };
+        });
+      },
       addIcon: (icon) => set((state) => {
         const currentIcons = state.currentEntry.icons || [];
         return {
@@ -253,7 +264,7 @@ export const useJournalStore = create<JournalState>()(
               textStyle: 'normal',
               stickers: [],
               icons: [],
-              textPosition: { x: 10, y: 10 },
+              textPosition: { x: 50, y: 50 },
               backgroundImage: undefined,
               drawing: undefined,
               filter: 'none'
@@ -305,7 +316,7 @@ export const useJournalStore = create<JournalState>()(
           textStyle: entry.text_style || undefined,
           stickers: entry.stickers as Sticker[] || [],
           icons: entry.icons as Icon[] || [],
-          textPosition: entry.text_position as { x: number, y: number } || { x: 10, y: 10 },
+          textPosition: entry.text_position as { x: number, y: number } || { x: 50, y: 50 },
           backgroundImage: entry.background_image as string | undefined,
           drawing: entry.drawing as string | undefined,
           filter: entry.filter as string | undefined
