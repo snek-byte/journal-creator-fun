@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import { 
   HexColorPicker, 
   HexColorInput 
@@ -131,6 +132,23 @@ export function IconSelector({
         { name: 'Ribbon', url: 'https://cdn-icons-png.flaticon.com/512/444/444605.png' },
       ]
     },
+    {
+      name: 'Flags',
+      icons: [
+        { name: 'USA', url: 'https://cdn-icons-png.flaticon.com/512/197/197484.png' },
+        { name: 'UK', url: 'https://cdn-icons-png.flaticon.com/512/197/197374.png' },
+        { name: 'Canada', url: 'https://cdn-icons-png.flaticon.com/512/197/197430.png' },
+        { name: 'France', url: 'https://cdn-icons-png.flaticon.com/512/197/197560.png' },
+        { name: 'Germany', url: 'https://cdn-icons-png.flaticon.com/512/197/197571.png' },
+        { name: 'Japan', url: 'https://cdn-icons-png.flaticon.com/512/197/197604.png' },
+        { name: 'China', url: 'https://cdn-icons-png.flaticon.com/512/197/197375.png' },
+        { name: 'Brazil', url: 'https://cdn-icons-png.flaticon.com/512/197/197386.png' },
+        { name: 'Mexico', url: 'https://cdn-icons-png.flaticon.com/512/197/197397.png' },
+        { name: 'India', url: 'https://cdn-icons-png.flaticon.com/512/197/197419.png' },
+        { name: 'Italy', url: 'https://cdn-icons-png.flaticon.com/512/197/197626.png' },
+        { name: 'Spain', url: 'https://cdn-icons-png.flaticon.com/512/197/197593.png' },
+      ]
+    }
   ];
 
   // Function to filter icons based on search term
@@ -163,7 +181,8 @@ export function IconSelector({
   };
 
   // Handle size change and update parent if needed
-  const handleSizeChange = (size: number) => {
+  const handleSizeChange = (values: number[]) => {
+    const size = values[0];
     setCurrentIconSize(size);
     if (selectedIconId && onIconUpdate) {
       onIconUpdate({ size });
@@ -173,7 +192,7 @@ export function IconSelector({
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-2">
-        <h3 className="text-xs font-semibold tracking-tight">Icons</h3>
+        <h3 className="text-xs font-semibold tracking-tight">Icons & Flags</h3>
         
         <Tabs defaultValue="browse" className="w-full">
           <TabsList className="grid grid-cols-2 mb-4">
@@ -186,17 +205,19 @@ export function IconSelector({
             <div className="flex justify-center space-x-2">
               <Button
                 size="sm"
-                variant={iconStyle === 'outline' ? 'default' : 'outline'}
+                variant={iconStyle === 'outline' ? "default" : "outline"}
                 onClick={() => setIconStyle('outline')}
                 className="text-xs px-2 py-1"
+                type="button"
               >
                 Outline
               </Button>
               <Button
                 size="sm"
-                variant={iconStyle === 'color' ? 'default' : 'outline'}
+                variant={iconStyle === 'color' ? "default" : "outline"}
                 onClick={() => setIconStyle('color')}
                 className="text-xs px-2 py-1"
+                type="button"
               >
                 Color
               </Button>
@@ -236,12 +257,17 @@ export function IconSelector({
                                 url: icon.url, 
                                 style: iconStyle 
                               })}
+                              type="button"
                             >
                               <img 
                                 src={icon.url} 
                                 alt={icon.name} 
                                 className="w-full h-full object-contain" 
                                 loading="lazy"
+                                onError={(e) => {
+                                  console.error(`Failed to load icon: ${icon.url}`);
+                                  e.currentTarget.src = 'https://placehold.co/100x100/png?text=Icon+Error';
+                                }}
                               />
                             </button>
                           ))}
@@ -285,23 +311,18 @@ export function IconSelector({
                 
                 <div className="space-y-3">
                   <h4 className="text-xs font-medium">Icon Size</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {[16, 24, 32, 48, 64, 96].map(size => (
-                      <Button 
-                        key={size}
-                        variant={currentIconSize === size ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => handleSizeChange(size)}
-                        className="text-xs flex-1"
-                      >
-                        {size}px
-                      </Button>
-                    ))}
+                  <Slider
+                    value={[currentIconSize]}
+                    min={16}
+                    max={96}
+                    step={4}
+                    onValueChange={handleSizeChange}
+                  />
+                  <div className="flex justify-between">
+                    <span className="text-xs text-muted-foreground">Small</span>
+                    <span className="text-xs">{currentIconSize}px</span>
+                    <span className="text-xs text-muted-foreground">Large</span>
                   </div>
-                </div>
-                
-                <div className="text-center text-xs text-muted-foreground mt-4">
-                  Select an icon first to modify its style
                 </div>
               </>
             ) : (

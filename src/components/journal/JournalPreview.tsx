@@ -250,13 +250,19 @@ export function JournalPreview({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+  // Check if the gradient string indicates it's a text gradient
+  const isTextGradient = gradient && gradient.includes('text');
+
+  // Function to determine if backgroundImage is a URL or a gradient
+  const isGradientBackground = backgroundImage && backgroundImage.includes('linear-gradient');
+
   return (
     <div className={cn("relative flex-1 overflow-hidden bg-gray-50", className)}>
       <div className="absolute inset-0 flex items-center justify-center">
         {/* Journal page with proper styling */}
         <div style={journalPageStyle}>
           {/* Background image layer */}
-          {backgroundImage && (
+          {backgroundImage && !isGradientBackground && (
             <div 
               style={{
                 position: 'absolute',
@@ -274,7 +280,7 @@ export function JournalPreview({
           )}
           
           {/* Gradient background layer */}
-          {gradient && (
+          {backgroundImage && isGradientBackground && (
             <div 
               style={{
                 position: 'absolute',
@@ -282,9 +288,9 @@ export function JournalPreview({
                 left: 0,
                 width: '100%',
                 height: '100%',
-                background: gradient,
-                opacity: 0.7,
-                zIndex: 2
+                background: backgroundImage,
+                opacity: 0.9,
+                zIndex: 1
               }}
             />
           )}
@@ -367,10 +373,10 @@ export function JournalPreview({
                 fontFamily: font || 'inherit',
                 fontSize: fontSize || 'inherit',
                 fontWeight: fontWeight || 'inherit',
-                color: fontColor || 'inherit',
-                backgroundImage: gradient && gradient.includes('text') ? gradient : 'none',
-                WebkitBackgroundClip: gradient && gradient.includes('text') ? 'text' : 'unset',
-                WebkitTextFillColor: gradient && gradient.includes('text') ? 'transparent' : 'unset',
+                color: isTextGradient ? 'transparent' : (fontColor || 'inherit'),
+                background: isTextGradient ? gradient.replace(' text', '') : 'none',
+                WebkitBackgroundClip: isTextGradient ? 'text' : 'unset',
+                WebkitTextFillColor: isTextGradient ? 'transparent' : 'unset',
                 fontStyle: textStyle?.includes('italic') ? 'italic' : 'normal',
                 textDecoration: textStyle?.includes('underline') ? 'underline' : 'none',
                 textAlign: textStyle?.includes('center') ? 'center' : 'left',

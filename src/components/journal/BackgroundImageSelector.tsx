@@ -44,7 +44,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     { name: "Spring", url: "https://i.imgur.com/KpwmpzB.jpg" },
   ];
   
-  // Gradients
+  // Background gradients (not for text)
   const gradientBackgrounds = [
     { name: "Sunset", url: "linear-gradient(to right, #f83600 0%, #f9d423 100%)" },
     { name: "Blue-Purple", url: "linear-gradient(to right, #4facfe 0%, #00f2fe 100%)" },
@@ -81,19 +81,9 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     onBackgroundSelect(url);
   };
   
-  // Helper function to render a gradient preview
-  const renderGradientPreview = (gradient: string) => {
-    return (
-      <div
-        className="w-full h-full rounded"
-        style={{ background: gradient }}
-      />
-    );
-  };
-  
   return (
     <div className="space-y-2">
-      <h3 className="text-xs font-semibold tracking-tight">Background Images</h3>
+      <h3 className="text-xs font-semibold tracking-tight">Background Images & Gradients</h3>
       
       <Tabs defaultValue="papers" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-5 mb-2">
@@ -112,6 +102,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                   key={index}
                   className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-20"
                   onClick={() => handleBackgroundSelect(bg.url)}
+                  type="button"
                 >
                   <img 
                     src={bg.url} 
@@ -131,12 +122,17 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                   key={index}
                   className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-20"
                   onClick={() => handleBackgroundSelect(bg.url)}
+                  type="button"
                 >
                   <img 
                     src={bg.url} 
                     alt={bg.name} 
                     className="w-full h-full object-cover" 
                     loading="lazy"
+                    onError={(e) => {
+                      console.error(`Failed to load image: ${bg.url}`);
+                      e.currentTarget.src = 'https://placehold.co/600x400/png?text=Image+Error';
+                    }}
                   />
                 </button>
               ))}
@@ -150,12 +146,17 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                   key={index}
                   className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-20"
                   onClick={() => handleBackgroundSelect(bg.url)}
+                  type="button"
                 >
                   <img 
                     src={bg.url} 
                     alt={bg.name} 
                     className="w-full h-full object-cover" 
                     loading="lazy"
+                    onError={(e) => {
+                      console.error(`Failed to load image: ${bg.url}`);
+                      e.currentTarget.src = 'https://placehold.co/600x400/png?text=Image+Error';
+                    }}
                   />
                 </button>
               ))}
@@ -169,8 +170,12 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                   key={index}
                   className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-20"
                   onClick={() => handleBackgroundSelect(bg.url)}
+                  type="button"
                 >
-                  {renderGradientPreview(bg.url)}
+                  <div 
+                    className="w-full h-full rounded" 
+                    style={{ background: bg.url }}
+                  />
                 </button>
               ))}
             </div>
@@ -188,6 +193,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
           <button
             className="w-full py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded"
             onClick={() => handleBackgroundSelect("")}
+            type="button"
           >
             Clear Background
           </button>
