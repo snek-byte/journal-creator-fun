@@ -1,6 +1,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { Sticker } from '@/types/journal';
+import { X } from 'lucide-react';
 
 interface StickerContainerProps {
   sticker: Sticker;
@@ -23,6 +24,7 @@ export function StickerContainer({
 }: StickerContainerProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
+  const [isTouching, setIsTouching] = useState(false);
   const stickerRef = useRef<HTMLDivElement>(null);
   
   const width = sticker.width || 100;
@@ -146,6 +148,62 @@ export function StickerContainer({
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
   };
+
+  // Touch event handlers for mobile devices
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    if (e.touches.length !== 1) return;
+    
+    onSelect(sticker.id);
+    setIsTouching(true);
+    
+    // Get container dimensions for percentage calculations
+    const container = containerRef.current;
+    if (!container) return;
+    const containerRect = container.getBoundingClientRect();
+    
+    // Initial touch position
+    const touch = e.touches[0];
+    const startX = touch.clientX;
+    const startY = touch.clientY;
+    
+    // Initial sticker position
+    const startPositionX = sticker.position.x;
+    const startPositionY = sticker.position.y;
+    
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (e.touches.length !== 1) return;
+      
+      const touch = e.touches[0];
+      
+      // Calculate the move delta in pixels
+      const deltaX = touch.clientX - startX;
+      const deltaY = touch.clientY - startY;
+      
+      // Convert to percentage of container
+      const deltaXPercent = (deltaX / containerRect.width) * 100;
+      const deltaYPercent = (deltaY / containerRect.height) * 100;
+      
+      // New position
+      const newX = startPositionX + deltaXPercent;
+      const newY = startPositionY + deltaYPercent;
+      
+      // Update sticker position
+      onMove(sticker.id, { x: newX, y: newY });
+    };
+    
+    const handleTouchEnd = () => {
+      setIsTouching(false);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+    
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
+  };
   
   const handleResizeStart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -188,6 +246,12 @@ export function StickerContainer({
     document.addEventListener('mouseup', handleMouseUp);
   };
   
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onMove(sticker.id, { x: -1000, y: -1000 });
+  };
+  
   return (
     <div
       ref={stickerRef}
@@ -203,6 +267,7 @@ export function StickerContainer({
         ...style
       }}
       onMouseDown={handleDragStart}
+      onTouchStart={handleTouchStart}
       onClick={(e) => {
         e.stopPropagation();
         onSelect(sticker.id);
@@ -218,6 +283,21 @@ export function StickerContainer({
         draggable={false}
         style={{ pointerEvents: 'none' }}
       />
+      
+      {/* Delete button - shown when selected */}
+      {selected && (
+        <button
+          className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg"
+          onClick={handleDelete}
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+            onMove(sticker.id, { x: -1000, y: -1000 });
+          }}
+          aria-label="Delete sticker"
+        >
+          <X size={14} />
+        </button>
+      )}
       
       {/* Resize handle */}
       {selected && onResize && !isDragging && !isResizing && (

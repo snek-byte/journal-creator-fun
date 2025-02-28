@@ -34,6 +34,7 @@ export function TextBoxComponent({
   const [size, setSize] = useState({ width, height });
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
+  const [isTouching, setIsTouching] = useState(false);
   
   // Update container dimensions when the container resizes
   useEffect(() => {
@@ -188,6 +189,12 @@ export function TextBoxComponent({
     }
   };
   
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onRemove(id);
+  };
+  
   return (
     <Rnd
       style={{
@@ -215,8 +222,23 @@ export function TextBoxComponent({
         )}
         onDoubleClick={handleDoubleClick}
       >
+        {/* Delete button - always visible when selected */}
+        {selected && (
+          <button
+            className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg z-10"
+            onClick={handleDelete}
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              onRemove(id);
+            }}
+            aria-label="Delete text box"
+          >
+            <X size={14} />
+          </button>
+        )}
+        
         {selected && !isEditing && (
-          <div className="absolute -top-2 -right-2 flex gap-1">
+          <div className="absolute -top-2 -left-2 flex gap-1">
             <button
               className="bg-primary text-primary-foreground hover:bg-primary/90 p-1 rounded-full"
               onClick={handleRotate}
@@ -224,19 +246,13 @@ export function TextBoxComponent({
             >
               <RotateCw size={12} />
             </button>
-            <button
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 p-1 rounded-full"
-              onClick={() => onRemove(id)}
-              title="Remove"
-            >
-              <Trash2 size={12} />
-            </button>
           </div>
         )}
         
+        {/* Enhanced drag handle - larger for touch devices */}
         {selected && !isEditing && (
-          <div className="textbox-drag-handle absolute top-1/2 left-0 -translate-x-full -translate-y-1/2 p-1 bg-primary/70 text-primary-foreground rounded-l-sm cursor-move">
-            <GripVertical size={14} />
+          <div className="textbox-drag-handle absolute top-1/2 left-0 -translate-x-full -translate-y-1/2 p-2 bg-primary/70 text-primary-foreground rounded-l-sm cursor-move">
+            <GripVertical size={16} />
           </div>
         )}
         

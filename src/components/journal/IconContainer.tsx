@@ -1,6 +1,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { Icon } from '@/types/journal';
+import { X } from 'lucide-react';
 
 interface IconContainerProps {
   icon: Icon;
@@ -22,6 +23,7 @@ export function IconContainer({
   style = {}
 }: IconContainerProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [isTouching, setIsTouching] = useState(false);
   const iconRef = useRef<HTMLDivElement>(null);
   
   // Handle keyboard navigation
@@ -136,6 +138,68 @@ export function IconContainer({
     document.addEventListener('mouseup', handleMouseUp);
   };
   
+  // Touch event handlers for mobile devices
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    if (e.touches.length !== 1) return;
+    
+    onSelect(icon.id);
+    setIsTouching(true);
+    
+    // Get container dimensions for percentage calculations
+    const container = containerRef.current;
+    if (!container) return;
+    const containerRect = container.getBoundingClientRect();
+    
+    // Initial touch position
+    const touch = e.touches[0];
+    const startX = touch.clientX;
+    const startY = touch.clientY;
+    
+    // Initial icon position
+    const startPositionX = icon.position.x;
+    const startPositionY = icon.position.y;
+    
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (e.touches.length !== 1) return;
+      
+      const touch = e.touches[0];
+      
+      // Calculate the move delta in pixels
+      const deltaX = touch.clientX - startX;
+      const deltaY = touch.clientY - startY;
+      
+      // Convert to percentage of container
+      const deltaXPercent = (deltaX / containerRect.width) * 100;
+      const deltaYPercent = (deltaY / containerRect.height) * 100;
+      
+      // New position
+      const newX = startPositionX + deltaXPercent;
+      const newY = startPositionY + deltaYPercent;
+      
+      // Update icon position
+      onMove(icon.id, { x: newX, y: newY });
+    };
+    
+    const handleTouchEnd = () => {
+      setIsTouching(false);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+    
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
+  };
+  
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onMove(icon.id, { x: -1000, y: -1000 });
+  };
+  
   // Determine if the icon is an SVG from react-icons or a URL
   const isUrlIcon = icon.url.startsWith('http');
   const iconSize = icon.size || 48;
@@ -155,6 +219,7 @@ export function IconContainer({
         ...style
       }}
       onMouseDown={handleDragStart}
+      onTouchStart={handleTouchStart}
       onClick={(e) => {
         e.stopPropagation();
         onSelect(icon.id);
@@ -193,6 +258,21 @@ export function IconContainer({
         >
           {icon.url}
         </div>
+      )}
+      
+      {/* Delete button - shown when selected */}
+      {selected && (
+        <button
+          className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg"
+          onClick={handleDelete}
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+            onMove(icon.id, { x: -1000, y: -1000 });
+          }}
+          aria-label="Delete icon"
+        >
+          <X size={14} />
+        </button>
       )}
     </div>
   );
