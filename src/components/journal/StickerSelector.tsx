@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Loader2, ArrowsUpDown } from "lucide-react"; // Changed to ArrowsUpDown
+import { Search, Loader2, ArrowUpDown } from "lucide-react"; // Fixed to ArrowUpDown (not ArrowsUpDown)
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 
@@ -180,7 +180,7 @@ export function StickerSelector({
       <div className={`space-y-2 ${selectedStickerId ? '' : 'opacity-50'}`}>
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <ArrowsUpDown className="h-4 w-4 text-muted-foreground" />
+            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
             <h4 className="text-xs font-medium">Sticker Size</h4>
           </div>
           <span className="text-xs text-muted-foreground">{stickerSize}px</span>
