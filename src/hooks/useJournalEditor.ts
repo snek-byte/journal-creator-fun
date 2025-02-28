@@ -49,7 +49,10 @@ export function useJournalEditor() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
   const [isUndoRedoAction, setIsUndoRedoAction] = useState(false);
-  const maxHistorySize = 20; // Store 20 history entries (more than 10 for undo/redo)
+  const maxHistorySize = 30; // Increased from 20 to 30 for more history capacity
+  
+  // Skip history tracking during initial loading
+  const skipHistoryTracking = useRef(true);
 
   useEffect(() => {
     try {
@@ -64,6 +67,12 @@ export function useJournalEditor() {
       const initialState = createHistorySnapshot(currentEntry);
       setHistory([initialState]);
       setCurrentHistoryIndex(0);
+      
+      // Allow history tracking after initial load
+      setTimeout(() => {
+        skipHistoryTracking.current = false;
+        console.log("History tracking enabled");
+      }, 500);
     } catch (error) {
       console.error("Error loading initial data:", error);
     }
@@ -76,8 +85,11 @@ export function useJournalEditor() {
 
   // Add current state to history when it changes
   useEffect(() => {
-    if (isUndoRedoAction) {
-      setIsUndoRedoAction(false);
+    // Skip history tracking during initial load or undo/redo operations
+    if (skipHistoryTracking.current || isUndoRedoAction) {
+      if (isUndoRedoAction) {
+        setIsUndoRedoAction(false);
+      }
       return;
     }
     
@@ -91,6 +103,13 @@ export function useJournalEditor() {
     
     // Add the new state to history
     setHistory(prev => {
+      // Check if the new state is deeply equal to the previous state
+      const lastSnapshot = prev[prev.length - 1];
+      if (JSON.stringify(lastSnapshot) === JSON.stringify(snapshot)) {
+        console.log("Skipping identical state in history");
+        return prev; // Skip adding identical states
+      }
+      
       const newHistory = [...prev, snapshot];
       // Limit history size
       if (newHistory.length > maxHistorySize) {
@@ -100,10 +119,12 @@ export function useJournalEditor() {
     });
     
     setCurrentHistoryIndex(prev => {
-      if (prev + 1 >= maxHistorySize) {
+      // Adjust index based on history length and max size
+      const nextIndex = prev + 1;
+      if (nextIndex >= maxHistorySize) {
         return maxHistorySize - 1;
       }
-      return prev + 1;
+      return nextIndex;
     });
   }, [
     currentEntry.text,
@@ -430,46 +451,72 @@ export function useJournalEditor() {
 
   // Apply a history state to the current entry
   const applyHistoryState = (state: HistoryEntry) => {
-    setText(state.text);
-    setFont(state.font);
-    setFontSize(state.fontSize);
-    setFontWeight(state.fontWeight);
-    setFontColor(state.fontColor);
-    setGradient(state.gradient);
+    setText(state.text || '');
+    setFont(state.font || 'sans-serif');
+    setFontSize(state.fontSize || '16px');
+    setFontWeight(state.fontWeight || 'normal');
+    setFontColor(state.fontColor || '#000000');
+    setGradient(state.gradient || '');
     setMood(state.mood);
-    setIsPublic(state.isPublic);
-    setTextStyle(state.textStyle);
+    setIsPublic(state.isPublic || false);
+    setTextStyle(state.textStyle || '');
     setStickers(state.stickers || []);
     setIcons(state.icons || []);
-    setTextPosition(state.textPosition);
+    setTextPosition(state.textPosition || { x: 50, y: 50 });
     setBackgroundImage(state.backgroundImage || '');
     setDrawing(state.drawing || '');
     setFilter(state.filter || 'none');
   };
 
-  // Enhanced undo function
+  // Improved undo function with error handling
   const handleUndo = () => {
     if (currentHistoryIndex > 0) {
-      console.log(`Undoing action - going from ${currentHistoryIndex} to ${currentHistoryIndex - 1}`);
-      setIsUndoRedoAction(true);
-      const previousState = history[currentHistoryIndex - 1];
-      applyHistoryState(previousState);
-      setCurrentHistoryIndex(currentHistoryIndex - 1);
+      try {
+        console.log(`Undoing action - going from ${currentHistoryIndex} to ${currentHistoryIndex - 1}`);
+        setIsUndoRedoAction(true);
+        const previousState = history[currentHistoryIndex - 1];
+        
+        if (!previousState) {
+          console.error("Undo error: Previous state not found");
+          return;
+        }
+        
+        applyHistoryState(previousState);
+        setCurrentHistoryIndex(currentHistoryIndex - 1);
+        toast.info("Undo successful");
+      } catch (error) {
+        console.error("Error during undo:", error);
+        toast.error("Undo failed");
+      }
     } else {
       console.log("Nothing to undo");
+      toast.info("Nothing to undo");
     }
   };
 
-  // Enhanced redo function
+  // Improved redo function with error handling
   const handleRedo = () => {
     if (currentHistoryIndex < history.length - 1) {
-      console.log(`Redoing action - going from ${currentHistoryIndex} to ${currentHistoryIndex + 1}`);
-      setIsUndoRedoAction(true);
-      const nextState = history[currentHistoryIndex + 1];
-      applyHistoryState(nextState);
-      setCurrentHistoryIndex(currentHistoryIndex + 1);
+      try {
+        console.log(`Redoing action - going from ${currentHistoryIndex} to ${currentHistoryIndex + 1}`);
+        setIsUndoRedoAction(true);
+        const nextState = history[currentHistoryIndex + 1];
+        
+        if (!nextState) {
+          console.error("Redo error: Next state not found");
+          return;
+        }
+        
+        applyHistoryState(nextState);
+        setCurrentHistoryIndex(currentHistoryIndex + 1);
+        toast.info("Redo successful");
+      } catch (error) {
+        console.error("Error during redo:", error);
+        toast.error("Redo failed");
+      }
     } else {
       console.log("Nothing to redo");
+      toast.info("Nothing to redo");
     }
   };
 
@@ -528,3 +575,6 @@ export function useJournalEditor() {
     canRedo: currentHistoryIndex < history.length - 1,
   };
 }
+
+// Add toast import at the top
+import { toast } from "sonner";
