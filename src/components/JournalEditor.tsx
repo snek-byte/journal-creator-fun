@@ -25,11 +25,14 @@ export function JournalEditor() {
     handleIconUpdate,
     handleIconSelect,
     handleTextMove,
+    handleTextDragStart,
+    handleTextDragEnd,
     handleBackgroundSelect,
     handleDrawingChange,
     handleFilterChange,
     handleEmojiSelect,
     handleSendEmail,
+    handleImageUpload,
     handleFontSizeChange,
     handleFontWeightChange,
     handleFontChange,
@@ -218,7 +221,7 @@ export function JournalEditor() {
         textStyle={currentEntry.textStyle}
         stickers={currentEntry.stickers || []}
         icons={currentEntry.icons || []}
-        textPosition={{ x: 50, y: 50 }} // Force text to center of the page
+        textPosition={currentEntry.textPosition}
         backgroundImage={currentEntry.backgroundImage}
         drawing={currentEntry.drawing}
         filter={currentEntry.filter}
@@ -230,6 +233,8 @@ export function JournalEditor() {
         onIconSelect={handleIconSelect}
         onStickerSelect={handleStickerSelect}
         onTextMove={handleTextMove}
+        onTextDragStart={handleTextDragStart}
+        onTextDragEnd={handleTextDragEnd}
         onBackgroundSelect={handleBackgroundSelect}
         onDrawingChange={handleDrawingChange}
         onFilterChange={handleFilterChange}

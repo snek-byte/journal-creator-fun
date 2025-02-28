@@ -33,6 +33,8 @@ interface JournalPreviewProps {
   onIconSelect: (id: string) => void;
   onStickerSelect: (id: string | null) => void;
   onTextMove: (position: { x: number; y: number }) => void;
+  onTextDragStart: () => void;
+  onTextDragEnd: () => void;
   onBackgroundSelect: (image: string) => void;
   onDrawingChange: (dataUrl: string) => void;
   onFilterChange: (filter: string) => void;
@@ -67,6 +69,8 @@ export function JournalPreview({
   onIconSelect,
   onStickerSelect,
   onTextMove,
+  onTextDragStart,
+  onTextDragEnd,
   onBackgroundSelect,
   onDrawingChange,
   onFilterChange,
@@ -82,9 +86,6 @@ export function JournalPreview({
   const textRef = useRef<HTMLDivElement>(null);
   const [previewWidth, setPreviewWidth] = useState(500);
   const [previewHeight, setPreviewHeight] = useState(500);
-  const [isDraggingText, setIsDraggingText] = useState(false);
-  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
-  const [startTextPos, setStartTextPos] = useState({ x: 0, y: 0 });
   const [image, takeScreenshot] = useScreenshot({
     type: "image/jpeg",
     quality: 1.0
@@ -104,13 +105,6 @@ export function JournalPreview({
     bottom: 0,
     overflow: 'hidden',
   };
-
-  // Initialize text position to center of the page
-  useEffect(() => {
-    if (!textPosition || (textPosition.x === 0 && textPosition.y === 0)) {
-      onTextMove({ x: 50, y: 50 });
-    }
-  }, []);
 
   useEffect(() => {
     if (!previewRef.current) return;
@@ -199,6 +193,63 @@ export function JournalPreview({
     return text;
   };
 
+  // COMPLETELY REWRITTEN TEXT DRAG IMPLEMENTATION
+  const handleTextElementDrag = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Signal drag start to the store
+    onTextDragStart();
+    
+    // Record initial mouse position
+    const startX = e.clientX;
+    const startY = e.clientY;
+    
+    // Record initial text position
+    const initialPosition = { ...textPosition };
+    
+    // Calculate dimensions for percentage calculations
+    const containerRect = previewRef.current?.getBoundingClientRect();
+    if (!containerRect) return;
+    
+    const containerWidth = containerRect.width;
+    const containerHeight = containerRect.height;
+    
+    // Set up mouse move handler
+    const handleMouseMove = (e: MouseEvent) => {
+      e.preventDefault();
+      
+      // Calculate how far mouse has moved
+      const deltaX = e.clientX - startX;
+      const deltaY = e.clientY - startY;
+      
+      // Convert pixel movement to percentage movement
+      const deltaXPercent = (deltaX / containerWidth) * 100;
+      const deltaYPercent = (deltaY / containerHeight) * 100;
+      
+      // Calculate new position
+      const newX = Math.max(10, Math.min(90, initialPosition.x + deltaXPercent));
+      const newY = Math.max(10, Math.min(90, initialPosition.y + deltaYPercent));
+      
+      // Update position
+      onTextMove({ x: newX, y: newY });
+    };
+    
+    // Set up mouse up handler
+    const handleMouseUp = () => {
+      // Signal drag end to the store
+      onTextDragEnd();
+      
+      // Remove event listeners
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    // Add event listeners
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
   // Function to handle sticker dragging
   const handleStickerDrag = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -237,64 +288,6 @@ export function JournalPreview({
     
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  };
-
-  // NEW TEXT DRAGGING FUNCTIONS
-  const handleTextDragStart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Save the starting position of the drag
-    setDragStartPos({ x: e.clientX, y: e.clientY });
-    
-    // Save the starting position of the text
-    setStartTextPos({ x: textPosition.x, y: textPosition.y });
-    
-    // Set dragging flag
-    setIsDraggingText(true);
-    
-    // Add global event listeners for mousemove and mouseup
-    document.addEventListener('mousemove', handleTextDragMove);
-    document.addEventListener('mouseup', handleTextDragEnd);
-  };
-  
-  const handleTextDragMove = (e: MouseEvent) => {
-    if (!isDraggingText || !previewRef.current) return;
-    
-    e.preventDefault();
-    
-    // Get the container dimensions
-    const rect = previewRef.current.getBoundingClientRect();
-    
-    // Calculate how much the mouse has moved since starting the drag
-    const deltaX = e.clientX - dragStartPos.x;
-    const deltaY = e.clientY - dragStartPos.y;
-    
-    // Convert the delta to a percentage of the container dimensions
-    const deltaXPercent = (deltaX / rect.width) * 100;
-    const deltaYPercent = (deltaY / rect.height) * 100;
-    
-    // Add the delta to the original position
-    const newX = startTextPos.x + deltaXPercent;
-    const newY = startTextPos.y + deltaYPercent;
-    
-    // Enforce boundaries
-    const boundedX = Math.max(10, Math.min(90, newX));
-    const boundedY = Math.max(10, Math.min(90, newY));
-    
-    // Move the text
-    onTextMove({ x: boundedX, y: boundedY });
-  };
-  
-  const handleTextDragEnd = (e: MouseEvent) => {
-    e.preventDefault();
-    
-    // Reset dragging flag
-    setIsDraggingText(false);
-    
-    // Remove event listeners
-    document.removeEventListener('mousemove', handleTextDragMove);
-    document.removeEventListener('mouseup', handleTextDragEnd);
   };
 
   // Check if the gradient string indicates it's a text gradient
@@ -363,14 +356,17 @@ export function JournalPreview({
               </button>
             </div>
 
-            {/* FIXED TEXT DRAGGING ELEMENT */}
+            {/* Text element - simplified and direct draggable implementation */}
             <div
               ref={textRef}
-              className="absolute bg-transparent z-50 break-words p-4 rounded"
+              className="absolute z-50 cursor-move"
               style={{
                 left: `${textPosition.x}%`,
                 top: `${textPosition.y}%`,
                 transform: 'translate(-50%, -50%)',
+                padding: '1rem',
+                maxWidth: '80%',
+                minHeight: '30px',
                 fontFamily: font || 'inherit',
                 fontSize: fontSize || 'inherit',
                 fontWeight: fontWeight || 'inherit',
@@ -381,28 +377,12 @@ export function JournalPreview({
                 fontStyle: textStyle?.includes('italic') ? 'italic' : 'normal',
                 textDecoration: textStyle?.includes('underline') ? 'underline' : 'none',
                 textAlign: textStyle?.includes('center') ? 'center' : 'left',
-                width: 'auto',
-                maxWidth: '80%',
-                minHeight: '30px',
-                cursor: isDraggingText ? 'grabbing' : 'grab',
-                boxShadow: isDraggingText ? '0 0 10px rgba(0,0,0,0.2)' : 'none',
+                border: '2px dashed rgba(0,0,0,0.15)',
+                borderRadius: '4px',
                 userSelect: 'none',
-                opacity: isDraggingText ? 0.8 : 1,
-                border: '2px dashed rgba(0,0,0,0.0)',
-                transition: 'border 0.2s',
-                backdropFilter: 'blur(1px)',
+                touchAction: 'none'
               }}
-              onMouseDown={handleTextDragStart}
-              onMouseOver={() => {
-                if (textRef.current) {
-                  textRef.current.style.border = '2px dashed rgba(0,0,0,0.1)';
-                }
-              }}
-              onMouseOut={() => {
-                if (textRef.current && !isDraggingText) {
-                  textRef.current.style.border = '2px dashed rgba(0,0,0,0.0)';
-                }
-              }}
+              onMouseDown={handleTextElementDrag}
               onClick={(e) => {
                 e.stopPropagation();
                 setSelectedStickerId(null);
