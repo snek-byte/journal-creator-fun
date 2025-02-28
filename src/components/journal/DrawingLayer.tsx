@@ -25,8 +25,9 @@ export function DrawingLayer({
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const sprayIntervalRef = useRef<number | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
-  // Store the current drawing state
-  const [currentDrawing, setCurrentDrawing] = useState<string>(initialDrawing || '');
+  
+  // Force regenerate the dataURL when we need to
+  const forceUpdate = useRef<boolean>(false);
 
   // Initialize canvas
   useEffect(() => {
@@ -55,7 +56,8 @@ export function DrawingLayer({
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
         setHasLoaded(true);
-        setCurrentDrawing(initialDrawing);
+        // Save immediately to ensure initial drawing persists
+        setTimeout(() => saveDrawing(), 100);
       };
       img.src = initialDrawing;
     }
@@ -67,9 +69,18 @@ export function DrawingLayer({
       if (sprayIntervalRef.current) {
         window.clearInterval(sprayIntervalRef.current);
       }
+      
+      // Save one final time when unmounting
+      if (canvas) {
+        const finalDrawing = canvas.toDataURL('image/png');
+        if (onDrawingChange && finalDrawing.length > 1000) {
+          console.log("DrawingLayer: Saving final drawing on unmount");
+          onDrawingChange(finalDrawing);
+        }
+      }
     };
     
-  }, [width, height, initialDrawing, hasLoaded]);
+  }, [width, height, initialDrawing, hasLoaded, onDrawingChange]);
 
   // Update brush styles when props change
   const updateBrushStyles = () => {
@@ -111,18 +122,26 @@ export function DrawingLayer({
         sprayPaint(ctx, point, brushSize, color);
       }, 50);
       
+      // Save drawing state for spray tool
+      forceUpdate.current = true;
+      saveDrawing();
       return;
     }
     
     if (tool === 'fill') {
       // Flood fill algorithm
       floodFill(ctx, canvas, point, color);
+      forceUpdate.current = true;
       saveDrawing();
       return;
     }
     
     // For single click with pen, marker, highlighter - draw a dot
     drawDot(ctx, point, brushSize, tool);
+    
+    // Save drawing immediately after drawing a dot
+    forceUpdate.current = true;
+    saveDrawing();
   };
 
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
@@ -147,12 +166,16 @@ export function DrawingLayer({
     drawStroke(ctx, lastPoint, currentPoint, tool);
     
     setLastPoint(currentPoint);
+    
+    // Indicate we've made changes
+    forceUpdate.current = true;
   };
 
   const endDrawing = () => {
     if (!isDrawing) return;
     
     // Save drawing before clearing state
+    forceUpdate.current = true;
     saveDrawing();
     
     setIsDrawing(false);
@@ -172,16 +195,18 @@ export function DrawingLayer({
     if (!canvas || !onDrawingChange) return;
     
     // Generate dataURL from canvas
-    const dataUrl = canvasToDataURL(canvas);
-    
-    // Track the current drawing state
-    setCurrentDrawing(dataUrl);
+    const dataUrl = canvas.toDataURL('image/png');
     
     // Debug: check if dataUrl is not empty
     console.log("DrawingLayer: Saving drawing, data URL length:", dataUrl.length);
     
-    // Send drawing to parent component
-    onDrawingChange(dataUrl);
+    // Only send if it's not an empty canvas or if we've made new changes
+    if (dataUrl.length > 1000 || forceUpdate.current) {
+      // Send drawing to parent component
+      onDrawingChange(dataUrl);
+      console.log("DrawingLayer: Drawing sent to parent");
+      forceUpdate.current = false;
+    }
   };
 
   const clearCanvas = () => {
@@ -190,8 +215,6 @@ export function DrawingLayer({
     if (!canvas || !ctx) return;
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    setCurrentDrawing('');
     
     if (onDrawingChange) {
       onDrawingChange('');
@@ -217,10 +240,10 @@ export function DrawingLayer({
   // Add continuous drawing capture
   useEffect(() => {
     const captureInterval = setInterval(() => {
-      if (isDrawing) {
+      if (isDrawing && forceUpdate.current) {
         saveDrawing();
       }
-    }, 1000); // Save every second while drawing
+    }, 300); // Save more frequently (300ms) while drawing
 
     return () => clearInterval(captureInterval);
   }, [isDrawing]);

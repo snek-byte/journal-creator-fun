@@ -99,6 +99,7 @@ export function JournalPreview({
   // Update local drawing when prop changes
   useEffect(() => {
     if (drawing) {
+      console.log("JournalPreview: Drawing prop updated, length:", drawing.length);
       setLocalDrawing(drawing);
     }
   }, [drawing]);
