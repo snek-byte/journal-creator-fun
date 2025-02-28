@@ -6,7 +6,6 @@ import { EmailDialog } from './journal/EmailDialog';
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Sticker, Icon, TextBox } from '@/types/journal';
-import { toast } from 'sonner';
 
 export function JournalEditor() {
   const {
@@ -84,12 +83,6 @@ export function JournalEditor() {
 
   const handleDrawingModeToggle = (enabled: boolean) => {
     setIsDrawingMode(enabled);
-    
-    if (enabled) {
-      toast.info("Drawing mode enabled. Other interactions are disabled while drawing.");
-    } else {
-      toast.info("Drawing mode disabled. You can now interact with text and stickers.");
-    }
   };
 
   const handleClearDrawing = () => {
@@ -124,12 +117,12 @@ export function JournalEditor() {
     handleIconAdd(newIcon);
   };
 
-  // Function to create a new text box
+  // Function to create a new empty text box
   const handleCreateTextBox = () => {
     console.log("Creating new text box");
     const newTextBox: TextBox = {
       id: uuidv4(),
-      text: 'Double-click to edit this text box',
+      text: '', // Empty by default
       position: { x: 50, y: 50 },
       width: 200,
       height: 100,
@@ -145,7 +138,6 @@ export function JournalEditor() {
     
     handleTextBoxAdd(newTextBox);
     handleTextBoxSelect(newTextBox.id);
-    toast.success("New text box added");
   };
 
   // Resize sticker handler
