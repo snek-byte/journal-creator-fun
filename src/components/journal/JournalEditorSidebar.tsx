@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Switch } from "@/components/ui/switch";
 import { JournalStylingControls } from './JournalStylingControls';
 import { MoodSelector } from './MoodSelector';
 import { DailyChallenge } from './DailyChallenge';
