@@ -40,6 +40,7 @@ export function IconContainer({
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault(); // Prevent default to avoid any browser-specific behavior
     
     // Select this icon
     onSelect(icon.id);

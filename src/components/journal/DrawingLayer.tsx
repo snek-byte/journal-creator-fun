@@ -166,6 +166,9 @@ export function DrawingLayer({ className, width = 800, height = 600, onDrawingCh
         onDrawingChange('');
       }
     }
+    
+    // Set isActive to false to hide the toolbar
+    setIsActive(false);
   };
 
   useEffect(() => {
@@ -536,6 +539,7 @@ export function DrawingLayer({ className, width = 800, height = 600, onDrawingCh
               className="h-4 w-4 p-0 text-gray-400 hover:text-gray-600"
               onClick={handleCloseDrawTool}
               type="button"
+              aria-label="Close drawing tool"
             >
               <X className="h-2.5 w-2.5" />
             </Button>

@@ -31,6 +31,8 @@ export function EmojiContainer({
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault(); // Prevent any default browser action
+    
     setIsDragging(true);
     setStartDragPosition({
       x: e.clientX - position.x,
@@ -41,6 +43,8 @@ export function EmojiContainer({
 
   const handleResizeStart = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault(); // Prevent default actions
+    
     setIsResizing(true);
     setStartSize(emoji.size);
     setStartResizePosition({
@@ -51,8 +55,27 @@ export function EmojiContainer({
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     onUpdate(emoji.id, { rotation: (emoji.rotation || 0) + 45 });
   };
+
+  // Handle keyboard deletion for emojis when selected
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isSelected && (e.key === 'Delete' || e.key === 'Backspace')) {
+        console.log("Delete key pressed for emoji:", emoji.id);
+        onMove(emoji.id, { x: -999, y: -999 });
+      }
+    };
+
+    if (isSelected) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isSelected, emoji.id, onMove]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -99,13 +122,12 @@ export function EmojiContainer({
   return (
     <div
       ref={emojiRef}
-      className={`absolute cursor-move transition-shadow ${isSelected ? 'shadow-lg' : ''}`}
+      className={`absolute cursor-move transition-shadow ${isSelected ? 'ring-2 ring-primary shadow-lg z-50' : 'z-40'}`}
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
         fontSize: `${emoji.size}px`,
         transform: `rotate(${rotateDeg}deg)`,
-        zIndex: isSelected ? 10 : 1,
         userSelect: 'none',
       }}
       onMouseDown={handleMouseDown}
