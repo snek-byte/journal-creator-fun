@@ -23,7 +23,7 @@ export function useJournalHistory() {
     setDrawing,
     setFilter,
     resetEntry,
-  } = useJournalStore();
+  } = useJournalStore((state: any) => state);
 
   // History management
   const [history, setHistory] = useState<any[]>([]);

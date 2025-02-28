@@ -1,39 +1,19 @@
 
-import { JournalEditor } from "@/components/JournalEditor";
-import { useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useJournalStore } from "@/store/journalStore";
+import React, { useEffect } from 'react';
+import { JournalEditor } from '@/components/JournalEditor';
+import { useJournalStore } from '@/store/journalStore';
 
 export default function Write() {
-  const { loadEntries, loadProgress } = useJournalStore();
+  const { loadEntries, loadProgress } = useJournalStore((state: any) => state);
 
   useEffect(() => {
-    // Check if user is authenticated
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        // Load user's entries and progress if logged in
-        loadEntries();
-        loadProgress();
-      }
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          loadEntries();
-          loadProgress();
-        }
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [loadEntries, loadProgress]);
+    // Load entries and user progress when the page loads
+    loadEntries();
+    loadProgress();
+  }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <JournalEditor />
     </div>
   );

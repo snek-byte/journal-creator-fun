@@ -14,7 +14,7 @@ export function useJournalElements() {
     addIcon,
     updateIcon,
     removeIcon,
-  } = useJournalStore();
+  } = useJournalStore((state: any) => state);
 
   const [isDraggingText, setIsDraggingText] = useState(false);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);

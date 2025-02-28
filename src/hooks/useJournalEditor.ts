@@ -17,7 +17,7 @@ export function useJournalEditor() {
     setText,
     setMood,
     setIsPublic,
-  } = useJournalStore();
+  } = useJournalStore((state: any) => state);
 
   // Compose hooks
   const { 

@@ -15,7 +15,7 @@ export function useJournalStyling({ selectedIconId, handleIconUpdate }: {
     setFontColor,
     setGradient,
     setTextStyle,
-  } = useJournalStore();
+  } = useJournalStore((state: any) => state);
 
   const handleBackgroundSelect = (imageUrl: string) => {
     try {

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { EmojiClickData } from 'emoji-picker-react';
 
 export function useJournalUtilities() {
-  const { currentEntry, setText, loadChallenge } = useJournalStore();
+  const { currentEntry, setText, loadChallenge } = useJournalStore((state: any) => state);
   
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [emailAddress, setEmailAddress] = useState("");
