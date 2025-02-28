@@ -145,8 +145,8 @@ export function JournalEditorSidebar({
           <TabsTrigger value="style" className="flex-1">Style</TabsTrigger>
         </TabsList>
 
-        <ScrollArea className="flex-1 w-full">
-          <TabsContent value="write" className="mt-0 h-full flex flex-col gap-4">
+        <div className="flex-1 w-full overflow-auto">
+          <TabsContent value="write" className="mt-0 h-full flex flex-col gap-4 m-0">
             <div className="space-y-4">
               <MoodSelector 
                 mood={currentEntry.mood} 
@@ -193,7 +193,7 @@ export function JournalEditorSidebar({
             </div>
           </TabsContent>
 
-          <TabsContent value="style" className="mt-0 space-y-4">
+          <TabsContent value="style" className="mt-0 space-y-4 m-0">
             <JournalStylingControls
               font={currentEntry.font}
               fontSize={currentEntry.fontSize}
@@ -209,7 +209,7 @@ export function JournalEditorSidebar({
               selectedIconId={selectedIconId}
             />
           </TabsContent>
-        </ScrollArea>
+        </div>
 
         <div className="h-[1px] w-full bg-border my-4"></div>
         
@@ -218,7 +218,7 @@ export function JournalEditorSidebar({
             onClick={saveEntry} 
             className="flex-1"
           >
-            <Save className="w-4 h-4 mr-2" />
+            <Save className="h-4 w-4 mr-2" />
             Save
           </Button>
           
@@ -228,7 +228,7 @@ export function JournalEditorSidebar({
             onClick={handlePrint}
             title="Print"
           >
-            <Printer className="w-4 h-4" />
+            <Printer className="h-4 w-4" />
           </Button>
           
           <Button 
@@ -237,7 +237,7 @@ export function JournalEditorSidebar({
             onClick={() => setShowEmailDialog(true)}
             title="Email Entry"
           >
-            <Mail className="w-4 h-4" />
+            <Mail className="h-4 w-4" />
           </Button>
         </div>
       </Tabs>
