@@ -129,6 +129,9 @@ export function JournalEditor() {
         // Update the sticker by passing the entire updated sticker object
         handleStickerAdd(updatedSticker);
       }
+    } else if (currentEntry.stickers.length > 0) {
+      // No sticker is selected, but we'll set the size for the next sticker that's added
+      console.log("Setting default sticker size for new stickers:", size);
     }
   };
 

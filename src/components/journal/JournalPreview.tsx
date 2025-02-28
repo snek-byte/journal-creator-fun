@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { DrawingLayer } from './DrawingLayer';
 import { Sticker } from '@/types/journal';
 import { IconContainer } from './IconContainer';
+import { StickerContainer } from './StickerContainer';
 import { useScreenshot } from 'use-react-screenshot';
 import type { Icon } from '@/types/journal';
 import { applyTextStyle, TextStyle } from '@/utils/unicodeTextStyles';
@@ -91,11 +92,6 @@ export function JournalPreview({
     quality: 1.0
   });
 
-  // For debugging
-  useEffect(() => {
-    console.log("Current text content:", text);
-  }, [text]);
-
   // Journal page styles
   const journalPageStyle = {
     backgroundColor: '#fff',
@@ -135,25 +131,6 @@ export function JournalPreview({
       setIsDrawingMode(true);
     }
   }, [drawing]);
-
-  // Handle keyboard delete for stickers
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (selectedStickerId && (e.key === 'Delete' || e.key === 'Backspace')) {
-        console.log("Delete key pressed for sticker:", selectedStickerId);
-        onStickerMove(selectedStickerId, { x: -999, y: -999 });
-        setSelectedStickerId(null);
-      }
-    };
-
-    if (selectedStickerId) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [selectedStickerId, onStickerMove]);
 
   const handleIconSelect = (id: string) => {
     setSelectedIconId(id);
@@ -257,46 +234,6 @@ export function JournalPreview({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-  // Function to handle sticker dragging
-  const handleStickerDrag = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    const sticker = stickers.find(s => s.id === id);
-    if (!sticker || !previewRef.current) return;
-    
-    // Calculate the offsets relative to the sticker's position
-    const containerRect = previewRef.current.getBoundingClientRect();
-    const stickerLeftPos = (sticker.position.x / 100) * containerRect.width;
-    const stickerTopPos = (sticker.position.y / 100) * containerRect.height;
-    
-    const offsetX = e.clientX - containerRect.left - stickerLeftPos;
-    const offsetY = e.clientY - containerRect.top - stickerTopPos;
-    
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!previewRef.current) return;
-      
-      const containerRect = previewRef.current.getBoundingClientRect();
-      
-      // Calculate new position as a percentage of the container
-      const x = ((e.clientX - containerRect.left - offsetX) / containerRect.width) * 100;
-      const y = ((e.clientY - containerRect.top - offsetY) / containerRect.height) * 100;
-      
-      // Ensure position stays within bounds (0-100%)
-      const boundedX = Math.max(0, Math.min(100, x));
-      const boundedY = Math.max(0, Math.min(100, y));
-      
-      onStickerMove(id, { x: boundedX, y: boundedY });
-    };
-    
-    const handleMouseUp = () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-    
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  };
-
   // Generate text style based on the gradient
   const getTextStyles = () => {
     // Check if we're using a gradient for the text
@@ -386,6 +323,23 @@ export function JournalPreview({
     };
   };
 
+  // Handler for sticker resizing
+  const handleStickerResize = (id: string, size: number) => {
+    // Find the sticker
+    const sticker = stickers.find(s => s.id === id);
+    if (!sticker) return;
+    
+    // Create updated sticker with new size
+    const updatedSticker: Sticker = {
+      ...sticker,
+      width: size,
+      height: size
+    };
+    
+    // Update the sticker
+    onStickerAdd(updatedSticker);
+  };
+
   return (
     <div className={cn("relative flex-1 overflow-hidden bg-gray-50", className)}>
       <div className="absolute inset-0 flex items-center justify-center" onClick={handlePageClick}>
@@ -447,42 +401,17 @@ export function JournalPreview({
               {processText(text) || 'Start typing to add text...'}
             </div>
 
-            {/* Stickers */}
+            {/* Stickers using the StickerContainer component */}
             {stickers && stickers.map((sticker) => (
-              <div
+              <StickerContainer
                 key={sticker.id}
-                className={`absolute cursor-move ${
-                  selectedStickerId === sticker.id ? 'border-2 border-primary z-40' : 'z-30'
-                }`}
-                style={{
-                  left: `${sticker.position.x}%`,
-                  top: `${sticker.position.y}%`,
-                  transform: 'translate(-50%, -50%)',
-                  width: `${sticker.width || 100}px`,
-                  height: `${sticker.height || 100}px`,
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleStickerSelect(sticker.id);
-                }}
-                onMouseDown={(e) => {
-                  handleStickerSelect(sticker.id);
-                  handleStickerDrag(sticker.id, e);
-                }}
-                tabIndex={0}
-                title={`Sticker (ID: ${sticker.id})`}
-              >
-                <img
-                  src={sticker.url}
-                  alt="Sticker"
-                  className="w-full h-full object-contain"
-                  draggable={false}
-                  onError={(e) => {
-                    console.error(`Failed to load sticker image: ${sticker.url}`);
-                    e.currentTarget.src = '/stickers/star.svg';
-                  }}
-                />
-              </div>
+                sticker={sticker}
+                selected={selectedStickerId === sticker.id}
+                onSelect={handleStickerSelect}
+                onMove={onStickerMove}
+                onResize={handleStickerResize}
+                containerRef={previewRef}
+              />
             ))}
 
             {/* Icons */}

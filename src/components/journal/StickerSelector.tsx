@@ -34,60 +34,60 @@ export function StickerSelector({
     "/stickers/thumbsup.svg",
   ];
   
-  // Flat stickers - updated to use actual sticker images
+  // Flat stickers - proper sticker designs
   const flatStickers = [
-    "https://www.svgrepo.com/download/397916/party-popper.svg", // Party
-    "https://www.svgrepo.com/download/397744/star.svg", // Star
-    "https://www.svgrepo.com/download/397713/red-heart.svg", // Heart
-    "https://www.svgrepo.com/download/397911/calendar.svg", // Calendar
-    "https://www.svgrepo.com/download/397797/hot-beverage.svg", // Coffee
-    "https://www.svgrepo.com/download/397914/trophy.svg", // Trophy
-    "https://www.svgrepo.com/download/397772/earth-globe-americas.svg", // Earth
-    "https://www.svgrepo.com/download/397870/palm-tree.svg", // Palm tree
-    "https://www.svgrepo.com/download/397882/potted-plant.svg", // Plant
-    "https://www.svgrepo.com/download/397860/musical-note.svg", // Music
-    "https://www.svgrepo.com/download/397730/camera.svg", // Camera
-    "https://www.svgrepo.com/download/397720/closed-book.svg", // Book
-    "https://www.svgrepo.com/download/397857/money-bag.svg", // Money bag
-    "https://www.svgrepo.com/download/397768/dog-face.svg", // Dog
-    "https://www.svgrepo.com/download/397766/cat-face.svg", // Cat
-    "https://www.svgrepo.com/download/397807/birthday-cake.svg", // Birthday cake
-    "https://www.svgrepo.com/download/397788/gift.svg", // Gift
-    "https://www.svgrepo.com/download/397863/wrapped-present.svg", // Present
-    "https://www.svgrepo.com/download/397745/crown.svg", // Crown
-    "https://www.svgrepo.com/download/397883/rainbow.svg", // Rainbow
-    "https://www.svgrepo.com/download/397874/peace-symbol.svg", // Peace
-    "https://www.svgrepo.com/download/397841/gem-stone.svg", // Gemstone
-    "https://www.svgrepo.com/download/397884/rocket.svg", // Rocket
-    "https://www.svgrepo.com/download/397790/graduation-cap.svg" // Graduation cap
+    "https://www.svgrepo.com/download/402818/birthday-cake.svg", // Birthday cake
+    "https://www.svgrepo.com/download/402800/balloon.svg", // Balloon
+    "https://www.svgrepo.com/download/508839/crown.svg", // Crown
+    "https://www.svgrepo.com/download/477974/medal-color.svg", // Medal
+    "https://www.svgrepo.com/download/533312/trophy.svg", // Trophy
+    "https://www.svgrepo.com/download/532994/diamond.svg", // Diamond
+    "https://www.svgrepo.com/download/535669/gift.svg", // Gift
+    "https://www.svgrepo.com/download/376306/envelope-heart.svg", // Love letter
+    "https://www.svgrepo.com/download/376771/heart-2.svg", // Heart
+    "https://www.svgrepo.com/download/483325/firework.svg", // Firework
+    "https://www.svgrepo.com/download/320637/confetti.svg", // Confetti
+    "https://www.svgrepo.com/download/326611/skateboard.svg", // Skateboard
+    "https://www.svgrepo.com/download/510187/camera.svg", // Camera
+    "https://www.svgrepo.com/download/453629/music-note.svg", // Music note
+    "https://www.svgrepo.com/download/522009/soccer-ball.svg", // Soccer ball
+    "https://www.svgrepo.com/download/453634/palette.svg", // Art palette
+    "https://www.svgrepo.com/download/376318/flowers.svg", // Flowers
+    "https://www.svgrepo.com/download/513350/sun.svg", // Sun
+    "https://www.svgrepo.com/download/511141/moon.svg", // Moon
+    "https://www.svgrepo.com/download/376309/bug.svg", // Bug
+    "https://www.svgrepo.com/download/511126/dinosaur.svg", // Dinosaur
+    "https://www.svgrepo.com/download/511123/airplane.svg", // Airplane
+    "https://www.svgrepo.com/download/521827/rocket.svg", // Rocket
+    "https://www.svgrepo.com/download/511142/car.svg", // Car
   ];
   
-  // Artistic stickers - updated to use actual sticker-like images
+  // Artistic stickers - decorative and artsy
   const artStickers = [
-    "https://www.svgrepo.com/download/530461/rainbow.svg", // Rainbow
-    "https://www.svgrepo.com/download/530436/sun.svg", // Sun
-    "https://www.svgrepo.com/download/530312/cloud.svg", // Cloud
-    "https://www.svgrepo.com/download/530345/heart.svg", // Heart
-    "https://www.svgrepo.com/download/530358/leaf.svg", // Leaf
-    "https://www.svgrepo.com/download/530339/fruit.svg", // Fruit
-    "https://www.svgrepo.com/download/530272/butterfly.svg", // Butterfly
-    "https://www.svgrepo.com/download/530337/flower.svg", // Flower
-    "https://www.svgrepo.com/download/530265/bird.svg", // Bird
-    "https://www.svgrepo.com/download/530377/mountains.svg", // Mountains
-    "https://www.svgrepo.com/download/530243/bear.svg", // Bear
-    "https://www.svgrepo.com/download/530431/star.svg", // Star
-    "https://www.svgrepo.com/download/530387/music.svg", // Music note
-    "https://www.svgrepo.com/download/530271/books.svg", // Books
-    "https://www.svgrepo.com/download/530289/camera.svg", // Camera
-    "https://www.svgrepo.com/download/530417/planet.svg", // Planet
-    "https://www.svgrepo.com/download/530404/pencil.svg", // Pencil
-    "https://www.svgrepo.com/download/530450/trophy.svg", // Trophy
-    "https://www.svgrepo.com/download/530384/moon.svg", // Moon
-    "https://www.svgrepo.com/download/530448/tree.svg", // Tree
-    "https://www.svgrepo.com/download/530365/lock.svg", // Lock
-    "https://www.svgrepo.com/download/530324/crown.svg", // Crown
-    "https://www.svgrepo.com/download/530260/balloon.svg", // Balloon
-    "https://www.svgrepo.com/download/530309/clock.svg" // Clock
+    "https://www.svgrepo.com/download/459921/flower-1.svg", // Flower
+    "https://www.svgrepo.com/download/459928/flower-8.svg", // Flower variant
+    "https://www.svgrepo.com/download/459901/butterfly-1.svg", // Butterfly
+    "https://www.svgrepo.com/download/459903/butterfly-3.svg", // Butterfly variant
+    "https://www.svgrepo.com/download/459885/bird-2.svg", // Bird
+    "https://www.svgrepo.com/download/459887/bird-4.svg", // Bird variant
+    "https://www.svgrepo.com/download/459953/leaf-3.svg", // Leaf
+    "https://www.svgrepo.com/download/459955/leaf-5.svg", // Leaf variant
+    "https://www.svgrepo.com/download/459944/insect-2.svg", // Insect
+    "https://www.svgrepo.com/download/459937/heart-1.svg", // Heart art
+    "https://www.svgrepo.com/download/460015/star-3.svg", // Star art
+    "https://www.svgrepo.com/download/460027/tree-6.svg", // Tree
+    "https://www.svgrepo.com/download/460026/tree-5.svg", // Tree variant
+    "https://www.svgrepo.com/download/459967/mountain-3.svg", // Mountain
+    "https://www.svgrepo.com/download/459961/moon-3.svg", // Moon
+    "https://www.svgrepo.com/download/460022/sun-4.svg", // Sun
+    "https://www.svgrepo.com/download/459957/leaf-7.svg", // Leaf ornament
+    "https://www.svgrepo.com/download/459985/plant-3.svg", // Plant
+    "https://www.svgrepo.com/download/459894/branch-5.svg", // Branch
+    "https://www.svgrepo.com/download/459990/rainbow-1.svg", // Rainbow
+    "https://www.svgrepo.com/download/459992/rainbow-3.svg", // Rainbow variant
+    "https://www.svgrepo.com/download/459999/snowflake-5.svg", // Snowflake
+    "https://www.svgrepo.com/download/459911/cloud-5.svg", // Cloud
+    "https://www.svgrepo.com/download/459994/raindrop-4.svg" // Raindrop
   ];
   
   // Ensure sticker size updates when parent size changes
@@ -98,12 +98,6 @@ export function StickerSelector({
   
   console.log("StickerSelector: Current sticker size:", size);
   console.log("StickerSelector: Selected sticker ID:", selectedStickerId);
-  
-  // Total stickers available - useful for debugging
-  useEffect(() => {
-    const totalStickers = localStickers.length + flatStickers.length + artStickers.length;
-    console.log("StickerSelector: Total stickers available:", totalStickers);
-  }, [localStickers, flatStickers, artStickers]);
   
   // Handle sticker size change
   const handleSizeChange = (value: number[]) => {
@@ -122,7 +116,7 @@ export function StickerSelector({
       <div className="flex justify-between items-center mb-2">
         <h3 className="text-xs font-semibold tracking-tight">Stickers</h3>
         
-        {/* Sticker Resize Slider */}
+        {/* Sticker Resize Slider - Always enabled */}
         <div className="flex items-center space-x-2 w-32">
           <Label htmlFor="sticker-size" className="text-xs">
             Size
@@ -135,8 +129,6 @@ export function StickerSelector({
             defaultValue={[size]}
             value={[size]}
             onValueChange={handleSizeChange}
-            className={selectedStickerId ? "" : "opacity-50"}
-            disabled={!selectedStickerId}
           />
           <span className="text-xs w-8">{size}px</span>
         </div>
@@ -145,7 +137,7 @@ export function StickerSelector({
       <Tabs defaultValue="local" value={activeTab} onValueChange={(value) => setActiveTab(value as StickerSource)}>
         <TabsList className="grid grid-cols-3 mb-2">
           <TabsTrigger value="local" className="text-[10px]">Basic</TabsTrigger>
-          <TabsTrigger value="flaticon" className="text-[10px]">Emoji</TabsTrigger>
+          <TabsTrigger value="flaticon" className="text-[10px]">Colorful</TabsTrigger>
           <TabsTrigger value="artistic" className="text-[10px]">Art</TabsTrigger>
         </TabsList>
         
@@ -176,7 +168,7 @@ export function StickerSelector({
                 >
                   <img 
                     src={sticker} 
-                    alt="Emoji Sticker" 
+                    alt="Colorful Sticker" 
                     className="w-full h-10 object-contain"
                     onError={(e) => {
                       console.error(`Failed to load sticker: ${sticker}`);
