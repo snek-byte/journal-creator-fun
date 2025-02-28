@@ -1,16 +1,14 @@
 
+import React, { useEffect } from 'react';
 import { useJournalEditor } from '@/hooks/useJournalEditor';
 import { JournalEditorSidebar } from './journal/JournalEditorSidebar';
 import { JournalPreview } from './journal/JournalPreview';
 import { EmailDialog } from './journal/EmailDialog';
 import { useJournalStore } from '@/store/journalStore';
-import { useEffect } from 'react';
+import { toast } from 'sonner';
 
 export function JournalEditor() {
-  // Directly access store state
-  const store = useJournalStore();
-  
-  // Use hook to get editor functionality
+  // Get all the functionality from the hook
   const {
     currentEntry,
     showPreview,
@@ -43,14 +41,28 @@ export function JournalEditor() {
     loadChallenge
   } = useJournalEditor();
 
-  // Force load challenge on mount
+  // Load challenge on mount
   useEffect(() => {
-    loadChallenge();
-  }, []);
+    try {
+      loadChallenge();
+      console.log("Challenge loaded successfully");
+    } catch (error) {
+      console.error("Failed to load challenge:", error);
+      toast.error("Failed to load daily challenge");
+    }
+  }, [loadChallenge]);
+
+  // Force immediate display of editor content for debugging
+  console.log("Journal Editor rendering with:", { 
+    currentEntryExists: !!currentEntry,
+    isDocked, 
+    showPreview,
+    hasDailyChallenge: !!dailyChallenge
+  });
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
-      {/* Sidebar component */}
+    <div className="flex flex-col lg:flex-row min-h-screen w-full">
+      {/* Sidebar */}
       <JournalEditorSidebar 
         isDocked={isDocked}
         toggleDocked={toggleDocked}
@@ -84,7 +96,7 @@ export function JournalEditor() {
         isSending={isSending}
       />
 
-      {/* Main content area with preview */}
+      {/* Preview area */}
       <div className={`flex-1 ${!isDocked ? 'ml-64' : ''}`}>
         <JournalPreview
           showPreview={showPreview}
