@@ -10,7 +10,16 @@ export const moodOptions = [
   { value: 'confused', label: 'Confused', icon: '😕' },
   { value: 'stressed', label: 'Stressed', icon: '😫' },
   { value: 'calm', label: 'Calm', icon: '😇' },
-  { value: 'neutral', label: 'Neutral', icon: '😐' }
+  { value: 'neutral', label: 'Neutral', icon: '😐' },
+  { value: 'proud', label: 'Proud', icon: '😎' },
+  { value: 'motivated', label: 'Motivated', icon: '💪' },
+  { value: 'inspired', label: 'Inspired', icon: '✨' },
+  { value: 'loved', label: 'Loved', icon: '🥰' },
+  { value: 'hopeful', label: 'Hopeful', icon: '🌈' },
+  { value: 'mischievous', label: 'Mischievous', icon: '😏' },
+  { value: 'nostalgic', label: 'Nostalgic', icon: '🕰️' },
+  { value: 'silly', label: 'Silly', icon: '🤪' },
+  { value: 'tired', label: 'Tired', icon: '😴' }
 ];
 
 export const fontOptions = [
@@ -19,26 +28,36 @@ export const fontOptions = [
   { value: 'lato', label: 'Lato' },
   { value: 'poppins', label: 'Poppins' },
   { value: 'montserrat', label: 'Montserrat' },
-  { value: 'playfair display', label: 'Playfair Display' },
+  { value: 'playfair-display', label: 'Playfair Display' },
   { value: 'merriweather', label: 'Merriweather' },
-  { value: 'source serif pro', label: 'Source Serif Pro' },
-  { value: 'josefin sans', label: 'Josefin Sans' },
-  { value: 'work sans', label: 'Work Sans' },
+  { value: 'source-serif-pro', label: 'Source Serif Pro' },
+  { value: 'josefin-sans', label: 'Josefin Sans' },
+  { value: 'work-sans', label: 'Work Sans' },
   { value: 'quicksand', label: 'Quicksand' },
-  { value: 'space grotesk', label: 'Space Grotesk' },
-  { value: 'dm sans', label: 'DM Sans' },
+  { value: 'space-grotesk', label: 'Space Grotesk' },
+  { value: 'dm-sans', label: 'DM Sans' },
   { value: 'nunito', label: 'Nunito' },
   { value: 'raleway', label: 'Raleway' },
-  { value: 'dancing script', label: 'Dancing Script' },
+  { value: 'dancing-script', label: 'Dancing Script' },
   { value: 'pacifico', label: 'Pacifico' },
-  { value: 'great vibes', label: 'Great Vibes' },
+  { value: 'great-vibes', label: 'Great Vibes' },
   { value: 'satisfy', label: 'Satisfy' },
   { value: 'caveat', label: 'Caveat' },
   { value: 'sacramento', label: 'Sacramento' },
   { value: 'carattere', label: 'Carattere' },
   { value: 'birthstone', label: 'Birthstone' },
   { value: 'lobster', label: 'Lobster' },
-  { value: 'petit formal script', label: 'Petit Formal Script' }
+  { value: 'petit-formal-script', label: 'Petit Formal Script' },
+  { value: 'playfair', label: 'Playfair' },
+  { value: 'oswald', label: 'Oswald' },
+  { value: 'courier-new', label: 'Courier New' },
+  { value: 'times-new-roman', label: 'Times New Roman' },
+  { value: 'georgia', label: 'Georgia' },
+  { value: 'helvetica', label: 'Helvetica' },
+  { value: 'verdana', label: 'Verdana' },
+  { value: 'garamond', label: 'Garamond' },
+  { value: 'comic-sans-ms', label: 'Comic Sans MS' },
+  { value: 'impact', label: 'Impact' }
 ];
 
 export const fontSizes = [
@@ -50,7 +69,9 @@ export const fontSizes = [
   { value: '48px', label: 'Huge' },
   { value: '64px', label: 'Giant' },
   { value: '86px', label: 'Massive' },
-  { value: '120px', label: 'Enormous' }
+  { value: '120px', label: 'Enormous' },
+  { value: '156px', label: 'Colossal' },
+  { value: '200px', label: 'Epic' }
 ];
 
 export const fontWeights = [
@@ -58,7 +79,9 @@ export const fontWeights = [
   { value: 'normal', label: 'Regular' },
   { value: '500', label: 'Medium' },
   { value: '600', label: 'Semi-Bold' },
-  { value: 'bold', label: 'Bold' }
+  { value: 'bold', label: 'Bold' },
+  { value: '800', label: 'Extra-Bold' },
+  { value: '900', label: 'Black' }
 ];
 
 export const gradients = [
@@ -110,5 +133,13 @@ export const gradients = [
   { label: 'Morning Salad', value: 'linear-gradient(to right, #b7f8db 0%, #50a7c2 100%)' },
   { label: 'Sunny Morning', value: 'linear-gradient(120deg, #f6d365 0%, #fda085 100%)' },
   { label: 'Dusty Grass', value: 'linear-gradient(120deg, #d4fc79 0%, #96e6a1 100%)' },
-  { label: 'Berry Bliss', value: 'linear-gradient(to right, #ff758c 0%, #ff7eb3 100%)' }
+  { label: 'Berry Bliss', value: 'linear-gradient(to right, #ff758c 0%, #ff7eb3 100%)' },
+  
+  // New gradients
+  { label: 'Neon Glow', value: 'linear-gradient(to right, #00c3ff 0%, #ffff1c 100%)' },
+  { label: 'Electric Violet', value: 'linear-gradient(90deg, #4776E6 0%, #8E54E9 100%)' },
+  { label: 'Witching Hour', value: 'linear-gradient(to right, #c31432 0%, #240b36 100%)' },
+  { label: 'Passion Fruit', value: 'linear-gradient(to right, #f43b47 0%, #453a94 100%)' },
+  { label: 'Aqua Splash', value: 'linear-gradient(15deg, #13547a 0%, #80d0c7 100%)' },
+  { label: 'Rainbow Twist', value: 'linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3)' }
 ];

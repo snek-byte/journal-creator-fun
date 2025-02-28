@@ -24,12 +24,14 @@ import {
   Type, 
   PaintBucket,
   ChevronDown, 
-  GripVertical
+  GripVertical,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { textStyles } from '@/utils/unicodeTextStyles';
 
 interface JournalStylingControlsProps {
   font: string;
@@ -88,7 +90,7 @@ export function JournalStylingControls({
   ];
   
   // Text styles
-  const textStyles = [
+  const standardTextStyles = [
     { name: 'Normal', value: 'normal' },
     { name: 'Italic', value: 'italic' },
     { name: 'Underline', value: 'underline' },
@@ -312,7 +314,7 @@ export function JournalStylingControls({
             <span className="text-xs">Text Style</span>
             <div className="flex flex-wrap gap-2">
               <Button
-                variant={!textStyles.some(s => s.value !== 'normal' && s.value.includes('italic')) ? "default" : "outline"}
+                variant={!standardTextStyles.some(s => s.value !== 'normal' && s.value.includes('italic')) ? "default" : "outline"}
                 size="sm"
                 onClick={() => handleTextStyleChange('normal')}
                 className="flex-1 h-8 px-2"
@@ -322,7 +324,7 @@ export function JournalStylingControls({
                 Normal
               </Button>
               <Button
-                variant={textStyles.some(s => s.value !== 'normal' && s.value.includes('italic')) ? "default" : "outline"}
+                variant={standardTextStyles.some(s => s.value !== 'normal' && s.value.includes('italic')) ? "default" : "outline"}
                 size="sm"
                 onClick={() => handleTextStyleChange('italic')}
                 className="flex-1 h-8 px-2"
@@ -332,7 +334,7 @@ export function JournalStylingControls({
                 Italic
               </Button>
               <Button
-                variant={textStyles.some(s => s.value !== 'normal' && s.value.includes('underline')) ? "default" : "outline"}
+                variant={standardTextStyles.some(s => s.value !== 'normal' && s.value.includes('underline')) ? "default" : "outline"}
                 size="sm"
                 onClick={() => handleTextStyleChange('underline')}
                 className="flex-1 h-8 px-2"
@@ -345,7 +347,7 @@ export function JournalStylingControls({
             
             <div className="flex gap-2 mt-2">
               <Button
-                variant={textStyles.some(s => s.value !== 'normal' && s.value.includes('center')) ? "default" : "outline"}
+                variant={standardTextStyles.some(s => s.value !== 'normal' && s.value.includes('center')) ? "default" : "outline"}
                 size="sm"
                 onClick={() => handleTextStyleChange('center')}
                 className="flex-1 h-8 px-2"
@@ -358,63 +360,36 @@ export function JournalStylingControls({
           </div>
           
           <div className="mt-4 space-y-2">
-            <span className="text-xs">Unicode Text Styles</span>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex justify-between items-center">
+              <span className="text-xs flex items-center">
+                <Sparkles className="h-3 w-3 mr-1" />
+                Unicode Text Styles
+              </span>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                onClick={() => handleTextStyleChange('bold')}
-                className="h-8 px-2 text-xs"
-                type="button"
+                onClick={() => handleTextStyleChange('normal')}
+                className="h-6 px-2 text-xs"
               >
-                𝗕𝗼𝗹𝗱
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleTextStyleChange('italic-script')}
-                className="h-8 px-2 text-xs"
-                type="button"
-              >
-                𝓢𝓬𝓻𝓲𝓹𝓽
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleTextStyleChange('monospace')}
-                className="h-8 px-2 text-xs"
-                type="button"
-              >
-                𝙼𝚘𝚗𝚘𝚜𝚙𝚊𝚌𝚎
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleTextStyleChange('double-struck')}
-                className="h-8 px-2 text-xs"
-                type="button"
-              >
-                𝔻𝕠𝕦𝕓𝕝𝕖 𝕊𝕥𝕣𝕦𝕔𝕜
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleTextStyleChange('fraktur')}
-                className="h-8 px-2 text-xs"
-                type="button"
-              >
-                𝔉𝔯𝔞𝔨𝔱𝔲𝔯
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleTextStyleChange('small-caps')}
-                className="h-8 px-2 text-xs"
-                type="button"
-              >
-                sᴍᴀʟʟ ᴄᴀᴘs
+                Clear
               </Button>
             </div>
+            <ScrollArea className="h-44 border rounded-md p-2">
+              <div className="grid grid-cols-2 gap-2">
+                {textStyles.map((style) => (
+                  <Button
+                    key={style.value}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleTextStyleChange(style.value)}
+                    className="h-8 px-2 text-xs justify-start overflow-hidden"
+                    type="button"
+                  >
+                    {style.label}
+                  </Button>
+                ))}
+              </div>
+            </ScrollArea>
           </div>
         </TabsContent>
       </Tabs>
