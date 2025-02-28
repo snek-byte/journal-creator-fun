@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { DrawingLayer } from './DrawingLayer';
@@ -393,8 +392,7 @@ export function JournalPreview({
                 width: '100%',
                 height: '100%',
                 ...getBackgroundStyle(),
-                zIndex: 1,
-                border: '1px solid #e0e0e0'
+                zIndex: 1
               }}
               className="journal-page"
             />
@@ -417,7 +415,7 @@ export function JournalPreview({
             />
           )}
 
-          <div className="relative h-full w-full z-10 journal-page" ref={previewRef}>
+          <div className="relative h-full w-full" ref={previewRef}>
             {/* Control overlay buttons - Drawing Mode Toggle */}
             <div className="absolute top-4 right-4 z-50 flex gap-2">
               <button
@@ -433,6 +431,37 @@ export function JournalPreview({
               </button>
             </div>
 
+            {/* Drawing Canvas (always present but only visible and interactive when in drawing mode) */}
+            {isDrawingMode && (
+              <div className="absolute inset-0 z-40">
+                <DrawingLayer
+                  width={previewWidth}
+                  height={previewHeight}
+                  onDrawingChange={handleDrawingChange}
+                  tool={drawingTool}
+                  color={drawingColor}
+                  brushSize={brushSize}
+                  initialDrawing={drawing}
+                  onClear={() => onDrawingChange('')}
+                />
+              </div>
+            )}
+
+            {/* Display existing drawing when not in drawing mode */}
+            {drawing && !isDrawingMode && (
+              <img
+                src={drawing}
+                alt="Drawing"
+                className="absolute inset-0 z-20 pointer-events-none"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  filter: !backgroundImage ? getCssFilter() : undefined
+                }}
+              />
+            )}
+
             {/* Text element with proper gradient styling */}
             <div
               ref={textRef}
@@ -442,7 +471,6 @@ export function JournalPreview({
                 left: `${textPosition.x}%`,
                 top: `${textPosition.y}%`,
                 transform: 'translate(-50%, -50%)',
-                // Apply filter to text if no background image
                 filter: !backgroundImage ? getCssFilter() : undefined,
                 pointerEvents: isDrawingMode ? 'none' : 'auto'
               }}
@@ -495,36 +523,7 @@ export function JournalPreview({
                 }}
               />
             ))}
-          
-            {/* Drawing Layer - Only show in drawing mode */}
-            {isDrawingMode && (
-              <DrawingLayer
-                width={previewWidth}
-                height={previewHeight}
-                onDrawingChange={handleDrawingChange}
-                tool={drawingTool}
-                color={drawingColor}
-                brushSize={brushSize}
-                initialDrawing={drawing}
-                className="z-100"
-              />
-            )}
           </div>
-
-          {/* Display existing drawing when not in drawing mode */}
-          {drawing && !isDrawingMode && (
-            <img
-              src={drawing}
-              alt="Drawing"
-              className="absolute inset-0 z-20 pointer-events-none"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-                filter: !backgroundImage ? getCssFilter() : undefined
-              }}
-            />
-          )}
         </div>
       </div>
     </div>

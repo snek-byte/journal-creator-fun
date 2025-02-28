@@ -17,12 +17,7 @@ interface DrawingLayerProps {
   color?: string;
   brushSize?: number;
   initialDrawing?: string;
-  onUndo?: () => void;
-  onRedo?: () => void;
   onClear?: () => void;
-  onToolChange?: (tool: string) => void;
-  onColorChange?: (color: string) => void;
-  onBrushSizeChange?: (size: number) => void;
 }
 
 export function DrawingLayer({ 
@@ -34,27 +29,15 @@ export function DrawingLayer({
   color = '#000000',
   brushSize = 3,
   initialDrawing,
-  onUndo,
-  onRedo,
-  onClear,
-  onToolChange,
-  onColorChange,
-  onBrushSizeChange
+  onClear
 }: DrawingLayerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [lastPoint, setLastPoint] = useState<Point | null>(null);
-  const [opacity, setOpacity] = useState(1);
-  const sprayInterval = useRef<number | null>(null);
-  const hasInitialized = useRef(false);
-  const [undoStack, setUndoStack] = useState<string[]>([]);
-  const [redoStack, setRedoStack] = useState<string[]>([]);
-  const [isActive, setIsActive] = useState(true);
-  const canvasInitialized = useRef(false);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
 
-  // Initialize canvas on mount and when dimensions change
+  // Initialize canvas
   useEffect(() => {
-    console.log("DrawingLayer: Initializing canvas with width:", width, "height:", height);
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -62,276 +45,130 @@ export function DrawingLayer({
     canvas.width = width;
     canvas.height = height;
 
+    // Get and store context
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set initial canvas context properties
-    ctx.strokeStyle = color;
-    ctx.lineWidth = brushSize;
+    ctxRef.current = ctx;
+    
+    // Set default styles
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
+    updateBrushStyles();
     
-    if (!canvasInitialized.current) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      const emptyState = canvas.toDataURL();
-      setUndoStack([emptyState]);
-      
-      canvasInitialized.current = true;
-      console.log("DrawingLayer: Canvas initialized with dimensions", width, "x", height);
-      
-      // Load initial drawing if provided
-      if (initialDrawing) {
-        console.log("DrawingLayer: Loading initial drawing");
-        loadState(initialDrawing);
-      }
+    // Load initial drawing if provided
+    if (initialDrawing) {
+      const img = new Image();
+      img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+      };
+      img.src = initialDrawing;
     }
-
-    return () => {
-      if (sprayInterval.current !== null) {
-        window.clearInterval(sprayInterval.current);
-      }
-    };
+    
+    console.log("DrawingLayer: Canvas initialized with dimensions", width, "x", height);
+    
+    // Draw a test pixel to confirm canvas is working
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.1)';
+    ctx.fillRect(10, 10, 10, 10);
+    
+    toast.info("Drawing canvas ready! Click and drag to draw.");
+    
   }, [width, height, initialDrawing]);
 
-  // Update brush settings when they change
-  useEffect(() => {
-    console.log("DrawingLayer: Tool changed:", tool, "Color:", color, "Size:", brushSize);
-    if (!canvasRef.current) return;
-    const ctx = canvasRef.current.getContext('2d');
+  // Update brush styles when props change
+  const updateBrushStyles = () => {
+    const ctx = ctxRef.current;
     if (!ctx) return;
     
+    ctx.strokeStyle = tool === 'eraser' ? '#ffffff' : color;
+    ctx.lineWidth = brushSize;
+    
+    // Special tool settings
     if (tool === 'eraser') {
       ctx.globalCompositeOperation = 'destination-out';
     } else {
       ctx.globalCompositeOperation = 'source-over';
-      ctx.strokeStyle = color;
-      
-      if (tool === 'highlighter') {
-        ctx.globalAlpha = 0.3;
-      } else if (tool === 'marker') {
-        ctx.globalAlpha = 0.8;
-      } else {
-        ctx.globalAlpha = opacity;
-      }
     }
     
-    ctx.lineWidth = brushSize;
-  }, [color, tool, brushSize, opacity]);
-
-  const saveState = () => {
-    if (!canvasRef.current) return;
-    
-    const dataUrl = canvasRef.current.toDataURL();
-    console.log("DrawingLayer: Saving drawing state");
-    setUndoStack(prev => [...prev, dataUrl]);
-    setRedoStack([]);
-    
-    if (onDrawingChange) {
-      onDrawingChange(dataUrl);
+    if (tool === 'highlighter') {
+      ctx.globalAlpha = 0.3;
+    } else if (tool === 'marker') {
+      ctx.globalAlpha = 0.8;
+    } else {
+      ctx.globalAlpha = 1;
     }
+    
+    console.log("DrawingLayer: Updated brush settings:", { 
+      tool, 
+      color, 
+      brushSize, 
+      globalCompositeOperation: ctx.globalCompositeOperation,
+      globalAlpha: ctx.globalAlpha
+    });
   };
+  
+  useEffect(() => {
+    updateBrushStyles();
+  }, [tool, color, brushSize]);
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
-    console.log("DrawingLayer: Starting drawing with tool:", tool);
     e.preventDefault();
     e.stopPropagation();
     
-    setIsDrawing(true);
-    const point = getPoint(e);
-    setLastPoint(point);
-
-    // Handle special brush types
-    if (tool === 'fill') {
-      fillArea(point);
-      saveState();
-      return;
-    }
-    
-    if (tool === 'spray') {
-      spray(point);
-      sprayInterval.current = window.setInterval(() => {
-        if (lastPoint) {
-          spray(lastPoint);
-        }
-      }, 50);
-      return;
-    }
-    
-    // Start a path for regular brushes
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = ctxRef.current;
     if (!ctx) return;
     
+    updateBrushStyles();
+    
+    const point = getPoint(e);
+    setIsDrawing(true);
+    setLastPoint(point);
+    
+    console.log("DrawingLayer: Started drawing at", point);
+    
+    // For single click, draw a dot
     ctx.beginPath();
-    ctx.moveTo(point.x, point.y);
-    ctx.lineTo(point.x, point.y);
-    ctx.stroke();
+    ctx.arc(point.x, point.y, brushSize / 2, 0, Math.PI * 2);
+    ctx.fill();
   };
 
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!isDrawing || !canvasRef.current || !lastPoint) return;
+    if (!isDrawing || !lastPoint) return;
     
     e.preventDefault();
     e.stopPropagation();
-
-    const ctx = canvasRef.current.getContext('2d');
+    
+    const ctx = ctxRef.current;
     if (!ctx) return;
-
+    
     const currentPoint = getPoint(e);
     
-    if (tool === 'spray') {
-      setLastPoint(currentPoint);
-      return; // Spray is handled in the interval
-    }
-    
-    if (tool === 'eraser') {
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.lineWidth = brushSize * 3; // Bigger eraser
-    } else {
-      ctx.globalCompositeOperation = 'source-over';
-      
-      if (tool === 'highlighter') {
-        ctx.lineWidth = brushSize * 3;
-        ctx.globalAlpha = 0.3;
-      } else if (tool === 'marker') {
-        ctx.lineWidth = brushSize * 2;
-        ctx.globalAlpha = 0.8;
-      } else {
-        ctx.lineWidth = brushSize;
-        ctx.globalAlpha = opacity;
-      }
-    }
-    
+    // Draw line from last point to current point
     ctx.beginPath();
     ctx.moveTo(lastPoint.x, lastPoint.y);
     ctx.lineTo(currentPoint.x, currentPoint.y);
     ctx.stroke();
-
+    
     setLastPoint(currentPoint);
   };
 
-  const spray = (point: Point) => {
-    if (!canvasRef.current) return;
-    const ctx = canvasRef.current.getContext('2d');
-    if (!ctx) return;
-
-    // Spray parameters
-    const density = brushSize * 5;
-    const radius = brushSize * 3;
-
-    ctx.fillStyle = color;
-    ctx.globalAlpha = 0.05; // Lower opacity for spray particles
-
-    for (let i = 0; i < density; i++) {
-      const offsetX = Math.random() * 2 * radius - radius;
-      const offsetY = Math.random() * 2 * radius - radius;
-      const distance = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
-      
-      if (distance <= radius) {
-        ctx.beginPath();
-        ctx.arc(point.x + offsetX, point.y + offsetY, 1, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    // Reset globalAlpha
-    ctx.globalAlpha = opacity;
-  };
-
-  const fillArea = (point: Point) => {
-    if (!canvasRef.current) return;
-    const ctx = canvasRef.current.getContext('2d');
-    if (!ctx) return;
-
-    const imageData = ctx.getImageData(0, 0, canvasRef.current.width, canvasRef.current.height);
-    const targetColor = getColorAtPixel(imageData, Math.floor(point.x), Math.floor(point.y));
-    const fillColor = hexToRgb(color);
-    
-    if (fillColor) {
-      floodFill(imageData, Math.floor(point.x), Math.floor(point.y), targetColor, fillColor);
-      ctx.putImageData(imageData, 0, 0);
-    }
-  };
-
-  const getColorAtPixel = (imageData: ImageData, x: number, y: number) => {
-    const { width, data } = imageData;
-    const index = (y * width + x) * 4;
-    return [data[index], data[index + 1], data[index + 2], data[index + 3]];
-  };
-
-  const setColorAtPixel = (imageData: ImageData, x: number, y: number, color: number[]) => {
-    const { width, data } = imageData;
-    const index = (y * width + x) * 4;
-    data[index] = color[0];
-    data[index + 1] = color[1];
-    data[index + 2] = color[2];
-    data[index + 3] = color[3];
-  };
-
-  const hexToRgb = (hex: string): number[] | null => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? [
-      parseInt(result[1], 16),
-      parseInt(result[2], 16),
-      parseInt(result[3], 16),
-      255
-    ] : null;
-  };
-
-  const floodFill = (imageData: ImageData, x: number, y: number, targetColor: number[], fillColor: number[]) => {
-    const { width, height } = imageData;
-    
-    if (
-      x < 0 || x >= width || y < 0 || y >= height ||
-      colorsEqual(getColorAtPixel(imageData, x, y), fillColor)
-    ) {
-      return;
-    }
-    
-    if (!colorsEqual(getColorAtPixel(imageData, x, y), targetColor)) {
-      return;
-    }
-    
-    // Use a queue for non-recursive fill
-    const queue: [number, number][] = [[x, y]];
-    while (queue.length > 0) {
-      const [curX, curY] = queue.shift()!;
-      
-      if (
-        curX < 0 || curX >= width || curY < 0 || curY >= height ||
-        !colorsEqual(getColorAtPixel(imageData, curX, curY), targetColor)
-      ) {
-        continue;
-      }
-      
-      setColorAtPixel(imageData, curX, curY, fillColor);
-      
-      queue.push([curX + 1, curY]);
-      queue.push([curX - 1, curY]);
-      queue.push([curX, curY + 1]);
-      queue.push([curX, curY - 1]);
-    }
-  };
-
-  const colorsEqual = (a: number[], b: number[]) => {
-    return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && Math.abs(a[3] - b[3]) < 50;
-  };
-
-  const stopDrawing = () => {
+  const endDrawing = () => {
     if (!isDrawing) return;
     
-    console.log("DrawingLayer: Stopping drawing");
     setIsDrawing(false);
-    setLastPoint(null);
-    saveState();
+    saveDrawing();
     
-    // Clean up spray interval if active
-    if (sprayInterval.current !== null) {
-      window.clearInterval(sprayInterval.current);
-      sprayInterval.current = null;
-    }
+    console.log("DrawingLayer: Ended drawing");
+  };
+
+  const saveDrawing = () => {
+    const canvas = canvasRef.current;
+    if (!canvas || !onDrawingChange) return;
+    
+    const dataUrl = canvas.toDataURL('image/png');
+    onDrawingChange(dataUrl);
+    console.log("DrawingLayer: Saved drawing");
   };
 
   const getPoint = (e: React.MouseEvent | React.TouchEvent): Point => {
@@ -339,118 +176,73 @@ export function DrawingLayer({
     if (!canvas) return { x: 0, y: 0 };
 
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-
+    
+    let clientX, clientY;
+    
     if ('touches' in e) {
-      const touch = e.touches[0];
-      return {
-        x: (touch.clientX - rect.left) * scaleX,
-        y: (touch.clientY - rect.top) * scaleY
-      };
+      // Touch event
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      // Mouse event
+      clientX = e.clientX;
+      clientY = e.clientY;
     }
-
+    
+    // Get coordinates relative to canvas
     return {
-      x: (e.clientX - rect.left) * scaleX,
-      y: (e.clientY - rect.top) * scaleY
+      x: clientX - rect.left,
+      y: clientY - rect.top
     };
-  };
-
-  const undo = () => {
-    if (undoStack.length <= 1) return;
-    
-    const currentState = undoStack[undoStack.length - 1];
-    const previousState = undoStack[undoStack.length - 2];
-    
-    setRedoStack(prev => [...prev, currentState]);
-    setUndoStack(prev => prev.slice(0, -1));
-    
-    loadState(previousState);
-  };
-
-  const redo = () => {
-    if (redoStack.length === 0) return;
-    
-    const nextState = redoStack[redoStack.length - 1];
-    setRedoStack(prev => prev.slice(0, -1));
-    setUndoStack(prev => [...prev, nextState]);
-    
-    loadState(nextState);
-  };
-
-  const loadState = (dataUrl: string) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const img = new Image();
-    img.onload = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0);
-      if (onDrawingChange) {
-        onDrawingChange(dataUrl);
-      }
-    };
-    img.src = dataUrl;
   };
 
   const clearCanvas = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const ctx = ctxRef.current;
+    if (!canvas || !ctx) return;
     
-    const emptyState = canvas.toDataURL();
-    setUndoStack([emptyState]);
-    setRedoStack([]);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     if (onDrawingChange) {
       onDrawingChange('');
     }
+    
+    if (onClear) {
+      onClear();
+    }
+    
+    toast.info("Canvas cleared");
+    console.log("DrawingLayer: Canvas cleared");
   };
 
-  // Debugging Canvas rendering
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (canvasRef.current) {
-        const ctx = canvasRef.current.getContext('2d');
-        if (ctx) {
-          // Just to verify canvas is working, draw a small dot in the center
-          if (!hasInitialized.current) {
-            ctx.fillStyle = 'red';
-            ctx.beginPath();
-            ctx.arc(width/2, height/2, 2, 0, Math.PI * 2);
-            ctx.fill();
-            hasInitialized.current = true;
-            console.log("DrawingLayer: Validated canvas rendering with test dot");
-          }
-        }
-      }
-    }, 1000);
-    
-    return () => clearInterval(intervalId);
-  }, [width, height]);
-
   return (
-    <div className={cn("absolute inset-0", className)} style={{ zIndex: 200, pointerEvents: 'auto' }}>
+    <div 
+      className={cn("relative", className)} 
+      style={{ width: `${width}px`, height: `${height}px` }}
+    >
       <canvas
         ref={canvasRef}
-        width={width}
-        height={height}
-        className="touch-none cursor-crosshair w-full h-full"
+        className="cursor-crosshair"
+        style={{ 
+          width: '100%', 
+          height: '100%',
+          touchAction: 'none'
+        }}
         onMouseDown={startDrawing}
         onMouseMove={draw}
-        onMouseUp={stopDrawing}
-        onMouseOut={stopDrawing}
+        onMouseUp={endDrawing}
+        onMouseLeave={endDrawing}
         onTouchStart={startDrawing}
         onTouchMove={draw}
-        onTouchEnd={stopDrawing}
+        onTouchEnd={endDrawing}
       />
+      <button
+        className="absolute top-4 left-4 bg-red-500 text-white p-2 rounded-full shadow-md"
+        onClick={clearCanvas}
+        title="Clear Canvas"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+      </button>
     </div>
   );
 }

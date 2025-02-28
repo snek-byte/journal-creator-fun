@@ -6,7 +6,7 @@ import {
   Eraser, 
   Highlighter, 
   Paintbrush, 
-  Droplets, // Replacing Spray with Droplets which is available in lucide-react
+  Droplets,
   Trash2,
   PaintBucket
 } from "lucide-react";
@@ -14,6 +14,7 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HexColorPicker } from "react-colorful";
+import { toast } from "sonner";
 
 interface DrawingToolsProps {
   onToolSelect: (tool: string) => void;
@@ -41,9 +42,15 @@ export function DrawingTools({
     { id: 'marker', name: 'Marker', icon: Paintbrush },
     { id: 'highlighter', name: 'Highlighter', icon: Highlighter },
     { id: 'eraser', name: 'Eraser', icon: Eraser },
-    { id: 'spray', name: 'Spray', icon: Droplets }, // Changed Spray to Droplets icon
+    { id: 'spray', name: 'Spray', icon: Droplets },
     { id: 'fill', name: 'Fill', icon: PaintBucket },
   ];
+
+  const handleToolClick = (toolId: string) => {
+    console.log("Tool selected:", toolId);
+    onToolSelect(toolId);
+    toast.info(`${toolId.charAt(0).toUpperCase() + toolId.slice(1)} tool selected`);
+  };
   
   return (
     <div className="space-y-4">
@@ -66,7 +73,7 @@ export function DrawingTools({
                 variant={currentTool === tool.id ? "default" : "outline"}
                 size="sm"
                 className="flex-col h-auto py-2 px-0"
-                onClick={() => onToolSelect(tool.id)}
+                onClick={() => handleToolClick(tool.id)}
               >
                 <Icon className="h-4 w-4 mb-1" />
                 <span className="text-[10px]">{tool.name}</span>
@@ -84,7 +91,7 @@ export function DrawingTools({
                 variant={currentTool === tool.id ? "default" : "outline"}
                 size="sm"
                 className="flex-col h-auto py-2"
-                onClick={() => onToolSelect(tool.id)}
+                onClick={() => handleToolClick(tool.id)}
               >
                 <div className="flex items-center">
                   <Icon className="h-4 w-4 mr-2" />
@@ -123,7 +130,10 @@ export function DrawingTools({
       <Button
         variant="destructive"
         size="sm"
-        onClick={onClear}
+        onClick={() => {
+          onClear();
+          toast.info("Drawing cleared");
+        }}
         className="w-full mt-2"
       >
         <Trash2 className="h-4 w-4 mr-2" />

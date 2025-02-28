@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageUploader } from './ImageUploader';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
 
 interface BackgroundImageSelectorProps {
   onBackgroundSelect: (imageUrl: string) => void;
