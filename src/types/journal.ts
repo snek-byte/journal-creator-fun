@@ -19,7 +19,6 @@ export interface JournalEntry {
   backgroundImage?: string;
   drawing?: string;
   filter?: string;
-  textBoxes: TextBox[];
 }
 
 export interface Challenge {
@@ -87,22 +86,6 @@ export interface Icon {
   style: 'outline' | 'color';
 }
 
-export interface TextBox {
-  id: string;
-  text: string;
-  position: { x: number; y: number };
-  width: number;
-  height: number;
-  font: string;
-  fontSize: string;
-  fontWeight: string;
-  fontColor: string;
-  gradient: string;
-  textStyle: string;
-  rotation: number;
-  zIndex: number;
-}
-
 export interface HistoryEntry {
   text: string;
   font: string;
@@ -120,7 +103,6 @@ export interface HistoryEntry {
   backgroundImage?: string;
   drawing?: string;
   filter?: string;
-  textBoxes: TextBox[];
 }
 
 // Adding the missing StickerSource type

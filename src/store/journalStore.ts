@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { JournalEntry, Challenge, Badge, UserProgress, Mood, Sticker, Icon, TextBox } from '@/types/journal';
+import type { JournalEntry, Challenge, Badge, UserProgress, Mood, Sticker, Icon } from '@/types/journal';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -23,7 +23,6 @@ interface JournalState {
     backgroundImage?: string;
     drawing?: string;
     filter?: string;
-    textBoxes: TextBox[];
   };
   entries: JournalEntry[];
   dailyChallenge: Challenge | null;
@@ -58,10 +57,6 @@ interface JournalState {
   earnXP: (amount: number) => Promise<void>;
   setDrawing: (drawing: string) => void;
   setFilter: (filter: string) => void;
-  setTextBoxes: (textBoxes: TextBox[]) => void;
-  addTextBox: (textBox: TextBox) => void;
-  updateTextBox: (id: string, updates: Partial<TextBox>) => void;
-  removeTextBox: (id: string) => void;
 }
 
 export const useJournalStore = create<JournalState>()(
@@ -81,8 +76,7 @@ export const useJournalStore = create<JournalState>()(
         textPosition: { x: 50, y: 50 },
         backgroundImage: undefined,
         drawing: undefined,
-        filter: 'none',
-        textBoxes: []
+        filter: 'none'
       },
       entries: [],
       dailyChallenge: null,
@@ -173,29 +167,6 @@ export const useJournalStore = create<JournalState>()(
       setFilter: (filter) => set((state) => ({
         currentEntry: { ...state.currentEntry, filter }
       })),
-      setTextBoxes: (textBoxes) => set((state) => ({
-        currentEntry: { ...state.currentEntry, textBoxes }
-      })),
-      addTextBox: (textBox) => set((state) => ({
-        currentEntry: { 
-          ...state.currentEntry, 
-          textBoxes: [...state.currentEntry.textBoxes, textBox] 
-        }
-      })),
-      updateTextBox: (id, updates) => set((state) => ({
-        currentEntry: {
-          ...state.currentEntry,
-          textBoxes: state.currentEntry.textBoxes.map(box => 
-            box.id === id ? { ...box, ...updates } : box
-          )
-        }
-      })),
-      removeTextBox: (id) => set((state) => ({
-        currentEntry: {
-          ...state.currentEntry,
-          textBoxes: state.currentEntry.textBoxes.filter(box => box.id !== id)
-        }
-      })),
       addSticker: (sticker) => {
         console.log("Adding sticker to store:", sticker);
         set((state) => {
@@ -276,8 +247,7 @@ export const useJournalStore = create<JournalState>()(
               text_position: state.currentEntry.textPosition,
               background_image: state.currentEntry.backgroundImage || null,
               drawing: state.currentEntry.drawing || null,
-              filter: state.currentEntry.filter || 'none',
-              text_boxes: state.currentEntry.textBoxes
+              filter: state.currentEntry.filter || 'none'
             });
 
           if (entryError) throw entryError;
@@ -297,8 +267,7 @@ export const useJournalStore = create<JournalState>()(
               textPosition: { x: 50, y: 50 },
               backgroundImage: undefined,
               drawing: undefined,
-              filter: 'none',
-              textBoxes: []
+              filter: 'none'
             }
           }));
 
@@ -350,8 +319,7 @@ export const useJournalStore = create<JournalState>()(
           textPosition: entry.text_position as { x: number, y: number } || { x: 50, y: 50 },
           backgroundImage: entry.background_image as string | undefined,
           drawing: entry.drawing as string | undefined,
-          filter: entry.filter as string | undefined,
-          textBoxes: entry.text_boxes as TextBox[] || []
+          filter: entry.filter as string | undefined
         }));
 
         set({ entries });
