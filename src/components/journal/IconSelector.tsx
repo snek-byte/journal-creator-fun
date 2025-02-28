@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, CircleX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { 
@@ -38,6 +38,7 @@ export function IconSelector({
   const [isLoading, setIsLoading] = useState(false);
   const [currentIconColor, setCurrentIconColor] = useState(iconOptions.color);
   const [currentIconSize, setCurrentIconSize] = useState(iconOptions.size);
+  const [showAllIcons, setShowAllIcons] = useState(false);
 
   // OUTLINE ICONS - Black/monochrome line-based icons
   const outlineIconCategories = [
@@ -339,8 +340,14 @@ export function IconSelector({
 
   // Function to filter icons based on search term
   const filterIcons = () => {
-    if (!searchTerm.trim()) {
+    // If show all icons is enabled, return all categories
+    if (showAllIcons) {
       return iconCategories;
+    }
+    
+    // If no search term and not showing all, return empty
+    if (!searchTerm.trim()) {
+      return [];
     }
 
     const lowerSearchTerm = searchTerm.toLowerCase();
@@ -349,7 +356,8 @@ export function IconSelector({
       .map(category => ({
         name: category.name,
         icons: category.icons.filter(icon => 
-          icon.name.toLowerCase().includes(lowerSearchTerm)
+          icon.name.toLowerCase().includes(lowerSearchTerm) ||
+          category.name.toLowerCase().includes(lowerSearchTerm)
         )
       }))
       .filter(category => category.icons.length > 0);
@@ -409,15 +417,36 @@ export function IconSelector({
               </Button>
             </div>
             
-            {/* Search input */}
-            <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search icons..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+            {/* Search input with Show All toggle */}
+            <div className="space-y-2">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search icons..."
+                  className="pl-8 pr-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                {searchTerm && (
+                  <button 
+                    className="absolute right-2 top-2.5 text-muted-foreground hover:text-foreground"
+                    onClick={() => setSearchTerm('')}
+                    type="button"
+                  >
+                    <CircleX className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              
+              <Button
+                size="sm"
+                variant={showAllIcons ? "default" : "outline"}
+                onClick={() => setShowAllIcons(!showAllIcons)}
+                className="text-xs w-full"
+                type="button"
+              >
+                {showAllIcons ? "Hide All Icons" : "Show All Icons"}
+              </Button>
             </div>
             
             {/* Icon grid */}
@@ -464,7 +493,7 @@ export function IconSelector({
                 </div>
               ) : (
                 <div className="flex justify-center items-center h-24 text-muted-foreground">
-                  No icons found
+                  {searchTerm ? "No icons found - try a different search term" : "Search for icons or use 'Show All Icons'"}
                 </div>
               )}
             </ScrollArea>
