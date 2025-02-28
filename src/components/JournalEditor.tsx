@@ -44,7 +44,7 @@ export function JournalEditor() {
   } = useJournalEditor();
 
   return (
-    <div className={`flex flex-col lg:flex-row min-h-screen bg-gray-50 ${!isDocked ? 'relative' : ''}`}>
+    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
       <JournalEditorSidebar 
         isDocked={isDocked}
         toggleDocked={toggleDocked}
@@ -77,31 +77,33 @@ export function JournalEditor() {
         isSending={isSending}
       />
 
-      <JournalPreview
-        showPreview={showPreview}
-        text={currentEntry.text}
-        mood={currentEntry.mood}
-        font={currentEntry.font}
-        fontSize={currentEntry.fontSize}
-        fontWeight={currentEntry.fontWeight}
-        fontColor={currentEntry.fontColor}
-        gradient={currentEntry.gradient}
-        textStyle={currentEntry.textStyle}
-        stickers={currentEntry.stickers || []}
-        icons={currentEntry.icons || []}
-        textPosition={currentEntry.textPosition || { x: 50, y: 50 }}
-        backgroundImage={currentEntry.backgroundImage}
-        drawing={currentEntry.drawing}
-        onStickerAdd={handleStickerAdd}
-        onIconAdd={handleIconAdd}
-        onStickerMove={handleStickerMove}
-        onIconMove={handleIconMove}
-        onIconUpdate={handleIconUpdate}
-        onTextMove={handleTextMove}
-        onBackgroundSelect={handleBackgroundSelect}
-        onDrawingChange={handleDrawingChange}
-        onTogglePreview={togglePreview}
-      />
+      <div className={`flex-1 ${!isDocked ? 'ml-64' : ''}`}>
+        <JournalPreview
+          showPreview={showPreview}
+          text={currentEntry.text}
+          mood={currentEntry.mood}
+          font={currentEntry.font}
+          fontSize={currentEntry.fontSize}
+          fontWeight={currentEntry.fontWeight}
+          fontColor={currentEntry.fontColor}
+          gradient={currentEntry.gradient}
+          textStyle={currentEntry.textStyle}
+          stickers={currentEntry.stickers || []}
+          icons={currentEntry.icons || []}
+          textPosition={currentEntry.textPosition || { x: 50, y: 50 }}
+          backgroundImage={currentEntry.backgroundImage}
+          drawing={currentEntry.drawing}
+          onStickerAdd={handleStickerAdd}
+          onIconAdd={handleIconAdd}
+          onStickerMove={handleStickerMove}
+          onIconMove={handleIconMove}
+          onIconUpdate={handleIconUpdate}
+          onTextMove={handleTextMove}
+          onBackgroundSelect={handleBackgroundSelect}
+          onDrawingChange={handleDrawingChange}
+          onTogglePreview={togglePreview}
+        />
+      </div>
     </div>
   );
 }
