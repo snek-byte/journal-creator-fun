@@ -5,7 +5,7 @@ import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Pencil, ImageP
 import { moodOptions } from './config/editorConfig';
 import type { Mood, Sticker as StickerType, Icon } from '@/types/journal';
 import { applyTextStyle } from '@/utils/unicodeTextStyles';
-import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { StickerSelector } from './StickerSelector';
 import { IconSelector } from './IconSelector';
 import { BackgroundImageSelector } from './BackgroundImageSelector';
@@ -508,8 +508,7 @@ export function JournalPreview({
                 <Maximize2 className="w-4 h-4" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="w-[90vw] h-[90vh] max-w-[90vw] max-h-[90vh] dialog-content">
-              <DialogTitle>Journal Preview</DialogTitle>
+            <DialogContent className="w-[100vw] h-[100vh] max-w-[100vw] max-h-[100vh] p-0 border-0 rounded-none">
               <div
                 style={{
                   background: getBackground(),
@@ -521,7 +520,7 @@ export function JournalPreview({
                   width: '100%',
                   height: '100%',
                 }}
-                className="rounded-lg overflow-hidden shadow-lg"
+                className="overflow-hidden"
               >
                 {/* Render journal content for the dialog */}
                 {renderJournalContent(true)}
