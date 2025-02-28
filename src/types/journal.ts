@@ -33,6 +33,17 @@ export interface Icon {
   style: 'outline' | 'color';
 }
 
+export interface Emoji {
+  id: string;
+  symbol: string;
+  position: {
+    x: number;
+    y: number;
+  };
+  size: number;
+  rotation?: number;
+}
+
 export interface JournalEntry {
   id: number;
   date: string;
@@ -49,6 +60,7 @@ export interface JournalEntry {
   textStyle?: string;
   stickers: Sticker[];
   icons: Icon[];
+  emojis: Emoji[];
   textPosition?: {
     x: number;
     y: number;
