@@ -29,6 +29,7 @@ export function useJournalEditor() {
     addSticker,
     addIcon,
     updateIcon,
+    removeIcon,
     togglePreview,
     saveEntry,
     loadChallenge,
@@ -91,18 +92,26 @@ export function useJournalEditor() {
 
   const handleIconMove = (iconId: string, position: { x: number, y: number }) => {
     try {
-      setIcons(
-        (currentEntry.icons || []).map(i => 
-          i.id === iconId ? { ...i, position } : i
-        )
-      );
+      // If position is off-screen, it's a deletion
+      if (position.x < -900 || position.y < -900) {
+        console.log("Removing icon with ID:", iconId);
+        removeIcon(iconId);
+        setSelectedIconId(null);
+      } else {
+        setIcons(
+          (currentEntry.icons || []).map(i => 
+            i.id === iconId ? { ...i, position } : i
+          )
+        );
+      }
     } catch (error) {
-      console.error("Error moving icon:", error);
+      console.error("Error moving/removing icon:", error);
     }
   };
 
   const handleIconUpdate = (iconId: string, updates: Partial<Icon>) => {
     try {
+      console.log(`Updating icon ${iconId} with:`, updates);
       updateIcon(iconId, updates);
     } catch (error) {
       console.error("Error updating icon:", error);
@@ -188,7 +197,7 @@ export function useJournalEditor() {
       if (!isNaN(sizeValue)) {
         const sizeMultiplier = 3; // Make icons bigger than text
         const newSize = sizeValue * sizeMultiplier;
-        console.log(`Updating icon ${selectedIconId} size to ${newSize}px`);
+        console.log(`Updating icon ${selectedIconId} size to ${newSize}px`, selectedIconId);
         handleIconUpdate(selectedIconId, { size: newSize });
       }
     } else {
@@ -201,14 +210,12 @@ export function useJournalEditor() {
     if (!selectedIconId) {
       setFontWeight(weight);
     }
-    // Icon weight not implemented - could be used for stroke width in future
   };
 
   const handleFontChange = (font: string) => {
     if (!selectedIconId) {
       setFont(font);
     }
-    // Font doesn't apply to icons
   };
 
   const handleFontColorChange = (color: string) => {
@@ -224,14 +231,12 @@ export function useJournalEditor() {
     if (!selectedIconId) {
       setGradient(gradient);
     }
-    // Gradient doesn't apply to icons
   }
 
   const handleTextStyleChange = (style: string) => {
     if (!selectedIconId) {
       setTextStyle(style);
     }
-    // Style doesn't apply to icons
   }
 
   const handleImageUpload = (file: File): Promise<string> => {

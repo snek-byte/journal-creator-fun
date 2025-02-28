@@ -87,25 +87,26 @@ export function JournalPreview({
   const [isUploadedImage, setIsUploadedImage] = useState(false);
 
   useEffect(() => {
-    // Detect if the current background image is an uploaded image (data URL)
     setIsUploadedImage(!!backgroundImage && backgroundImage.startsWith('data:'));
   }, [backgroundImage]);
 
-  // Propagate selected icon to parent component
   useEffect(() => {
     onIconSelect(selectedIconId);
   }, [selectedIconId, onIconSelect]);
 
-  // Handler for keyboard events to delete selected icons
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    console.log("Key pressed:", e.key, "Selected icon:", selectedIconId);
     if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIconId) {
-      // Remove the icon by moving it off-screen
-      onIconMove(selectedIconId, { x: -999, y: -999 });
-      setSelectedIconId(null);
+      console.log("Removing icon:", selectedIconId);
+      const iconToRemove = icons.find(i => i.id === selectedIconId);
+      if (iconToRemove) {
+        onIconMove(selectedIconId, { x: -999, y: -999 });
+        setSelectedIconId(null);
+        console.log("Icon removed successfully");
+      }
     }
-  }, [selectedIconId, onIconMove]);
+  }, [selectedIconId, icons, onIconMove]);
 
-  // Setup keyboard event listeners
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => {
@@ -114,9 +115,8 @@ export function JournalPreview({
   }, [handleKeyDown]);
 
   const getBackground = () => {
-    // For uploaded images, we'll handle them separately as positioned elements
     if (backgroundImage && backgroundImage.startsWith('data:')) {
-      return gradient; // Use gradient as base layer
+      return gradient;
     }
     if (backgroundImage) {
       return `url(${backgroundImage})`;
@@ -125,9 +125,8 @@ export function JournalPreview({
   };
 
   const getBackgroundSize = () => {
-    // No need to set background-size for uploaded images since we're handling them separately
     if (backgroundImage && !backgroundImage.startsWith('data:')) {
-      return 'cover'; // Default behavior for other images
+      return 'cover';
     }
     return undefined;
   };
@@ -163,7 +162,6 @@ export function JournalPreview({
     }
   };
 
-  // Handle background image drag events
   const handleBgImageMouseDown = (e: React.MouseEvent) => {
     if (isDrawingMode || !isUploadedImage) return;
     e.preventDefault();
@@ -182,11 +180,9 @@ export function JournalPreview({
       
       const previewRect = previewRef.current.getBoundingClientRect();
       
-      // Calculate the new position as a percentage of the container
       const newX = ((e.clientX - previewRect.left) / previewRect.width) * 100;
       const newY = ((e.clientY - previewRect.top) / previewRect.height) * 100;
       
-      // Ensure position stays within bounds (0-100%)
       const boundedX = Math.max(0, Math.min(100, newX));
       const boundedY = Math.max(0, Math.min(100, newY));
       
@@ -203,20 +199,17 @@ export function JournalPreview({
     document.addEventListener('mouseup', onMouseUp);
   };
 
-  // Text element mouse and touch event handlers
   const handleTextMouseDown = (e: React.MouseEvent) => {
     if (!previewRef.current || !textRef.current || isDrawingMode) return;
     e.preventDefault();
     e.stopPropagation();
     
-    // Clear any selected icon when interacting with text
     setSelectedIconId(null);
     onIconSelect(null);
     
     const previewRect = previewRef.current.getBoundingClientRect();
     const textRect = textRef.current.getBoundingClientRect();
     
-    // Calculate the offset from the cursor to the top-left of the text element
     const offsetX = e.clientX - textRect.left;
     const offsetY = e.clientY - textRect.top;
     
@@ -228,11 +221,9 @@ export function JournalPreview({
       
       const previewRect = previewRef.current.getBoundingClientRect();
       
-      // Calculate the new position as a percentage of the container
       const newX = ((e.clientX - previewRect.left - dragStartPos.x) / previewRect.width) * 100;
       const newY = ((e.clientY - previewRect.top - dragStartPos.y) / previewRect.height) * 100;
       
-      // Ensure position stays within bounds (0-100%)
       const boundedX = Math.max(0, Math.min(100, newX));
       const boundedY = Math.max(0, Math.min(100, newY));
       
@@ -254,7 +245,6 @@ export function JournalPreview({
     e.preventDefault();
     e.stopPropagation();
     
-    // Clear any selected icon when interacting with text
     setSelectedIconId(null);
     onIconSelect(null);
     
@@ -262,7 +252,6 @@ export function JournalPreview({
     const previewRect = previewRef.current.getBoundingClientRect();
     const textRect = textRef.current.getBoundingClientRect();
     
-    // Calculate the offset from the touch to the top-left of the text element
     const offsetX = touch.clientX - textRect.left;
     const offsetY = touch.clientY - textRect.top;
     
@@ -275,11 +264,9 @@ export function JournalPreview({
       const touch = e.touches[0];
       const previewRect = previewRef.current.getBoundingClientRect();
       
-      // Calculate the new position as a percentage of the container
       const newX = ((touch.clientX - previewRect.left - dragStartPos.x) / previewRect.width) * 100;
       const newY = ((touch.clientY - previewRect.top - dragStartPos.y) / previewRect.height) * 100;
       
-      // Ensure position stays within bounds (0-100%)
       const boundedX = Math.max(0, Math.min(100, newX));
       const boundedY = Math.max(0, Math.min(100, newY));
       
@@ -311,7 +298,6 @@ export function JournalPreview({
   const handleStickerMouseDown = (e: React.MouseEvent, stickerId: string) => {
     e.stopPropagation();
     
-    // Clear any selected icon when interacting with stickers
     setSelectedIconId(null);
     onIconSelect(null);
     
@@ -346,15 +332,13 @@ export function JournalPreview({
     window.addEventListener('mouseup', handleMouseUp);
   };
 
-  // Handle both clicking and dragging of icons
   const handleIconMouseDown = (e: React.MouseEvent, iconId: string) => {
     e.stopPropagation();
     
-    // First select the icon
     setSelectedIconId(iconId);
     onIconSelect(iconId);
+    console.log("Icon selected:", iconId);
     
-    // Then prepare for potential drag
     const icon = icons.find(i => i.id === iconId);
     if (!icon || !previewRef.current) return;
     
@@ -378,8 +362,6 @@ export function JournalPreview({
     };
     
     const handleMouseUp = () => {
-      // If the icon was just clicked (not dragged), we keep it selected
-      // Otherwise, we've already moved it
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
@@ -402,7 +384,6 @@ export function JournalPreview({
   };
 
   const handleBackgroundClick = () => {
-    // Clicking background deselects everything
     setSelectedStickerId(null);
     setShowDeleteButton(false);
     setSelectedIconId(null);
@@ -420,7 +401,6 @@ export function JournalPreview({
     onDrawingChange(dataUrl);
   };
 
-  // Function to render the journal content (text, stickers, icons, etc.)
   const renderJournalContent = (isDialog = false) => {
     return (
       <>
@@ -430,7 +410,6 @@ export function JournalPreview({
           </div>
         )}
         
-        {/* Render uploaded background image as a draggable element */}
         {isUploadedImage && backgroundImage && (
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <img
@@ -475,7 +454,6 @@ export function JournalPreview({
         
         {!isDrawingMode && (
           <>
-            {/* Text content - draggable in regular preview, static in dialog */}
             <div
               ref={!isDialog ? textRef : undefined}
               style={{
@@ -530,7 +508,7 @@ export function JournalPreview({
                   position: 'absolute',
                 }}
                 className={`relative ${selectedIconId === icon.id ? 'z-20' : 'z-10'}`}
-                tabIndex={0} // Make the icon focusable for keyboard events
+                tabIndex={0}
               >
                 <img
                   src={icon.url}
@@ -583,7 +561,6 @@ export function JournalPreview({
       <div className="absolute top-4 right-4 z-10 flex gap-0.5 print:hidden">
         <StickerSelector onStickerSelect={handleStickerAdd} />
         
-        {/* Use the IconSelector without children */}
         <IconSelector onIconSelect={handleIconAdd} />
         
         <BackgroundImageSelector onImageSelect={onBackgroundSelect} />
@@ -645,7 +622,6 @@ export function JournalPreview({
                 }}
                 className="rounded-lg overflow-hidden shadow-lg"
               >
-                {/* Render journal content for the dialog */}
                 {renderJournalContent(true)}
               </div>
             </DialogContent>

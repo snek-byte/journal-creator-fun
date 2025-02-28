@@ -185,20 +185,26 @@ export const useJournalStore = create<JournalState>()(
           stickers: (state.currentEntry.stickers || []).filter(s => s.id !== stickerId)
         }
       })),
-      removeIcon: (iconId) => set((state) => ({
-        currentEntry: {
-          ...state.currentEntry,
-          icons: (state.currentEntry.icons || []).filter(i => i.id !== iconId)
-        }
-      })),
-      updateIcon: (iconId, updates) => set((state) => ({
-        currentEntry: {
-          ...state.currentEntry,
-          icons: (state.currentEntry.icons || []).map(icon => 
-            icon.id === iconId ? { ...icon, ...updates } : icon
-          )
-        }
-      })),
+      removeIcon: (iconId) => set((state) => {
+        console.log("Removing icon with ID:", iconId);
+        return {
+          currentEntry: {
+            ...state.currentEntry,
+            icons: (state.currentEntry.icons || []).filter(i => i.id !== iconId)
+          }
+        };
+      }),
+      updateIcon: (iconId, updates) => set((state) => {
+        console.log(`Updating icon ${iconId} with:`, updates);
+        return {
+          currentEntry: {
+            ...state.currentEntry,
+            icons: (state.currentEntry.icons || []).map(icon => 
+              icon.id === iconId ? { ...icon, ...updates } : icon
+            )
+          }
+        };
+      }),
       togglePreview: () => set((state) => ({ 
         showPreview: !state.showPreview 
       })),
