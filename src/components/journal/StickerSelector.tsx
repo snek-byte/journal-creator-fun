@@ -7,6 +7,7 @@ import { Search, ArrowUpDown, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
+import { StickerSource } from '@/types/journal';
 
 interface StickerSelectorProps {
   onStickerSelect: (stickerUrl: string) => void;
@@ -40,7 +41,7 @@ interface StoreSticker {
   title: string;
   category: string;
   keywords: string[];
-  source: 'local' | 'giphy' | 'flaticon' | 'icons8';
+  source: StickerSource;
   isTransparent?: boolean;
 }
 
@@ -63,6 +64,7 @@ export function StickerSelector({
   
   // Update local size when prop changes
   useEffect(() => {
+    console.log("StickerSelector: currentStickerSize prop changed to", currentStickerSize);
     setStickerSize(currentStickerSize);
   }, [currentStickerSize]);
   
@@ -292,10 +294,11 @@ export function StickerSelector({
   };
   
   const handleSizeChange = (value: number[]) => {
+    console.log("Slider value changed to:", value[0]);
     const newSize = value[0];
     setStickerSize(newSize);
     if (onStickerResize) {
-      console.log("Resizing sticker to:", newSize);
+      console.log("Calling onStickerResize with:", newSize);
       onStickerResize(newSize);
     }
   };
@@ -312,9 +315,9 @@ export function StickerSelector({
     fetchGiphyStickers(randomCategory);
   };
   
-  console.log("Current sticker size:", stickerSize);
-  console.log("Selected sticker ID:", selectedStickerId);
-  console.log("Total stickers available:", allStickers.length);
+  console.log("StickerSelector: Current sticker size:", stickerSize);
+  console.log("StickerSelector: Selected sticker ID:", selectedStickerId);
+  console.log("StickerSelector: Total stickers available:", allStickers.length);
   
   return (
     <div className="space-y-4">

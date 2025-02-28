@@ -96,6 +96,7 @@ export function JournalEditor() {
 
   // Resize sticker handler
   const handleStickerResize = (size: number) => {
+    console.log("JournalEditor: handleStickerResize called with size", size);
     setStickerSize(size);
     
     // If a sticker is selected, update its size

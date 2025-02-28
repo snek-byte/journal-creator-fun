@@ -1,3 +1,4 @@
+
 export type Mood = 
   | 'happy' 
   | 'sad' 
@@ -84,3 +85,6 @@ export interface UserProgress {
   unlockedFeatures: string[];
   earnedBadges: string[];
 }
+
+// Add artistic to the allowed sticker sources
+export type StickerSource = 'local' | 'giphy' | 'flaticon' | 'icons8' | 'artistic';

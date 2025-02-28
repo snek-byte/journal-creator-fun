@@ -1,171 +1,324 @@
 
 import { useState } from 'react';
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Compass, Lightbulb, Heart, Star, Sun, Moon, Cloud, Flag, Bookmark, Award, Gift, Music, Camera, 
-         ShoppingCart, Coffee, Cpu, Globe, Home, Map, Smile, Mail, Phone, Settings, User, Users, FileText, 
-         Calendar, Clock, Bell, Book, Briefcase, Building, Link, Tag, Truck, Zap, Target, Umbrella, 
-         Diamond, Palette, Scissors, Headphones, MessageSquare } from "lucide-react";
-import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Search, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { 
+  HexColorPicker, 
+  HexColorInput 
+} from "react-colorful";
+
+// Add the icon styling options
+interface IconStylingOptions {
+  color: string;
+  size: number;
+}
 
 interface IconSelectorProps {
   onIconSelect: (icon: { url: string, style: 'outline' | 'color' }) => void;
+  selectedIconId?: string | null;
+  iconOptions?: IconStylingOptions;
+  onIconUpdate?: (updates: Partial<IconStylingOptions>) => void;
 }
 
-export function IconSelector({ onIconSelect }: IconSelectorProps) {
+export function IconSelector({ 
+  onIconSelect, 
+  selectedIconId, 
+  iconOptions = { 
+    color: '#000000', 
+    size: 48 
+  },
+  onIconUpdate 
+}: IconSelectorProps) {
+  const [searchTerm, setSearchTerm] = useState('');
   const [iconStyle, setIconStyle] = useState<'outline' | 'color'>('outline');
-  const [category, setCategory] = useState('general');
-  
-  // All available Lucide icons organized by category
-  const iconSets = {
-    general: [
-      { component: Search, name: 'Search' },
-      { component: Compass, name: 'Compass' },
-      { component: Lightbulb, name: 'Lightbulb' },
-      { component: Heart, name: 'Heart' },
-      { component: Star, name: 'Star' },
-      { component: Settings, name: 'Settings' },
-      { component: User, name: 'User' },
-      { component: FileText, name: 'Document' },
-      { component: Zap, name: 'Zap' },
-      { component: Target, name: 'Target' },
-      { component: Diamond, name: 'Diamond' },
-      { component: Palette, name: 'Palette' },
-    ],
-    nature: [
-      { component: Sun, name: 'Sun' },
-      { component: Moon, name: 'Moon' },
-      { component: Cloud, name: 'Cloud' },
-      { component: Globe, name: 'Globe' },
-      { component: Map, name: 'Map' },
-      { component: Flag, name: 'Flag' },
-      { component: Umbrella, name: 'Umbrella' },
-    ],
-    objects: [
-      { component: Bookmark, name: 'Bookmark' },
-      { component: Award, name: 'Award' },
-      { component: Gift, name: 'Gift' },
-      { component: Music, name: 'Music' },
-      { component: Camera, name: 'Camera' },
-      { component: Book, name: 'Book' },
-      { component: Briefcase, name: 'Briefcase' },
-      { component: Building, name: 'Building' },
-      { component: Scissors, name: 'Scissors' },
-      { component: Headphones, name: 'Headphones' },
-    ],
-    activities: [
-      { component: ShoppingCart, name: 'Shopping' },
-      { component: Coffee, name: 'Coffee' },
-      { component: Cpu, name: 'Technology' },
-      { component: Home, name: 'Home' },
-      { component: Calendar, name: 'Calendar' },
-      { component: Clock, name: 'Clock' },
-      { component: Bell, name: 'Notification' },
-    ],
-    communication: [
-      { component: Smile, name: 'Smile' },
-      { component: Mail, name: 'Email' },
-      { component: Phone, name: 'Phone' },
-      { component: Link, name: 'Link' },
-      { component: Tag, name: 'Tag' },
-      { component: Truck, name: 'Shipping' },
-      { component: Users, name: 'Users' },
-      { component: MessageSquare, name: 'Message' },
-    ],
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentIconColor, setCurrentIconColor] = useState(iconOptions.color);
+  const [currentIconSize, setCurrentIconSize] = useState(iconOptions.size);
+
+  // Icon categories with reliable CDN URLs
+  const iconCategories = [
+    {
+      name: 'Weather',
+      icons: [
+        { name: 'Sun', url: 'https://cdn-icons-png.flaticon.com/512/3104/3104613.png' },
+        { name: 'Cloud', url: 'https://cdn-icons-png.flaticon.com/512/414/414825.png' },
+        { name: 'Rain', url: 'https://cdn-icons-png.flaticon.com/512/2675/2675876.png' },
+        { name: 'Snow', url: 'https://cdn-icons-png.flaticon.com/512/2942/2942441.png' },
+        { name: 'Storm', url: 'https://cdn-icons-png.flaticon.com/512/2942/2942166.png' },
+        { name: 'Lightning', url: 'https://cdn-icons-png.flaticon.com/512/3104/3104635.png' },
+        { name: 'Rainbow', url: 'https://cdn-icons-png.flaticon.com/512/2942/2942446.png' },
+        { name: 'Umbrella', url: 'https://cdn-icons-png.flaticon.com/512/2590/2590274.png' },
+      ]
+    },
+    {
+      name: 'Animals',
+      icons: [
+        { name: 'Cat', url: 'https://cdn-icons-png.flaticon.com/512/3163/3163178.png' },
+        { name: 'Dog', url: 'https://cdn-icons-png.flaticon.com/512/3069/3069197.png' },
+        { name: 'Bird', url: 'https://cdn-icons-png.flaticon.com/512/3069/3069105.png' },
+        { name: 'Fish', url: 'https://cdn-icons-png.flaticon.com/512/471/471342.png' },
+        { name: 'Turtle', url: 'https://cdn-icons-png.flaticon.com/512/2370/2370335.png' },
+        { name: 'Rabbit', url: 'https://cdn-icons-png.flaticon.com/512/3069/3069172.png' },
+        { name: 'Fox', url: 'https://cdn-icons-png.flaticon.com/512/8835/8835701.png' },
+        { name: 'Lion', url: 'https://cdn-icons-png.flaticon.com/512/3069/3069002.png' },
+      ]
+    },
+    {
+      name: 'Travel',
+      icons: [
+        { name: 'Airplane', url: 'https://cdn-icons-png.flaticon.com/512/826/826437.png' },
+        { name: 'Car', url: 'https://cdn-icons-png.flaticon.com/512/3393/3393250.png' },
+        { name: 'Train', url: 'https://cdn-icons-png.flaticon.com/512/8613/8613571.png' },
+        { name: 'Ship', url: 'https://cdn-icons-png.flaticon.com/512/1170/1170576.png' },
+        { name: 'Compass', url: 'https://cdn-icons-png.flaticon.com/512/2785/2785834.png' },
+        { name: 'Map', url: 'https://cdn-icons-png.flaticon.com/512/1379/1379505.png' },
+        { name: 'Suitcase', url: 'https://cdn-icons-png.flaticon.com/512/149/149337.png' },
+        { name: 'Passport', url: 'https://cdn-icons-png.flaticon.com/512/1147/1147125.png' },
+      ]
+    },
+    {
+      name: 'Nature',
+      icons: [
+        { name: 'Tree', url: 'https://cdn-icons-png.flaticon.com/512/7257/7257232.png' },
+        { name: 'Flower', url: 'https://cdn-icons-png.flaticon.com/512/1647/1647683.png' },
+        { name: 'Mountain', url: 'https://cdn-icons-png.flaticon.com/512/3309/3309973.png' },
+        { name: 'Beach', url: 'https://cdn-icons-png.flaticon.com/512/2333/2333015.png' },
+        { name: 'Forest', url: 'https://cdn-icons-png.flaticon.com/512/2534/2534050.png' },
+        { name: 'Leaf', url: 'https://cdn-icons-png.flaticon.com/512/2925/2925727.png' },
+        { name: 'Cactus', url: 'https://cdn-icons-png.flaticon.com/512/2278/2278028.png' },
+        { name: 'Water', url: 'https://cdn-icons-png.flaticon.com/512/606/606797.png' },
+      ]
+    },
+    {
+      name: 'Food',
+      icons: [
+        { name: 'Pizza', url: 'https://cdn-icons-png.flaticon.com/512/3595/3595455.png' },
+        { name: 'Burger', url: 'https://cdn-icons-png.flaticon.com/512/3075/3075977.png' },
+        { name: 'Coffee', url: 'https://cdn-icons-png.flaticon.com/512/3127/3127407.png' },
+        { name: 'Cake', url: 'https://cdn-icons-png.flaticon.com/512/3190/3190871.png' },
+        { name: 'Fruit', url: 'https://cdn-icons-png.flaticon.com/512/3194/3194591.png' },
+        { name: 'Ice Cream', url: 'https://cdn-icons-png.flaticon.com/512/3090/3090437.png' },
+        { name: 'Sushi', url: 'https://cdn-icons-png.flaticon.com/512/2252/2252075.png' },
+        { name: 'Taco', url: 'https://cdn-icons-png.flaticon.com/512/2515/2515183.png' },
+      ]
+    },
+    {
+      name: 'Activities',
+      icons: [
+        { name: 'Sport', url: 'https://cdn-icons-png.flaticon.com/512/4219/4219908.png' },
+        { name: 'Music', url: 'https://cdn-icons-png.flaticon.com/512/3659/3659784.png' },
+        { name: 'Art', url: 'https://cdn-icons-png.flaticon.com/512/1048/1048315.png' },
+        { name: 'Reading', url: 'https://cdn-icons-png.flaticon.com/512/3389/3389081.png' },
+        { name: 'Gaming', url: 'https://cdn-icons-png.flaticon.com/512/7101/7101818.png' },
+        { name: 'Hiking', url: 'https://cdn-icons-png.flaticon.com/512/7239/7239096.png' },
+        { name: 'Camping', url: 'https://cdn-icons-png.flaticon.com/512/1974/1974355.png' },
+        { name: 'Photography', url: 'https://cdn-icons-png.flaticon.com/512/3178/3178209.png' },
+      ]
+    },
+    {
+      name: 'Symbols',
+      icons: [
+        { name: 'Heart', url: 'https://cdn-icons-png.flaticon.com/512/833/833472.png' },
+        { name: 'Star', url: 'https://cdn-icons-png.flaticon.com/512/16/16294.png' },
+        { name: 'Flag', url: 'https://cdn-icons-png.flaticon.com/512/25/25427.png' },
+        { name: 'Trophy', url: 'https://cdn-icons-png.flaticon.com/512/548/548481.png' },
+        { name: 'Medal', url: 'https://cdn-icons-png.flaticon.com/512/179/179251.png' },
+        { name: 'Diamond', url: 'https://cdn-icons-png.flaticon.com/512/166/166422.png' },
+        { name: 'Crown', url: 'https://cdn-icons-png.flaticon.com/512/3141/3141781.png' },
+        { name: 'Ribbon', url: 'https://cdn-icons-png.flaticon.com/512/444/444605.png' },
+      ]
+    },
+  ];
+
+  // Function to filter icons based on search term
+  const filterIcons = () => {
+    if (!searchTerm.trim()) {
+      return iconCategories;
+    }
+
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    
+    return iconCategories
+      .map(category => ({
+        name: category.name,
+        icons: category.icons.filter(icon => 
+          icon.name.toLowerCase().includes(lowerSearchTerm)
+        )
+      }))
+      .filter(category => category.icons.length > 0);
   };
 
-  type CategoryKey = keyof typeof iconSets;
+  // Filtering
+  const filteredCategories = filterIcons();
 
-  const handleIconSelect = (name: string) => {
-    // Create a data URL for the icon
-    const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${iconStyle === 'color' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L15 6 21 7 17 11 18 17 12 14 6 17 7 11 3 7 9 6 12 2z"/></svg>`;
-    
-    // Different SVG strings based on icon name
-    let iconSvg = '';
-    switch (name) {
-      case 'Star':
-        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${iconStyle === 'color' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
-        break;
-      case 'Heart':
-        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${iconStyle === 'color' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
-        break;
-      case 'Smile':
-        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${iconStyle === 'color' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>`;
-        break;
-      case 'Sun': 
-        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${iconStyle === 'color' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
-        break;
-      case 'Moon':
-        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${iconStyle === 'color' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
-        break;
-      default:
-        iconSvg = svgString;
+  // Handle color change and update parent if needed
+  const handleColorChange = (color: string) => {
+    setCurrentIconColor(color);
+    if (selectedIconId && onIconUpdate) {
+      onIconUpdate({ color });
     }
-    
-    // Convert to a data URL
-    const encodedSvg = encodeURIComponent(iconSvg);
-    const dataUrl = `data:image/svg+xml;utf8,${encodedSvg}`;
-    
-    onIconSelect({ url: dataUrl, style: iconStyle });
+  };
+
+  // Handle size change and update parent if needed
+  const handleSizeChange = (size: number) => {
+    setCurrentIconSize(size);
+    if (selectedIconId && onIconUpdate) {
+      onIconUpdate({ size });
+    }
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-2">
         <h3 className="text-xs font-semibold tracking-tight">Icons</h3>
-      </div>
-
-      <Tabs defaultValue="outline" className="w-full">
-        <TabsList className="w-full grid grid-cols-2 mb-2">
-          <TabsTrigger 
-            value="outline" 
-            onClick={() => setIconStyle('outline')}
-            className="text-xs"
-          >
-            Outline
-          </TabsTrigger>
-          <TabsTrigger 
-            value="color" 
-            onClick={() => setIconStyle('color')}
-            className="text-xs"
-          >
-            Color
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-      
-      <Tabs defaultValue="general" value={category} onValueChange={setCategory}>
-        <TabsList className="w-full grid grid-cols-5 mb-2">
-          <TabsTrigger value="general" className="text-[9px]">General</TabsTrigger>
-          <TabsTrigger value="nature" className="text-[9px]">Nature</TabsTrigger>
-          <TabsTrigger value="objects" className="text-[9px]">Objects</TabsTrigger>
-          <TabsTrigger value="activities" className="text-[9px]">Activities</TabsTrigger>
-          <TabsTrigger value="communication" className="text-[9px]">Comm.</TabsTrigger>
-        </TabsList>
         
-        {Object.entries(iconSets).map(([cat, icons]) => (
-          <TabsContent key={cat} value={cat}>
-            <ScrollArea className="h-[200px]">
-              <div className="grid grid-cols-4 gap-2">
-                {icons.map(({ component: IconComponent, name }) => (
-                  <button
-                    key={name}
-                    className="p-1 rounded hover:bg-accent transition-colors flex flex-col items-center justify-center h-16"
-                    onClick={() => handleIconSelect(name)}
-                    title={name}
-                  >
-                    <div className="h-8 w-8 mb-1 flex items-center justify-center">
-                      <IconComponent className="h-6 w-6" />
-                    </div>
-                    <span className="text-[10px] text-muted-foreground truncate w-full text-center">{name}</span>
-                  </button>
-                ))}
-              </div>
+        <Tabs defaultValue="browse" className="w-full">
+          <TabsList className="grid grid-cols-2 mb-4">
+            <TabsTrigger value="browse" className="text-[10px]">Browse Icons</TabsTrigger>
+            <TabsTrigger value="style" className="text-[10px]">Icon Style</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="browse" className="space-y-4">
+            {/* Icon style selection */}
+            <div className="flex justify-center space-x-2">
+              <Button
+                size="sm"
+                variant={iconStyle === 'outline' ? 'default' : 'outline'}
+                onClick={() => setIconStyle('outline')}
+                className="text-xs px-2 py-1"
+              >
+                Outline
+              </Button>
+              <Button
+                size="sm"
+                variant={iconStyle === 'color' ? 'default' : 'outline'}
+                onClick={() => setIconStyle('color')}
+                className="text-xs px-2 py-1"
+              >
+                Color
+              </Button>
+            </div>
+            
+            {/* Search input */}
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search icons..."
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            
+            {/* Icon grid */}
+            <ScrollArea className="h-[300px] pr-2">
+              {isLoading ? (
+                <div className="flex justify-center items-center h-24">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : filteredCategories.length > 0 ? (
+                <div className="space-y-4">
+                  {filteredCategories.map((category, index) => (
+                    category.icons.length > 0 && (
+                      <div key={index} className="space-y-2">
+                        <h4 className="text-xs font-medium text-muted-foreground">
+                          {category.name}
+                        </h4>
+                        <div className="grid grid-cols-4 gap-2">
+                          {category.icons.map((icon, iconIndex) => (
+                            <button
+                              key={iconIndex}
+                              className="p-1 bg-white rounded border border-gray-200 hover:border-primary/50 h-12"
+                              onClick={() => onIconSelect({ 
+                                url: icon.url, 
+                                style: iconStyle 
+                              })}
+                            >
+                              <img 
+                                src={icon.url} 
+                                alt={icon.name} 
+                                className="w-full h-full object-contain" 
+                                loading="lazy"
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  ))}
+                </div>
+              ) : (
+                <div className="flex justify-center items-center h-24 text-muted-foreground">
+                  No icons found
+                </div>
+              )}
             </ScrollArea>
           </TabsContent>
-        ))}
-      </Tabs>
+          
+          <TabsContent value="style" className="space-y-4">
+            {selectedIconId ? (
+              <>
+                <div className="space-y-3">
+                  <h4 className="text-xs font-medium">Icon Color</h4>
+                  <HexColorPicker 
+                    color={currentIconColor} 
+                    onChange={handleColorChange} 
+                    className="w-full" 
+                  />
+                  <div className="flex gap-2 items-center">
+                    <span className="text-xs">Hex:</span>
+                    <HexColorInput 
+                      color={currentIconColor} 
+                      onChange={handleColorChange} 
+                      className="flex-1 px-2 py-1 text-xs border rounded"
+                      prefixed 
+                    />
+                    <div 
+                      className="w-8 h-6 rounded border"
+                      style={{ backgroundColor: currentIconColor }}
+                    ></div>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <h4 className="text-xs font-medium">Icon Size</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {[16, 24, 32, 48, 64, 96].map(size => (
+                      <Button 
+                        key={size}
+                        variant={currentIconSize === size ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleSizeChange(size)}
+                        className="text-xs flex-1"
+                      >
+                        {size}px
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="text-center text-xs text-muted-foreground mt-4">
+                  Select an icon first to modify its style
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center justify-center h-48 text-center">
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    No icon selected
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Select an icon from the Browse tab first
+                  </p>
+                </div>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }
