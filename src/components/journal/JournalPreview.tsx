@@ -86,9 +86,6 @@ export function JournalPreview({
   const [bgImagePosition, setBgImagePosition] = useState({ x: 50, y: 50 });
   const [isDraggingBgImage, setIsDraggingBgImage] = useState(false);
   const [isUploadedImage, setIsUploadedImage] = useState(false);
-  const [isDraggingIcon, setIsDraggingIcon] = useState(false);
-  const [isResizingIcon, setIsResizingIcon] = useState(false);
-  const iconResizeStartSize = useRef(0);
 
   useEffect(() => {
     // Detect if the current background image is an uploaded image (data URL)
@@ -325,85 +322,9 @@ export function JournalPreview({
     window.addEventListener('mouseup', handleMouseUp);
   };
 
-  // Handle icon dragging
-  const handleIconMouseDown = (e: React.MouseEvent, iconId: string) => {
-    e.stopPropagation();
-    
-    // Only set state if we're not already dragging/resizing
-    if (!isDraggingIcon && !isResizingIcon) {
-      setSelectedIconId(iconId);
-      setShowIconControls(true);
-      setIsDraggingIcon(true);
-      
-      const icon = icons.find(i => i.id === iconId);
-      if (!icon || !previewRef.current) return;
-      
-      const previewRect = previewRef.current.getBoundingClientRect();
-      const startX = (icon.position.x / 100) * previewRect.width;
-      const startY = (icon.position.y / 100) * previewRect.height;
-      const offsetX = e.clientX - startX;
-      const offsetY = e.clientY - startY;
-      
-      const handleMouseMove = (e: MouseEvent) => {
-        if (!previewRef.current) return;
-        
-        const previewRect = previewRef.current.getBoundingClientRect();
-        const x = ((e.clientX - offsetX) / previewRect.width) * 100;
-        const y = ((e.clientY - offsetY) / previewRect.height) * 100;
-        
-        onIconMove(iconId, { x, y });
-      };
-      
-      const handleMouseUp = () => {
-        setIsDraggingIcon(false);
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
-      };
-      
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-    }
-  };
-
-  // Handle icon resizing
-  const handleIconResizeStart = (e: React.MouseEvent, iconId: string) => {
-    e.stopPropagation();
-    e.preventDefault();
-    
+  const handleIconClick = (iconId: string) => {
     setSelectedIconId(iconId);
     setShowIconControls(true);
-    setIsResizingIcon(true);
-    
-    const icon = icons.find(i => i.id === iconId);
-    if (!icon) return;
-    
-    const startSize = icon.size || 48;
-    iconResizeStartSize.current = startSize;
-    const startX = e.clientX;
-    
-    const handleMouseMove = (e: MouseEvent) => {
-      const deltaX = e.clientX - startX;
-      const newSize = Math.max(16, iconResizeStartSize.current + deltaX / 2);
-      
-      setIconSize(newSize);
-      onIconUpdate(iconId, { size: newSize });
-    };
-    
-    const handleMouseUp = () => {
-      setIsResizingIcon(false);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-    
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-  };
-
-  const handleIconClick = (iconId: string) => {
-    if (!isDraggingIcon && !isResizingIcon) {
-      setSelectedIconId(iconId);
-      setShowIconControls(true);
-    }
   };
 
   const handleIconSizeChange = (increase: boolean) => {
@@ -468,38 +389,34 @@ export function JournalPreview({
         {/* Render uploaded background image as a draggable element */}
         {isUploadedImage && backgroundImage && (
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="relative inline-block">
-              <img
-                ref={backgroundImageRef}
-                src={backgroundImage}
-                alt="Background"
-                className={`absolute max-w-[80%] max-h-[80%] ${isDraggingBgImage ? 'ring-2 ring-primary/50' : 'hover:ring-2 hover:ring-primary/30'} pointer-events-auto cursor-move transition-all`}
+            <img
+              ref={backgroundImageRef}
+              src={backgroundImage}
+              alt="Background"
+              className={`absolute max-w-[80%] max-h-[80%] ${isDraggingBgImage ? 'ring-2 ring-primary/50' : 'hover:ring-2 hover:ring-primary/30'} pointer-events-auto cursor-move transition-all`}
+              style={{
+                left: `${bgImagePosition.x}%`,
+                top: `${bgImagePosition.y}%`,
+                transform: 'translate(-50%, -50%)',
+                filter: getFilterStyle(),
+              }}
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={handleBgImageMouseDown}
+              draggable={false}
+            />
+            {isUploadedImage && !isDialog && (
+              <div 
+                className="absolute z-10 w-4 h-4 bg-white/30 hover:bg-white/60 rounded-full flex items-center justify-center cursor-pointer pointer-events-auto"
                 style={{
-                  left: `${bgImagePosition.x}%`,
-                  top: `${bgImagePosition.y}%`,
-                  transform: 'translate(-50%, -50%)',
-                  filter: getFilterStyle(),
+                  left: `${bgImagePosition.x - 20}%`,
+                  top: `${bgImagePosition.y - 20}%`,
                 }}
-                onClick={(e) => e.stopPropagation()}
-                onMouseDown={handleBgImageMouseDown}
-                draggable={false}
-              />
-              {isUploadedImage && !isDialog && (
-                <button
-                  className="absolute z-10 w-4 h-4 -mt-1 -ml-1 bg-white/50 hover:bg-white/80 rounded-full flex items-center justify-center cursor-pointer"
-                  style={{
-                    left: `${bgImagePosition.x}%`,
-                    top: `${bgImagePosition.y}%`,
-                    transform: 'translate(-100%, -100%)',
-                  }}
-                  onClick={handleRemoveBackgroundImage}
-                  title="Remove image"
-                  type="button"
-                >
-                  <X className="w-2 h-2 text-gray-800" />
-                </button>
-              )}
-            </div>
+                onClick={handleRemoveBackgroundImage}
+                title="Remove image"
+              >
+                <X className="w-2 h-2 text-gray-800" />
+              </div>
+            )}
           </div>
         )}
         
@@ -559,40 +476,26 @@ export function JournalPreview({
               />
             ))}
 
-            {/* Icons - now with dragging and resizing capabilities */}
             {icons.filter(icon => icon.position.x > -100 && icon.position.y > -100).map((icon) => (
-              <div
+              <img
                 key={icon.id}
-                className={`absolute cursor-move ${selectedIconId === icon.id ? 'z-20' : 'z-10'}`}
+                src={icon.url}
+                alt="Icon"
                 style={{
                   left: `${icon.position.x}%`,
                   top: `${icon.position.y}%`,
+                  width: `${icon.size || 48}px`,
+                  height: `${icon.size || 48}px`,
                   transform: 'translate(-50%, -50%)',
+                  position: 'absolute',
+                  color: icon.color,
                 }}
-              >
-                <img
-                  src={icon.url}
-                  alt="Icon"
-                  style={{
-                    width: `${icon.size || 48}px`,
-                    height: `${icon.size || 48}px`,
-                    color: icon.color,
-                  }}
-                  className={`transition-all hover:ring-2 hover:ring-primary
-                    ${selectedIconId === icon.id ? 'ring-2 ring-primary' : ''}
-                    ${isDraggingIcon && selectedIconId === icon.id ? 'opacity-80' : 'opacity-100'}
-                  `}
-                  onClick={() => handleIconClick(icon.id)}
-                  onMouseDown={(e) => handleIconMouseDown(e, icon.id)}
-                  draggable={false}
-                />
-                
-                {selectedIconId === icon.id && !isDialog && (
-                  <div className="absolute -bottom-2 -right-2 w-4 h-4 bg-primary rounded-full cursor-se-resize"
-                    onMouseDown={(e) => handleIconResizeStart(e, icon.id)}
-                  />
-                )}
-              </div>
+                className={`cursor-pointer transition-all hover:ring-2 hover:ring-primary
+                  ${selectedIconId === icon.id ? 'ring-2 ring-primary' : ''}
+                `}
+                onClick={() => handleIconClick(icon.id)}
+                draggable={false}
+              />
             ))}
             
             {selectedStickerId && showDeleteButton && !isDialog && (
@@ -609,7 +512,7 @@ export function JournalPreview({
             )}
             
             {selectedIconId && showIconControls && !isDialog && (
-              <div className="absolute z-30 right-4 bottom-4 flex gap-0">
+              <div className="absolute z-10 right-4 bottom-4 flex gap-0">
                 <Button
                   variant="outline"
                   size="sm"

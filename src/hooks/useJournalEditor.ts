@@ -70,7 +70,7 @@ export function useJournalEditor() {
   const handleIconAdd = (icon: Icon) => {
     try {
       addIcon(icon);
-      toast.success('Icon added! Drag it and resize using the handle.');
+      toast.success('Icon added! Drag it to position on your journal.');
     } catch (error) {
       console.error("Error adding icon:", error);
     }
