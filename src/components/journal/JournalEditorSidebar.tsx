@@ -149,7 +149,7 @@ export function JournalEditorSidebar({
           onValueChange={setActiveTab}
           className="h-full flex flex-col"
         >
-          <TabsList className="grid grid-cols-2 mb-4">
+          <TabsList className="grid grid-cols-2 mb-2">
             <TabsTrigger value="write">
               <Text className="h-4 w-4 mr-2" />
               Write
@@ -160,10 +160,10 @@ export function JournalEditorSidebar({
             </TabsTrigger>
           </TabsList>
 
-          <CardContent className="flex-grow overflow-auto pb-6">
+          <CardContent className="flex-grow overflow-auto py-0 px-4">
             <TabsContent
               value="write"
-              className="mt-0 h-full flex flex-col"
+              className="mt-0 h-full flex flex-col pt-2"
             >
               <div className="flex justify-between mb-3">
                 <DailyChallenge
@@ -241,7 +241,7 @@ export function JournalEditorSidebar({
               </div>
             </TabsContent>
 
-            <TabsContent value="style" className="mt-0 p-0">
+            <TabsContent value="style" className="m-0 p-0 pt-2">
               <JournalStylingControls
                 font={currentEntry.font}
                 fontSize={currentEntry.fontSize}
