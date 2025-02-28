@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { DrawingLayer } from './DrawingLayer';
@@ -291,15 +290,23 @@ export function JournalPreview({
   const isGradientBackground = backgroundImage && backgroundImage.includes('linear-gradient');
 
   // Helper function to get CSS filter based on filter name
-  const getCssFilter = (filterName: string) => {
-    switch (filterName) {
+  const getCssFilter = () => {
+    if (!filter || filter === 'none') return undefined;
+    
+    // If the filter is already a CSS filter string (contains parentheses), use it directly
+    if (filter.includes('(')) {
+      return filter;
+    }
+    
+    // Otherwise map the filter name to a CSS filter value
+    switch (filter) {
       case 'grayscale': return 'grayscale(1)';
       case 'sepia': return 'sepia(0.7)';
       case 'blur': return 'blur(2px)';
       case 'brightness': return 'brightness(1.3)';
       case 'contrast': return 'contrast(1.5)';
       case 'invert': return 'invert(0.8)';
-      default: return 'none';
+      default: return undefined;
     }
   };
 
@@ -310,11 +317,14 @@ export function JournalPreview({
   const getBackgroundStyle = () => {
     if (!backgroundImage) return {};
     
+    const filterValue = getCssFilter();
+    console.log("Applying filter:", filterValue);
+    
     if (isGradientBackground) {
       return {
         background: backgroundImage,
         opacity: 0.9,
-        filter: filter && filter !== 'none' ? getCssFilter(filter) : undefined,
+        filter: filterValue,
       };
     }
     
@@ -324,7 +334,7 @@ export function JournalPreview({
         backgroundColor: '#faf9f6', // Off-white background for patterns
         backgroundSize: 'auto',
         backgroundRepeat: 'repeat',
-        filter: filter && filter !== 'none' ? getCssFilter(filter) : undefined,
+        filter: filterValue,
       };
     }
     
@@ -334,7 +344,7 @@ export function JournalPreview({
       backgroundColor: backgroundImage.includes('placehold.co') ? backgroundImage.split('/')[3] : undefined,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
-      filter: filter && filter !== 'none' ? getCssFilter(filter) : undefined,
+      filter: filterValue,
     };
   };
 
@@ -377,6 +387,23 @@ export function JournalPreview({
             />
           )}
 
+          {/* Apply global filter to the entire journal page when no background image exists */}
+          {!backgroundImage && filter && filter !== 'none' && (
+            <div 
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                filter: getCssFilter(),
+                zIndex: 1,
+                pointerEvents: 'none'
+              }}
+              className="journal-page-filter"
+            />
+          )}
+
           <div className="relative h-full w-full z-10 journal-page" ref={previewRef}>
             {/* Control overlay buttons */}
             <div className="absolute top-4 right-4 z-50 flex gap-2">
@@ -403,6 +430,8 @@ export function JournalPreview({
                 left: `${textPosition.x}%`,
                 top: `${textPosition.y}%`,
                 transform: 'translate(-50%, -50%)',
+                // Apply filter to text if no background image
+                filter: !backgroundImage ? getCssFilter() : undefined
               }}
               onMouseDown={handleTextElementDrag}
               onClick={(e) => {
@@ -427,6 +456,9 @@ export function JournalPreview({
                 onMove={onStickerMove}
                 onResize={handleStickerResize}
                 containerRef={previewRef}
+                style={{ 
+                  filter: !backgroundImage ? getCssFilter() : undefined 
+                }}
               />
             ))}
 
@@ -440,6 +472,9 @@ export function JournalPreview({
                 onMove={onIconMove}
                 onUpdate={onIconUpdate}
                 containerRef={previewRef}
+                style={{ 
+                  filter: !backgroundImage ? getCssFilter() : undefined 
+                }}
               />
             ))}
           
@@ -467,6 +502,7 @@ export function JournalPreview({
                 width: '100%',
                 height: '100%',
                 objectFit: 'contain',
+                filter: !backgroundImage ? getCssFilter() : undefined
               }}
             />
           )}

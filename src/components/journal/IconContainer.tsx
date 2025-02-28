@@ -1,14 +1,15 @@
 
-import React, { useEffect, useRef } from 'react';
-import type { Icon } from '@/types/journal';
+import React, { useRef, useState } from 'react';
+import { Icon } from '@/types/journal';
 
 interface IconContainerProps {
   icon: Icon;
   selected: boolean;
   onSelect: (id: string) => void;
-  onMove: (id: string, position: { x: number; y: number }) => void;
+  onMove: (id: string, position: { x: number, y: number }) => void;
   onUpdate: (id: string, updates: Partial<Icon>) => void;
   containerRef: React.RefObject<HTMLDivElement>;
+  style?: React.CSSProperties;
 }
 
 export function IconContainer({
@@ -17,63 +18,52 @@ export function IconContainer({
   onSelect,
   onMove,
   onUpdate,
-  containerRef
+  containerRef,
+  style = {}
 }: IconContainerProps) {
+  const [isDragging, setIsDragging] = useState(false);
   const iconRef = useRef<HTMLDivElement>(null);
-
-  // Global keyboard event listener for delete key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (selected && (e.key === 'Delete' || e.key === 'Backspace')) {
-        console.log("Delete key pressed for icon:", icon.id);
-        onMove(icon.id, { x: -999, y: -999 });
-      }
-    };
-
-    // Only add the listener when this icon is selected
-    if (selected) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [selected, icon.id, onMove]);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
+  
+  const handleDragStart = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
-    
-    // Select this icon
+    setIsDragging(true);
     onSelect(icon.id);
     
-    if (!containerRef.current) return;
+    // Get container dimensions for percentage calculations
+    const container = containerRef.current;
+    if (!container) return;
+    const containerRect = container.getBoundingClientRect();
     
-    const containerRect = containerRef.current.getBoundingClientRect();
-    const iconRect = iconRef.current?.getBoundingClientRect();
+    // Initial mouse position
+    const startX = e.clientX;
+    const startY = e.clientY;
     
-    if (!iconRect) return;
-    
-    // Calculate the offset from the mouse position to the icon's top-left corner
-    const offsetX = e.clientX - iconRect.left;
-    const offsetY = e.clientY - iconRect.top;
+    // Initial icon position
+    const startPositionX = icon.position.x;
+    const startPositionY = icon.position.y;
     
     const handleMouseMove = (e: MouseEvent) => {
-      if (!containerRef.current) return;
+      if (!isDragging) return;
       
-      const containerRect = containerRef.current.getBoundingClientRect();
+      // Calculate the move delta in pixels
+      const deltaX = e.clientX - startX;
+      const deltaY = e.clientY - startY;
       
-      // Calculate the new position as a percentage of the container
-      const x = ((e.clientX - offsetX - containerRect.left + iconRect.width / 2) / containerRect.width) * 100;
-      const y = ((e.clientY - offsetY - containerRect.top + iconRect.height / 2) / containerRect.height) * 100;
+      // Convert to percentage of container
+      const deltaXPercent = (deltaX / containerRect.width) * 100;
+      const deltaYPercent = (deltaY / containerRect.height) * 100;
       
-      // Ensure position stays within bounds (0-100%)
-      const boundedX = Math.max(0, Math.min(100, x));
-      const boundedY = Math.max(0, Math.min(100, y));
+      // New position
+      const newX = startPositionX + deltaXPercent;
+      const newY = startPositionY + deltaYPercent;
       
-      onMove(icon.id, { x: boundedX, y: boundedY });
+      // Update icon position
+      onMove(icon.id, { x: newX, y: newY });
     };
     
     const handleMouseUp = () => {
+      setIsDragging(false);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
@@ -81,83 +71,61 @@ export function IconContainer({
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
   };
-
-  const getIconStyle = () => {
-    if (!icon.color || icon.color === '#000000') {
-      return {}; // Default styling for black
-    }
-
-    if (icon.style === 'outline') {
-      // For outlined icons, use a color filter
-      return {
-        filter: `invert(0.5) sepia(1) saturate(5) hue-rotate(${getHueRotation(icon.color)}deg)`,
-      };
-    } else {
-      // For filled icons
-      return {
-        filter: `invert(0.5) sepia(1) saturate(5) hue-rotate(${getHueRotation(icon.color)}deg)`,
-      };
-    }
-  };
-
-  // Helper function to get hue rotation value from a hex color
-  const getHueRotation = (hexColor: string) => {
-    // Convert hex to RGB
-    const r = parseInt(hexColor.slice(1, 3), 16) / 255;
-    const g = parseInt(hexColor.slice(3, 5), 16) / 255;
-    const b = parseInt(hexColor.slice(5, 7), 16) / 255;
-    
-    // Calculate hue
-    let max = Math.max(r, g, b);
-    let min = Math.min(r, g, b);
-    let h = 0;
-    
-    if (max === min) {
-      h = 0; // achromatic
-    } else {
-      let d = max - min;
-      switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
-      }
-      h *= 60;
-    }
-    
-    // Convert to CSS hue-rotate value (0-360 degrees)
-    return h;
-  };
-
+  
+  // Determine if the icon is an SVG from react-icons or a URL
+  const isUrlIcon = icon.url.startsWith('http');
+  const iconSize = icon.size || 48;
+  
   return (
     <div
       ref={iconRef}
-      className={`absolute cursor-move transition-all ${
-        selected ? 'border-2 border-primary z-50' : 'hover:border hover:border-primary/30 z-40'
-      }`}
+      className={`absolute cursor-move select-none touch-none ${selected ? 'z-30' : 'z-20'}`}
       style={{
         left: `${icon.position.x}%`,
         top: `${icon.position.y}%`,
         transform: 'translate(-50%, -50%)',
+        border: selected ? '2px dashed rgba(59, 130, 246, 0.7)' : 'none',
         borderRadius: '4px',
-        padding: '2px'
+        padding: selected ? '2px' : '0',
+        ...style
       }}
-      onMouseDown={handleMouseDown}
+      onMouseDown={handleDragStart}
       onClick={(e) => {
         e.stopPropagation();
         onSelect(icon.id);
       }}
-      tabIndex={0} // Make focusable for keyboard events
     >
-      <img
-        src={icon.url}
-        alt="Icon"
-        style={{
-          width: `${icon.size || 48}px`,
-          height: `${icon.size || 48}px`,
-          ...getIconStyle()
-        }}
-        draggable={false}
-      />
+      {isUrlIcon ? (
+        // URL-based icon
+        <img
+          src={icon.url}
+          alt="Icon"
+          className="block"
+          style={{
+            width: `${iconSize}px`,
+            height: `${iconSize}px`,
+            color: icon.color || 'currentColor',
+            filter: icon.style === 'outline' ? undefined : `drop-shadow(0 0 1px ${icon.color || '#000'})`,
+            pointerEvents: 'none'
+          }}
+          draggable={false}
+        />
+      ) : (
+        // SVG icon name (used as a placeholder for now)
+        <div
+          style={{
+            width: `${iconSize}px`,
+            height: `${iconSize}px`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: icon.color || 'currentColor',
+            pointerEvents: 'none'
+          }}
+        >
+          {icon.url}
+        </div>
+      )}
     </div>
   );
 }
