@@ -34,7 +34,6 @@ export function useJournalEditor() {
     saveEntry,
     loadChallenge,
     applyChallenge,
-    resetEntry,
   } = useJournalStore();
 
   const [showEmailDialog, setShowEmailDialog] = useState(false);
@@ -416,9 +415,40 @@ export function useJournalEditor() {
   };
 
   const handleResetToDefault = () => {
-    resetEntry();
+    // Reset properties to default values
+    setText('');
+    setFont('inter');
+    setFontSize('16px');
+    setFontWeight('normal');
+    setFontColor('#000000');
+    setGradient('linear-gradient(135deg, #f6d365 0%, #fda085 100%)');
+    setMood(undefined);
+    setIsPublic(false);
+    setTextStyle('normal');
+    setStickers([]);
+    setIcons([]);
+    setTextPosition({ x: 10, y: 10 });
+    setBackgroundImage('');
+    setDrawing('');
+    setFilter('none');
+    
     // Reset history
-    const defaultState = JSON.parse(JSON.stringify(currentEntry));
+    const defaultState = {
+      text: '',
+      font: 'inter',
+      fontSize: '16px',
+      fontWeight: 'normal',
+      fontColor: '#000000',
+      gradient: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)',
+      isPublic: false,
+      textStyle: 'normal',
+      stickers: [],
+      icons: [],
+      textPosition: { x: 10, y: 10 },
+      backgroundImage: undefined,
+      drawing: undefined,
+      filter: 'none'
+    };
     setHistory([defaultState]);
     setCurrentHistoryIndex(0);
     toast.success("Reset to default settings");
