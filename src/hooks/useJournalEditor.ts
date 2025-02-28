@@ -198,27 +198,27 @@ export function useJournalEditor() {
 
   // Handler for font size that adjusts icon size when needed
   const handleFontSizeChange = (size: string) => {
-    console.log("Font size change called with:", size, "selectedIconId:", selectedIconId);
-    
     if (selectedIconId) {
+      console.log("Setting size for icon:", selectedIconId, "to:", size);
       // Get the numeric value from the font size
       const sizeValue = parseInt(size);
       if (!isNaN(sizeValue)) {
         // Make icon size directly proportional to the font size
         const iconSize = sizeValue * 3; // Make icon 3x the font size
-        console.log(`Setting icon ${selectedIconId} size to:`, iconSize);
         
-        // Find the icon to make sure it exists
-        const selectedIcon = currentEntry.icons.find(icon => icon.id === selectedIconId);
-        if (selectedIcon) {
-          console.log("Found icon to resize:", selectedIcon);
-          updateIcon(selectedIconId, { size: iconSize });
-        } else {
-          console.error("Could not find icon with ID:", selectedIconId);
-        }
+        // Update the icon size
+        const updatedIcons = currentEntry.icons.map(icon => {
+          if (icon.id === selectedIconId) {
+            return { ...icon, size: iconSize };
+          }
+          return icon;
+        });
+        
+        // Apply the update directly instead of using updateIcon
+        setIcons(updatedIcons);
       }
     } else {
-      // If no icon is selected, set font size as usual
+      // Normal text size change
       setFontSize(size);
     }
   };
@@ -237,8 +237,15 @@ export function useJournalEditor() {
 
   const handleFontColorChange = (color: string) => {
     if (selectedIconId) {
-      // If an icon is selected, update its color
-      handleIconUpdate(selectedIconId, { color });
+      // If an icon is selected, update its color directly
+      const updatedIcons = currentEntry.icons.map(icon => {
+        if (icon.id === selectedIconId) {
+          return { ...icon, color };
+        }
+        return icon;
+      });
+      
+      setIcons(updatedIcons);
     } else {
       setFontColor(color);
     }

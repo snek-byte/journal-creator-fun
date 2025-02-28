@@ -82,40 +82,42 @@ export function JournalPreview({
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
-  const [showDeleteButton, setShowDeleteButton] = useState(false);
-  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
   const [bgImagePosition, setBgImagePosition] = useState({ x: 50, y: 50 });
   const [isDraggingBgImage, setIsDraggingBgImage] = useState(false);
   const [isUploadedImage, setIsUploadedImage] = useState(false);
+  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     setIsUploadedImage(!!backgroundImage && backgroundImage.startsWith('data:'));
   }, [backgroundImage]);
 
+  // Pass selected icon ID to parent
   useEffect(() => {
     onIconSelect(selectedIconId);
-    console.log("Icon selected:", selectedIconId);
   }, [selectedIconId, onIconSelect]);
 
-  // Add keyboard event listener for deletion of stickers
+  // Global keyboard handler for deleting selected stickers and icons
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (selectedStickerId && (e.key === 'Delete' || e.key === 'Backspace')) {
-        console.log("Deleting sticker via keyboard:", selectedStickerId);
-        onStickerMove(selectedStickerId, { x: -999, y: -999 });
-        setSelectedStickerId(null);
-        setShowDeleteButton(false);
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (selectedStickerId) {
+          console.log("Deleting sticker:", selectedStickerId);
+          onStickerMove(selectedStickerId, { x: -999, y: -999 });
+          setSelectedStickerId(null);
+        }
+        if (selectedIconId) {
+          console.log("Deleting icon:", selectedIconId);
+          onIconMove(selectedIconId, { x: -999, y: -999 });
+          setSelectedIconId(null);
+        }
       }
     };
 
-    if (selectedStickerId) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
-
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedStickerId, onStickerMove]);
+  }, [selectedStickerId, selectedIconId, onStickerMove, onIconMove]);
 
   const getBackground = () => {
     if (backgroundImage && backgroundImage.startsWith('data:')) {
@@ -207,9 +209,9 @@ export function JournalPreview({
     e.preventDefault();
     e.stopPropagation();
     
+    // Deselect any sticker or icon when interacting with text
     setSelectedIconId(null);
     setSelectedStickerId(null);
-    onIconSelect(null);
     
     const previewRect = previewRef.current.getBoundingClientRect();
     const textRect = textRef.current.getBoundingClientRect();
@@ -251,7 +253,6 @@ export function JournalPreview({
     
     setSelectedIconId(null);
     setSelectedStickerId(null);
-    onIconSelect(null);
     
     const touch = e.touches[0];
     const previewRect = previewRef.current.getBoundingClientRect();
@@ -305,10 +306,7 @@ export function JournalPreview({
     
     // Select this sticker and deselect any icon
     setSelectedIconId(null);
-    onIconSelect(null);
-    
     setSelectedStickerId(stickerId);
-    console.log("Sticker selected:", stickerId);
     
     const sticker = stickers.find(s => s.id === stickerId);
     if (!sticker || !previewRef.current) return;
@@ -338,20 +336,51 @@ export function JournalPreview({
     window.addEventListener('mouseup', handleMouseUp);
   };
 
-  const handleIconSelect = (iconId: string) => {
+  const handleIconSelect = (e: React.MouseEvent, iconId: string) => {
+    e.stopPropagation();
     setSelectedIconId(iconId);
     setSelectedStickerId(null);
     onIconSelect(iconId);
-    console.log("Icon selected in JournalPreview:", iconId);
   };
 
-  const handleRemoveSticker = () => {
-    if (!selectedStickerId) return;
+  const handleIconMouseDown = (e: React.MouseEvent, iconId: string) => {
+    e.stopPropagation();
     
-    onStickerMove(selectedStickerId, { x: -999, y: -999 });
-    
+    // Select this icon and deselect any sticker
+    setSelectedIconId(iconId);
     setSelectedStickerId(null);
-    setShowDeleteButton(false);
+    onIconSelect(iconId);
+    
+    const icon = icons.find(i => i.id === iconId);
+    if (!icon || !previewRef.current) return;
+    
+    const previewRect = previewRef.current.getBoundingClientRect();
+    const iconRect = e.currentTarget.getBoundingClientRect();
+    
+    const offsetX = e.clientX - iconRect.left;
+    const offsetY = e.clientY - iconRect.top;
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!previewRef.current) return;
+      
+      const previewRect = previewRef.current.getBoundingClientRect();
+      
+      const x = ((e.clientX - offsetX - previewRect.left + iconRect.width / 2) / previewRect.width) * 100;
+      const y = ((e.clientY - offsetY - previewRect.top + iconRect.height / 2) / previewRect.height) * 100;
+      
+      const boundedX = Math.max(0, Math.min(100, x));
+      const boundedY = Math.max(0, Math.min(100, y));
+      
+      onIconMove(iconId, { x: boundedX, y: boundedY });
+    };
+    
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   const handleRemoveBackgroundImage = () => {
@@ -361,7 +390,6 @@ export function JournalPreview({
   const handleBackgroundClick = () => {
     // Clicking background deselects everything
     setSelectedStickerId(null);
-    setShowDeleteButton(false);
     setSelectedIconId(null);
     onIconSelect(null);
   };
@@ -455,7 +483,7 @@ export function JournalPreview({
                 : (text || "Start writing your journal entry...")}
             </div>
             
-            {stickers.map((sticker) => (
+            {stickers.filter(sticker => sticker.position.x > -100 && sticker.position.y > -100).map((sticker) => (
               <img
                 key={sticker.id}
                 src={sticker.url}
@@ -466,24 +494,41 @@ export function JournalPreview({
                   transform: 'translate(-50%, -50%)',
                   position: 'absolute',
                 }}
-                className={`w-16 h-16 cursor-move transition-all hover:ring-2 hover:ring-primary
-                  ${selectedStickerId === sticker.id ? 'ring-2 ring-primary z-50' : 'z-40'}
+                className={`w-16 h-16 cursor-move transition-all 
+                  ${selectedStickerId === sticker.id ? 'ring-2 ring-primary z-50' : 'hover:ring-2 hover:ring-primary/30 z-40'}
                 `}
                 draggable={false}
                 onMouseDown={(e) => handleStickerMouseDown(e, sticker.id)}
-                tabIndex={0} // Make focusable for keyboard events
+                tabIndex={0}
               />
             ))}
 
             {icons.filter(icon => icon.position.x > -100 && icon.position.y > -100).map((icon) => (
-              <IconContainer
+              <div
                 key={icon.id}
-                icon={icon}
-                selected={selectedIconId === icon.id}
-                onSelect={handleIconSelect}
-                onMove={onIconMove}
-                containerRef={previewRef}
-              />
+                className={`absolute cursor-move transition-all ${
+                  selectedIconId === icon.id ? 'ring-2 ring-primary z-50' : 'hover:ring-1 hover:ring-primary/30 z-40'
+                }`}
+                style={{
+                  left: `${icon.position.x}%`,
+                  top: `${icon.position.y}%`,
+                  transform: 'translate(-50%, -50%)',
+                }}
+                onMouseDown={(e) => handleIconMouseDown(e, icon.id)}
+                onClick={(e) => handleIconSelect(e, icon.id)}
+                tabIndex={0}
+              >
+                <img
+                  src={icon.url}
+                  alt="Icon"
+                  style={{
+                    width: `${icon.size || 48}px`,
+                    height: `${icon.size || 48}px`,
+                    filter: icon.color ? `drop-shadow(0 0 0 ${icon.color})` : undefined,
+                  }}
+                  draggable={false}
+                />
+              </div>
             ))}
 
             {drawing && (
