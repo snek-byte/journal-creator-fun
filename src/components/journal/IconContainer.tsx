@@ -109,7 +109,6 @@ export function IconContainer({
     
     const handleMouseMove = (e: MouseEvent) => {
       e.preventDefault();
-      e.stopPropagation();
       
       // Calculate the move delta in pixels
       const deltaX = e.clientX - startX;
@@ -127,10 +126,7 @@ export function IconContainer({
       onMove(icon.id, { x: newX, y: newY });
     };
     
-    const handleMouseUp = (e: MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      
+    const handleMouseUp = () => {
       setIsDragging(false);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);

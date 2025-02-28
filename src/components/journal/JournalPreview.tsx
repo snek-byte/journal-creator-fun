@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { DrawingLayer } from './DrawingLayer';
@@ -141,6 +140,7 @@ export function JournalPreview({
   }, [isTextSelected]);
 
   const handleIconSelect = (id: string) => {
+    console.log("Icon selected:", id);
     setSelectedIconId(id);
     setSelectedStickerId(null);
     setIsTextSelected(false);
@@ -160,9 +160,9 @@ export function JournalPreview({
   // This stops the general page click from affecting text position
   const handlePageClick = (e: React.MouseEvent) => {
     // Only deselect items if clicking on the background, not on any specific element
+    const target = e.target as HTMLElement;
     if (e.target === e.currentTarget || 
-        ((e.target as HTMLElement).classList && 
-        (e.target as HTMLElement).classList.contains('journal-page'))) {
+        (target.classList && target.classList.contains('journal-page'))) {
       setSelectedStickerId(null);
       setSelectedIconId(null);
       setIsTextSelected(false);
@@ -368,16 +368,6 @@ export function JournalPreview({
     // Update the sticker
     onStickerAdd(updatedSticker);
   };
-
-  // Log background state for debugging
-  useEffect(() => {
-    console.log("JournalPreview: Background state - ", { 
-      backgroundImage, 
-      isGradientBackground, 
-      isPatternBackground,
-      filter 
-    });
-  }, [backgroundImage, filter]);
 
   return (
     <div className={cn("relative flex-1 overflow-hidden bg-gray-50", className)}>
