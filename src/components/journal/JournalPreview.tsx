@@ -86,6 +86,9 @@ export function JournalPreview({
   const [bgImagePosition, setBgImagePosition] = useState({ x: 50, y: 50 });
   const [isDraggingBgImage, setIsDraggingBgImage] = useState(false);
   const [isUploadedImage, setIsUploadedImage] = useState(false);
+  const [isResizingIcon, setIsResizingIcon] = useState(false);
+  const [resizeStartSize, setResizeStartSize] = useState(0);
+  const [resizeStartPos, setResizeStartPos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     // Detect if the current background image is an uploaded image (data URL)
@@ -322,6 +325,83 @@ export function JournalPreview({
     window.addEventListener('mouseup', handleMouseUp);
   };
 
+  const handleIconMouseDown = (e: React.MouseEvent, iconId: string) => {
+    e.stopPropagation();
+    
+    setSelectedIconId(iconId);
+    setShowIconControls(true);
+    
+    const icon = icons.find(i => i.id === iconId);
+    if (!icon || !previewRef.current) return;
+    
+    const previewRect = previewRef.current.getBoundingClientRect();
+    const startX = (icon.position.x / 100) * previewRect.width;
+    const startY = (icon.position.y / 100) * previewRect.height;
+    const offsetX = e.clientX - startX;
+    const offsetY = e.clientY - startY;
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!previewRef.current) return;
+      
+      const previewRect = previewRef.current.getBoundingClientRect();
+      const x = ((e.clientX - offsetX) / previewRect.width) * 100;
+      const y = ((e.clientY - offsetY) / previewRect.height) * 100;
+      
+      onIconMove(iconId, { x, y });
+    };
+    
+    const handleMouseUp = () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleIconResizeStart = (e: React.MouseEvent, iconId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const icon = icons.find(i => i.id === iconId);
+    if (!icon || !previewRef.current) return;
+    
+    setIsResizingIcon(true);
+    setSelectedIconId(iconId);
+    setShowIconControls(true);
+    
+    // Store the initial size and mouse position
+    setResizeStartSize(icon.size || 48);
+    setResizeStartPos({ x: e.clientX, y: e.clientY });
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      // Calculate the distance moved from the start
+      const distanceX = e.clientX - resizeStartPos.x;
+      const distanceY = e.clientY - resizeStartPos.y;
+      
+      // Use the maximum of horizontal or vertical movement
+      const distance = Math.max(Math.abs(distanceX), Math.abs(distanceY));
+      const direction = distanceX > 0 || distanceY > 0 ? 1 : -1;
+      
+      // Calculate new size with sensitivity adjustment
+      const sensitivity = 0.5; // Lower for more precise control
+      const newSize = Math.max(16, resizeStartSize + direction * distance * sensitivity);
+      
+      // Update the icon size
+      setIconSize(newSize);
+      onIconUpdate(iconId, { size: newSize });
+    };
+    
+    const handleMouseUp = () => {
+      setIsResizingIcon(false);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
   const handleIconClick = (iconId: string) => {
     setSelectedIconId(iconId);
     setShowIconControls(true);
@@ -505,25 +585,49 @@ export function JournalPreview({
             ))}
 
             {icons.filter(icon => icon.position.x > -100 && icon.position.y > -100).map((icon) => (
-              <img
+              <div
                 key={icon.id}
-                src={icon.url}
-                alt="Icon"
                 style={{
                   left: `${icon.position.x}%`,
                   top: `${icon.position.y}%`,
-                  width: `${icon.size || 48}px`,
-                  height: `${icon.size || 48}px`,
                   transform: 'translate(-50%, -50%)',
                   position: 'absolute',
-                  color: icon.color,
                 }}
-                className={`cursor-pointer transition-all hover:ring-2 hover:ring-primary
-                  ${selectedIconId === icon.id ? 'ring-2 ring-primary' : ''}
-                `}
-                onClick={() => handleIconClick(icon.id)}
-                draggable={false}
-              />
+                className={`group relative ${selectedIconId === icon.id ? 'z-20' : 'z-10'}`}
+              >
+                <img
+                  src={icon.url}
+                  alt="Icon"
+                  style={{
+                    width: `${icon.size || 48}px`,
+                    height: `${icon.size || 48}px`,
+                    color: icon.color,
+                  }}
+                  className={`transition-all ${
+                    selectedIconId === icon.id 
+                      ? 'ring-2 ring-primary' 
+                      : 'hover:ring-2 hover:ring-primary/50'
+                  } ${isResizingIcon && selectedIconId === icon.id ? 'cursor-nwse-resize' : 'cursor-move'}`}
+                  onClick={() => handleIconClick(icon.id)}
+                  onMouseDown={(e) => handleIconMouseDown(e, icon.id)}
+                  draggable={false}
+                />
+                
+                {/* Resize handle in bottom-right corner */}
+                {selectedIconId === icon.id && !isDialog && (
+                  <div 
+                    className="absolute bottom-0 right-0 w-4 h-4 bg-white/80 border border-gray-300 rounded-sm cursor-nwse-resize flex items-center justify-center"
+                    style={{ 
+                      transform: 'translate(30%, 30%)',
+                    }}
+                    onMouseDown={(e) => handleIconResizeStart(e, icon.id)}
+                  >
+                    <svg width="6" height="6" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1 6V5H6V6H1ZM3 4V3H6V4H3ZM5 2V1H6V2H5Z" fill="#666"/>
+                    </svg>
+                  </div>
+                )}
+              </div>
             ))}
             
             {selectedStickerId && showDeleteButton && !isDialog && (
