@@ -36,6 +36,7 @@ export function TextBoxComponent({
   const [size, setSize] = useState({ width, height });
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
   const [isPrinting, setIsPrinting] = useState(false);
+  const [localPosition, setLocalPosition] = useState(calculatePixelPosition());
   
   // Refs
   const boxRef = useRef<HTMLDivElement>(null);
@@ -61,10 +62,14 @@ export function TextBoxComponent({
     
     const updateDimensions = () => {
       if (containerRef.current) {
-        setContainerDimensions({
+        const newDimensions = {
           width: containerRef.current.offsetWidth,
           height: containerRef.current.offsetHeight
-        });
+        };
+        setContainerDimensions(newDimensions);
+        
+        // Update local position when container dimensions change
+        setLocalPosition(calculatePixelPosition(newDimensions));
       }
     };
     
@@ -89,6 +94,11 @@ export function TextBoxComponent({
     setSize({ width, height });
   }, [width, height]);
   
+  // Update local position when position prop changes
+  useEffect(() => {
+    setLocalPosition(calculatePixelPosition());
+  }, [position]);
+  
   // Activate edit mode when the component becomes selected
   useEffect(() => {
     if (selected && !isDrawingMode && !isPrinting) {
@@ -112,15 +122,15 @@ export function TextBoxComponent({
     }
   }, [isEditing]);
   
-  // Calculate position based on container dimensions
-  const calculatePosition = () => {
-    if (!containerDimensions.width || !containerDimensions.height) return { x: 0, y: 0 };
+  // Calculate position in pixels based on container dimensions and percentage position
+  function calculatePixelPosition(dimensions = containerDimensions) {
+    if (!dimensions.width || !dimensions.height) return { x: 0, y: 0 };
     
-    const x = Math.min(95, Math.max(5, position.x)) / 100 * containerDimensions.width;
-    const y = Math.min(95, Math.max(5, position.y)) / 100 * containerDimensions.height;
+    const x = Math.min(95, Math.max(5, position.x)) / 100 * dimensions.width;
+    const y = Math.min(95, Math.max(5, position.y)) / 100 * dimensions.height;
     
     return { x, y };
-  };
+  }
   
   // Text styling
   const getTextStyles = (): React.CSSProperties => {
@@ -232,6 +242,9 @@ export function TextBoxComponent({
   const handleDragStop = (e: any, d: any) => {
     if (isEditing) return;
     
+    // Update local position first
+    setLocalPosition({ x: d.x, y: d.y });
+    
     // Convert pixel position to percentage
     const containerWidth = containerDimensions.width || 1;
     const containerHeight = containerDimensions.height || 1;
@@ -240,6 +253,7 @@ export function TextBoxComponent({
     const xPercent = Math.min(95, Math.max(5, (d.x / containerWidth) * 100));
     const yPercent = Math.min(95, Math.max(5, (d.y / containerHeight) * 100));
     
+    // Update the text box position through parent component
     onUpdate(id, { position: { x: xPercent, y: yPercent } });
   };
   
@@ -277,7 +291,7 @@ export function TextBoxComponent({
           cursor: isEditing ? 'text' : 'pointer'
         }}
         size={{ width: size.width, height: size.height }}
-        position={calculatePosition()}
+        position={localPosition}
         onDragStart={handleSelect}
         onDragStop={handleDragStop}
         onResizeStop={handleStopResize}
