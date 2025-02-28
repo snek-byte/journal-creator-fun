@@ -82,56 +82,33 @@ export function IconContainer({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-  // Function to apply icon coloring
+  // Function to determine the appropriate styling for colored icons
   const getIconStyle = () => {
     if (!icon.color || icon.color === '#000000') {
       return {}; // Default styling
     }
 
     if (icon.style === 'outline') {
-      // For outline icons, we need to use a different approach to colorizing
+      // For outline icons, we apply the color as a stroke color
       return {
-        // Using filter to colorize SVG icons
-        filter: `brightness(0) saturate(100%) drop-shadow(0 0 0 ${icon.color})`,
+        filter: `invert(1) drop-shadow(0 0 0 ${icon.color})`
       };
     } else {
-      // For solid/filled icons
+      // For colored icons, we use a combination of filters to apply the color
       return {
-        // Using color filter with invert/sepia/saturate for better coloring
-        filter: `brightness(0) saturate(100%) invert(30%) sepia(80%) saturate(200%) hue-rotate(${getHueRotate(icon.color)}deg)`,
-        color: icon.color
+        filter: `brightness(0) saturate(100%) ${getColorFilter(icon.color)}`
       };
     }
   };
 
-  // Helper function to calculate hue rotation based on color
-  const getHueRotate = (hexColor: string) => {
+  // Convert hex color to filter
+  const getColorFilter = (hexColor: string) => {
     // Convert hex to RGB
-    const r = parseInt(hexColor.slice(1, 3), 16) / 255;
-    const g = parseInt(hexColor.slice(3, 5), 16) / 255;
-    const b = parseInt(hexColor.slice(5, 7), 16) / 255;
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
     
-    // Calculate hue (simplified)
-    let hue = 0;
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    
-    if (max === min) {
-      return 0; // Grayscale
-    }
-    
-    if (r === max) {
-      hue = (g - b) / (max - min);
-    } else if (g === max) {
-      hue = 2 + (b - r) / (max - min);
-    } else {
-      hue = 4 + (r - g) / (max - min);
-    }
-    
-    hue *= 60;
-    if (hue < 0) hue += 360;
-    
-    return hue;
+    return `invert(${r/255*100}%) sepia(${g/255*100}%) saturate(${b/255*100}%)`;
   };
 
   return (
@@ -154,7 +131,10 @@ export function IconContainer({
         style={{
           width: `${icon.size || 48}px`,
           height: `${icon.size || 48}px`,
-          ...getIconStyle()
+          ...(icon.color && icon.color !== '#000000' ? {
+            filter: `drop-shadow(0 0 0 ${icon.color})`,
+            WebkitFilter: `drop-shadow(0 0 0 ${icon.color})`,
+          } : {})
         }}
         draggable={false}
       />

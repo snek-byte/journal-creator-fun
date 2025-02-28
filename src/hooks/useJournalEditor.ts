@@ -103,19 +103,7 @@ export function useJournalEditor() {
   const handleStickerAdd = (sticker: Sticker) => {
     try {
       console.log("Adding sticker to journal:", sticker);
-      // First check if this sticker already exists (for updates)
-      const existingIndex = currentEntry.stickers.findIndex(s => s.id === sticker.id);
-      
-      if (existingIndex >= 0) {
-        // Update existing sticker
-        console.log("Updating existing sticker at index:", existingIndex);
-        const updatedStickers = [...currentEntry.stickers];
-        updatedStickers[existingIndex] = sticker;
-        setStickers(updatedStickers);
-      } else {
-        // Add new sticker
-        addSticker(sticker);
-      }
+      addSticker(sticker);
     } catch (error) {
       console.error("Error adding sticker:", error);
     }
@@ -123,19 +111,7 @@ export function useJournalEditor() {
 
   const handleIconAdd = (icon: Icon) => {
     try {
-      // Check if this icon already exists (for updates)
-      const existingIndex = currentEntry.icons.findIndex(i => i.id === icon.id);
-      
-      if (existingIndex >= 0) {
-        // Update existing icon
-        console.log("Updating existing icon");
-        const updatedIcons = [...currentEntry.icons];
-        updatedIcons[existingIndex] = icon;
-        setIcons(updatedIcons);
-      } else {
-        // Add new icon
-        addIcon(icon);
-      }
+      addIcon(icon);
     } catch (error) {
       console.error("Error adding icon:", error);
     }
@@ -213,7 +189,6 @@ export function useJournalEditor() {
 
   const handleBackgroundSelect = (imageUrl: string) => {
     try {
-      console.log("Setting background to:", imageUrl);
       setBackgroundImage(imageUrl);
     } catch (error) {
       console.error("Error selecting background:", error);
@@ -498,7 +473,5 @@ export function useJournalEditor() {
     // History status for UI
     canUndo: currentHistoryIndex > 0,
     canRedo: currentHistoryIndex < history.length - 1,
-    // Export setStickers for direct access
-    setStickers,
   };
 }

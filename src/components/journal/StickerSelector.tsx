@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Loader2, ArrowUpDown } from "lucide-react";
+import { Search, Loader2, ArrowUpDown } from "lucide-react"; // Fixed to ArrowUpDown (not ArrowsUpDown)
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 
