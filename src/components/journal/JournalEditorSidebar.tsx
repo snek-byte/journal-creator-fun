@@ -68,24 +68,21 @@ export function JournalEditorSidebar({
   applyChallenge,
 }: JournalEditorSidebarProps) {
   return (
-    <div className={`
-      h-full bg-white print:hidden overflow-y-auto
-      p-2 border-r shadow-sm
-      ${isDocked ? 'w-full' : 'w-64 shadow-lg'}
-      transition-all duration-300
-    `}>
+    <div className={`${isDocked ? 'w-full lg:w-1/4 2xl:w-1/5' : 'w-64'} p-2 border-r bg-white print:hidden overflow-y-auto h-full ${
+      !isDocked ? 'absolute left-0 top-0 z-10 shadow-lg transition-all duration-300 transform' : ''
+    }`}>
       <div className="flex justify-end mb-0.5">
         <Button
           onClick={toggleDocked}
           variant="ghost"
           size="sm"
           className="h-5 w-5 p-0"
-          title={isDocked ? "Undock sidebar" : "Dock sidebar"}
+          title={isDocked ? "Undock panel" : "Dock panel"}
         >
           {isDocked ? (
-            <Undo className="h-2.5 w-2.5" /> 
-          ) : (
             <AreaChart className="h-2.5 w-2.5" />
+          ) : (
+            <Undo className="h-2.5 w-2.5" />
           )}
         </Button>
       </div>
