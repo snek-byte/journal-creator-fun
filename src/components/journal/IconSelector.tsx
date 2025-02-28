@@ -27,7 +27,17 @@ const iconOptions = [
 export function IconSelector({ onIconSelect }: IconSelectorProps) {
   // Convert a lucide icon to a data URL for storage
   const iconToUrl = (IconComponent: React.ElementType, color = 'currentColor'): string => {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IconComponent({}).props.children}</svg>`;
+    // Create a temporary React element with the icon component
+    const element = React.createElement(IconComponent);
+    
+    // Extract the SVG content from the component's props
+    // Lucide icons have their SVG paths in the children prop
+    const svgContent = element.props?.children || '';
+    
+    // Create the full SVG
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${svgContent}</svg>`;
+    
+    // Convert to data URL
     return `data:image/svg+xml;base64,${btoa(svg)}`;
   };
 
