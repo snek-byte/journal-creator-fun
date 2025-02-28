@@ -1,38 +1,48 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Settings,
+  Text,
+  Smile,
+  Send,
+  Sparkles,
+  Printer,
+  Eye,
+  EyeOff,
+  Save,
+  FileCheck,
+  Undo,
+  Redo,
+  RotateCcw,
+} from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { JournalStylingControls } from './JournalStylingControls';
-import { MoodSelector } from './MoodSelector';
-import { DailyChallenge } from './DailyChallenge';
-import { Save, Printer, Mail } from 'lucide-react';
-import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
-import type { Mood } from '@/types/journal';
-import { PopoverTrigger, Popover, PopoverContent } from '@/components/ui/popover';
-import { gradients } from './config/editorConfig';
+import { Label } from "@/components/ui/label";
+import { JournalStylingControls } from "./JournalStylingControls";
+import { MoodSelector } from "./MoodSelector";
+import { DailyChallenge } from "./DailyChallenge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import dynamic from "next/dynamic";
+import { Separator } from "../ui/separator";
+
+const EmojiPicker = dynamic(
+  () => import("emoji-picker-react").then((mod) => mod.default),
+  { ssr: false }
+);
 
 interface JournalEditorSidebarProps {
   textareaRef: React.RefObject<HTMLTextAreaElement>;
-  currentEntry: {
-    text: string;
-    font: string;
-    fontSize: string;
-    fontWeight: string;
-    fontColor: string;
-    gradient: string;
-    mood?: Mood;
-    isPublic: boolean;
-  };
+  currentEntry: any;
   dailyChallenge: any;
   selectedIconId: string | null;
   handlePrint: () => void;
-  handleEmojiSelect: (emojiData: EmojiClickData) => void;
+  handleEmojiSelect: (emojiData: any) => void;
   setShowEmailDialog: (show: boolean) => void;
   setText: (text: string) => void;
-  setMood: (mood: Mood) => void;
+  setMood: (mood: any) => void;
   setIsPublic: (isPublic: boolean) => void;
   setFont: (font: string) => void;
   setFontSize: (size: string) => void;
@@ -40,9 +50,14 @@ interface JournalEditorSidebarProps {
   setFontColor: (color: string) => void;
   setGradient: (gradient: string) => void;
   setTextStyle: (style: string) => void;
-  saveEntry: () => void;
+  saveEntry: () => Promise<void>;
   loadChallenge: () => void;
   applyChallenge: () => void;
+  handleUndo?: () => void;
+  handleRedo?: () => void;
+  handleResetToDefault?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
 }
 
 export function JournalEditorSidebar({
@@ -65,149 +80,194 @@ export function JournalEditorSidebar({
   saveEntry,
   loadChallenge,
   applyChallenge,
+  handleUndo,
+  handleRedo,
+  handleResetToDefault,
+  canUndo = false,
+  canRedo = false,
 }: JournalEditorSidebarProps) {
-  const [activeTab, setActiveTab] = useState('write');
-  const [charCount, setCharCount] = useState(0);
-  const [wordCount, setWordCount] = useState(0);
-
-  // Recalculate word and character counts when text changes
-  useEffect(() => {
-    const text = currentEntry.text;
-    setCharCount(text.length);
-    setWordCount(text.trim() === '' ? 0 : text.trim().split(/\s+/).length);
-  }, [currentEntry.text]);
-
-  // Switch to style tab when an icon is selected
-  useEffect(() => {
-    if (selectedIconId) {
-      setActiveTab('style');
-    }
-  }, [selectedIconId]);
+  const [activeTab, setActiveTab] = useState("write");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
   };
 
-  return (
-    <aside className="w-full lg:w-1/4 border-r p-4 flex flex-col h-auto lg:h-screen min-h-[400px] bg-background">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
-        <TabsList className="w-full mb-4">
-          <TabsTrigger value="write" className="flex-1">Write</TabsTrigger>
-          <TabsTrigger value="style" className="flex-1">Style</TabsTrigger>
-          <TabsTrigger value="publish" className="flex-1">Publish</TabsTrigger>
-        </TabsList>
+  const handleSave = async () => {
+    await saveEntry();
+  };
 
-        <ScrollArea className="flex-1 w-full">
-          <TabsContent value="write" className="mt-0 h-full flex flex-col gap-4">
-            <div className="space-y-4">
-              <MoodSelector 
-                mood={currentEntry.mood} 
-                isPublic={currentEntry.isPublic}
-                onMoodChange={setMood}
-                onIsPublicChange={setIsPublic}
-              />
-              
-              <Textarea
-                ref={textareaRef}
-                placeholder="What's on your mind today?"
-                value={currentEntry.text}
-                onChange={handleTextChange}
-                className="min-h-[200px] resize-none font-normal text-base"
-              />
-              
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{charCount} characters</span>
-                <span>{wordCount} words</span>
-              </div>
-              
-              <div>
-                <Popover>
+  return (
+    <div className="w-full lg:w-1/4 p-6 flex flex-col max-h-screen overflow-hidden">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Journal</h1>
+        <div className="flex gap-2">
+          {handleUndo && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleUndo}
+              disabled={!canUndo}
+              title="Undo"
+            >
+              <Undo className="h-4 w-4" />
+            </Button>
+          )}
+          
+          {handleRedo && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleRedo}
+              disabled={!canRedo}
+              title="Redo"
+            >
+              <Redo className="h-4 w-4" />
+            </Button>
+          )}
+          
+          {handleResetToDefault && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleResetToDefault}
+              title="Reset to Default"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <Card className="flex-grow overflow-hidden">
+        <Tabs
+          defaultValue="write"
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="h-full flex flex-col"
+        >
+          <TabsList className="grid grid-cols-3 mb-4">
+            <TabsTrigger value="write">
+              <Text className="h-4 w-4 mr-2" />
+              Write
+            </TabsTrigger>
+            <TabsTrigger value="style">
+              <Settings className="h-4 w-4 mr-2" />
+              Style
+            </TabsTrigger>
+            <TabsTrigger value="mood">
+              <Smile className="h-4 w-4 mr-2" />
+              Mood
+            </TabsTrigger>
+          </TabsList>
+
+          <CardContent className="flex-grow overflow-auto pb-6">
+            <TabsContent
+              value="write"
+              className="mt-0 h-full flex flex-col"
+            >
+              <div className="flex justify-between mb-3">
+                <DailyChallenge
+                  challenge={dailyChallenge}
+                  onApply={applyChallenge}
+                  onRefresh={loadChallenge}
+                />
+
+                <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm" className="w-full">
-                      Add Emoji
+                    <Button variant="outline" size="sm">
+                      😊
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-full p-0" align="start">
-                    <EmojiPicker 
-                      onEmojiClick={handleEmojiSelect}
-                      width={300}
-                      height={320}
+                  <PopoverContent side="bottom" className="w-full p-0">
+                    <EmojiPicker
+                      onEmojiClick={(emojiData) => {
+                        handleEmojiSelect(emojiData);
+                        setShowEmojiPicker(false);
+                      }}
+                      width="100%"
+                      height={350}
                     />
                   </PopoverContent>
                 </Popover>
               </div>
-              
-              <DailyChallenge
-                dailyChallenge={dailyChallenge}
-                onRefresh={loadChallenge}
-                onApply={applyChallenge}
+
+              <Textarea
+                ref={textareaRef}
+                value={currentEntry.text}
+                onChange={handleTextChange}
+                placeholder="Start writing your journal entry..."
+                className="min-h-[300px] flex-grow mb-3 resize-none"
               />
-            </div>
-          </TabsContent>
 
-          <TabsContent value="style" className="mt-0 space-y-4">
-            <JournalStylingControls
-              font={currentEntry.font}
-              fontSize={currentEntry.fontSize}
-              fontWeight={currentEntry.fontWeight}
-              fontColor={currentEntry.fontColor}
-              gradient={currentEntry.gradient}
-              onFontChange={setFont}
-              onFontSizeChange={setFontSize}
-              onFontWeightChange={setFontWeight}
-              onFontColorChange={setFontColor}
-              onGradientChange={setGradient}
-              onTextStyleChange={setTextStyle}
-              selectedIconId={selectedIconId}
-            />
-          </TabsContent>
+              <div className="grid grid-cols-2 gap-3 mt-auto">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="public"
+                    checked={currentEntry.isPublic}
+                    onCheckedChange={setIsPublic}
+                  />
+                  <Label htmlFor="public">Make Public</Label>
+                </div>
 
-          <TabsContent value="publish" className="mt-0 space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-medium">Public Entry</label>
-                <Switch 
-                  checked={currentEntry.isPublic}
-                  onCheckedChange={setIsPublic}
-                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => setShowEmailDialog(true)}
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  Email
+                </Button>
               </div>
-              <p className="text-[10px] text-muted-foreground">
-                Make your entry visible to other users
-              </p>
-            </div>
-          </TabsContent>
-        </ScrollArea>
+            </TabsContent>
 
-        <div className="h-[1px] w-full bg-border my-4"></div>
-        
-        <div className="flex gap-2 justify-between">
-          <Button 
-            onClick={saveEntry} 
-            className="flex-1"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            Save
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={handlePrint}
-            title="Print"
-          >
-            <Printer className="w-4 h-4" />
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={() => setShowEmailDialog(true)}
-            title="Email Entry"
-          >
-            <Mail className="w-4 h-4" />
-          </Button>
-        </div>
-      </Tabs>
-    </aside>
+            <TabsContent value="style" className="mt-0 h-full">
+              <JournalStylingControls
+                font={currentEntry.font}
+                fontSize={currentEntry.fontSize}
+                fontWeight={currentEntry.fontWeight}
+                fontColor={currentEntry.fontColor}
+                gradient={currentEntry.gradient}
+                onFontChange={setFont}
+                onFontSizeChange={setFontSize}
+                onFontWeightChange={setFontWeight}
+                onFontColorChange={setFontColor}
+                onGradientChange={setGradient}
+                onTextStyleChange={setTextStyle}
+                selectedIconId={selectedIconId}
+              />
+            </TabsContent>
+
+            <TabsContent value="mood" className="mt-0 h-full">
+              <MoodSelector
+                selectedMood={currentEntry.mood}
+                onMoodSelect={setMood}
+              />
+            </TabsContent>
+          </CardContent>
+        </Tabs>
+      </Card>
+
+      <div className="flex gap-2 mt-4">
+        <Button
+          variant="outline"
+          className="flex-1"
+          onClick={handlePrint}
+        >
+          <Printer className="h-4 w-4 mr-2" />
+          Print
+        </Button>
+
+        <Button
+          variant="default"
+          className="flex-1"
+          onClick={handleSave}
+        >
+          <Save className="h-4 w-4 mr-2" />
+          Save
+        </Button>
+      </div>
+    </div>
   );
 }
