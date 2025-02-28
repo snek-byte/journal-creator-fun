@@ -32,6 +32,8 @@ interface JournalEditorSidebarProps {
     textStyle?: string;
     backgroundImage?: string;
     filter?: string;
+    stickers?: Sticker[];
+    icons?: Icon[];
   };
   dailyChallenge: any;
   selectedIconId: string | null;
@@ -55,7 +57,6 @@ interface JournalEditorSidebarProps {
   handleResetToDefault?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
-  // New props for tool functions
   handleStickerAdd?: (sticker: Sticker) => void;
   handleIconAdd?: (icon: Icon) => void;
   handleIconUpdate?: (iconId: string, updates: Partial<Icon>) => void;
@@ -121,6 +122,7 @@ export function JournalEditorSidebar({
     setText(e.target.value);
   };
 
+  // Simple toggle function with no drawing-specific logic
   const handleToolClick = (tool: string) => {
     setToolsTab(toolsTab === tool ? null : tool);
   };

@@ -334,7 +334,7 @@ export function JournalPreview({
         >
         </div>
 
-        {/* Removed the automatic mood indicator display */}
+        {/* No mood indicator here anymore */}
       </div>
 
       {/* Toggle preview button */}
