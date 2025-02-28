@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -377,172 +376,152 @@ export function IconSelector({
       <div className="flex flex-col gap-2">
         <h3 className="text-xs font-semibold tracking-tight">Icons & Flags</h3>
         
-        <Tabs defaultValue="browse" className="w-full">
-          <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="browse" className="text-[10px]">Browse Icons</TabsTrigger>
-            <TabsTrigger value="style" className="text-[10px]">Icon Style</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="browse" className="space-y-4">
-            {/* Icon style selection */}
-            <div className="flex justify-center space-x-2">
-              <Button
-                size="sm"
-                variant={iconStyle === 'outline' ? "default" : "outline"}
-                onClick={() => setIconStyle('outline')}
-                className="text-xs px-2 py-1"
+        {/* Icon style selection */}
+        <div className="flex justify-center space-x-2 mb-2">
+          <Button
+            size="sm"
+            variant={iconStyle === 'outline' ? "default" : "outline"}
+            onClick={() => setIconStyle('outline')}
+            className="text-xs px-2 py-1 flex-1"
+            type="button"
+          >
+            Outline Icons
+          </Button>
+          <Button
+            size="sm"
+            variant={iconStyle === 'color' ? "default" : "outline"}
+            onClick={() => setIconStyle('color')}
+            className="text-xs px-2 py-1 flex-1"
+            type="button"
+          >
+            Color Icons
+          </Button>
+        </div>
+        
+        {/* Search input with Show All toggle */}
+        <div className="space-y-2">
+          <div className="relative">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search icons (e.g., flower, heart, dog)..."
+              className="pl-8 pr-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <button 
+                className="absolute right-2 top-2.5 text-muted-foreground hover:text-foreground"
+                onClick={() => setSearchTerm('')}
                 type="button"
               >
-                Outline
-              </Button>
-              <Button
-                size="sm"
-                variant={iconStyle === 'color' ? "default" : "outline"}
-                onClick={() => setIconStyle('color')}
-                className="text-xs px-2 py-1"
-                type="button"
-              >
-                Color
-              </Button>
-            </div>
-            
-            {/* Search input with Show All toggle */}
-            <div className="space-y-2">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search icons (e.g., flower, heart, dog)..."
-                  className="pl-8 pr-10"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                {searchTerm && (
-                  <button 
-                    className="absolute right-2 top-2.5 text-muted-foreground hover:text-foreground"
-                    onClick={() => setSearchTerm('')}
-                    type="button"
-                  >
-                    <CircleX className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-              
-              <Button
-                size="sm"
-                variant={showAllIcons ? "default" : "outline"}
-                onClick={() => setShowAllIcons(!showAllIcons)}
-                className="text-xs w-full"
-                type="button"
-              >
-                {showAllIcons ? "Hide All Icons" : "Show All Icons"}
-              </Button>
-            </div>
-            
-            {/* Icon grid */}
-            <ScrollArea className="h-[300px] pr-2">
-              {isLoading ? (
-                <div className="flex justify-center items-center h-24">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              ) : filteredCategories.length > 0 ? (
-                <div className="space-y-4">
-                  {filteredCategories.map((category, index) => (
-                    category.icons.length > 0 && (
-                      <div key={index} className="space-y-2">
-                        <h4 className="text-xs font-medium text-muted-foreground">
-                          {category.name}
-                        </h4>
-                        <div className="grid grid-cols-4 gap-2">
-                          {category.icons.map((icon, iconIndex) => (
-                            <button
-                              key={iconIndex}
-                              className="p-1 bg-white rounded border border-gray-200 hover:border-primary/50 h-12"
-                              onClick={() => onIconSelect({ 
-                                url: icon.url, 
-                                style: iconStyle 
-                              })}
-                              type="button"
-                            >
-                              <img 
-                                src={icon.url} 
-                                alt={icon.name} 
-                                className="w-full h-full object-contain" 
-                                loading="lazy"
-                                onError={(e) => {
-                                  console.error(`Failed to load icon: ${icon.url}`);
-                                  e.currentTarget.src = 'https://placehold.co/100x100/png?text=Icon+Error';
-                                }}
-                              />
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  ))}
-                </div>
-              ) : (
-                <div className="flex justify-center items-center h-24 text-muted-foreground">
-                  {searchTerm ? "No icons found - try a different search term" : "Search for icons or use 'Show All Icons'"}
-                </div>
-              )}
-            </ScrollArea>
-          </TabsContent>
-          
-          <TabsContent value="style" className="space-y-4">
-            {selectedIconId ? (
-              <>
-                <div className="space-y-3">
-                  <h4 className="text-xs font-medium">Icon Color</h4>
-                  <HexColorPicker 
-                    color={currentIconColor} 
-                    onChange={handleColorChange} 
-                    className="w-full" 
-                  />
-                  <div className="flex gap-2 items-center">
-                    <span className="text-xs">Hex:</span>
-                    <HexColorInput 
-                      color={currentIconColor} 
-                      onChange={handleColorChange} 
-                      className="flex-1 px-2 py-1 text-xs border rounded"
-                      prefixed 
-                    />
-                    <div 
-                      className="w-8 h-6 rounded border"
-                      style={{ backgroundColor: currentIconColor }}
-                    ></div>
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <h4 className="text-xs font-medium">Icon Size</h4>
-                  <Slider
-                    value={[currentIconSize]}
-                    min={16}
-                    max={96}
-                    step={4}
-                    onValueChange={handleSizeChange}
-                  />
-                  <div className="flex justify-between">
-                    <span className="text-xs text-muted-foreground">Small</span>
-                    <span className="text-xs">{currentIconSize}px</span>
-                    <span className="text-xs text-muted-foreground">Large</span>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="flex items-center justify-center h-48 text-center">
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">
-                    No icon selected
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Select an icon from the Browse tab first
-                  </p>
-                </div>
-              </div>
+                <CircleX className="h-4 w-4" />
+              </button>
             )}
-          </TabsContent>
-        </Tabs>
+          </div>
+          
+          <Button
+            size="sm"
+            variant={showAllIcons ? "default" : "outline"}
+            onClick={() => setShowAllIcons(!showAllIcons)}
+            className="text-xs w-full"
+            type="button"
+          >
+            {showAllIcons ? "Hide All Icons" : "Show All Icons"}
+          </Button>
+        </div>
+        
+        {/* Icon grid */}
+        <ScrollArea className="h-[300px] pr-2">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-24">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : filteredCategories.length > 0 ? (
+            <div className="space-y-4">
+              {filteredCategories.map((category, index) => (
+                category.icons.length > 0 && (
+                  <div key={index} className="space-y-2">
+                    <h4 className="text-xs font-medium text-muted-foreground">
+                      {category.name}
+                    </h4>
+                    <div className="grid grid-cols-4 gap-2">
+                      {category.icons.map((icon, iconIndex) => (
+                        <button
+                          key={iconIndex}
+                          className="p-1 bg-white rounded border border-gray-200 hover:border-primary/50 h-12"
+                          onClick={() => onIconSelect({ 
+                            url: icon.url, 
+                            style: iconStyle 
+                          })}
+                          type="button"
+                        >
+                          <img 
+                            src={icon.url} 
+                            alt={icon.name} 
+                            className="w-full h-full object-contain" 
+                            loading="lazy"
+                            onError={(e) => {
+                              console.error(`Failed to load icon: ${icon.url}`);
+                              e.currentTarget.src = 'https://placehold.co/100x100/png?text=Icon+Error';
+                            }}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )
+              ))}
+            </div>
+          ) : (
+            <div className="flex justify-center items-center h-24 text-muted-foreground">
+              {searchTerm ? "No icons found - try a different search term" : "Search for icons or use 'Show All Icons'"}
+            </div>
+          )}
+        </ScrollArea>
+
+        {/* Icon styling controls for selected icons */}
+        {selectedIconId && (
+          <div className="space-y-4 pt-4 border-t border-border mt-4">
+            <h4 className="text-xs font-medium">Icon Settings</h4>
+            
+            {/* Color picker for the selected icon */}
+            <div className="space-y-2">
+              <span className="text-xs">Color</span>
+              <div className="flex gap-2 items-center mb-2">
+                <div 
+                  className="w-6 h-6 rounded-full border border-gray-200" 
+                  style={{ backgroundColor: currentIconColor }}
+                />
+                <HexColorInput 
+                  color={currentIconColor} 
+                  onChange={handleColorChange} 
+                  className="flex-1 text-xs p-1 border rounded"
+                  prefixed 
+                />
+              </div>
+              <HexColorPicker 
+                color={currentIconColor} 
+                onChange={handleColorChange}
+                className="w-full"
+              />
+            </div>
+            
+            {/* Size slider for the selected icon */}
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-xs">Size</span>
+                <span className="text-xs">{currentIconSize}px</span>
+              </div>
+              <Slider
+                value={[currentIconSize]}
+                min={16}
+                max={96}
+                step={4}
+                onValueChange={handleSizeChange}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

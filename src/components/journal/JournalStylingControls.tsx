@@ -78,19 +78,6 @@ export function JournalStylingControls({
     { name: 'Times New Roman', value: 'times-new-roman' },
   ];
   
-  // Font sizes - Added larger sizes
-  const fontSizes = [
-    { name: 'Small', value: '14px' },
-    { name: 'Medium', value: '16px' },
-    { name: 'Large', value: '18px' },
-    { name: 'X-Large', value: '24px' },
-    { name: 'XX-Large', value: '32px' },
-    { name: 'Huge', value: '48px' },
-    { name: 'Giant', value: '64px' },
-    { name: 'Massive', value: '86px' },
-    { name: 'Enormous', value: '120px' },
-  ];
-  
   // Font weights
   const fontWeights = [
     { name: 'Light', value: '300' },
@@ -145,10 +132,6 @@ export function JournalStylingControls({
   
   const handleFontChange = (newFont: string) => {
     onFontChange(newFont);
-  };
-
-  const handleFontSizeChange = (newSize: string) => {
-    onFontSizeChange(newSize);
   };
 
   // Custom font size slider handler
@@ -213,37 +196,10 @@ export function JournalStylingControls({
               </DropdownMenu>
             </div>
             
-            {/* Dropdown for preset font sizes */}
-            <div className="flex justify-between items-center">
-              <span className="text-xs">Font Size</span>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="px-2 h-8 text-xs justify-between w-32"
-                  >
-                    {fontSize}
-                    <ChevronDown className="h-3 w-3 ml-1" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-32" align="end">
-                  {fontSizes.map(s => (
-                    <DropdownMenuItem 
-                      key={s.value}
-                      onClick={() => handleFontSizeChange(s.value)}
-                    >
-                      {s.name} ({s.value})
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            
-            {/* Custom font size slider */}
+            {/* Font size slider */}
             <div className="space-y-2 pt-2">
               <div className="flex justify-between items-center">
-                <Label htmlFor="font-size-slider" className="text-xs">Custom Size</Label>
+                <Label htmlFor="font-size-slider" className="text-xs">Font Size</Label>
                 <span className="text-xs font-medium">{currentFontSize}px</span>
               </div>
               <Slider 
