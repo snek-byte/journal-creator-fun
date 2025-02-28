@@ -62,6 +62,8 @@ interface JournalEditorSidebarProps {
   handleResetToDefault: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  isDrawingMode: boolean;
+  onDrawingModeToggle: (enabled: boolean) => void;
 }
 
 export function JournalEditorSidebar({
@@ -102,7 +104,9 @@ export function JournalEditorSidebar({
   handleRedo,
   handleResetToDefault,
   canUndo,
-  canRedo
+  canRedo,
+  isDrawingMode,
+  onDrawingModeToggle
 }: JournalEditorSidebarProps) {
   const [selectedTab, setSelectedTab] = useState('write');
   
@@ -304,6 +308,8 @@ export function JournalEditorSidebar({
             onClear={onClearDrawing}
             onBrushSizeChange={onBrushSizeChange}
             currentBrushSize={currentBrushSize}
+            isDrawingMode={isDrawingMode}
+            onDrawingModeToggle={onDrawingModeToggle}
           />
           
           <Separator className="my-4" />

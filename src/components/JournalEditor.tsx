@@ -6,6 +6,7 @@ import { EmailDialog } from './journal/EmailDialog';
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Sticker, Icon } from '@/types/journal';
+import { toast } from 'sonner';
 
 export function JournalEditor() {
   const {
@@ -59,6 +60,7 @@ export function JournalEditor() {
   const [currentDrawingTool, setCurrentDrawingTool] = useState('pen');
   const [currentDrawingColor, setCurrentDrawingColor] = useState('#000000');
   const [currentBrushSize, setCurrentBrushSize] = useState(3);
+  const [isDrawingMode, setIsDrawingMode] = useState(false);
   
   // Sticker resize state - default to 100px
   const [stickerSize, setStickerSize] = useState(100);
@@ -74,6 +76,16 @@ export function JournalEditor() {
       }
     }
   }, [selectedStickerId, currentEntry.stickers]);
+
+  const handleDrawingModeToggle = (enabled: boolean) => {
+    setIsDrawingMode(enabled);
+    
+    if (enabled) {
+      toast.info("Drawing mode enabled. Other interactions are disabled while drawing.");
+    } else {
+      toast.info("Drawing mode disabled. You can now interact with text and stickers.");
+    }
+  };
 
   const handleClearDrawing = () => {
     handleDrawingChange('');
@@ -197,6 +209,8 @@ export function JournalEditor() {
         handleResetToDefault={handleResetToDefault}
         canUndo={canUndo}
         canRedo={canRedo}
+        isDrawingMode={isDrawingMode}
+        onDrawingModeToggle={handleDrawingModeToggle}
       />
 
       <EmailDialog
@@ -241,6 +255,7 @@ export function JournalEditor() {
         drawingTool={currentDrawingTool}
         drawingColor={currentDrawingColor}
         brushSize={currentBrushSize}
+        isDrawingMode={isDrawingMode}
       />
     </div>
   );

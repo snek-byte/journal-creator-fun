@@ -8,13 +8,15 @@ import {
   Paintbrush, 
   Droplets,
   Trash2,
-  PaintBucket
+  PaintBucket,
+  X
 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
 
 interface DrawingToolsProps {
   onToolSelect: (tool: string) => void;
@@ -24,6 +26,8 @@ interface DrawingToolsProps {
   onClear: () => void;
   onBrushSizeChange: (size: number) => void;
   currentBrushSize: number;
+  isDrawingMode: boolean;
+  onDrawingModeToggle: (enabled: boolean) => void;
 }
 
 export function DrawingTools({
@@ -33,7 +37,9 @@ export function DrawingTools({
   currentColor,
   onClear,
   onBrushSizeChange,
-  currentBrushSize
+  currentBrushSize,
+  isDrawingMode,
+  onDrawingModeToggle
 }: DrawingToolsProps) {
   const [selectedType, setSelectedType] = useState<'brush' | 'fill'>('brush');
   
@@ -50,11 +56,38 @@ export function DrawingTools({
     console.log("Tool selected:", toolId);
     onToolSelect(toolId);
     toast.info(`${toolId.charAt(0).toUpperCase() + toolId.slice(1)} tool selected`);
+    
+    // If a tool is selected but drawing mode is not enabled, enable it
+    if (!isDrawingMode) {
+      onDrawingModeToggle(true);
+      toast.info("Drawing mode enabled");
+    }
+  };
+  
+  const handleDrawingModeToggle = (checked: boolean) => {
+    onDrawingModeToggle(checked);
+    if (checked) {
+      toast.info("Drawing mode enabled. Other interactions are disabled while drawing.");
+    } else {
+      toast.info("Drawing mode disabled. You can now interact with text and stickers.");
+    }
   };
   
   return (
     <div className="space-y-4">
-      <h3 className="text-xs font-semibold tracking-tight">Drawing Tools</h3>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-xs font-semibold tracking-tight">Drawing Tools</h3>
+        <div className="flex items-center space-x-2">
+          <Label htmlFor="drawing-mode" className="text-xs">
+            {isDrawingMode ? "Drawing Mode On" : "Drawing Mode Off"}
+          </Label>
+          <Switch 
+            id="drawing-mode" 
+            checked={isDrawingMode} 
+            onCheckedChange={handleDrawingModeToggle}
+          />
+        </div>
+      </div>
       
       <Tabs value={selectedType} onValueChange={(v) => setSelectedType(v as 'brush' | 'fill')}>
         <TabsList className="grid grid-cols-2 h-8">

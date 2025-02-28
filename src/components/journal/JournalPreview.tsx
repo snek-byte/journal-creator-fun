@@ -7,7 +7,6 @@ import { StickerContainer } from './StickerContainer';
 import { useScreenshot } from 'use-react-screenshot';
 import type { Icon } from '@/types/journal';
 import { applyTextStyle, TextStyle } from '@/utils/unicodeTextStyles';
-import { Pencil, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface JournalPreviewProps {
@@ -44,6 +43,7 @@ interface JournalPreviewProps {
   drawingTool?: string;
   drawingColor?: string;
   brushSize?: number;
+  isDrawingMode: boolean;
 }
 
 export function JournalPreview({
@@ -79,9 +79,9 @@ export function JournalPreview({
   onTogglePreview,
   drawingTool = 'pen',
   drawingColor = '#000000',
-  brushSize = 3
+  brushSize = 3,
+  isDrawingMode = false
 }: JournalPreviewProps) {
-  const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
   const [isTextSelected, setIsTextSelected] = useState(false);
@@ -165,18 +165,6 @@ export function JournalPreview({
       setIsTextSelected(false);
       onIconSelect('');
       onStickerSelect(null);
-    }
-  };
-
-  const toggleDrawingMode = () => {
-    const newMode = !isDrawingMode;
-    console.log("JournalPreview: Toggling drawing mode from", isDrawingMode, "to", newMode);
-    setIsDrawingMode(newMode);
-    
-    if (newMode) {
-      toast.info("Drawing mode enabled. Other interactions are disabled while drawing.");
-    } else {
-      toast.info("Drawing mode disabled. You can now interact with text and stickers.");
     }
   };
 
@@ -416,22 +404,7 @@ export function JournalPreview({
           )}
 
           <div className="relative h-full w-full" ref={previewRef}>
-            {/* Control overlay buttons - Drawing Mode Toggle */}
-            <div className="absolute top-4 right-4 z-50 flex gap-2">
-              <button
-                onClick={toggleDrawingMode}
-                className={`p-2 rounded-full ${isDrawingMode ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
-                title={isDrawingMode ? "Exit Drawing Mode" : "Enter Drawing Mode"}
-              >
-                {isDrawingMode ? (
-                  <X className="w-5 h-5" />
-                ) : (
-                  <Pencil className="w-5 h-5" />
-                )}
-              </button>
-            </div>
-
-            {/* Drawing Canvas (always present but only visible and interactive when in drawing mode) */}
+            {/* Drawing Canvas (when in drawing mode) */}
             {isDrawingMode && (
               <div className="absolute inset-0 z-40">
                 <DrawingLayer
