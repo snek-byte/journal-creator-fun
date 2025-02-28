@@ -5,7 +5,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Label } from '@/components/ui/label';
 
 interface StickerSelectorProps {
   onStickerSelect: (stickerUrl: string) => void;
@@ -25,186 +24,268 @@ export function StickerSelector({ onStickerSelect }: StickerSelectorProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [stickers, setStickers] = useState<Sticker[]>([]);
   
-  // Initialize sticker library
+  // Initialize sticker library with actual stickers (SVGs with transparency)
   useEffect(() => {
+    // These are SVG stickers with transparency - actual stickers, not background images
     const stickerLibrary: Sticker[] = [
-      // Nature category
+      // Basic stickers from public
       {
-        url: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?auto=format&fit=crop&w=150&h=150",
-        keywords: ["flower", "orange", "nature", "blossom", "plant", "garden"],
+        url: "/stickers/star.svg",
+        keywords: ["star", "sparkle", "favorite", "gold", "yellow", "rating", "sky"],
+        category: "basic",
+        name: "Gold Star"
+      },
+      {
+        url: "/stickers/heart.svg",
+        keywords: ["heart", "love", "romance", "valentine", "emotion", "like", "red"],
+        category: "basic",
+        name: "Red Heart"
+      },
+      {
+        url: "/stickers/happy.svg",
+        keywords: ["smile", "happy", "face", "emoji", "grin", "joy", "yellow"],
+        category: "basic",
+        name: "Happy Face"
+      },
+      {
+        url: "/stickers/sad.svg",
+        keywords: ["sad", "unhappy", "face", "emoji", "frown", "tear", "blue"],
+        category: "basic",
+        name: "Sad Face"
+      },
+      {
+        url: "/stickers/thumbsup.svg",
+        keywords: ["thumbs up", "like", "approve", "positive", "good", "hand", "blue"],
+        category: "basic",
+        name: "Thumbs Up"
+      },
+      {
+        url: "/stickers/gift.svg",
+        keywords: ["gift", "present", "birthday", "box", "celebration", "surprise", "wrapped"],
+        category: "basic",
+        name: "Gift Box"
+      },
+      {
+        url: "/stickers/cake.svg",
+        keywords: ["cake", "birthday", "celebration", "dessert", "party", "sweet", "candle"],
+        category: "basic",
+        name: "Birthday Cake"
+      },
+      {
+        url: "/stickers/camera.svg",
+        keywords: ["camera", "photo", "picture", "photography", "image", "memory", "capture"],
+        category: "basic",
+        name: "Camera"
+      },
+      // Emoji SVGs (transparent background stickers)
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f600.svg",
+        keywords: ["smile", "happy", "grin", "face", "emoji", "joy"],
+        category: "emoji",
+        name: "Grinning Face"
+      },
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f49a.svg",
+        keywords: ["heart", "green", "love", "like"],
+        category: "emoji",
+        name: "Green Heart"
+      },
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f499.svg",
+        keywords: ["heart", "blue", "love", "like"],
+        category: "emoji",
+        name: "Blue Heart"
+      },
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f49c.svg",
+        keywords: ["heart", "purple", "love", "like"],
+        category: "emoji",
+        name: "Purple Heart"
+      },
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f90d.svg",
+        keywords: ["heart", "white", "love", "like"],
+        category: "emoji",
+        name: "White Heart"
+      },
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f525.svg",
+        keywords: ["fire", "flame", "hot", "burn", "lit"],
+        category: "emoji",
+        name: "Fire"
+      },
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f389.svg",
+        keywords: ["party", "celebrate", "celebration", "confetti", "popper"],
+        category: "emoji",
+        name: "Party Popper"
+      },
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f381.svg",
+        keywords: ["gift", "present", "birthday", "box", "wrapped"],
+        category: "emoji",
+        name: "Gift"
+      },
+      // Flower stickers
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f33a.svg",
+        keywords: ["rose", "flower", "hibiscus", "plant", "red", "garden"],
         category: "nature",
-        name: "Orange Flower"
+        name: "Hibiscus"
       },
       {
-        url: "https://images.unsplash.com/photo-1582562124811-c09040d0a901?auto=format&fit=crop&w=150&h=150",
-        keywords: ["cat", "pet", "animal", "orange", "tabby", "kitten"],
-        category: "animals",
-        name: "Orange Cat"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1485833077593-4278bba3f11f?auto=format&fit=crop&w=150&h=150",
-        keywords: ["deer", "animal", "forest", "wildlife", "brown", "mammal"],
-        category: "animals",
-        name: "Brown Deer"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1438565434616-3ef039228b15?auto=format&fit=crop&w=150&h=150",
-        keywords: ["goat", "animal", "mountain", "wildlife", "horns", "mammal"],
-        category: "animals",
-        name: "Mountain Goat"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1501286353178-1ec871814328?auto=format&fit=crop&w=150&h=150",
-        keywords: ["monkey", "animal", "banana", "wildlife", "primate", "mammal"],
-        category: "animals",
-        name: "Monkey with Banana"
-      },
-      // Food category
-      {
-        url: "https://images.unsplash.com/photo-1553909489-cd47e0907980?auto=format&fit=crop&w=150&h=150",
-        keywords: ["coffee", "drink", "food", "cafe", "cup", "breakfast"],
-        category: "food",
-        name: "Coffee Cup"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=150&h=150",
-        keywords: ["strawberry", "food", "fruit", "dessert", "sweet", "berry", "red"],
-        category: "food",
-        name: "Strawberry"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1563289412-8a7161e7bd4c?auto=format&fit=crop&w=150&h=150",
-        keywords: ["pizza", "food", "italian", "dinner", "lunch", "cheese"],
-        category: "food",
-        name: "Pizza Slice"
-      },
-      // Plants category
-      {
-        url: "https://images.unsplash.com/photo-1580136579312-94651dfd596d?auto=format&fit=crop&w=150&h=150",
-        keywords: ["cactus", "plant", "succulent", "nature", "green", "desert"],
-        category: "nature",
-        name: "Cactus Plant"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1567748157439-651aca2ff064?auto=format&fit=crop&w=150&h=150",
-        keywords: ["rose", "flower", "red", "love", "romantic", "plant", "garden"],
-        category: "nature",
-        name: "Red Rose"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=150&h=150",
-        keywords: ["sunflower", "flower", "yellow", "nature", "summer", "plant", "garden"],
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f33b.svg",
+        keywords: ["sunflower", "flower", "plant", "yellow", "garden", "sun"],
         category: "nature",
         name: "Sunflower"
       },
       {
-        url: "https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=150&h=150",
-        keywords: ["rose", "flower", "pink", "bouquet", "romantic", "plant", "garden"],
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f337.svg",
+        keywords: ["tulip", "flower", "plant", "pink", "spring", "garden"],
         category: "nature",
-        name: "Pink Rose"
-      },
-      // Beach and travel 
-      {
-        url: "https://images.unsplash.com/photo-1520699413807-5e25c58e5663?auto=format&fit=crop&w=150&h=150",
-        keywords: ["beach", "ocean", "sea", "travel", "vacation", "summer", "sand"],
-        category: "travel",
-        name: "Beach View"
+        name: "Tulip"
       },
       {
-        url: "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?auto=format&fit=crop&w=150&h=150",
-        keywords: ["palm tree", "beach", "tropical", "vacation", "summer", "travel"],
-        category: "travel",
-        name: "Palm Trees"
-      },
-      // Decorative
-      {
-        url: "https://images.unsplash.com/photo-1545558014-8692077e9b5c?auto=format&fit=crop&w=150&h=150",
-        keywords: ["balloon", "celebration", "party", "birthday", "decoration", "colorful"],
-        category: "decorative",
-        name: "Colorful Balloons"
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f339.svg",
+        keywords: ["rose", "flower", "plant", "red", "love", "romance", "garden"],
+        category: "nature",
+        name: "Rose"
       },
       {
-        url: "https://images.unsplash.com/photo-1577083553630-839d8d6262dc?auto=format&fit=crop&w=150&h=150",
-        keywords: ["gift", "present", "box", "birthday", "celebration", "surprise"],
-        category: "decorative",
-        name: "Gift Box"
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f940.svg",
+        keywords: ["flower", "wilted", "dead", "plant", "dried"],
+        category: "nature",
+        name: "Wilted Flower"
       },
       {
-        url: "https://images.unsplash.com/photo-1547043688-32b236694495?auto=format&fit=crop&w=150&h=150",
-        keywords: ["tape", "washi", "craft", "stationery", "decoration", "colorful"],
-        category: "decorative",
-        name: "Washi Tape"
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f338.svg",
+        keywords: ["flower", "cherry", "blossom", "pink", "sakura", "spring", "garden"],
+        category: "nature",
+        name: "Cherry Blossom"
       },
-      // More nature items
       {
-        url: "https://images.unsplash.com/photo-1552649166-9c3524d4793c?auto=format&fit=crop&w=150&h=150",
-        keywords: ["butterfly", "insect", "nature", "colorful", "animal", "garden", "spring"],
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f33c.svg",
+        keywords: ["flower", "blossom", "white", "daisy", "garden"],
+        category: "nature",
+        name: "Blossom"
+      },
+      // Animals
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f431.svg",
+        keywords: ["cat", "kitten", "pet", "feline", "animal"],
+        category: "animals",
+        name: "Cat"
+      },
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f436.svg",
+        keywords: ["dog", "puppy", "pet", "canine", "animal"],
+        category: "animals",
+        name: "Dog"
+      },
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f430.svg",
+        keywords: ["rabbit", "bunny", "pet", "animal", "easter"],
+        category: "animals",
+        name: "Rabbit"
+      },
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f98b.svg",
+        keywords: ["butterfly", "insect", "bug", "animal", "fly", "colorful"],
         category: "animals",
         name: "Butterfly"
       },
       {
-        url: "https://images.unsplash.com/photo-1424889152669-ebf06b2cadf5?auto=format&fit=crop&w=150&h=150",
-        keywords: ["rainbow", "sky", "nature", "colorful", "weather", "rain"],
-        category: "nature",
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f41d.svg",
+        keywords: ["bee", "honeybee", "insect", "bug", "honey", "pollination"],
+        category: "animals",
+        name: "Honeybee"
+      },
+      // Food
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f355.svg",
+        keywords: ["pizza", "food", "slice", "italian", "cheese"],
+        category: "food",
+        name: "Pizza"
+      },
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f36a.svg",
+        keywords: ["cookie", "food", "sweet", "dessert", "snack", "chocolate"],
+        category: "food",
+        name: "Cookie"
+      },
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f370.svg",
+        keywords: ["cake", "food", "sweet", "dessert", "birthday", "celebration"],
+        category: "food",
+        name: "Cake"
+      },
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f369.svg",
+        keywords: ["donut", "doughnut", "food", "sweet", "dessert", "breakfast"],
+        category: "food",
+        name: "Donut"
+      },
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f366.svg",
+        keywords: ["ice cream", "food", "sweet", "dessert", "cold", "summer"],
+        category: "food",
+        name: "Ice Cream"
+      },
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/2615.svg",
+        keywords: ["coffee", "drink", "hot", "caffeine", "cup", "mug", "morning"],
+        category: "food",
+        name: "Coffee"
+      },
+      // Miscellaneous
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f4d6.svg",
+        keywords: ["book", "reading", "open", "literature", "study", "education"],
+        category: "misc",
+        name: "Open Book"
+      },
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f3b5.svg",
+        keywords: ["music", "note", "song", "melody", "sound"],
+        category: "misc",
+        name: "Musical Note"
+      },
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f48e.svg",
+        keywords: ["gem", "diamond", "jewel", "crystal", "precious", "sparkle"],
+        category: "misc",
+        name: "Gem Stone"
+      },
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f381.svg",
+        keywords: ["gift", "present", "package", "birthday", "celebration", "wrapped"],
+        category: "misc",
+        name: "Wrapped Gift"
+      },
+      {
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f308.svg",
+        keywords: ["rainbow", "weather", "color", "sky", "pride", "arc"],
+        category: "misc",
         name: "Rainbow"
       },
-      // More food items
       {
-        url: "https://images.unsplash.com/photo-1512793558523-ff302092634b?auto=format&fit=crop&w=150&h=150",
-        keywords: ["ice cream", "dessert", "sweet", "food", "cold", "treat"],
-        category: "food",
-        name: "Ice Cream Cone"
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f31f.svg",
+        keywords: ["star", "sparkle", "glow", "shining", "glitter"],
+        category: "misc",
+        name: "Glowing Star"
       },
       {
-        url: "https://images.unsplash.com/photo-1563897539633-7d4814680f1a?auto=format&fit=crop&w=150&h=150",
-        keywords: ["cake", "birthday", "celebration", "dessert", "sweet", "food"],
-        category: "food",
-        name: "Birthday Cake"
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f4a3.svg",
+        keywords: ["bomb", "explosion", "boom", "dynamite"],
+        category: "misc",
+        name: "Bomb"
       },
-      // Hobbies
+      // More roses for search
       {
-        url: "https://images.unsplash.com/photo-1544981037-84fe64950e06?auto=format&fit=crop&w=150&h=150",
-        keywords: ["books", "reading", "study", "education", "library", "hobby"],
-        category: "hobbies",
-        name: "Stack of Books"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1489702932289-406b7782113c?auto=format&fit=crop&w=150&h=150",
-        keywords: ["music", "guitar", "instrument", "hobby", "entertainment", "sound"],
-        category: "hobbies",
-        name: "Guitar"
-      },
-      // Weather
-      {
-        url: "https://images.unsplash.com/photo-1561485132-59468cd0b553?auto=format&fit=crop&w=150&h=150",
-        keywords: ["snow", "winter", "cold", "weather", "snowflake", "frost"],
-        category: "weather",
-        name: "Snowflake"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1563148117-11e743207d15?auto=format&fit=crop&w=150&h=150",
-        keywords: ["sun", "sunny", "weather", "hot", "summer", "sky"],
-        category: "weather",
-        name: "Sun"
-      },
-      // More roses for demonstrating search variety
-      {
-        url: "https://images.unsplash.com/photo-1496062031456-07b8f162a322?auto=format&fit=crop&w=150&h=150",
-        keywords: ["rose", "flower", "white", "wedding", "pure", "plant", "garden"],
+        url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f490.svg",
+        keywords: ["rose", "flower", "bouquet", "plant", "romance", "wedding", "valentine"],
         category: "nature",
-        name: "White Rose"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1563241527-3004b7be0ffd?auto=format&fit=crop&w=150&h=150",
-        keywords: ["rose", "flower", "yellow", "bright", "cheerful", "plant", "garden"],
-        category: "nature",
-        name: "Yellow Rose"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1519378045141-f0ea6914bb5c?auto=format&fit=crop&w=150&h=150",
-        keywords: ["rose", "flower", "purple", "lavender", "unique", "plant", "garden"],
-        category: "nature",
-        name: "Purple Rose"
+        name: "Rose Bouquet"
       }
     ];
     
@@ -286,10 +367,10 @@ export function StickerSelector({ onStickerSelect }: StickerSelectorProps) {
       <Tabs defaultValue="all" value={selectedCategory} onValueChange={setSelectedCategory}>
         <TabsList className="w-full grid grid-cols-5">
           <TabsTrigger value="all" className="text-[10px]">All</TabsTrigger>
+          <TabsTrigger value="basic" className="text-[10px]">Basic</TabsTrigger>
           <TabsTrigger value="nature" className="text-[10px]">Nature</TabsTrigger>
           <TabsTrigger value="animals" className="text-[10px]">Animals</TabsTrigger>
           <TabsTrigger value="food" className="text-[10px]">Food</TabsTrigger>
-          <TabsTrigger value="decorative" className="text-[10px]">Decor</TabsTrigger>
         </TabsList>
         
         <div className="mt-2">
@@ -307,7 +388,7 @@ export function StickerSelector({ onStickerSelect }: StickerSelectorProps) {
                     onClick={() => handleStickerSelect(sticker.url)}
                     title={sticker.name}
                   >
-                    <div className="w-full aspect-square flex items-center justify-center p-1">
+                    <div className="w-full aspect-square flex items-center justify-center p-1 bg-gray-50">
                       <img 
                         src={sticker.url} 
                         alt={sticker.name}
