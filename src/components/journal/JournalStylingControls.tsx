@@ -34,14 +34,7 @@ export function JournalStylingControls({
 }: JournalStylingControlsProps) {
   return (
     <div className="space-y-2">
-      {selectedIconId && (
-        <div className="p-2 mb-2 bg-yellow-50 border border-yellow-200 rounded-md">
-          <p className="text-[10px] font-medium text-amber-700">
-            Icon selected: Use font size to resize or press Delete key to remove
-          </p>
-        </div>
-      )}
-      
+      {/* Text Styling Controls */}
       <div className="space-y-0.5">
         <label className="text-[10px] font-medium">Text Style</label>
         <Select 
@@ -82,44 +75,42 @@ export function JournalStylingControls({
         </Select>
       </div>
 
-      <div className="grid grid-cols-2 gap-1.5">
-        <div className="space-y-0.5">
-          <label className="text-[10px] font-medium">
-            {selectedIconId ? "Icon Size" : "Font Size"}
-          </label>
-          <Select value={fontSize} onValueChange={onFontSizeChange}>
-            <SelectTrigger className="h-7 text-[10px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {fontSizes.map((option) => (
-                <SelectItem key={option.value} value={option.value} className="text-[10px]">
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="space-y-0.5">
+        <label className="text-[10px] font-medium">
+          {selectedIconId ? "Icon Size" : "Font Size"}
+        </label>
+        <Select value={fontSize} onValueChange={onFontSizeChange}>
+          <SelectTrigger className="h-7 text-[10px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {fontSizes.map((option) => (
+              <SelectItem key={option.value} value={option.value} className="text-[10px]">
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-        <div className="space-y-0.5">
-          <label className="text-[10px] font-medium">Font Weight</label>
-          <Select 
-            value={fontWeight} 
-            onValueChange={onFontWeightChange}
-            disabled={!!selectedIconId}
-          >
-            <SelectTrigger className="h-7 text-[10px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {fontWeights.map((option) => (
-                <SelectItem key={option.value} value={option.value} className="text-[10px]">
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="space-y-0.5">
+        <label className="text-[10px] font-medium">Font Weight</label>
+        <Select 
+          value={fontWeight} 
+          onValueChange={onFontWeightChange}
+          disabled={!!selectedIconId}
+        >
+          <SelectTrigger className="h-7 text-[10px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {fontWeights.map((option) => (
+              <SelectItem key={option.value} value={option.value} className="text-[10px]">
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-0.5">
