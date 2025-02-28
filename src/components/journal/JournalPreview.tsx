@@ -381,7 +381,7 @@ export function JournalPreview({
       
       // Use the maximum of horizontal or vertical movement
       const distance = Math.max(Math.abs(distanceX), Math.abs(distanceY));
-      const direction = distanceX > 0 || distanceY > 0 ? 1 : -1;
+      const direction = (distanceX + distanceY > 0) ? 1 : -1;
       
       // Calculate new size with sensitivity adjustment
       const sensitivity = 0.5; // Lower for more precise control
@@ -613,17 +613,17 @@ export function JournalPreview({
                   draggable={false}
                 />
                 
-                {/* Resize handle in bottom-right corner */}
+                {/* Resize handle in bottom-right corner - improved with better size and visibility */}
                 {selectedIconId === icon.id && !isDialog && (
                   <div 
-                    className="absolute bottom-0 right-0 w-4 h-4 bg-white/80 border border-gray-300 rounded-sm cursor-nwse-resize flex items-center justify-center"
+                    className="absolute bottom-0 right-0 w-8 h-8 bg-white/60 hover:bg-white/80 border border-gray-300 rounded-sm cursor-nwse-resize flex items-center justify-center z-30"
                     style={{ 
-                      transform: 'translate(30%, 30%)',
+                      transform: 'translate(25%, 25%)',
                     }}
                     onMouseDown={(e) => handleIconResizeStart(e, icon.id)}
                   >
-                    <svg width="6" height="6" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1 6V5H6V6H1ZM3 4V3H6V4H3ZM5 2V1H6V2H5Z" fill="#666"/>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1 12V10H12V12H1ZM5 8V6H12V8H5ZM9 4V2H12V4H9Z" fill="#333"/>
                     </svg>
                   </div>
                 )}
