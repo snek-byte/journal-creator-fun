@@ -1,7 +1,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Pencil, ImagePlus, Palette, FileImage } from 'lucide-react';
+import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Pencil, ImagePlus, Filter, FileImage } from 'lucide-react';
 import { moodOptions } from './config/editorConfig';
 import type { Mood, Sticker as StickerType, Icon } from '@/types/journal';
 import { applyTextStyle } from '@/utils/unicodeTextStyles';
@@ -285,6 +285,146 @@ export function JournalPreview({
     onDrawingChange(dataUrl);
   };
 
+  // Function to render the journal content (text, stickers, icons, etc.)
+  const renderJournalContent = () => {
+    return (
+      <>
+        {mood && (
+          <div className="absolute top-4 left-4 text-lg">
+            Mood: {moodOptions.find(m => m.value === mood)?.icon}
+          </div>
+        )}
+        
+        {isDrawingMode && (
+          <DrawingLayer
+            width={previewRef.current?.clientWidth || 800}
+            height={previewRef.current?.clientHeight || 600}
+            className="absolute inset-0 z-50"
+            onDrawingChange={handleDrawingChange}
+          />
+        )}
+        
+        {!isDrawingMode && (
+          <>
+            <div
+              ref={textRef}
+              style={{
+                fontFamily: font,
+                fontSize,
+                fontWeight,
+                color: fontColor,
+                left: `${textPosition.x}%`,
+                top: `${textPosition.y}%`,
+                maxWidth: '80%',
+                transform: 'translate(0, 0)',
+                transformOrigin: 'top left',
+              }}
+              className={`absolute whitespace-pre-wrap p-6 cursor-move select-none transition-colors rounded-lg
+                ${isTextDragging ? 'bg-black/5 ring-2 ring-primary/30' : 'hover:bg-black/5'}
+              `}
+              onMouseDown={handleTextMouseDown}
+              onTouchStart={handleTextTouchStart}
+            >
+              {textStyle && textStyle !== 'normal' 
+                ? applyTextStyle(text || "Start writing your journal entry...", textStyle as any) 
+                : (text || "Start writing your journal entry...")}
+            </div>
+            
+            {stickers.map((sticker) => (
+              <img
+                key={sticker.id}
+                src={sticker.url}
+                alt={sticker.id}
+                style={{
+                  left: `${sticker.position.x}%`,
+                  top: `${sticker.position.y}%`,
+                  transform: 'translate(-50%, -50%)',
+                }}
+                className={`absolute w-16 h-16 cursor-move transition-all hover:ring-2 hover:ring-primary
+                  ${selectedStickerId === sticker.id ? 'ring-2 ring-primary' : ''}
+                `}
+                draggable={false}
+                onMouseDown={(e) => handleStickerMouseDown(e, sticker.id)}
+              />
+            ))}
+
+            {icons.filter(icon => icon.position.x > -100 && icon.position.y > -100).map((icon) => (
+              <img
+                key={icon.id}
+                src={icon.url}
+                alt="Icon"
+                style={{
+                  left: `${icon.position.x}%`,
+                  top: `${icon.position.y}%`,
+                  width: `${icon.size || 48}px`,
+                  height: `${icon.size || 48}px`,
+                  transform: 'translate(-50%, -50%)',
+                  color: icon.color,
+                }}
+                className={`absolute cursor-pointer transition-all hover:ring-2 hover:ring-primary
+                  ${selectedIconId === icon.id ? 'ring-2 ring-primary' : ''}
+                `}
+                onClick={() => handleIconClick(icon.id)}
+                draggable={false}
+              />
+            ))}
+            
+            {selectedStickerId && showDeleteButton && (
+              <Button
+                variant="destructive"
+                size="sm"
+                className="absolute z-10 right-4 bottom-4"
+                onClick={handleRemoveSticker}
+                type="button"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Remove Sticker
+              </Button>
+            )}
+            
+            {selectedIconId && showIconControls && (
+              <div className="absolute z-10 right-4 bottom-4 flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleIconSizeChange(false)}
+                  type="button"
+                >
+                  <MinusSquare className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleIconSizeChange(true)}
+                  type="button"
+                >
+                  <PlusSquare className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleRemoveIcon}
+                  type="button"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+
+            {drawing && (
+              <img
+                src={drawing}
+                alt="Journal drawing"
+                className="absolute inset-0 w-full h-full pointer-events-none"
+                style={{ mixBlendMode: 'multiply' }}
+              />
+            )}
+          </>
+        )}
+      </>
+    );
+  };
+
   return (
     <div className="w-full lg:w-3/4 p-6 relative print:w-full print:p-0 min-h-[800px]">
       <div className="absolute top-4 right-4 z-10 flex gap-2 print:hidden">
@@ -298,7 +438,19 @@ export function JournalPreview({
         <ImageFilterSelector 
           onFilterSelect={onFilterChange}
           currentFilter={filter || 'none'}
-        />
+        >
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="hover:bg-accent hover:text-accent-foreground relative"
+            title="Apply image filter"
+          >
+            <Filter className="w-4 h-4" />
+            {filter !== 'none' && (
+              <span className="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full" />
+            )}
+          </Button>
+        </ImageFilterSelector>
         
         <Button
           onClick={toggleDrawingMode}
@@ -334,10 +486,14 @@ export function JournalPreview({
                   backgroundPosition: 'center',
                   backgroundRepeat: 'no-repeat',
                   filter: getFilterStyle(),
+                  position: 'relative',
+                  width: '100%',
+                  height: '100%',
                 }}
-                className="w-full h-full rounded-lg overflow-hidden shadow-lg"
+                className="rounded-lg overflow-hidden shadow-lg"
               >
-                {/* Dialog Preview Content */}
+                {/* We need to render the same content here as in the main preview */}
+                {renderJournalContent()}
               </div>
             </DialogContent>
           </Dialog>
@@ -359,138 +515,7 @@ export function JournalPreview({
           className="w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn print:shadow-none print:rounded-none print:min-h-screen relative"
           onClick={handleBackgroundClick}
         >
-          {mood && (
-            <div className="absolute top-4 left-4 text-lg">
-              Mood: {moodOptions.find(m => m.value === mood)?.icon}
-            </div>
-          )}
-          
-          {isDrawingMode && (
-            <DrawingLayer
-              width={previewRef.current?.clientWidth || 800}
-              height={previewRef.current?.clientHeight || 600}
-              className="absolute inset-0 z-50"
-              onDrawingChange={handleDrawingChange}
-            />
-          )}
-          
-          {!isDrawingMode && (
-            <>
-              <div
-                ref={textRef}
-                style={{
-                  fontFamily: font,
-                  fontSize,
-                  fontWeight,
-                  color: fontColor,
-                  left: `${textPosition.x}%`,
-                  top: `${textPosition.y}%`,
-                  maxWidth: '80%',
-                  transform: 'translate(0, 0)',
-                  transformOrigin: 'top left',
-                }}
-                className={`absolute whitespace-pre-wrap p-6 cursor-move select-none transition-colors rounded-lg
-                  ${isTextDragging ? 'bg-black/5 ring-2 ring-primary/30' : 'hover:bg-black/5'}
-                `}
-                onMouseDown={handleTextMouseDown}
-                onTouchStart={handleTextTouchStart}
-              >
-                {textStyle && textStyle !== 'normal' 
-                  ? applyTextStyle(text || "Start writing your journal entry...", textStyle as any) 
-                  : (text || "Start writing your journal entry...")}
-              </div>
-              
-              {stickers.map((sticker) => (
-                <img
-                  key={sticker.id}
-                  src={sticker.url}
-                  alt={sticker.id}
-                  style={{
-                    left: `${sticker.position.x}%`,
-                    top: `${sticker.position.y}%`,
-                    transform: 'translate(-50%, -50%)',
-                  }}
-                  className={`absolute w-16 h-16 cursor-move transition-all hover:ring-2 hover:ring-primary
-                    ${selectedStickerId === sticker.id ? 'ring-2 ring-primary' : ''}
-                  `}
-                  draggable={false}
-                  onMouseDown={(e) => handleStickerMouseDown(e, sticker.id)}
-                />
-              ))}
-
-              {icons.filter(icon => icon.position.x > -100 && icon.position.y > -100).map((icon) => (
-                <img
-                  key={icon.id}
-                  src={icon.url}
-                  alt="Icon"
-                  style={{
-                    left: `${icon.position.x}%`,
-                    top: `${icon.position.y}%`,
-                    width: `${icon.size || 48}px`,
-                    height: `${icon.size || 48}px`,
-                    transform: 'translate(-50%, -50%)',
-                    color: icon.color,
-                  }}
-                  className={`absolute cursor-pointer transition-all hover:ring-2 hover:ring-primary
-                    ${selectedIconId === icon.id ? 'ring-2 ring-primary' : ''}
-                  `}
-                  onClick={() => handleIconClick(icon.id)}
-                  draggable={false}
-                />
-              ))}
-              
-              {selectedStickerId && showDeleteButton && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="absolute z-10 right-4 bottom-4"
-                  onClick={handleRemoveSticker}
-                  type="button"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Remove Sticker
-                </Button>
-              )}
-              
-              {selectedIconId && showIconControls && (
-                <div className="absolute z-10 right-4 bottom-4 flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleIconSizeChange(false)}
-                    type="button"
-                  >
-                    <MinusSquare className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleIconSizeChange(true)}
-                    type="button"
-                  >
-                    <PlusSquare className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleRemoveIcon}
-                    type="button"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              )}
-
-              {drawing && (
-                <img
-                  src={drawing}
-                  alt="Journal drawing"
-                  className="absolute inset-0 w-full h-full pointer-events-none"
-                  style={{ mixBlendMode: 'multiply' }}
-                />
-              )}
-            </>
-          )}
+          {renderJournalContent()}
         </div>
       )}
     </div>

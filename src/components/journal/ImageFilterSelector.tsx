@@ -10,6 +10,7 @@ import { toast } from "sonner";
 interface ImageFilterSelectorProps {
   onFilterSelect: (filter: string) => void;
   currentFilter: string;
+  children?: React.ReactNode;
 }
 
 type FilterOption = {
@@ -19,7 +20,7 @@ type FilterOption = {
   description: string;
 };
 
-export function ImageFilterSelector({ onFilterSelect, currentFilter }: ImageFilterSelectorProps) {
+export function ImageFilterSelector({ onFilterSelect, currentFilter, children }: ImageFilterSelectorProps) {
   const [isLoading, setIsLoading] = useState(false);
   
   const filterCategories = {
@@ -117,17 +118,19 @@ export function ImageFilterSelector({ onFilterSelect, currentFilter }: ImageFilt
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="hover:bg-accent hover:text-accent-foreground relative"
-          title="Apply image filter"
-        >
-          <ImageIcon className="w-4 h-4" />
-          {currentFilter !== 'none' && (
-            <span className="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full" />
-          )}
-        </Button>
+        {children || (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="hover:bg-accent hover:text-accent-foreground relative"
+            title="Apply image filter"
+          >
+            <ImageIcon className="w-4 h-4" />
+            {currentFilter !== 'none' && (
+              <span className="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full" />
+            )}
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
