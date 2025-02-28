@@ -15,7 +15,7 @@ const challenges: JournalChallenge[] = [
   },
   {
     id: 'gratitude-1',
-    prompt: 'List three things you're grateful for today and explain why.',
+    prompt: "List three things you're grateful for today and explain why.",
     category: 'gratitude',
     difficulty: 'easy'
   },
@@ -39,7 +39,7 @@ const challenges: JournalChallenge[] = [
   },
   {
     id: 'reflection-2',
-    prompt: 'Think about a challenge you've recently faced. What did you learn from it?',
+    prompt: "Think about a challenge you've recently faced. What did you learn from it?",
     category: 'reflection',
     difficulty: 'medium'
   },
@@ -51,7 +51,7 @@ const challenges: JournalChallenge[] = [
   },
   {
     id: 'goals-2',
-    prompt: 'What is a habit you'd like to build or break? Why is this important to you?',
+    prompt: "What is a habit you'd like to build or break? Why is this important to you?",
     category: 'goals',
     difficulty: 'medium'
   },
