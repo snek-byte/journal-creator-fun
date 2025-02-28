@@ -1,5 +1,5 @@
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Icon } from '@/types/journal';
 
 interface IconContainerProps {
@@ -23,6 +23,69 @@ export function IconContainer({
 }: IconContainerProps) {
   const [isDragging, setIsDragging] = useState(false);
   const iconRef = useRef<HTMLDivElement>(null);
+  
+  // Handle keyboard navigation
+  useEffect(() => {
+    if (!selected || !iconRef.current) return;
+    
+    // Make the icon focusable when selected
+    iconRef.current.tabIndex = 0;
+    iconRef.current.focus();
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!selected) return;
+      
+      const STEP = 1; // movement step in percentage
+      const container = containerRef.current;
+      if (!container) return;
+      
+      // Get current position
+      const { x, y } = icon.position;
+      
+      switch (e.key) {
+        case 'ArrowLeft':
+          e.preventDefault();
+          onMove(icon.id, { x: x - STEP, y });
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          onMove(icon.id, { x: x + STEP, y });
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          onMove(icon.id, { x, y: y - STEP });
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          onMove(icon.id, { x, y: y + STEP });
+          break;
+        case 'Delete':
+        case 'Backspace':
+          e.preventDefault();
+          // Move the icon far off-screen to trigger deletion
+          onMove(icon.id, { x: -1000, y: -1000 });
+          break;
+        case '+':
+        case '=':
+          e.preventDefault();
+          onUpdate(icon.id, { size: (icon.size || 48) + 5 });
+          break;
+        case '-':
+          e.preventDefault();
+          onUpdate(icon.id, { size: Math.max(10, (icon.size || 48) - 5) });
+          break;
+      }
+    };
+    
+    // Add event listener for keyboard navigation
+    iconRef.current.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      if (iconRef.current) {
+        iconRef.current.removeEventListener('keydown', handleKeyDown);
+      }
+    };
+  }, [selected, icon.id, icon.position, icon.size, onMove, onUpdate, containerRef]);
   
   const handleDragStart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -61,7 +124,6 @@ export function IconContainer({
       const newY = startPositionY + deltaYPercent;
       
       // Update icon position
-      console.log(`Moving icon ${icon.id} to: (${newX}, ${newY})`);
       onMove(icon.id, { x: newX, y: newY });
     };
     
@@ -101,6 +163,9 @@ export function IconContainer({
         e.stopPropagation();
         onSelect(icon.id);
       }}
+      role="button"
+      aria-label={`Icon (use arrow keys to move, Delete to remove, plus/minus to resize)`}
+      tabIndex={selected ? 0 : -1}
     >
       {isUrlIcon ? (
         // URL-based icon
