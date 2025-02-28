@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Printer, Smile, Mail, Undo, AreaChart } from 'lucide-react';
+import { Printer, Smile, Mail } from 'lucide-react';
 import { MoodSelector } from './MoodSelector';
 import { JournalStylingControls } from './JournalStylingControls';
 import { DailyChallenge } from './DailyChallenge';
@@ -12,8 +12,6 @@ import { EmojiClickData } from 'emoji-picker-react';
 import { RefObject } from 'react';
 
 interface JournalEditorSidebarProps {
-  isDocked: boolean;
-  toggleDocked: () => void;
   textareaRef: RefObject<HTMLTextAreaElement>;
   currentEntry: {
     text: string;
@@ -46,8 +44,6 @@ interface JournalEditorSidebarProps {
 }
 
 export function JournalEditorSidebar({
-  isDocked,
-  toggleDocked,
   textareaRef,
   currentEntry,
   dailyChallenge,
@@ -68,25 +64,7 @@ export function JournalEditorSidebar({
   applyChallenge,
 }: JournalEditorSidebarProps) {
   return (
-    <div className={`${isDocked ? 'w-full lg:w-1/4 2xl:w-1/5' : 'w-64'} p-2 border-r bg-white print:hidden overflow-y-auto h-full ${
-      !isDocked ? 'absolute left-0 top-0 z-10 shadow-lg transition-all duration-300 transform' : ''
-    }`}>
-      <div className="flex justify-end mb-0.5">
-        <Button
-          onClick={toggleDocked}
-          variant="ghost"
-          size="sm"
-          className="h-5 w-5 p-0"
-          title={isDocked ? "Undock panel" : "Dock panel"}
-        >
-          {isDocked ? (
-            <AreaChart className="h-2.5 w-2.5" />
-          ) : (
-            <Undo className="h-2.5 w-2.5" />
-          )}
-        </Button>
-      </div>
-      
+    <div className="w-full lg:w-1/4 2xl:w-1/5 p-2 border-r bg-white print:hidden overflow-y-auto h-full">
       <div className="space-y-2 text-xs">
         {dailyChallenge && (
           <div className="mb-2">

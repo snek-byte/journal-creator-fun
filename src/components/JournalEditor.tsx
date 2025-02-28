@@ -12,7 +12,6 @@ export function JournalEditor() {
     showEmailDialog,
     emailAddress,
     isSending,
-    isDocked,
     textareaRef,
     handlePrint,
     handleStickerAdd,
@@ -25,7 +24,6 @@ export function JournalEditor() {
     handleDrawingChange,
     handleEmojiSelect,
     handleSendEmail,
-    toggleDocked,
     setShowEmailDialog,
     setEmailAddress,
     setMood,
@@ -35,19 +33,11 @@ export function JournalEditor() {
     saveEntry,
     applyChallenge,
     loadChallenge,
-    setFont,
-    setFontSize,
-    setFontWeight,
-    setFontColor,
-    setGradient,
-    setTextStyle
   } = useJournalEditor();
 
   return (
-    <div className={`flex flex-col lg:flex-row min-h-screen bg-gray-50 ${!isDocked ? 'relative' : ''}`}>
+    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
       <JournalEditorSidebar 
-        isDocked={isDocked}
-        toggleDocked={toggleDocked}
         textareaRef={textareaRef}
         currentEntry={currentEntry}
         dailyChallenge={dailyChallenge}
@@ -57,12 +47,12 @@ export function JournalEditor() {
         setText={setText}
         setMood={setMood}
         setIsPublic={setIsPublic}
-        setFont={setFont}
-        setFontSize={setFontSize}
-        setFontWeight={setFontWeight}
-        setFontColor={setFontColor}
-        setGradient={setGradient}
-        setTextStyle={setTextStyle}
+        setFont={useJournalEditor().setFont}
+        setFontSize={useJournalEditor().setFontSize}
+        setFontWeight={useJournalEditor().setFontWeight}
+        setFontColor={useJournalEditor().setFontColor}
+        setGradient={useJournalEditor().setGradient}
+        setTextStyle={useJournalEditor().setTextStyle}
         saveEntry={saveEntry}
         loadChallenge={loadChallenge}
         applyChallenge={applyChallenge}

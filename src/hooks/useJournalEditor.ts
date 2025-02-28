@@ -37,7 +37,6 @@ export function useJournalEditor() {
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [emailAddress, setEmailAddress] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const [isDocked, setIsDocked] = useState(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
 
@@ -197,14 +196,6 @@ export function useJournalEditor() {
     }
   };
 
-  const toggleDocked = () => {
-    setIsDocked(!isDocked);
-    // When we toggle, ensure we reflow the preview
-    setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 100);
-  };
-
   return {
     currentEntry,
     showPreview,
@@ -212,7 +203,6 @@ export function useJournalEditor() {
     showEmailDialog,
     emailAddress,
     isSending,
-    isDocked,
     textareaRef,
     handlePrint,
     handleStickerAdd,
@@ -225,7 +215,6 @@ export function useJournalEditor() {
     handleDrawingChange,
     handleEmojiSelect,
     handleSendEmail,
-    toggleDocked,
     setShowEmailDialog,
     setEmailAddress,
     setMood,
@@ -234,6 +223,12 @@ export function useJournalEditor() {
     togglePreview,
     saveEntry,
     applyChallenge,
-    loadChallenge
+    loadChallenge,
+    setFont,
+    setFontSize,
+    setFontWeight,
+    setFontColor,
+    setGradient,
+    setTextStyle
   };
 }
