@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Rnd } from 'react-rnd';
 import { TextBox } from '@/types/journal';
 import { applyTextStyle, TextStyle } from '@/utils/unicodeTextStyles';
-import { X, Trash2, RotateCw, GripVertical, Edit } from "lucide-react";
+import { X, RotateCw, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -31,15 +31,11 @@ export function TextBoxComponent({
 }: TextBoxComponentProps) {
   const { id, text, position, width, height, font, fontSize, fontWeight, fontColor, gradient, textStyle, rotation, zIndex } = textBox;
   const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(text);
+  const [editValue, setEditValue] = useState(text || '');
   const [size, setSize] = useState({ width, height });
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
-  const [isTouching, setIsTouching] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startDragPosition, setStartDragPosition] = useState({ x: 0, y: 0 });
-  const [hasMoved, setHasMoved] = useState(false);
   const { toast } = useToast();
   
   // Detect when the page is being printed
@@ -95,7 +91,7 @@ export function TextBoxComponent({
   
   // Update local state when props change
   useEffect(() => {
-    setEditValue(text);
+    setEditValue(text || '');
   }, [text]);
   
   useEffect(() => {
@@ -120,27 +116,13 @@ export function TextBoxComponent({
     onUpdate(id, { width: newWidth, height: newHeight });
   };
   
-  const handleDragStart = (e: any) => {
-    setIsDragging(true);
-    setHasMoved(false);
-    setStartDragPosition({ x: e.clientX, y: e.clientY });
-    onSelect(id); // Make sure the text box is selected when dragging starts
-  };
-  
-  const handleDrag = (e: any) => {
-    if (!hasMoved) {
-      const dx = Math.abs(e.clientX - startDragPosition.x);
-      const dy = Math.abs(e.clientY - startDragPosition.y);
-      
-      // If moved more than 5px, consider it a drag rather than a tap
-      if (dx > 5 || dy > 5) {
-        setHasMoved(true);
-      }
-    }
+  const handleDragStart = () => {
+    if (isEditing) return;
+    onSelect(id);
   };
   
   const handleDragStop = (e: any, d: any) => {
-    setIsDragging(false);
+    if (isEditing) return;
     
     // Convert pixel position to percentage
     const containerWidth = containerDimensions.width || 1;
@@ -180,7 +162,6 @@ export function TextBoxComponent({
       transformOrigin: 'center center',
       overflow: 'hidden',
       boxSizing: 'border-box',
-      transition: 'all 0.2s ease',
       wordBreak: 'break-word',
     };
     
@@ -207,10 +188,34 @@ export function TextBoxComponent({
     return styles;
   };
   
-  const handleRotate = () => {
+  const handleRotate = (e: React.MouseEvent) => {
+    e.stopPropagation();
     // Rotate in 15-degree increments
     const newRotation = ((rotation || 0) + 15) % 360;
     onUpdate(id, { rotation: newRotation });
+  };
+  
+  const startEditing = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (isDrawingMode) return;
+    
+    // Select this text box
+    onSelect(id);
+    
+    // Enter edit mode
+    setIsEditing(true);
+    
+    // Ensure focus happens after state updates
+    setTimeout(() => {
+      if (textAreaRef.current) {
+        textAreaRef.current.focus();
+      }
+    }, 10);
+  };
+  
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setEditValue(e.target.value);
   };
   
   const handleBlur = () => {
@@ -236,7 +241,7 @@ export function TextBoxComponent({
     if (e.key === 'Escape') {
       e.preventDefault();
       setIsEditing(false);
-      setEditValue(text); // Reset to original value
+      setEditValue(text || ''); // Reset to original value
     }
   };
   
@@ -248,31 +253,6 @@ export function TextBoxComponent({
       title: "Text box removed",
       description: "Text box has been deleted."
     });
-  };
-
-  const handleTextBoxClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    if (isDrawingMode) return;
-    
-    onSelect(id);
-    
-    if (!selected) {
-      // If not already selected, just select it first
-      return;
-    }
-    
-    // If already selected and not dragging, enter edit mode on a single click
-    if (!hasMoved && !isDragging) {
-      setIsEditing(true);
-      
-      // Ensure focus happens after state updates
-      setTimeout(() => {
-        if (textAreaRef.current) {
-          textAreaRef.current.focus();
-        }
-      }, 10);
-    }
   };
   
   // Create a CSS class for printing that hides UI elements
@@ -290,7 +270,7 @@ export function TextBoxComponent({
     }
   `;
   
-  // Convert text to a simple string without showing "Double-click to edit" when printing
+  // Convert text to a simple string without showing "Tap to edit" when printing
   const displayText = isPrinting ? (text || '') : (processText(text) || 'Tap to edit');
   
   // If editing or printing, hide all controls
@@ -310,13 +290,16 @@ export function TextBoxComponent({
         size={{ width: size.width, height: size.height }}
         position={calculatePosition()}
         onDragStart={handleDragStart}
-        onDrag={handleDrag}
         onDragStop={handleDragStop}
         onResizeStop={handleStopResize}
         bounds="parent"
-        onClick={handleTextBoxClick}
         enableResizing={selected && !isEditing && !isPrinting && !isDrawingMode}
         disableDragging={isEditing || isPrinting || isDrawingMode}
+        onClick={(e) => {
+          if (!isEditing) {
+            startEditing(e);
+          }
+        }}
       >
         <div 
           className={cn(
@@ -330,10 +313,6 @@ export function TextBoxComponent({
             <button
               className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg z-10 text-box-controls"
               onClick={handleDelete}
-              onTouchEnd={(e) => {
-                e.stopPropagation();
-                onRemove(id);
-              }}
               aria-label="Delete text box"
             >
               <X size={14} />
@@ -357,18 +336,7 @@ export function TextBoxComponent({
           {showControls && (
             <button
               className="absolute -bottom-3 right-3 bg-primary text-primary-foreground hover:bg-primary/90 p-1 rounded-full shadow-lg z-10 text-box-controls"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setIsEditing(true);
-                
-                // Ensure focus happens after state updates
-                setTimeout(() => {
-                  if (textAreaRef.current) {
-                    textAreaRef.current.focus();
-                  }
-                }, 10);
-              }}
+              onClick={startEditing}
               aria-label="Edit text"
             >
               <Edit size={14} />
@@ -379,10 +347,7 @@ export function TextBoxComponent({
             <Textarea
               ref={textAreaRef}
               value={editValue}
-              onChange={(e) => {
-                console.log(`TextBox ${id}: Text changed to:`, e.target.value);
-                setEditValue(e.target.value);
-              }}
+              onChange={handleTextChange}
               onBlur={handleBlur}
               onKeyDown={handleKeyDown}
               className="w-full h-full resize-none border-none focus-visible:ring-0 focus-visible:outline-none p-2"
@@ -392,9 +357,11 @@ export function TextBoxComponent({
           ) : (
             <div
               className="w-full h-full whitespace-pre-wrap overflow-hidden flex items-center justify-center"
-              style={getTextStyles()}
+              onClick={startEditing}
             >
-              {displayText}
+              <div style={getTextStyles()}>
+                {displayText}
+              </div>
             </div>
           )}
         </div>
