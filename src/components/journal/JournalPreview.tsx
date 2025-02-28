@@ -1,7 +1,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Pencil, ImagePlus, Palette, Stamp, Shapes } from 'lucide-react';
+import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Pencil, ImagePlus, Palette, Sticker, Bookmark } from 'lucide-react';
 import { moodOptions } from './config/editorConfig';
 import type { Mood, Sticker as StickerType, Icon } from '@/types/journal';
 import { applyTextStyle } from '@/utils/unicodeTextStyles';
@@ -69,27 +69,14 @@ export function JournalPreview({
 }: JournalPreviewProps) {
   const previewRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
-  const iconContainerRef = useRef<HTMLDivElement>(null);
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [isTextDragging, setIsTextDragging] = useState(false);
-  const [isIconContainerDragging, setIsIconContainerDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [iconContainerPosition, setIconContainerPosition] = useState({ x: 80, y: 20 });
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const [showIconControls, setShowIconControls] = useState(false);
   const [iconSize, setIconSize] = useState<number>(48);
-  const [visibleIcons, setVisibleIcons] = useState<Icon[]>([]);
-
-  // Update visible icons when icons array changes
-  useEffect(() => {
-    // Filter icons that are visible (not moved off-screen)
-    const visible = icons.filter(icon => 
-      icon.position.x > -100 && icon.position.y > -100
-    );
-    setVisibleIcons(visible);
-  }, [icons]);
 
   useEffect(() => {
     if (selectedIconId) {
@@ -170,41 +157,6 @@ export function JournalPreview({
     window.addEventListener('mouseup', handleMouseUp);
   };
 
-  const handleIconContainerMouseDown = (e: React.MouseEvent) => {
-    if (!iconContainerRef.current || !previewRef.current) return;
-    
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const containerRect = iconContainerRef.current.getBoundingClientRect();
-    const previewRect = previewRef.current.getBoundingClientRect();
-    
-    const offsetX = e.clientX - containerRect.left;
-    const offsetY = e.clientY - containerRect.top;
-    
-    setDragOffset({ x: offsetX, y: offsetY });
-    setIsIconContainerDragging(true);
-    
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isIconContainerDragging || !previewRef.current) return;
-      
-      const previewRect = previewRef.current.getBoundingClientRect();
-      const x = Math.max(0, Math.min(100, ((e.clientX - previewRect.left - dragOffset.x) / previewRect.width) * 100));
-      const y = Math.max(0, Math.min(100, ((e.clientY - previewRect.top - dragOffset.y) / previewRect.height) * 100));
-      
-      setIconContainerPosition({ x, y });
-    };
-    
-    const handleMouseUp = () => {
-      setIsIconContainerDragging(false);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-    
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-  };
-
   const handleTextTouchStart = (e: React.TouchEvent) => {
     if (!textRef.current) return;
     
@@ -229,41 +181,6 @@ export function JournalPreview({
     
     const handleTouchEnd = () => {
       setIsTextDragging(false);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleTouchEnd);
-    };
-    
-    window.addEventListener('touchmove', handleTouchMove);
-    window.addEventListener('touchend', handleTouchEnd);
-  };
-
-  const handleIconContainerTouchStart = (e: React.TouchEvent) => {
-    if (!iconContainerRef.current || !previewRef.current) return;
-    
-    e.stopPropagation();
-    
-    const touch = e.touches[0];
-    const containerRect = iconContainerRef.current.getBoundingClientRect();
-    
-    const offsetX = touch.clientX - containerRect.left;
-    const offsetY = touch.clientY - containerRect.top;
-    
-    setDragOffset({ x: offsetX, y: offsetY });
-    setIsIconContainerDragging(true);
-    
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!isIconContainerDragging || !previewRef.current) return;
-      
-      const touch = e.touches[0];
-      const previewRect = previewRef.current.getBoundingClientRect();
-      const x = Math.max(0, Math.min(100, ((touch.clientX - previewRect.left - dragOffset.x) / previewRect.width) * 100));
-      const y = Math.max(0, Math.min(100, ((touch.clientY - previewRect.top - dragOffset.y) / previewRect.height) * 100));
-      
-      setIconContainerPosition({ x, y });
-    };
-    
-    const handleTouchEnd = () => {
-      setIsIconContainerDragging(false);
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
     };
@@ -371,77 +288,52 @@ export function JournalPreview({
   return (
     <div className="w-full lg:w-3/4 p-6 relative print:w-full print:p-0 min-h-[800px]">
       <div className="absolute top-4 right-4 z-10 flex gap-2 print:hidden">
-        {/* Using different icons for each selector */}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="hover:bg-accent hover:text-accent-foreground"
-          title="Add stickers"
-          onClick={() => {
-            const stickerSelector = document.getElementById('sticker-selector');
-            if (stickerSelector instanceof HTMLButtonElement) {
-              stickerSelector.click();
-            }
-          }}
-        >
-          <Stamp className="w-4 h-4" />
-        </Button>
+        <StickerSelector onStickerSelect={handleStickerAdd}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="hover:bg-accent hover:text-accent-foreground"
+            title="Add stickers"
+          >
+            <Sticker className="w-4 h-4" />
+          </Button>
+        </StickerSelector>
         
-        <StickerSelector onStickerSelect={handleStickerAdd} />
+        <IconSelector onIconSelect={handleIconAdd}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="hover:bg-accent hover:text-accent-foreground"
+            title="Add icons"
+          >
+            <Bookmark className="w-4 h-4" />
+          </Button>
+        </IconSelector>
         
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="hover:bg-accent hover:text-accent-foreground"
-          title="Add icons"
-          onClick={() => {
-            const iconSelector = document.getElementById('icon-selector');
-            if (iconSelector instanceof HTMLButtonElement) {
-              iconSelector.click();
-            }
-          }}
-        >
-          <Shapes className="w-4 h-4" />
-        </Button>
-        
-        <IconSelector onIconSelect={handleIconAdd} />
-        
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="hover:bg-accent hover:text-accent-foreground"
-          title="Choose background"
-          onClick={() => {
-            const backgroundSelector = document.getElementById('background-selector');
-            if (backgroundSelector instanceof HTMLButtonElement) {
-              backgroundSelector.click();
-            }
-          }}
-        >
-          <ImagePlus className="w-4 h-4" />
-        </Button>
-        
-        <BackgroundImageSelector onImageSelect={onBackgroundSelect} />
-        
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="hover:bg-accent hover:text-accent-foreground"
-          title="Apply filters"
-          onClick={() => {
-            const filterSelector = document.getElementById('filter-selector');
-            if (filterSelector instanceof HTMLButtonElement) {
-              filterSelector.click();
-            }
-          }}
-        >
-          <Palette className="w-4 h-4" />
-        </Button>
+        <BackgroundImageSelector onImageSelect={onBackgroundSelect}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="hover:bg-accent hover:text-accent-foreground"
+            title="Choose background"
+          >
+            <ImagePlus className="w-4 h-4" />
+          </Button>
+        </BackgroundImageSelector>
         
         <ImageFilterSelector 
           onFilterSelect={onFilterChange}
           currentFilter={filter || 'none'}
-        />
+        >
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="hover:bg-accent hover:text-accent-foreground"
+            title="Apply filters"
+          >
+            <Palette className="w-4 h-4" />
+          </Button>
+        </ImageFilterSelector>
         
         <Button
           onClick={toggleDrawingMode}
@@ -561,43 +453,26 @@ export function JournalPreview({
                 />
               ))}
 
-              {/* Icon Container - Draggable box with icons */}
-              {visibleIcons.length > 0 && (
-                <div 
-                  ref={iconContainerRef}
+              {icons.filter(icon => icon.position.x > -100 && icon.position.y > -100).map((icon) => (
+                <img
+                  key={icon.id}
+                  src={icon.url}
+                  alt="Icon"
                   style={{
-                    left: `${iconContainerPosition.x}%`,
-                    top: `${iconContainerPosition.y}%`,
+                    left: `${icon.position.x}%`,
+                    top: `${icon.position.y}%`,
+                    width: `${icon.size || 48}px`,
+                    height: `${icon.size || 48}px`,
+                    transform: 'translate(-50%, -50%)',
+                    color: icon.color,
                   }}
-                  className={`absolute p-2 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-md shadow-sm cursor-move z-10
-                    ${isIconContainerDragging ? 'ring-2 ring-primary/30' : ''}
+                  className={`absolute cursor-pointer transition-all hover:ring-2 hover:ring-primary
+                    ${selectedIconId === icon.id ? 'ring-2 ring-primary' : ''}
                   `}
-                  onMouseDown={handleIconContainerMouseDown}
-                  onTouchStart={handleIconContainerTouchStart}
-                >
-                  <div className="flex items-center pb-1 mb-1 border-b border-gray-200">
-                    <div className="text-xs text-gray-500 font-medium">Icons</div>
-                  </div>
-                  <div className="flex flex-wrap gap-1 max-w-[150px]">
-                    {visibleIcons.map((icon) => (
-                      <img
-                        key={icon.id}
-                        src={icon.url}
-                        alt={icon.id}
-                        style={{
-                          width: '20px',
-                          height: '20px',
-                          color: icon.color,
-                        }}
-                        className={`cursor-pointer transition-all hover:scale-110
-                          ${selectedIconId === icon.id ? 'ring-1 ring-primary' : ''}
-                        `}
-                        onClick={() => handleIconClick(icon.id)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
+                  onClick={() => handleIconClick(icon.id)}
+                  draggable={false}
+                />
+              ))}
               
               {selectedStickerId && showDeleteButton && (
                 <Button
