@@ -8,6 +8,8 @@ import { StickerContainer } from './StickerContainer';
 import { useScreenshot } from 'use-react-screenshot';
 import type { Icon } from '@/types/journal';
 import { applyTextStyle, TextStyle } from '@/utils/unicodeTextStyles';
+import { Pencil, X } from "lucide-react";
+import { toast } from "sonner";
 
 interface JournalPreviewProps {
   className?: string;
@@ -117,6 +119,7 @@ export function JournalPreview({
       const height = previewRef.current.offsetHeight;
       setPreviewWidth(width);
       setPreviewHeight(height);
+      console.log("JournalPreview: Resized to", width, "x", height);
     };
 
     handleResize();
@@ -136,14 +139,6 @@ export function JournalPreview({
       window.removeEventListener('click', handleGlobalClick);
     };
   }, [isTextSelected]);
-
-  // Initialize drawing mode if drawing already exists
-  useEffect(() => {
-    if (drawing && drawing.length > 0) {
-      console.log("Setting drawing mode to true because drawing exists");
-      setIsDrawingMode(true);
-    }
-  }, []);
 
   const handleIconSelect = (id: string) => {
     setSelectedIconId(id);
@@ -175,12 +170,19 @@ export function JournalPreview({
   };
 
   const toggleDrawingMode = () => {
-    console.log("Toggling drawing mode from", isDrawingMode, "to", !isDrawingMode);
-    setIsDrawingMode(!isDrawingMode);
+    const newMode = !isDrawingMode;
+    console.log("JournalPreview: Toggling drawing mode from", isDrawingMode, "to", newMode);
+    setIsDrawingMode(newMode);
+    
+    if (newMode) {
+      toast.info("Drawing mode enabled. Other interactions are disabled while drawing.");
+    } else {
+      toast.info("Drawing mode disabled. You can now interact with text and stickers.");
+    }
   };
 
   const handleDrawingChange = (dataUrl: string) => {
-    console.log("Drawing changed, passing to parent component");
+    console.log("JournalPreview: Drawing changed, passing to parent component");
     onDrawingChange(dataUrl);
   };
 
@@ -201,6 +203,8 @@ export function JournalPreview({
 
   // COMPLETELY REWRITTEN TEXT DRAG IMPLEMENTATION
   const handleTextElementDrag = (e: React.MouseEvent) => {
+    if (isDrawingMode) return;
+    
     e.preventDefault();
     e.stopPropagation();
     
@@ -327,7 +331,7 @@ export function JournalPreview({
     if (!backgroundImage) return {};
     
     const filterValue = getCssFilter();
-    console.log("Applying filter:", filterValue);
+    console.log("JournalPreview: Applying filter:", filterValue);
     
     if (isGradientBackground) {
       return {
@@ -414,36 +418,20 @@ export function JournalPreview({
           )}
 
           <div className="relative h-full w-full z-10 journal-page" ref={previewRef}>
-            {/* Control overlay buttons */}
+            {/* Control overlay buttons - Drawing Mode Toggle */}
             <div className="absolute top-4 right-4 z-50 flex gap-2">
               <button
                 onClick={toggleDrawingMode}
-                className={`p-2 rounded-full ${isDrawingMode ? 'bg-primary text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                className={`p-2 rounded-full ${isDrawingMode ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
                 title={isDrawingMode ? "Exit Drawing Mode" : "Enter Drawing Mode"}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
-                  <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
-                  <path d="M2 2l7.586 7.586"></path>
-                  <path d="M11 11l5 5"></path>
-                </svg>
+                {isDrawingMode ? (
+                  <X className="w-5 h-5" />
+                ) : (
+                  <Pencil className="w-5 h-5" />
+                )}
               </button>
             </div>
-
-            {/* Drawing Layer - Must be below text and stickers for visibility but with pointer-events to catch mouse actions */}
-            {isDrawingMode && (
-              <div className="absolute inset-0 z-25">
-                <DrawingLayer
-                  width={previewWidth}
-                  height={previewHeight}
-                  onDrawingChange={handleDrawingChange}
-                  tool={drawingTool}
-                  color={drawingColor}
-                  brushSize={brushSize}
-                  initialDrawing={drawing}
-                />
-              </div>
-            )}
 
             {/* Text element with proper gradient styling */}
             <div
@@ -507,6 +495,20 @@ export function JournalPreview({
                 }}
               />
             ))}
+          
+            {/* Drawing Layer - Only show in drawing mode */}
+            {isDrawingMode && (
+              <DrawingLayer
+                width={previewWidth}
+                height={previewHeight}
+                onDrawingChange={handleDrawingChange}
+                tool={drawingTool}
+                color={drawingColor}
+                brushSize={brushSize}
+                initialDrawing={drawing}
+                className="z-100"
+              />
+            )}
           </div>
 
           {/* Display existing drawing when not in drawing mode */}

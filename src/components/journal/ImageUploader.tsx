@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ImagePlus, UploadCloud, Image as ImageIcon, Loader2 } from "lucide-react";
@@ -13,57 +13,76 @@ interface ImageUploaderProps {
 export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [open, setOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const fetchUserImages = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      
+      if (!user) {
+        console.log("ImageUploader: No authenticated user found");
+        return;
+      }
 
+      console.log("ImageUploader: Fetching images for user:", user.id);
+      
       const { data, error } = await supabase
         .from('user_images')
         .select('url')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching user images:', error);
+        return;
+      }
       
       if (data && data.length) {
+        console.log("ImageUploader: Loaded", data.length, "user images");
         setUploadedImages(data.map(item => item.url));
+      } else {
+        console.log("ImageUploader: No user images found");
       }
     } catch (error) {
       console.error('Error fetching user images:', error);
     }
   };
 
-  React.useEffect(() => {
-    fetchUserImages();
-    
-    // Create the bucket if it doesn't exist
-    const createBucketIfNeeded = async () => {
-      try {
-        // First check if the bucket exists
-        const { data: buckets, error: bucketsError } = await supabase
-          .storage
-          .listBuckets();
-        
-        if (bucketsError) {
-          console.error('Error checking buckets:', bucketsError);
-          return;
+  useEffect(() => {
+    if (open) {
+      fetchUserImages();
+      
+      // Create the bucket if it doesn't exist
+      const checkStorageBucket = async () => {
+        try {
+          console.log("ImageUploader: Checking storage buckets");
+          
+          // First check if the bucket exists
+          const { data: buckets, error: bucketsError } = await supabase
+            .storage
+            .listBuckets();
+          
+          if (bucketsError) {
+            console.error('Error checking buckets:', bucketsError);
+            return;
+          }
+          
+          console.log("ImageUploader: Available buckets:", buckets.map(b => b.name).join(', '));
+          
+          // If journal-images bucket doesn't exist, show a warning
+          if (!buckets.some(bucket => bucket.name === 'journal-images')) {
+            console.warn('journal-images bucket not found. Please create it in the Supabase dashboard.');
+            toast.warning('Image storage not fully configured. Contact administrator.');
+          }
+        } catch (error) {
+          console.error('Error in bucket check:', error);
         }
-        
-        // If journal-images bucket doesn't exist, show a warning
-        if (!buckets.some(bucket => bucket.name === 'journal-images')) {
-          console.warn('journal-images bucket not found. Please create it in the Supabase dashboard.');
-          toast.warning('Image storage not fully configured. Contact administrator.');
-        }
-      } catch (error) {
-        console.error('Error in bucket check:', error);
-      }
-    };
-    
-    createBucketIfNeeded();
-  }, []);
+      };
+      
+      checkStorageBucket();
+    }
+  }, [open]);
 
   const handleFileSelect = () => {
     if (fileInputRef.current) {
@@ -74,6 +93,8 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    console.log("ImageUploader: File selected for upload:", file.name, file.type, file.size);
 
     // Check file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
@@ -95,17 +116,13 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
         return;
       }
 
+      console.log("ImageUploader: Authenticated as user:", user.id);
+
       // Generate a unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
       
-      // Check if the bucket exists before uploading
-      const { data: buckets } = await supabase.storage.listBuckets();
-      if (!buckets.some(bucket => bucket.name === 'journal-images')) {
-        toast.error('Image storage not configured. Please contact administrator.');
-        setIsUploading(false);
-        return;
-      }
+      console.log("ImageUploader: Uploading with filename:", fileName);
       
       // Upload to Supabase Storage
       const { data, error } = await supabase.storage
@@ -113,6 +130,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
         .upload(fileName, file);
 
       if (error) {
+        console.error("Upload error:", error);
         if (error.message.includes('bucket') || error.message.includes('not found')) {
           toast.error('Storage bucket not found. Please contact administrator.');
         } else {
@@ -121,12 +139,16 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
         throw error;
       }
 
+      console.log("ImageUploader: Upload successful, getting public URL");
+
       // Get the public URL
       const { data: publicUrlData } = supabase.storage
         .from('journal-images')
         .getPublicUrl(fileName);
 
       if (!publicUrlData.publicUrl) throw new Error('Failed to get public URL');
+
+      console.log("ImageUploader: Public URL obtained:", publicUrlData.publicUrl);
 
       // Store reference in database
       const { error: dbError } = await supabase
@@ -137,11 +159,15 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
           filename: fileName
         });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error("Database error:", dbError);
+        throw dbError;
+      }
 
       // Update local state
       setUploadedImages(prev => [publicUrlData.publicUrl, ...prev]);
       toast.success('Image uploaded successfully!');
+      console.log("ImageUploader: Image successfully uploaded and saved");
     } catch (error: any) {
       console.error('Error uploading image:', error);
       
@@ -164,6 +190,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
 
   const handleImageSelect = (url: string) => {
     onImageSelect(url);
+    setOpen(false);
     toast.success('Image selected for your journal');
   };
 
@@ -203,7 +230,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button 
           variant="ghost" 

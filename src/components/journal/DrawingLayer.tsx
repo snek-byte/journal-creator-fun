@@ -1,6 +1,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Point {
   x: number;
@@ -53,7 +54,7 @@ export function DrawingLayer({
 
   // Initialize canvas on mount and when dimensions change
   useEffect(() => {
-    console.log("Initializing canvas with width:", width, "height:", height);
+    console.log("DrawingLayer: Initializing canvas with width:", width, "height:", height);
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -77,11 +78,11 @@ export function DrawingLayer({
       setUndoStack([emptyState]);
       
       canvasInitialized.current = true;
-      console.log("Canvas initialized");
+      console.log("DrawingLayer: Canvas initialized with dimensions", width, "x", height);
       
       // Load initial drawing if provided
       if (initialDrawing) {
-        console.log("Loading initial drawing");
+        console.log("DrawingLayer: Loading initial drawing");
         loadState(initialDrawing);
       }
     }
@@ -95,7 +96,7 @@ export function DrawingLayer({
 
   // Update brush settings when they change
   useEffect(() => {
-    console.log("Tool changed:", tool, "Color:", color, "Size:", brushSize);
+    console.log("DrawingLayer: Tool changed:", tool, "Color:", color, "Size:", brushSize);
     if (!canvasRef.current) return;
     const ctx = canvasRef.current.getContext('2d');
     if (!ctx) return;
@@ -122,7 +123,7 @@ export function DrawingLayer({
     if (!canvasRef.current) return;
     
     const dataUrl = canvasRef.current.toDataURL();
-    console.log("Saving drawing state");
+    console.log("DrawingLayer: Saving drawing state");
     setUndoStack(prev => [...prev, dataUrl]);
     setRedoStack([]);
     
@@ -132,7 +133,7 @@ export function DrawingLayer({
   };
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
-    console.log("Starting drawing with tool:", tool);
+    console.log("DrawingLayer: Starting drawing with tool:", tool);
     e.preventDefault();
     e.stopPropagation();
     
@@ -321,7 +322,7 @@ export function DrawingLayer({
   const stopDrawing = () => {
     if (!isDrawing) return;
     
-    console.log("Stopping drawing");
+    console.log("DrawingLayer: Stopping drawing");
     setIsDrawing(false);
     setLastPoint(null);
     saveState();
@@ -413,8 +414,30 @@ export function DrawingLayer({
     }
   };
 
+  // Debugging Canvas rendering
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (canvasRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+        if (ctx) {
+          // Just to verify canvas is working, draw a small dot in the center
+          if (!hasInitialized.current) {
+            ctx.fillStyle = 'red';
+            ctx.beginPath();
+            ctx.arc(width/2, height/2, 2, 0, Math.PI * 2);
+            ctx.fill();
+            hasInitialized.current = true;
+            console.log("DrawingLayer: Validated canvas rendering with test dot");
+          }
+        }
+      }
+    }, 1000);
+    
+    return () => clearInterval(intervalId);
+  }, [width, height]);
+
   return (
-    <div className={cn("absolute inset-0", className)} style={{ zIndex: 20 }}>
+    <div className={cn("absolute inset-0", className)} style={{ zIndex: 200, pointerEvents: 'auto' }}>
       <canvas
         ref={canvasRef}
         width={width}
