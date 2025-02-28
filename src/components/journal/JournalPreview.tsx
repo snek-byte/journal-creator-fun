@@ -1,7 +1,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Pencil, ImagePlus, Filter, FileImage, X } from 'lucide-react';
+import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Pencil, ImagePlus, Filter, FileImage, X, ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react';
 import { moodOptions } from './config/editorConfig';
 import type { Mood, Sticker as StickerType, Icon } from '@/types/journal';
 import { applyTextStyle } from '@/utils/unicodeTextStyles';
@@ -336,6 +336,34 @@ export function JournalPreview({
     onIconUpdate(selectedIconId, { size: newSize });
   };
 
+  const handleMoveIcon = (direction: 'left' | 'right' | 'up' | 'down') => {
+    if (!selectedIconId) return;
+    
+    const icon = icons.find(i => i.id === selectedIconId);
+    if (!icon) return;
+    
+    const step = 2; // Smaller step for finer control (percentage)
+    let newX = icon.position.x;
+    let newY = icon.position.y;
+    
+    switch (direction) {
+      case 'left':
+        newX = Math.max(0, icon.position.x - step);
+        break;
+      case 'right':
+        newX = Math.min(100, icon.position.x + step);
+        break;
+      case 'up':
+        newY = Math.max(0, icon.position.y - step);
+        break;
+      case 'down':
+        newY = Math.min(100, icon.position.y + step);
+        break;
+    }
+    
+    onIconMove(selectedIconId, { x: newX, y: newY });
+  };
+
   const handleRemoveSticker = () => {
     if (!selectedStickerId) return;
     
@@ -512,31 +540,83 @@ export function JournalPreview({
             )}
             
             {selectedIconId && showIconControls && !isDialog && (
-              <div className="absolute z-10 right-4 bottom-4 flex gap-0">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleIconSizeChange(false)}
-                  type="button"
-                >
-                  <MinusSquare className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleIconSizeChange(true)}
-                  type="button"
-                >
-                  <PlusSquare className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleRemoveIcon}
-                  type="button"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+              <div className="absolute z-10 right-4 bottom-4 flex flex-col gap-2">
+                <div className="flex gap-0.5 justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleIconSizeChange(false)}
+                    type="button"
+                    className="h-8 w-8 p-0"
+                  >
+                    <MinusSquare className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleIconSizeChange(true)}
+                    type="button"
+                    className="h-8 w-8 p-0"
+                  >
+                    <PlusSquare className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleRemoveIcon}
+                    type="button"
+                    className="h-8 w-8 p-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                {/* Fine movement controls for icons */}
+                <div className="grid grid-cols-3 gap-0.5 mt-1">
+                  <div></div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleMoveIcon('up')}
+                    type="button"
+                    className="h-8 w-8 p-0"
+                  >
+                    <ArrowUp className="w-4 h-4" />
+                  </Button>
+                  <div></div>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleMoveIcon('left')}
+                    type="button"
+                    className="h-8 w-8 p-0"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                  </Button>
+                  <div></div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleMoveIcon('right')}
+                    type="button"
+                    className="h-8 w-8 p-0"
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                  
+                  <div></div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleMoveIcon('down')}
+                    type="button"
+                    className="h-8 w-8 p-0"
+                  >
+                    <ArrowDown className="w-4 h-4" />
+                  </Button>
+                  <div></div>
+                </div>
               </div>
             )}
 
