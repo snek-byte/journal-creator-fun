@@ -2,13 +2,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { DrawingLayer } from './DrawingLayer';
-import { Sticker } from '@/types/journal';
+import { Sticker, TextBox } from '@/types/journal';
 import { IconContainer } from './IconContainer';
 import { StickerContainer } from './StickerContainer';
+import { TextBoxComponent } from './TextBoxComponent';
 import { useScreenshot } from 'use-react-screenshot';
 import type { Icon } from '@/types/journal';
 import { applyTextStyle, TextStyle } from '@/utils/unicodeTextStyles';
 import { toast } from "sonner";
+import { Plus } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 
 interface JournalPreviewProps {
   className?: string;
@@ -23,6 +26,7 @@ interface JournalPreviewProps {
   textStyle: string;
   stickers: Sticker[];
   icons: Icon[];
+  textBoxes: TextBox[];
   textPosition: { x: number; y: number };
   backgroundImage?: string;
   drawing?: string;
@@ -34,6 +38,10 @@ interface JournalPreviewProps {
   onIconUpdate: (id: string, updates: Partial<Icon>) => void;
   onIconSelect: (id: string) => void;
   onStickerSelect: (id: string | null) => void;
+  onTextBoxAdd: (textBox: TextBox) => void;
+  onTextBoxUpdate: (id: string, updates: Partial<TextBox>) => void;
+  onTextBoxRemove: (id: string) => void;
+  onTextBoxSelect: (id: string | null) => void;
   onTextMove: (position: { x: number; y: number }) => void;
   onTextDragStart: () => void;
   onTextDragEnd: () => void;
@@ -60,6 +68,7 @@ export function JournalPreview({
   textStyle,
   stickers,
   icons,
+  textBoxes = [],
   textPosition,
   backgroundImage,
   drawing,
@@ -71,6 +80,10 @@ export function JournalPreview({
   onIconUpdate,
   onIconSelect,
   onStickerSelect,
+  onTextBoxAdd,
+  onTextBoxUpdate,
+  onTextBoxRemove,
+  onTextBoxSelect,
   onTextMove,
   onTextDragStart,
   onTextDragEnd,
@@ -85,6 +98,7 @@ export function JournalPreview({
 }: JournalPreviewProps) {
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
+  const [selectedTextBoxId, setSelectedTextBoxId] = useState<string | null>(null);
   const [isTextSelected, setIsTextSelected] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
@@ -158,17 +172,32 @@ export function JournalPreview({
     console.log("Icon selected:", id);
     setSelectedIconId(id);
     setSelectedStickerId(null);
+    setSelectedTextBoxId(null);
     setIsTextSelected(false);
     onIconSelect(id);
     onStickerSelect(null);
+    onTextBoxSelect(null);
   };
 
   const handleStickerSelect = (id: string) => {
     console.log(`handleStickerSelect in JournalPreview: ${id}`);
     setSelectedStickerId(id);
+    setSelectedIconId(null);
+    setSelectedTextBoxId(null);
     setIsTextSelected(false);
     onStickerSelect(id);
+    onIconSelect('');
+    onTextBoxSelect(null);
+  };
+  
+  const handleTextBoxSelect = (id: string) => {
+    console.log(`Text box selected: ${id}`);
+    setSelectedTextBoxId(id);
+    setSelectedStickerId(null);
     setSelectedIconId(null);
+    setIsTextSelected(false);
+    onTextBoxSelect(id);
+    onStickerSelect(null);
     onIconSelect('');
   };
 
@@ -178,9 +207,11 @@ export function JournalPreview({
         (target.classList && target.classList.contains('journal-page'))) {
       setSelectedStickerId(null);
       setSelectedIconId(null);
+      setSelectedTextBoxId(null);
       setIsTextSelected(false);
       onIconSelect('');
       onStickerSelect(null);
+      onTextBoxSelect(null);
     }
   };
 
@@ -387,6 +418,31 @@ export function JournalPreview({
     
     onStickerAdd(updatedSticker);
   };
+  
+  const handleAddTextBox = () => {
+    // Only allow adding text boxes when not in drawing mode
+    if (isDrawingMode) return;
+    
+    const newTextBox: TextBox = {
+      id: uuidv4(),
+      text: 'Double-click to edit this text box',
+      position: { x: 50, y: 50 },
+      width: 200,
+      height: 100,
+      font: font,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      fontColor: fontColor,
+      gradient: gradient,
+      textStyle: textStyle,
+      rotation: 0,
+      zIndex: textBoxes.length + 10
+    };
+    
+    onTextBoxAdd(newTextBox);
+    handleTextBoxSelect(newTextBox.id);
+    toast.success("New text box added");
+  };
 
   return (
     <div className={cn("relative flex-1 overflow-hidden bg-gray-50", className)}>
@@ -470,13 +526,32 @@ export function JournalPreview({
                 e.stopPropagation();
                 setSelectedStickerId(null);
                 setSelectedIconId(null);
+                setSelectedTextBoxId(null);
                 setIsTextSelected(true);
                 onIconSelect('');
                 onStickerSelect(null);
+                onTextBoxSelect(null);
               }}
             >
               {processText(text) || 'Start typing to add text...'}
             </div>
+
+            {textBoxes.map((textBox) => (
+              <TextBoxComponent
+                key={textBox.id}
+                textBox={textBox}
+                selected={selectedTextBoxId === textBox.id}
+                containerRef={previewRef}
+                onSelect={handleTextBoxSelect}
+                onUpdate={onTextBoxUpdate}
+                onRemove={onTextBoxRemove}
+                isDrawingMode={isDrawingMode}
+                style={{ 
+                  filter: !backgroundImage ? getCssFilter() : undefined,
+                  zIndex: 35,
+                }}
+              />
+            ))}
 
             {stickers && stickers.map((sticker) => (
               <StickerContainer
@@ -511,6 +586,17 @@ export function JournalPreview({
                 }}
               />
             ))}
+            
+            {/* Add Text Box Button */}
+            {!isDrawingMode && (
+              <button
+                className="absolute bottom-4 right-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full p-2 shadow-lg z-50"
+                onClick={handleAddTextBox}
+                title="Add Text Box"
+              >
+                <Plus size={20} />
+              </button>
+            )}
           </div>
         </div>
       </div>
