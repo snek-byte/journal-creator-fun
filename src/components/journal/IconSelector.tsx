@@ -77,28 +77,37 @@ export function IconSelector({ onIconSelect }: IconSelectorProps) {
 
   type CategoryKey = keyof typeof iconSets;
 
-  const convertToSVG = (IconComponent: React.FC<any>) => {
-    // Create an SVG string from the Lucide icon component
-    // Render the icon to get its SVG content
-    const element = IconComponent({});
+  const handleIconSelect = (name: string) => {
+    // Create a data URL for the icon
+    const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${iconStyle === 'color' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L15 6 21 7 17 11 18 17 12 14 6 17 7 11 3 7 9 6 12 2z"/></svg>`;
     
-    // Access the rendered SVG content safely, handling different React node types
-    let svgContent = '';
-    if (element && typeof element === 'object' && 'props' in element) {
-      svgContent = element.props?.children || '';
+    // Different SVG strings based on icon name
+    let iconSvg = '';
+    switch (name) {
+      case 'Star':
+        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${iconStyle === 'color' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+        break;
+      case 'Heart':
+        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${iconStyle === 'color' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
+        break;
+      case 'Smile':
+        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${iconStyle === 'color' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>`;
+        break;
+      case 'Sun': 
+        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${iconStyle === 'color' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+        break;
+      case 'Moon':
+        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${iconStyle === 'color' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+        break;
+      default:
+        iconSvg = svgString;
     }
     
-    const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${svgContent}</svg>`;
-    
     // Convert to a data URL
-    const encodedSvg = encodeURIComponent(svgString);
-    return `data:image/svg+xml;utf8,${encodedSvg}`;
-  };
-
-  const handleIconSelect = (IconComponent: React.FC<any>, name: string) => {
-    const svgUrl = convertToSVG(IconComponent);
-    onIconSelect({ url: svgUrl, style: iconStyle });
-    toast.success(`${name} icon added! Click and drag to position it.`);
+    const encodedSvg = encodeURIComponent(iconSvg);
+    const dataUrl = `data:image/svg+xml;utf8,${encodedSvg}`;
+    
+    onIconSelect({ url: dataUrl, style: iconStyle });
   };
 
   return (
@@ -143,10 +152,12 @@ export function IconSelector({ onIconSelect }: IconSelectorProps) {
                   <button
                     key={name}
                     className="p-1 rounded hover:bg-accent transition-colors flex flex-col items-center justify-center h-16"
-                    onClick={() => handleIconSelect(IconComponent, name)}
+                    onClick={() => handleIconSelect(name)}
                     title={name}
                   >
-                    <IconComponent className="h-8 w-8 mb-1" />
+                    <div className="h-8 w-8 mb-1 flex items-center justify-center">
+                      <IconComponent className="h-6 w-6" />
+                    </div>
                     <span className="text-[10px] text-muted-foreground truncate w-full text-center">{name}</span>
                   </button>
                 ))}

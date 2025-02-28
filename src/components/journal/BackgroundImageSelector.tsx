@@ -30,45 +30,46 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
   // Initialize Unsplash images
   useEffect(() => {
     // Create Unsplash image objects with the current refresh key
+    const timestamp = new Date().getTime();
     const images = [
       {
         id: 'nature1',
-        url: `https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80&t=${refreshKey}`,
+        url: `https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80&t=${timestamp + refreshKey}`,
         alt: 'Foggy mountains',
       },
       {
         id: 'nature2',
-        url: `https://images.unsplash.com/photo-1547471080-91f798e60c3e?auto=format&fit=crop&w=800&q=80&t=${refreshKey}`,
+        url: `https://images.unsplash.com/photo-1547471080-91f798e60c3e?auto=format&fit=crop&w=800&q=80&t=${timestamp + refreshKey}`,
         alt: 'Northern lights',
       },
       {
         id: 'nature3',
-        url: `https://images.unsplash.com/photo-1418065460487-3e41a6c84dc5?auto=format&fit=crop&w=800&q=80&t=${refreshKey}`,
+        url: `https://images.unsplash.com/photo-1418065460487-3e41a6c84dc5?auto=format&fit=crop&w=800&q=80&t=${timestamp + refreshKey}`,
         alt: 'Mountain peak',
       },
       {
         id: 'nature4',
-        url: `https://images.unsplash.com/photo-1431794062232-2a99a5431c6c?auto=format&fit=crop&w=800&q=80&t=${refreshKey}`,
+        url: `https://images.unsplash.com/photo-1431794062232-2a99a5431c6c?auto=format&fit=crop&w=800&q=80&t=${timestamp + refreshKey}`,
         alt: 'Valley view',
       },
       {
         id: 'abstract1',
-        url: `https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=800&q=80&t=${refreshKey}`,
+        url: `https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=800&q=80&t=${timestamp + refreshKey}`,
         alt: 'Abstract gradient',
       },
       {
         id: 'abstract2',
-        url: `https://images.unsplash.com/photo-1567095761054-7a02e69e5c43?auto=format&fit=crop&w=800&q=80&t=${refreshKey}`,
+        url: `https://images.unsplash.com/photo-1567095761054-7a02e69e5c43?auto=format&fit=crop&w=800&q=80&t=${timestamp + refreshKey}`,
         alt: 'Colorful waves',
       },
       {
         id: 'abstract3',
-        url: `https://images.unsplash.com/photo-1557672172-298e090bd0f1?auto=format&fit=crop&w=800&q=80&t=${refreshKey}`,
+        url: `https://images.unsplash.com/photo-1557672172-298e090bd0f1?auto=format&fit=crop&w=800&q=80&t=${timestamp + refreshKey}`,
         alt: 'Abstract colors',
       },
       {
         id: 'abstract4',
-        url: `https://images.unsplash.com/photo-1579548122080-c35fd6820ecb?auto=format&fit=crop&w=800&q=80&t=${refreshKey}`,
+        url: `https://images.unsplash.com/photo-1579548122080-c35fd6820ecb?auto=format&fit=crop&w=800&q=80&t=${timestamp + refreshKey}`,
         alt: 'Geometric pattern',
       },
     ];
@@ -82,14 +83,14 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
 
   // Paper texture backgrounds
   const paperTextures = [
-    { id: 'paper1', url: '/placeholder.svg', name: 'Classic Paper' },
-    { id: 'paper2', url: '/placeholder.svg', name: 'Vintage Paper' },
-    { id: 'paper3', url: '/placeholder.svg', name: 'Recycled Paper' },
-    { id: 'paper4', url: '/placeholder.svg', name: 'Craft Paper' },
-    { id: 'paper5', url: '/placeholder.svg', name: 'Lined Paper' },
-    { id: 'paper6', url: '/placeholder.svg', name: 'Grid Paper' },
-    { id: 'paper7', url: '/placeholder.svg', name: 'Dot Paper' },
-    { id: 'paper8', url: '/placeholder.svg', name: 'Cream Paper' },
+    { id: 'paper1', url: 'https://www.transparenttextures.com/patterns/clean-gray-paper.png', name: 'Classic Paper' },
+    { id: 'paper2', url: 'https://www.transparenttextures.com/patterns/old-paper.png', name: 'Vintage Paper' },
+    { id: 'paper3', url: 'https://www.transparenttextures.com/patterns/white-paper.png', name: 'Recycled Paper' },
+    { id: 'paper4', url: 'https://www.transparenttextures.com/patterns/light-paper-fibers.png', name: 'Craft Paper' },
+    { id: 'paper5', url: 'https://www.transparenttextures.com/patterns/notebook.png', name: 'Lined Paper' },
+    { id: 'paper6', url: 'https://www.transparenttextures.com/patterns/grid-noise.png', name: 'Grid Paper' },
+    { id: 'paper7', url: 'https://www.transparenttextures.com/patterns/subtle-white-feathers.png', name: 'Dot Paper' },
+    { id: 'paper8', url: 'https://www.transparenttextures.com/patterns/little-pluses.png', name: 'Cream Paper' },
   ];
   
   // Solid colors backgrounds
@@ -115,13 +116,18 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
 
   // Set solid color background
   const handleColorSelect = (color: string) => {
-    // Create a linear gradient with the solid color
     onBackgroundSelect(`linear-gradient(to bottom, ${color}, ${color})`);
   };
 
   // Apply gradient directly when selected
   const handleGradientSelect = (gradient: string) => {
     onBackgroundSelect(gradient);
+  };
+
+  // Handle paper texture selection
+  const handlePaperSelect = (url: string) => {
+    const backgroundWithTexture = `url("${url}") repeat, #ffffff`;
+    onBackgroundSelect(backgroundWithTexture);
   };
 
   return (
@@ -143,14 +149,17 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                 <button
                   key={paper.id}
                   className="relative overflow-hidden rounded-md border border-input hover:border-primary transition-colors"
-                  onClick={() => onBackgroundSelect(paper.url)}
+                  onClick={() => handlePaperSelect(paper.url)}
                   title={paper.name}
                 >
-                  <img 
-                    src={paper.url} 
-                    alt={paper.name}
-                    className="aspect-[4/3] object-cover w-full h-full"
-                  />
+                  <div
+                    className="aspect-[4/3] w-full h-full"
+                    style={{ 
+                      backgroundImage: `url("${paper.url}")`,
+                      backgroundRepeat: 'repeat',
+                      backgroundColor: '#ffffff'
+                    }}
+                  ></div>
                   <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-1 text-center">
                     {paper.name}
                   </div>
@@ -180,7 +189,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                 <button
                   key={image.id}
                   className="relative overflow-hidden rounded-md border border-input hover:border-primary transition-colors"
-                  onClick={() => onBackgroundSelect(image.url)}
+                  onClick={() => onBackgroundSelect(`url("${image.url}")`)}
                   title={image.alt}
                 >
                   <img 

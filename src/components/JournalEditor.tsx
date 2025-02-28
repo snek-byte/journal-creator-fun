@@ -76,14 +76,16 @@ export function JournalEditor() {
   };
 
   const handleIconAddWithId = (iconData: { url: string, style: 'outline' | 'color' }) => {
+    console.log("Adding icon with style:", iconData.style);
     const newIcon: Icon = {
       id: uuidv4(),
       url: iconData.url,
       position: { x: 50, y: 50 },
-      color: '#000000',
+      color: iconData.style === 'color' ? '#ff5555' : '#000000',
       size: 48,
       style: iconData.style
     };
+    console.log("New icon created:", newIcon);
     handleIconAdd(newIcon);
   };
 
