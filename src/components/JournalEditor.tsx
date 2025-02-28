@@ -63,7 +63,7 @@ export function JournalEditor() {
 
           <div className="mb-4">
             <DailyChallenge 
-              challenge={dailyChallenge} 
+              prompt={dailyChallenge?.prompt || ""}
               onApply={applyChallenge}
             />
           </div>
@@ -79,8 +79,8 @@ export function JournalEditor() {
           </div>
 
           <MoodSelector
-            selectedMood={currentEntry.mood}
-            onChange={setMood}
+            mood={currentEntry.mood}
+            onMoodChange={setMood}
             className="mb-4"
           />
 
@@ -104,12 +104,12 @@ export function JournalEditor() {
         <Separator />
 
         <JournalStylingControls
-          currentFont={currentEntry.font}
-          currentFontSize={currentEntry.fontSize}
-          currentFontWeight={currentEntry.fontWeight}
-          currentFontColor={currentEntry.fontColor}
-          currentGradient={currentEntry.gradient}
-          currentTextStyle={currentEntry.textStyle}
+          font={currentEntry.font}
+          fontSize={currentEntry.fontSize}
+          fontWeight={currentEntry.fontWeight}
+          fontColor={currentEntry.fontColor}
+          gradient={currentEntry.gradient}
+          textStyle={currentEntry.textStyle}
           onFontChange={setFont}
           onFontSizeChange={setFontSize}
           onFontWeightChange={setFontWeight}
@@ -177,8 +177,8 @@ export function JournalEditor() {
       />
 
       <EmailDialog 
-        isOpen={showEmailDialog}
-        onClose={() => setShowEmailDialog(false)}
+        open={showEmailDialog}
+        onOpenChange={setShowEmailDialog}
         emailAddress={emailAddress}
         onEmailChange={setEmailAddress}
         onSend={handleSendEmail}

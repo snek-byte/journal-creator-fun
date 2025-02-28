@@ -14,6 +14,10 @@ interface JournalEditorSidebarProps {
 export function JournalEditorSidebar({ onImageUpload }: JournalEditorSidebarProps) {
   const [activeTab, setActiveTab] = useState("image");
   
+  // Mock data for IconContainer since it's required by the TypeScript interface
+  const mockIcons = [];
+  const mockPosition = { x: 0, y: 0 };
+  
   return (
     <div className="w-full lg:flex lg:flex-col lg:max-w-[250px] border-r hidden print:hidden">
       <Tabs 
@@ -50,7 +54,7 @@ export function JournalEditorSidebar({ onImageUpload }: JournalEditorSidebarProp
           <p className="text-xs text-gray-500 mb-4">
             Decorate your journal with stickers
           </p>
-          <StickerSelector fullPage />
+          <StickerSelector />
         </TabsContent>
         
         <TabsContent value="icons" className="flex-grow p-4">
@@ -58,7 +62,13 @@ export function JournalEditorSidebar({ onImageUpload }: JournalEditorSidebarProp
           <p className="text-xs text-gray-500 mb-4">
             Enhance your journal with decorative icons
           </p>
-          <IconContainer />
+          <IconContainer 
+            icons={mockIcons}
+            onIconClick={() => {}}
+            onRemoveContainer={() => {}}
+            onContainerMove={() => {}}
+            containerPosition={mockPosition}
+          />
         </TabsContent>
       </Tabs>
     </div>
