@@ -80,11 +80,19 @@ export function useJournalEditor() {
 
   const handleStickerMove = (stickerId: string, position: { x: number, y: number }) => {
     try {
-      setStickers(
-        (currentEntry.stickers || []).map(s => 
-          s.id === stickerId ? { ...s, position } : s
-        )
-      );
+      // If position is off-screen, it's a deletion
+      if (position.x < -900 || position.y < -900) {
+        console.log("Removing sticker with ID:", stickerId);
+        setStickers(
+          (currentEntry.stickers || []).filter(s => s.id !== stickerId)
+        );
+      } else {
+        setStickers(
+          (currentEntry.stickers || []).map(s => 
+            s.id === stickerId ? { ...s, position } : s
+          )
+        );
+      }
     } catch (error) {
       console.error("Error moving sticker:", error);
     }

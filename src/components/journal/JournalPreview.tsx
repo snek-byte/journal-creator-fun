@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Maximize2, Trash2, Pencil, Filter, FileImage, X } from 'lucide-react';
@@ -96,6 +97,26 @@ export function JournalPreview({
     console.log("Icon selected:", selectedIconId);
   }, [selectedIconId, onIconSelect]);
 
+  // Add keyboard event listener for deletion of stickers
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (selectedStickerId && (e.key === 'Delete' || e.key === 'Backspace')) {
+        console.log("Deleting sticker via keyboard:", selectedStickerId);
+        onStickerMove(selectedStickerId, { x: -999, y: -999 });
+        setSelectedStickerId(null);
+        setShowDeleteButton(false);
+      }
+    };
+
+    if (selectedStickerId) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedStickerId, onStickerMove]);
+
   const getBackground = () => {
     if (backgroundImage && backgroundImage.startsWith('data:')) {
       return gradient;
@@ -187,6 +208,7 @@ export function JournalPreview({
     e.stopPropagation();
     
     setSelectedIconId(null);
+    setSelectedStickerId(null);
     onIconSelect(null);
     
     const previewRect = previewRef.current.getBoundingClientRect();
@@ -228,6 +250,7 @@ export function JournalPreview({
     e.stopPropagation();
     
     setSelectedIconId(null);
+    setSelectedStickerId(null);
     onIconSelect(null);
     
     const touch = e.touches[0];
@@ -280,11 +303,12 @@ export function JournalPreview({
   const handleStickerMouseDown = (e: React.MouseEvent, stickerId: string) => {
     e.stopPropagation();
     
+    // Select this sticker and deselect any icon
     setSelectedIconId(null);
     onIconSelect(null);
     
     setSelectedStickerId(stickerId);
-    setShowDeleteButton(true);
+    console.log("Sticker selected:", stickerId);
     
     const sticker = stickers.find(s => s.id === stickerId);
     if (!sticker || !previewRef.current) return;
@@ -316,6 +340,7 @@ export function JournalPreview({
 
   const handleIconSelect = (iconId: string) => {
     setSelectedIconId(iconId);
+    setSelectedStickerId(null);
     onIconSelect(iconId);
     console.log("Icon selected in JournalPreview:", iconId);
   };
@@ -334,6 +359,7 @@ export function JournalPreview({
   };
 
   const handleBackgroundClick = () => {
+    // Clicking background deselects everything
     setSelectedStickerId(null);
     setShowDeleteButton(false);
     setSelectedIconId(null);
@@ -441,10 +467,11 @@ export function JournalPreview({
                   position: 'absolute',
                 }}
                 className={`w-16 h-16 cursor-move transition-all hover:ring-2 hover:ring-primary
-                  ${selectedStickerId === sticker.id ? 'ring-2 ring-primary' : ''}
+                  ${selectedStickerId === sticker.id ? 'ring-2 ring-primary z-50' : 'z-40'}
                 `}
                 draggable={false}
                 onMouseDown={(e) => handleStickerMouseDown(e, sticker.id)}
+                tabIndex={0} // Make focusable for keyboard events
               />
             ))}
 
@@ -458,19 +485,6 @@ export function JournalPreview({
                 containerRef={previewRef}
               />
             ))}
-            
-            {selectedStickerId && showDeleteButton && !isDialog && (
-              <Button
-                variant="destructive"
-                size="sm"
-                className="absolute z-10 right-4 bottom-4"
-                onClick={handleRemoveSticker}
-                type="button"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Remove Sticker
-              </Button>
-            )}
 
             {drawing && (
               <img
