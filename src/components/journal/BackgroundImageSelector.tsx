@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageUploader } from './ImageUploader';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface BackgroundImageSelectorProps {
   onBackgroundSelect: (imageUrl: string) => void;
@@ -14,34 +15,20 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
   
   // Paper backgrounds with reliable URLs
   const paperBackgrounds = [
-    { name: "White Paper", url: "https://i.imgur.com/RmSH8r0.jpg" },
-    { name: "Kraft Paper", url: "https://i.imgur.com/0X1KZsB.jpg" },
-    { name: "Textured Paper", url: "https://i.imgur.com/5ZKxlGI.jpg" },
-    { name: "Lined Paper", url: "https://i.imgur.com/nY4y1I8.jpg" },
-    { name: "Grid Paper", url: "https://i.imgur.com/gJ5mWgP.jpg" },
-    { name: "Vintage Paper", url: "https://i.imgur.com/b7mwuAZ.jpg" },
-    { name: "Craft Paper", url: "https://i.imgur.com/XrPQCaK.jpg" },
-    { name: "Blue Paper", url: "https://i.imgur.com/ZzO8Urn.jpg" },
-    { name: "Pink Paper", url: "https://i.imgur.com/fITZsWa.jpg" },
-    { name: "Yellow Paper", url: "https://i.imgur.com/QiRmJnA.jpg" },
-    { name: "Green Paper", url: "https://i.imgur.com/KFMGVWZ.jpg" },
-    { name: "Old Parchment", url: "https://i.imgur.com/5ZKxlGI.jpg" },
+    { name: "White Paper", url: "https://images.unsplash.com/photo-1587614298172-7d8d053ac252?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
+    { name: "Kraft Paper", url: "https://images.unsplash.com/photo-1541512348353-d5b975501d4a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
+    { name: "Textured Paper", url: "https://images.unsplash.com/photo-1553773077-91673524aafa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
+    { name: "Lined Paper", url: "https://images.unsplash.com/photo-1550985543-f1ea83b216fc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
+    { name: "Grid Paper", url: "https://images.unsplash.com/photo-1604335398333-51317b5e079f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
+    { name: "Vintage Paper", url: "https://images.unsplash.com/photo-1595079356063-3f4bb547de47?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" }
   ];
   
   // Nature background images
   const natureBackgrounds = [
-    { name: "Mountains", url: "https://i.imgur.com/RdXdbXB.jpg" },
-    { name: "Beach", url: "https://i.imgur.com/JfQ9wjy.jpg" },
-    { name: "Forest", url: "https://i.imgur.com/9uXw53C.jpg" },
-    { name: "Sunset", url: "https://i.imgur.com/5PgkUWK.jpg" },
-    { name: "Waterfall", url: "https://i.imgur.com/sRKKhwd.jpg" },
-    { name: "Desert", url: "https://i.imgur.com/R8nmRj5.jpg" },
-    { name: "Lake", url: "https://i.imgur.com/d3nT4ML.jpg" },
-    { name: "Ocean", url: "https://i.imgur.com/GOGfX0k.jpg" },
-    { name: "Meadow", url: "https://i.imgur.com/uAfL4ya.jpg" },
-    { name: "Autumn", url: "https://i.imgur.com/RkRSdVl.jpg" },
-    { name: "Winter", url: "https://i.imgur.com/DnHRjVs.jpg" },
-    { name: "Spring", url: "https://i.imgur.com/KpwmpzB.jpg" },
+    { name: "Mountains", url: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
+    { name: "Beach", url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
+    { name: "Forest", url: "https://images.unsplash.com/photo-1448375240586-882707db888b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
+    { name: "Sunset", url: "https://images.unsplash.com/photo-1600073955016-50ddf9f14f3d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" }
   ];
   
   // Background gradients (not for text)
@@ -62,24 +49,56 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
 
   // Patterns and textures with reliable URLs
   const patternBackgrounds = [
-    { name: "Abstract", url: "https://i.imgur.com/tBqvnAB.jpg" },
-    { name: "Geometric", url: "https://i.imgur.com/DQZYRsT.jpg" },
-    { name: "Marble", url: "https://i.imgur.com/YHXbG5C.jpg" },
-    { name: "Wood", url: "https://i.imgur.com/0yf1xJr.jpg" },
-    { name: "Bokeh", url: "https://i.imgur.com/VGaIMu0.jpg" },
-    { name: "Watercolor", url: "https://i.imgur.com/m1eBjLe.jpg" },
-    { name: "Floral", url: "https://i.imgur.com/qJFr4Xe.jpg" },
-    { name: "Stripes", url: "https://i.imgur.com/TkwUx8E.jpg" },
-    { name: "Polka Dots", url: "https://i.imgur.com/MuVRpp3.jpg" },
-    { name: "Canvas", url: "https://i.imgur.com/uBgmMxQ.jpg" },
-    { name: "Checkerboard", url: "https://i.imgur.com/OaSnUPP.jpg" },
-    { name: "Concrete", url: "https://i.imgur.com/gX2v8In.jpg" },
+    { name: "Abstract", url: "https://images.unsplash.com/photo-1618759287629-ca51c8da5856?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
+    { name: "Geometric", url: "https://images.unsplash.com/photo-1557683311-eac922347aa1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
+    { name: "Marble", url: "https://images.unsplash.com/photo-1597773150796-e5c14ebecbf5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
+    { name: "Wood", url: "https://images.unsplash.com/photo-1566312262854-06079e1a1e6b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" }
   ];
   
   const handleBackgroundSelect = (url: string) => {
     console.log("Selected background:", url);
+    
+    // Add a random parameter to force re-render of images
+    if (url && !url.includes('linear-gradient')) {
+      const randomParam = `?random=${Math.random()}`;
+      url = url + randomParam;
+    }
+    
     onBackgroundSelect(url);
+    
+    // Show a toast notification for confirmation
+    if (url) {
+      toast.success("Background applied successfully!");
+    } else {
+      toast.info("Background removed");
+    }
   };
+  
+  // Function to check image URLs are accessible
+  const checkImageUrl = (url: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
+  };
+  
+  // Pre-load images to check availability
+  useState(() => {
+    const allImageUrls = [
+      ...paperBackgrounds,
+      ...natureBackgrounds,
+      ...patternBackgrounds
+    ].map(bg => bg.url);
+    
+    allImageUrls.forEach(async (url) => {
+      const isValid = await checkImageUrl(url);
+      if (!isValid) {
+        console.warn(`Image might be inaccessible: ${url}`);
+      }
+    });
+  });
   
   return (
     <div className="space-y-2">

@@ -317,7 +317,7 @@ export function JournalPreview({
               <div
                 key={sticker.id}
                 className={`absolute cursor-move ${
-                  selectedStickerId === sticker.id ? 'ring-2 ring-primary z-40' : 'z-30'
+                  selectedStickerId === sticker.id ? 'outline outline-2 outline-primary z-40' : 'z-30'
                 }`}
                 style={{
                   left: `${sticker.position.x}%`,

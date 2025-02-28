@@ -3,7 +3,7 @@ import { useJournalEditor } from '@/hooks/useJournalEditor';
 import { JournalEditorSidebar } from './journal/JournalEditorSidebar';
 import { JournalPreview } from './journal/JournalPreview';
 import { EmailDialog } from './journal/EmailDialog';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Sticker, Icon } from '@/types/journal';
 import { toast } from "sonner";
@@ -61,6 +61,16 @@ export function JournalEditor() {
   // Sticker resize state
   const [stickerSize, setStickerSize] = useState(100);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
+
+  // Update sticker size when a new sticker is selected
+  useEffect(() => {
+    if (selectedStickerId) {
+      const sticker = currentEntry.stickers.find(s => s.id === selectedStickerId);
+      if (sticker && sticker.width) {
+        setStickerSize(sticker.width);
+      }
+    }
+  }, [selectedStickerId, currentEntry.stickers]);
 
   const handleClearDrawing = () => {
     handleDrawingChange('');
@@ -123,14 +133,6 @@ export function JournalEditor() {
   const handleStickerSelect = (id: string | null) => {
     console.log("Sticker selected:", id);
     setSelectedStickerId(id);
-    
-    // If a sticker is selected, update the size slider to match
-    if (id) {
-      const selectedSticker = currentEntry.stickers.find(s => s.id === id);
-      if (selectedSticker && selectedSticker.width) {
-        setStickerSize(selectedSticker.width);
-      }
-    }
   };
 
   console.log("Current stickers in entry:", currentEntry.stickers);

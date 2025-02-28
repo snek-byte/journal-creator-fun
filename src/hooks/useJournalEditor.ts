@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useJournalStore } from '@/store/journalStore';
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +30,8 @@ export function useJournalEditor() {
     removeIcon,
     togglePreview,
     saveEntry,
+    loadEntries,
+    loadProgress,
     loadChallenge,
     applyChallenge,
   } = useJournalStore();
@@ -103,9 +104,19 @@ export function useJournalEditor() {
   const handleStickerAdd = (sticker: Sticker) => {
     try {
       console.log("Adding sticker to journal:", sticker);
-      addSticker(sticker);
+      
+      // If this is an existing sticker (has a matching ID), treat it as an update
+      if (sticker.id && currentEntry.stickers.some(s => s.id === sticker.id)) {
+        const updatedStickers = currentEntry.stickers.map(s => 
+          s.id === sticker.id ? sticker : s
+        );
+        setStickers(updatedStickers);
+      } else {
+        // Otherwise add as a new sticker
+        addSticker(sticker);
+      }
     } catch (error) {
-      console.error("Error adding sticker:", error);
+      console.error("Error adding/updating sticker:", error);
     }
   };
 
@@ -189,6 +200,7 @@ export function useJournalEditor() {
 
   const handleBackgroundSelect = (imageUrl: string) => {
     try {
+      console.log("Setting background image to:", imageUrl);
       setBackgroundImage(imageUrl);
     } catch (error) {
       console.error("Error selecting background:", error);
