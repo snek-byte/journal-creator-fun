@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,7 +10,7 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import { JournalPreview } from "./components/journal/JournalPreview";
 import { useJournalStore } from "./store/journalStore";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const PreviewWrapper = () => {
   const location = useLocation();
@@ -64,10 +65,10 @@ const PreviewWrapper = () => {
     setSelectedIconId(null);
   };
   
-  if (!isWritePage) return null;
+  if (!isWritePage || !showPreview) return null;
   
   return (
-    <div className={showPreview ? "block" : "hidden"}>
+    <div className="fixed top-0 right-0 w-1/2 h-screen z-50 shadow-xl bg-background border-l border-border">
       <JournalPreview
         showPreview={showPreview}
         text={currentEntry.text}
