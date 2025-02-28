@@ -68,11 +68,9 @@ export function JournalEditorSidebar({
   applyChallenge,
 }: JournalEditorSidebarProps) {
   return (
-    <div className={`${
-      isDocked 
-        ? 'w-full lg:w-1/4 2xl:w-1/5 relative' 
-        : 'w-64 fixed left-0 top-0 h-screen z-10 shadow-lg'
-      } p-2 border-r bg-white print:hidden overflow-y-auto h-full transition-all duration-300`}>
+    <div className={`${isDocked ? 'w-full lg:w-1/4 2xl:w-1/5' : 'w-64'} p-2 border-r bg-white print:hidden overflow-y-auto h-full ${
+      !isDocked ? 'absolute left-0 top-0 z-10 shadow-lg transition-all duration-300 transform' : ''
+    }`}>
       <div className="flex justify-end mb-0.5">
         <Button
           onClick={toggleDocked}

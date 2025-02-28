@@ -72,7 +72,7 @@ export function JournalEditor() {
         isSending={isSending}
       />
 
-      <div className="flex-1">
+      <div className={`flex-1 ${!isDocked ? 'ml-64' : ''}`}>
         <JournalPreview
           showPreview={showPreview}
           text={currentEntry.text}
