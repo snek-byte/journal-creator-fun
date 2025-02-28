@@ -69,7 +69,6 @@ export function JournalPreview({
 }: JournalPreviewProps) {
   const previewRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
-  const dialogTextRef = useRef<HTMLDivElement>(null);
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [isTextDragging, setIsTextDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -126,40 +125,31 @@ export function JournalPreview({
     }
   };
 
-  // Updated text dragging handling with more explicit logging
-  const handleTextMouseDown = (e: React.MouseEvent, isDialogText = false) => {
-    const element = isDialogText ? dialogTextRef.current : textRef.current;
-    const container = isDialogText ? e.currentTarget.closest('.dialog-content') : previewRef.current;
-    
-    if (!element || !container) {
-      console.log('Missing elements for dragging', { element, container });
-      return;
-    }
+  // Text dragging functionality - only for the main preview
+  const handleTextMouseDown = (e: React.MouseEvent) => {
+    if (!textRef.current || !previewRef.current) return;
     
     e.preventDefault();
     e.stopPropagation();
     
-    const rect = element.getBoundingClientRect();
+    const rect = textRef.current.getBoundingClientRect();
     const offsetX = e.clientX - rect.left;
     const offsetY = e.clientY - rect.top;
     
-    console.log('Starting text drag', { offsetX, offsetY });
     setDragOffset({ x: offsetX, y: offsetY });
     setIsTextDragging(true);
     
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isTextDragging || !container) return;
+      if (!isTextDragging || !previewRef.current) return;
       
-      const containerRect = container.getBoundingClientRect();
-      const x = ((e.clientX - containerRect.left - dragOffset.x) / containerRect.width) * 100;
-      const y = ((e.clientY - containerRect.top - dragOffset.y) / containerRect.height) * 100;
+      const previewRect = previewRef.current.getBoundingClientRect();
+      const x = ((e.clientX - previewRect.left - dragOffset.x) / previewRect.width) * 100;
+      const y = ((e.clientY - previewRect.top - dragOffset.y) / previewRect.height) * 100;
       
-      console.log('Moving text', { x, y });
       onTextMove({ x, y });
     };
     
     const handleMouseUp = () => {
-      console.log('Text drag ended');
       setIsTextDragging(false);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
@@ -169,35 +159,29 @@ export function JournalPreview({
     window.addEventListener('mouseup', handleMouseUp);
   };
 
-  const handleTextTouchStart = (e: React.TouchEvent, isDialogText = false) => {
-    const element = isDialogText ? dialogTextRef.current : textRef.current;
-    const container = isDialogText ? e.currentTarget.closest('.dialog-content') : previewRef.current;
-    
-    if (!element || !container) return;
+  const handleTextTouchStart = (e: React.TouchEvent) => {
+    if (!textRef.current || !previewRef.current) return;
     
     const touch = e.touches[0];
-    const rect = element.getBoundingClientRect();
+    const rect = textRef.current.getBoundingClientRect();
     const offsetX = touch.clientX - rect.left;
     const offsetY = touch.clientY - rect.top;
     
-    console.log('Starting text touch drag', { offsetX, offsetY });
     setDragOffset({ x: offsetX, y: offsetY });
     setIsTextDragging(true);
     
     const handleTouchMove = (e: TouchEvent) => {
-      if (!isTextDragging || !container) return;
+      if (!isTextDragging || !previewRef.current) return;
       
       const touch = e.touches[0];
-      const containerRect = container.getBoundingClientRect();
-      const x = ((touch.clientX - containerRect.left - dragOffset.x) / containerRect.width) * 100;
-      const y = ((touch.clientY - containerRect.top - dragOffset.y) / containerRect.height) * 100;
+      const previewRect = previewRef.current.getBoundingClientRect();
+      const x = ((touch.clientX - previewRect.left - dragOffset.x) / previewRect.width) * 100;
+      const y = ((touch.clientY - previewRect.top - dragOffset.y) / previewRect.height) * 100;
       
-      console.log('Moving text (touch)', { x, y });
       onTextMove({ x, y });
     };
     
     const handleTouchEnd = () => {
-      console.log('Text touch drag ended');
       setIsTextDragging(false);
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
@@ -302,37 +286,55 @@ export function JournalPreview({
     }
     onDrawingChange(dataUrl);
   };
-  
-  // Rendering the text element with proper dragging behavior
-  const renderText = (isDialogText = false) => {
-    const ref = isDialogText ? dialogTextRef : textRef;
-    
-    return (
-      <div
-        ref={ref}
-        style={{
-          fontFamily: font,
-          fontSize,
-          fontWeight,
-          color: fontColor,
-          left: `${textPosition.x}%`,
-          top: `${textPosition.y}%`,
-          position: 'absolute',
-          maxWidth: '80%',
-          zIndex: 10,
-        }}
-        className={`whitespace-pre-wrap p-6 cursor-move select-none transition-colors rounded-lg
-          ${isTextDragging ? 'bg-black/5 ring-2 ring-primary/30' : 'hover:bg-black/5'}
-        `}
-        onMouseDown={(e) => handleTextMouseDown(e, isDialogText)}
-        onTouchStart={(e) => handleTextTouchStart(e, isDialogText)}
-      >
-        {textStyle && textStyle !== 'normal' 
-          ? applyTextStyle(text || "Start writing your journal entry...", textStyle as any) 
-          : (text || "Start writing your journal entry...")}
-      </div>
-    );
-  };
+
+  // Render regular preview text (draggable)
+  const renderDraggableText = () => (
+    <div
+      ref={textRef}
+      style={{
+        fontFamily: font,
+        fontSize,
+        fontWeight,
+        color: fontColor,
+        left: `${textPosition.x}%`,
+        top: `${textPosition.y}%`,
+        position: 'absolute',
+        maxWidth: '80%',
+        zIndex: 10,
+      }}
+      className={`whitespace-pre-wrap p-6 cursor-move select-none transition-colors rounded-lg
+        ${isTextDragging ? 'bg-black/5 ring-2 ring-primary/30' : 'hover:bg-black/5'}
+      `}
+      onMouseDown={handleTextMouseDown}
+      onTouchStart={handleTextTouchStart}
+    >
+      {textStyle && textStyle !== 'normal' 
+        ? applyTextStyle(text || "Start writing your journal entry...", textStyle as any) 
+        : (text || "Start writing your journal entry...")}
+    </div>
+  );
+
+  // Render expanded dialog text (not draggable)
+  const renderStaticText = () => (
+    <div
+      style={{
+        fontFamily: font,
+        fontSize,
+        fontWeight,
+        color: fontColor,
+        left: `${textPosition.x}%`,
+        top: `${textPosition.y}%`,
+        position: 'absolute',
+        maxWidth: '80%',
+        zIndex: 10,
+      }}
+      className="whitespace-pre-wrap p-6 select-none rounded-lg"
+    >
+      {textStyle && textStyle !== 'normal' 
+        ? applyTextStyle(text || "Start writing your journal entry...", textStyle as any) 
+        : (text || "Start writing your journal entry...")}
+    </div>
+  );
 
   // Function to render the journal content (text, stickers, icons, etc.)
   const renderJournalContent = (isDialog = false) => {
@@ -355,8 +357,8 @@ export function JournalPreview({
         
         {!isDrawingMode && (
           <>
-            {/* Render text with dragging capabilities */}
-            {renderText(isDialog)}
+            {/* Render either draggable or static text based on whether we're in the dialog */}
+            {isDialog ? renderStaticText() : renderDraggableText()}
             
             {stickers.map((sticker) => (
               <img
