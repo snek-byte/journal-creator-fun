@@ -22,6 +22,7 @@ export function JournalEditor() {
     handleTextMove,
     handleBackgroundSelect,
     handleDrawingChange,
+    handleFilterChange,
     handleEmojiSelect,
     handleSendEmail,
     setShowEmailDialog,
@@ -82,6 +83,7 @@ export function JournalEditor() {
         textPosition={currentEntry.textPosition || { x: 50, y: 50 }}
         backgroundImage={currentEntry.backgroundImage}
         drawing={currentEntry.drawing}
+        filter={currentEntry.filter}
         onStickerAdd={handleStickerAdd}
         onIconAdd={handleIconAdd}
         onStickerMove={handleStickerMove}
@@ -90,6 +92,7 @@ export function JournalEditor() {
         onTextMove={handleTextMove}
         onBackgroundSelect={handleBackgroundSelect}
         onDrawingChange={handleDrawingChange}
+        onFilterChange={handleFilterChange}
         onTogglePreview={togglePreview}
       />
     </div>

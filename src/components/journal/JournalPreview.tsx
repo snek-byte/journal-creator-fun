@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { StickerSelector } from './StickerSelector';
 import { IconSelector } from './IconSelector';
 import { BackgroundImageSelector } from './BackgroundImageSelector';
+import { ImageFilterSelector } from './ImageFilterSelector';
 import { DrawingLayer } from './DrawingLayer';
 
 interface JournalPreviewProps {
@@ -26,6 +27,7 @@ interface JournalPreviewProps {
   textPosition: { x: number, y: number };
   backgroundImage?: string;
   drawing?: string;
+  filter?: string;
   onStickerAdd: (sticker: Sticker) => void;
   onIconAdd: (icon: Icon) => void;
   onStickerMove: (stickerId: string, position: { x: number, y: number }) => void;
@@ -34,6 +36,7 @@ interface JournalPreviewProps {
   onTextMove: (position: { x: number, y: number }) => void;
   onBackgroundSelect: (url: string) => void;
   onDrawingChange: (dataUrl: string) => void;
+  onFilterChange: (filter: string) => void;
   onTogglePreview: () => void;
 }
 
@@ -52,6 +55,7 @@ export function JournalPreview({
   textPosition,
   backgroundImage,
   drawing,
+  filter = 'none',
   onStickerAdd,
   onIconAdd,
   onStickerMove,
@@ -60,6 +64,7 @@ export function JournalPreview({
   onTextMove,
   onBackgroundSelect,
   onDrawingChange,
+  onFilterChange,
   onTogglePreview
 }: JournalPreviewProps) {
   const previewRef = useRef<HTMLDivElement>(null);
@@ -87,6 +92,39 @@ export function JournalPreview({
       return `url(${backgroundImage})`;
     }
     return gradient;
+  };
+
+  const getFilterStyle = () => {
+    switch(filter) {
+      case 'none':
+        return '';
+      case 'sepia':
+        return 'sepia(80%)';
+      case 'grayscale':
+        return 'grayscale(100%)';
+      case 'saturate':
+        return 'saturate(200%)';
+      case 'warm':
+        return 'brightness(110%) saturate(120%) hue-rotate(10deg)';
+      case 'cool':
+        return 'brightness(105%) saturate(80%) hue-rotate(-10deg)';
+      case 'dramatic':
+        return 'contrast(130%) brightness(90%)';
+      case 'vintage':
+        return 'sepia(50%) contrast(110%) brightness(90%)';
+      case 'duotone':
+        // Simulating duotone with a semi-transparent gradient overlay
+        return 'contrast(120%) brightness(90%)';
+      case 'invert':
+        return 'invert(100%)';
+      case 'blur':
+        return 'blur(1px) brightness(105%)';
+      case 'pixelate':
+        // Can't do real pixelation with CSS filters, but we can approximate the look
+        return 'contrast(130%) brightness(110%) saturate(130%)';
+      default:
+        return '';
+    }
   };
 
   const handleTextMouseDown = (e: React.MouseEvent) => {
@@ -286,6 +324,10 @@ export function JournalPreview({
         <StickerSelector onStickerSelect={handleStickerAdd} />
         <IconSelector onIconSelect={handleIconAdd} />
         <BackgroundImageSelector onImageSelect={onBackgroundSelect} />
+        <ImageFilterSelector 
+          onFilterSelect={onFilterChange}
+          currentFilter={filter}
+        />
         <Button
           onClick={toggleDrawingMode}
           variant={isDrawingMode ? "secondary" : "ghost"}
@@ -318,7 +360,7 @@ export function JournalPreview({
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   backgroundRepeat: 'no-repeat',
-                  height: '100%',
+                  filter: getFilterStyle(),
                 }}
                 className="w-full h-full rounded-lg overflow-hidden shadow-lg"
               >
@@ -339,6 +381,7 @@ export function JournalPreview({
             backgroundRepeat: 'no-repeat',
             WebkitPrintColorAdjust: 'exact',
             printColorAdjust: 'exact',
+            filter: getFilterStyle(),
           }}
           className="w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn print:shadow-none print:rounded-none print:min-h-screen relative"
           onClick={handleBackgroundClick}

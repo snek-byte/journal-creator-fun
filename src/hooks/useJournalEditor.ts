@@ -25,6 +25,7 @@ export function useJournalEditor() {
     setTextPosition,
     setBackgroundImage,
     setDrawing,
+    setFilter,
     addSticker,
     addIcon,
     updateIcon,
@@ -130,6 +131,14 @@ export function useJournalEditor() {
     }
   };
 
+  const handleFilterChange = (filterId: string) => {
+    try {
+      setFilter(filterId);
+    } catch (error) {
+      console.error("Error applying filter:", error);
+    }
+  };
+
   const handleEmojiSelect = (emojiData: EmojiClickData) => {
     try {
       if (!textareaRef.current) return;
@@ -213,6 +222,7 @@ export function useJournalEditor() {
     handleTextMove,
     handleBackgroundSelect,
     handleDrawingChange,
+    handleFilterChange,
     handleEmojiSelect,
     handleSendEmail,
     setShowEmailDialog,
