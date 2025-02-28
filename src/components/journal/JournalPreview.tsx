@@ -28,12 +28,15 @@ interface JournalPreviewProps {
   backgroundImage?: string;
   drawing?: string;
   filter?: string;
+  isDraggingText?: boolean;
   onStickerAdd: (sticker: StickerType) => void;
   onIconAdd: (icon: Icon) => void;
   onStickerMove: (stickerId: string, position: { x: number, y: number }) => void;
   onIconMove: (iconId: string, position: { x: number, y: number }) => void;
   onIconUpdate: (iconId: string, updates: Partial<Icon>) => void;
   onTextMove: (position: { x: number, y: number }) => void;
+  onTextDragStart?: () => void;
+  onTextDragEnd?: () => void;
   onBackgroundSelect: (url: string) => void;
   onDrawingChange: (dataUrl: string) => void;
   onFilterChange: (filter: string) => void;
@@ -56,12 +59,15 @@ export function JournalPreview({
   backgroundImage,
   drawing,
   filter = 'none',
+  isDraggingText = false,
   onStickerAdd,
   onIconAdd,
   onIconMove,
   onIconUpdate,
   onStickerMove,
   onTextMove,
+  onTextDragStart = () => {},
+  onTextDragEnd = () => {},
   onBackgroundSelect,
   onDrawingChange,
   onFilterChange,
@@ -70,13 +76,12 @@ export function JournalPreview({
   const previewRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const [isDrawingMode, setIsDrawingMode] = useState(false);
-  const [isTextDragging, setIsTextDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const [showIconControls, setShowIconControls] = useState(false);
   const [iconSize, setIconSize] = useState<number>(48);
+  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     if (selectedIconId) {
@@ -125,70 +130,89 @@ export function JournalPreview({
     }
   };
 
-  // Text dragging functionality - only for the main preview
+  // Text element mouse and touch event handlers
   const handleTextMouseDown = (e: React.MouseEvent) => {
-    if (!textRef.current || !previewRef.current) return;
-    
+    if (!previewRef.current || !textRef.current || isDrawingMode) return;
     e.preventDefault();
     e.stopPropagation();
     
-    const rect = textRef.current.getBoundingClientRect();
-    const offsetX = e.clientX - rect.left;
-    const offsetY = e.clientY - rect.top;
+    const previewRect = previewRef.current.getBoundingClientRect();
+    const textRect = textRef.current.getBoundingClientRect();
     
-    setDragOffset({ x: offsetX, y: offsetY });
-    setIsTextDragging(true);
+    // Calculate the offset from the cursor to the top-left of the text element
+    const offsetX = e.clientX - textRect.left;
+    const offsetY = e.clientY - textRect.top;
     
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isTextDragging || !previewRef.current) return;
+    setDragStartPos({ x: offsetX, y: offsetY });
+    onTextDragStart();
+    
+    const onMouseMove = (e: MouseEvent) => {
+      if (!previewRef.current) return;
       
       const previewRect = previewRef.current.getBoundingClientRect();
-      const x = ((e.clientX - previewRect.left - dragOffset.x) / previewRect.width) * 100;
-      const y = ((e.clientY - previewRect.top - dragOffset.y) / previewRect.height) * 100;
       
-      onTextMove({ x, y });
+      // Calculate the new position as a percentage of the container
+      const newX = ((e.clientX - previewRect.left - dragStartPos.x) / previewRect.width) * 100;
+      const newY = ((e.clientY - previewRect.top - dragStartPos.y) / previewRect.height) * 100;
+      
+      // Ensure position stays within bounds (0-100%)
+      const boundedX = Math.max(0, Math.min(100, newX));
+      const boundedY = Math.max(0, Math.min(100, newY));
+      
+      onTextMove({ x: boundedX, y: boundedY });
     };
     
-    const handleMouseUp = () => {
-      setIsTextDragging(false);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+    const onMouseUp = () => {
+      onTextDragEnd();
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
     };
     
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
   };
-
+  
   const handleTextTouchStart = (e: React.TouchEvent) => {
-    if (!textRef.current || !previewRef.current) return;
+    if (!previewRef.current || !textRef.current || isDrawingMode) return;
+    e.preventDefault();
+    e.stopPropagation();
     
     const touch = e.touches[0];
-    const rect = textRef.current.getBoundingClientRect();
-    const offsetX = touch.clientX - rect.left;
-    const offsetY = touch.clientY - rect.top;
+    const previewRect = previewRef.current.getBoundingClientRect();
+    const textRect = textRef.current.getBoundingClientRect();
     
-    setDragOffset({ x: offsetX, y: offsetY });
-    setIsTextDragging(true);
+    // Calculate the offset from the touch to the top-left of the text element
+    const offsetX = touch.clientX - textRect.left;
+    const offsetY = touch.clientY - textRect.top;
     
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!isTextDragging || !previewRef.current) return;
+    setDragStartPos({ x: offsetX, y: offsetY });
+    onTextDragStart();
+    
+    const onTouchMove = (e: TouchEvent) => {
+      if (!previewRef.current) return;
       
       const touch = e.touches[0];
       const previewRect = previewRef.current.getBoundingClientRect();
-      const x = ((touch.clientX - previewRect.left - dragOffset.x) / previewRect.width) * 100;
-      const y = ((touch.clientY - previewRect.top - dragOffset.y) / previewRect.height) * 100;
       
-      onTextMove({ x, y });
+      // Calculate the new position as a percentage of the container
+      const newX = ((touch.clientX - previewRect.left - dragStartPos.x) / previewRect.width) * 100;
+      const newY = ((touch.clientY - previewRect.top - dragStartPos.y) / previewRect.height) * 100;
+      
+      // Ensure position stays within bounds (0-100%)
+      const boundedX = Math.max(0, Math.min(100, newX));
+      const boundedY = Math.max(0, Math.min(100, newY));
+      
+      onTextMove({ x: boundedX, y: boundedY });
     };
     
-    const handleTouchEnd = () => {
-      setIsTextDragging(false);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleTouchEnd);
+    const onTouchEnd = () => {
+      onTextDragEnd();
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', onTouchEnd);
     };
     
-    window.addEventListener('touchmove', handleTouchMove);
-    window.addEventListener('touchend', handleTouchEnd);
+    document.addEventListener('touchmove', onTouchMove);
+    document.addEventListener('touchend', onTouchEnd);
   };
 
   const handleStickerAdd = (sticker: StickerType) => {
@@ -287,55 +311,6 @@ export function JournalPreview({
     onDrawingChange(dataUrl);
   };
 
-  // Render regular preview text (draggable)
-  const renderDraggableText = () => (
-    <div
-      ref={textRef}
-      style={{
-        fontFamily: font,
-        fontSize,
-        fontWeight,
-        color: fontColor,
-        left: `${textPosition.x}%`,
-        top: `${textPosition.y}%`,
-        position: 'absolute',
-        maxWidth: '80%',
-        zIndex: 10,
-      }}
-      className={`whitespace-pre-wrap p-6 cursor-move select-none transition-colors rounded-lg
-        ${isTextDragging ? 'bg-black/5 ring-2 ring-primary/30' : 'hover:bg-black/5'}
-      `}
-      onMouseDown={handleTextMouseDown}
-      onTouchStart={handleTextTouchStart}
-    >
-      {textStyle && textStyle !== 'normal' 
-        ? applyTextStyle(text || "Start writing your journal entry...", textStyle as any) 
-        : (text || "Start writing your journal entry...")}
-    </div>
-  );
-
-  // Render expanded dialog text (not draggable)
-  const renderStaticText = () => (
-    <div
-      style={{
-        fontFamily: font,
-        fontSize,
-        fontWeight,
-        color: fontColor,
-        left: `${textPosition.x}%`,
-        top: `${textPosition.y}%`,
-        position: 'absolute',
-        maxWidth: '80%',
-        zIndex: 10,
-      }}
-      className="whitespace-pre-wrap p-6 select-none rounded-lg"
-    >
-      {textStyle && textStyle !== 'normal' 
-        ? applyTextStyle(text || "Start writing your journal entry...", textStyle as any) 
-        : (text || "Start writing your journal entry...")}
-    </div>
-  );
-
   // Function to render the journal content (text, stickers, icons, etc.)
   const renderJournalContent = (isDialog = false) => {
     return (
@@ -357,8 +332,31 @@ export function JournalPreview({
         
         {!isDrawingMode && (
           <>
-            {/* Render either draggable or static text based on whether we're in the dialog */}
-            {isDialog ? renderStaticText() : renderDraggableText()}
+            {/* Text content - draggable in regular preview, static in dialog */}
+            <div
+              ref={!isDialog ? textRef : undefined}
+              style={{
+                fontFamily: font,
+                fontSize,
+                fontWeight,
+                color: fontColor,
+                left: `${textPosition.x}%`,
+                top: `${textPosition.y}%`,
+                position: 'absolute',
+                maxWidth: '80%',
+                zIndex: 10,
+                cursor: isDialog ? 'default' : 'move',
+              }}
+              className={`whitespace-pre-wrap p-6 select-none transition-colors rounded-lg
+                ${isDraggingText && !isDialog ? 'bg-black/5 ring-2 ring-primary/30' : 'hover:bg-black/5'}
+              `}
+              onMouseDown={!isDialog ? handleTextMouseDown : undefined}
+              onTouchStart={!isDialog ? handleTextTouchStart : undefined}
+            >
+              {textStyle && textStyle !== 'normal' 
+                ? applyTextStyle(text || "Start writing your journal entry...", textStyle as any) 
+                : (text || "Start writing your journal entry...")}
+            </div>
             
             {stickers.map((sticker) => (
               <img

@@ -40,6 +40,7 @@ export function useJournalEditor() {
   const [isSending, setIsSending] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
+  const [isDraggingText, setIsDraggingText] = useState(false);
 
   useEffect(() => {
     try {
@@ -105,6 +106,14 @@ export function useJournalEditor() {
     } catch (error) {
       console.error("Error updating icon:", error);
     }
+  };
+
+  const handleTextDragStart = () => {
+    setIsDraggingText(true);
+  };
+
+  const handleTextDragEnd = () => {
+    setIsDraggingText(false);
   };
 
   const handleTextMove = (position: { x: number, y: number }) => {
@@ -236,6 +245,7 @@ export function useJournalEditor() {
     emailAddress,
     isSending,
     textareaRef,
+    isDraggingText,
     handlePrint,
     handleStickerAdd,
     handleIconAdd,
@@ -243,6 +253,8 @@ export function useJournalEditor() {
     handleIconMove,
     handleIconUpdate,
     handleTextMove,
+    handleTextDragStart,
+    handleTextDragEnd,
     handleBackgroundSelect,
     handleDrawingChange,
     handleFilterChange,
