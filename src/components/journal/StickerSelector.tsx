@@ -40,7 +40,7 @@ interface StoreSticker {
   title: string;
   category: string;
   keywords: string[];
-  source: 'local' | 'giphy' | 'flaticon' | 'icons8' | 'emoji';
+  source: 'local' | 'giphy' | 'flaticon' | 'icons8';
   isTransparent?: boolean;
 }
 
@@ -74,8 +74,8 @@ export function StickerSelector({
       { id: 'star', url: '/stickers/star.svg', title: 'Star', category: 'basic', keywords: ['star', 'achievement', 'award'], source: 'local', isTransparent: true },
       { id: 'heart', url: '/stickers/heart.svg', title: 'Heart', category: 'basic', keywords: ['heart', 'love', 'like'], source: 'local', isTransparent: true },
       { id: 'thumbsup', url: '/stickers/thumbsup.svg', title: 'Thumbs Up', category: 'basic', keywords: ['thumbs up', 'like', 'approval'], source: 'local', isTransparent: true },
-      { id: 'happy', url: '/stickers/happy.svg', title: 'Happy Face', category: 'emotions', keywords: ['happy', 'smile', 'emotion'], source: 'local', isTransparent: true },
-      { id: 'sad', url: '/stickers/sad.svg', title: 'Sad Face', category: 'emotions', keywords: ['sad', 'unhappy', 'emotion'], source: 'local', isTransparent: true },
+      { id: 'happy', url: '/stickers/happy.svg', title: 'Happy Face', category: 'basic', keywords: ['happy', 'smile', 'emotion'], source: 'local', isTransparent: true },
+      { id: 'sad', url: '/stickers/sad.svg', title: 'Sad Face', category: 'basic', keywords: ['sad', 'unhappy', 'emotion'], source: 'local', isTransparent: true },
       { id: 'gift', url: '/stickers/gift.svg', title: 'Gift', category: 'celebration', keywords: ['gift', 'present', 'birthday', 'celebration'], source: 'local', isTransparent: true },
       { id: 'cake', url: '/stickers/cake.svg', title: 'Cake', category: 'celebration', keywords: ['cake', 'birthday', 'celebration', 'dessert'], source: 'local', isTransparent: true },
       { id: 'camera', url: '/stickers/camera.svg', title: 'Camera', category: 'objects', keywords: ['camera', 'photo', 'picture'], source: 'local', isTransparent: true },
@@ -146,16 +146,6 @@ export function StickerSelector({
       { id: 'globe1', url: 'https://cdn-icons-png.flaticon.com/512/44/44386.png', title: 'Globe', category: 'school', keywords: ['globe', 'world', 'geography'], source: 'flaticon', isTransparent: true },
       { id: 'schoolbus1', url: 'https://cdn-icons-png.flaticon.com/512/3097/3097166.png', title: 'School Bus', category: 'school', keywords: ['school bus', 'bus', 'school'], source: 'flaticon', isTransparent: true },
       
-      // Emotions
-      { id: 'smileFace1', url: 'https://cdn-icons-png.flaticon.com/512/3129/3129282.png', title: 'Smile', category: 'emotions', keywords: ['smile', 'happy', 'emotion'], source: 'flaticon', isTransparent: true },
-      { id: 'sadFace1', url: 'https://cdn-icons-png.flaticon.com/512/3129/3129212.png', title: 'Sad', category: 'emotions', keywords: ['sad', 'unhappy', 'emotion'], source: 'flaticon', isTransparent: true },
-      { id: 'loveFace1', url: 'https://cdn-icons-png.flaticon.com/512/3129/3129285.png', title: 'Love', category: 'emotions', keywords: ['love', 'heart', 'emotion'], source: 'flaticon', isTransparent: true },
-      { id: 'coolFace1', url: 'https://cdn-icons-png.flaticon.com/512/3129/3129283.png', title: 'Cool', category: 'emotions', keywords: ['cool', 'sunglasses', 'emotion'], source: 'flaticon', isTransparent: true },
-      { id: 'angryFace1', url: 'https://cdn-icons-png.flaticon.com/512/3129/3129272.png', title: 'Angry', category: 'emotions', keywords: ['angry', 'mad', 'emotion'], source: 'flaticon', isTransparent: true },
-      { id: 'surprisedFace1', url: 'https://cdn-icons-png.flaticon.com/512/3129/3129271.png', title: 'Surprised', category: 'emotions', keywords: ['surprised', 'shocked', 'emotion'], source: 'flaticon', isTransparent: true },
-      { id: 'laughFace1', url: 'https://cdn-icons-png.flaticon.com/512/3129/3129276.png', title: 'Laugh', category: 'emotions', keywords: ['laugh', 'haha', 'emotion'], source: 'flaticon', isTransparent: true },
-      { id: 'tiredFace1', url: 'https://cdn-icons-png.flaticon.com/512/3129/3129286.png', title: 'Tired', category: 'emotions', keywords: ['tired', 'sleepy', 'emotion'], source: 'flaticon', isTransparent: true },
-      
       // Sports
       { id: 'soccer1', url: 'https://cdn-icons-png.flaticon.com/512/53/53283.png', title: 'Soccer Ball', category: 'sports', keywords: ['soccer', 'football', 'sport'], source: 'flaticon', isTransparent: true },
       { id: 'basketball1', url: 'https://cdn-icons-png.flaticon.com/512/889/889455.png', title: 'Basketball', category: 'sports', keywords: ['basketball', 'ball', 'sport'], source: 'flaticon', isTransparent: true },
@@ -187,19 +177,27 @@ export function StickerSelector({
       { id: 'camera2', url: 'https://img.icons8.com/stickers/100/null/camera.png', title: 'Camera', category: 'objects', keywords: ['camera', 'photo', 'picture'], source: 'icons8', isTransparent: true },
       { id: 'gift2', url: 'https://img.icons8.com/stickers/100/null/gift.png', title: 'Gift', category: 'objects', keywords: ['gift', 'present', 'box'], source: 'icons8', isTransparent: true },
       
-      // Emoji style stickers
-      { id: 'emoji-smile', url: 'https://em-content.zobj.net/source/skype/289/grinning-face_1f600.png', title: 'Smile', category: 'emoji', keywords: ['smile', 'happy', 'emotion'], source: 'emoji', isTransparent: true },
-      { id: 'emoji-laugh', url: 'https://em-content.zobj.net/source/skype/289/face-with-tears-of-joy_1f602.png', title: 'Laugh', category: 'emoji', keywords: ['laugh', 'joy', 'emotion'], source: 'emoji', isTransparent: true },
-      { id: 'emoji-heart-eyes', url: 'https://em-content.zobj.net/source/skype/289/smiling-face-with-heart-eyes_1f60d.png', title: 'Heart Eyes', category: 'emoji', keywords: ['love', 'heart', 'emotion'], source: 'emoji', isTransparent: true },
-      { id: 'emoji-cool', url: 'https://em-content.zobj.net/source/skype/289/smiling-face-with-sunglasses_1f60e.png', title: 'Cool', category: 'emoji', keywords: ['cool', 'sunglasses', 'emotion'], source: 'emoji', isTransparent: true },
-      { id: 'emoji-thinking', url: 'https://em-content.zobj.net/source/skype/289/thinking-face_1f914.png', title: 'Thinking', category: 'emoji', keywords: ['thinking', 'thought', 'emotion'], source: 'emoji', isTransparent: true },
-      { id: 'emoji-party', url: 'https://em-content.zobj.net/source/skype/289/partying-face_1f973.png', title: 'Party', category: 'emoji', keywords: ['party', 'celebration', 'emotion'], source: 'emoji', isTransparent: true },
-      { id: 'emoji-fire', url: 'https://em-content.zobj.net/source/skype/289/fire_1f525.png', title: 'Fire', category: 'emoji', keywords: ['fire', 'hot', 'flame'], source: 'emoji', isTransparent: true },
-      { id: 'emoji-heart', url: 'https://em-content.zobj.net/source/skype/289/red-heart_2764-fe0f.png', title: 'Heart', category: 'emoji', keywords: ['heart', 'love', 'romance'], source: 'emoji', isTransparent: true },
-      { id: 'emoji-rainbow', url: 'https://em-content.zobj.net/source/skype/289/rainbow_1f308.png', title: 'Rainbow', category: 'emoji', keywords: ['rainbow', 'colors', 'nature'], source: 'emoji', isTransparent: true },
-      { id: 'emoji-star', url: 'https://em-content.zobj.net/source/skype/289/star_2b50.png', title: 'Star', category: 'emoji', keywords: ['star', 'night', 'sky'], source: 'emoji', isTransparent: true },
-      { id: 'emoji-cake', url: 'https://em-content.zobj.net/source/skype/289/birthday-cake_1f382.png', title: 'Cake', category: 'emoji', keywords: ['cake', 'birthday', 'celebration'], source: 'emoji', isTransparent: true },
-      { id: 'emoji-gift', url: 'https://em-content.zobj.net/source/skype/289/wrapped-gift_1f381.png', title: 'Gift', category: 'emoji', keywords: ['gift', 'present', 'celebration'], source: 'emoji', isTransparent: true },
+      // Beautiful artistic stickers from reliable sources
+      { id: 'watercolor-flower1', url: 'https://i.imgur.com/cqLXdgK.png', title: 'Watercolor Flower', category: 'artistic', keywords: ['flower', 'watercolor', 'art'], source: 'artistic', isTransparent: true },
+      { id: 'watercolor-leaf1', url: 'https://i.imgur.com/9FVlJcE.png', title: 'Watercolor Leaf', category: 'artistic', keywords: ['leaf', 'watercolor', 'art'], source: 'artistic', isTransparent: true },
+      { id: 'watercolor-butterfly', url: 'https://i.imgur.com/f0wMk1g.png', title: 'Watercolor Butterfly', category: 'artistic', keywords: ['butterfly', 'watercolor', 'insect'], source: 'artistic', isTransparent: true },
+      { id: 'watercolor-feather', url: 'https://i.imgur.com/LpKjjZ6.png', title: 'Watercolor Feather', category: 'artistic', keywords: ['feather', 'watercolor', 'art'], source: 'artistic', isTransparent: true },
+      { id: 'watercolor-bird', url: 'https://i.imgur.com/7DT7KDw.png', title: 'Watercolor Bird', category: 'artistic', keywords: ['bird', 'watercolor', 'animal'], source: 'artistic', isTransparent: true },
+      { id: 'gold-star', url: 'https://i.imgur.com/4KZS6JY.png', title: 'Gold Star', category: 'artistic', keywords: ['star', 'gold', 'award'], source: 'artistic', isTransparent: true },
+      { id: 'gold-heart', url: 'https://i.imgur.com/j7lXAdU.png', title: 'Gold Heart', category: 'artistic', keywords: ['heart', 'gold', 'love'], source: 'artistic', isTransparent: true },
+      { id: 'gold-crown', url: 'https://i.imgur.com/dlZM9OM.png', title: 'Gold Crown', category: 'artistic', keywords: ['crown', 'gold', 'royal'], source: 'artistic', isTransparent: true },
+      { id: 'boho-arrow', url: 'https://i.imgur.com/eXEW2PV.png', title: 'Boho Arrow', category: 'artistic', keywords: ['arrow', 'boho', 'tribal'], source: 'artistic', isTransparent: true },
+      { id: 'boho-feather', url: 'https://i.imgur.com/vJ9qbBw.png', title: 'Boho Feather', category: 'artistic', keywords: ['feather', 'boho', 'tribal'], source: 'artistic', isTransparent: true },
+      { id: 'boho-dreamcatcher', url: 'https://i.imgur.com/FHe0h4L.png', title: 'Dreamcatcher', category: 'artistic', keywords: ['dreamcatcher', 'boho', 'tribal'], source: 'artistic', isTransparent: true },
+      { id: 'watercolor-succulent', url: 'https://i.imgur.com/tNHXdYr.png', title: 'Watercolor Succulent', category: 'artistic', keywords: ['succulent', 'watercolor', 'plant'], source: 'artistic', isTransparent: true },
+      { id: 'watercolor-rose', url: 'https://i.imgur.com/UQ7UKux.png', title: 'Watercolor Rose', category: 'artistic', keywords: ['rose', 'watercolor', 'flower'], source: 'artistic', isTransparent: true },
+      { id: 'watercolor-moon', url: 'https://i.imgur.com/I8PQnlj.png', title: 'Watercolor Moon', category: 'artistic', keywords: ['moon', 'watercolor', 'night'], source: 'artistic', isTransparent: true },
+      { id: 'watercolor-planet', url: 'https://i.imgur.com/o6wGb72.png', title: 'Watercolor Planet', category: 'artistic', keywords: ['planet', 'watercolor', 'space'], source: 'artistic', isTransparent: true },
+      { id: 'botanical-leaf', url: 'https://i.imgur.com/NQnx4sk.png', title: 'Botanical Leaf', category: 'artistic', keywords: ['leaf', 'botanical', 'plant'], source: 'artistic', isTransparent: true },
+      { id: 'botanical-branch', url: 'https://i.imgur.com/PVbVgZ8.png', title: 'Botanical Branch', category: 'artistic', keywords: ['branch', 'botanical', 'plant'], source: 'artistic', isTransparent: true },
+      { id: 'botanical-fern', url: 'https://i.imgur.com/xQrMJYG.png', title: 'Botanical Fern', category: 'artistic', keywords: ['fern', 'botanical', 'plant'], source: 'artistic', isTransparent: true },
+      { id: 'crystal-amethyst', url: 'https://i.imgur.com/FhqXVfA.png', title: 'Amethyst Crystal', category: 'artistic', keywords: ['crystal', 'amethyst', 'gem'], source: 'artistic', isTransparent: true },
+      { id: 'crystal-rose-quartz', url: 'https://i.imgur.com/tF0mOlZ.png', title: 'Rose Quartz', category: 'artistic', keywords: ['crystal', 'rose quartz', 'gem'], source: 'artistic', isTransparent: true },
     ];
     
     setAllStickers(prevStickers => {
@@ -279,7 +277,7 @@ export function StickerSelector({
     }
     
     // Filter by search query (if not empty and we're not already searching via API)
-    if (searchQuery && (sticker.source === 'local' || sticker.source === 'flaticon' || sticker.source === 'icons8' || sticker.source === 'emoji')) {
+    if (searchQuery && (sticker.source === 'local' || sticker.source === 'flaticon' || sticker.source === 'icons8' || sticker.source === 'artistic')) {
       return sticker.keywords.some(keyword => 
         keyword.toLowerCase().includes(searchQuery.toLowerCase())
       ) || sticker.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -373,7 +371,7 @@ export function StickerSelector({
       <Tabs defaultValue="all" value={selectedCategory} onValueChange={setSelectedCategory}>
         <TabsList className="grid grid-cols-4 mb-2">
           <TabsTrigger value="all" className="text-[10px]">All</TabsTrigger>
-          <TabsTrigger value="emotions" className="text-[10px]">Emotions</TabsTrigger>
+          <TabsTrigger value="artistic" className="text-[10px]">Artistic</TabsTrigger>
           <TabsTrigger value="animals" className="text-[10px]">Animals</TabsTrigger>
           <TabsTrigger value="nature" className="text-[10px]">Nature</TabsTrigger>
         </TabsList>
@@ -381,7 +379,7 @@ export function StickerSelector({
         <TabsList className="grid grid-cols-4 mb-2">
           <TabsTrigger value="food" className="text-[10px]">Food</TabsTrigger>
           <TabsTrigger value="travel" className="text-[10px]">Travel</TabsTrigger>
-          <TabsTrigger value="emoji" className="text-[10px]">Emoji</TabsTrigger>
+          <TabsTrigger value="fantasy" className="text-[10px]">Fantasy</TabsTrigger>
           <TabsTrigger value="giphy" className="text-[10px]">Giphy</TabsTrigger>
         </TabsList>
         
@@ -439,7 +437,7 @@ export function StickerSelector({
                 Found {filteredStickers.length} stickers
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Stickers provided by Giphy, Icons8, Flaticon, and Emoji
+                Stickers from multiple high-quality sources
               </p>
             </div>
           )}

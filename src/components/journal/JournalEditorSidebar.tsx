@@ -100,6 +100,7 @@ export function JournalEditorSidebar({
   currentEntry,
   dailyChallenge,
   selectedIconId,
+  selectedStickerId,
   handlePrint,
   handleEmojiSelect,
   setShowEmailDialog,
@@ -128,6 +129,8 @@ export function JournalEditorSidebar({
   onBrushSizeChange,
   currentBrushSize = 3,
   onStickerAdd,
+  onStickerResize,
+  currentStickerSize = 100,
   onIconAdd,
   onBackgroundSelect,
   onFilterChange,
@@ -213,13 +216,33 @@ export function JournalEditorSidebar({
                 onIsPublicChange={setIsPublic}
               />
               
-              <Textarea
-                ref={textareaRef}
-                placeholder="What's on your mind today?"
-                value={currentEntry.text}
-                onChange={handleTextChange}
-                className="min-h-[200px] resize-none font-normal text-base"
-              />
+              <div className="relative">
+                <Textarea
+                  ref={textareaRef}
+                  placeholder="What's on your mind today?"
+                  value={currentEntry.text}
+                  onChange={handleTextChange}
+                  className="min-h-[200px] resize-none font-normal text-base"
+                />
+                
+                {/* Emoji button integrated directly into textarea */}
+                <div className="absolute bottom-2 right-2">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                        <span role="img" aria-label="emoji" className="text-base">😊</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0" align="end" side="top">
+                      <EmojiPicker 
+                        onEmojiClick={handleEmojiSelect}
+                        width={300}
+                        height={320}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
               
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>{charCount} characters</span>
@@ -242,23 +265,6 @@ export function JournalEditorSidebar({
                 selectedIconId={selectedIconId}
               />
               
-              <div>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm" className="w-full">
-                      Add Emoji
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0" align="start">
-                    <EmojiPicker 
-                      onEmojiClick={handleEmojiSelect}
-                      width={300}
-                      height={320}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              
               <DailyChallenge
                 dailyChallenge={dailyChallenge}
                 onRefresh={loadChallenge}
@@ -279,7 +285,12 @@ export function JournalEditorSidebar({
               
               <TabsContent value="stickers" className="mt-0">
                 {onStickerAdd && (
-                  <StickerSelector onStickerSelect={onStickerAdd} />
+                  <StickerSelector 
+                    onStickerSelect={onStickerAdd} 
+                    onStickerResize={onStickerResize}
+                    currentStickerSize={currentStickerSize}
+                    selectedStickerId={selectedStickerId}
+                  />
                 )}
               </TabsContent>
               
