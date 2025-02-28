@@ -120,6 +120,7 @@ export function TextBoxComponent({
   
   const handleDragStart = () => {
     setIsDragging(true);
+    onSelect(id); // Make sure the text box is selected when dragging starts
   };
   
   const handleDragStop = (e: any, d: any) => {
@@ -201,6 +202,7 @@ export function TextBoxComponent({
     e.stopPropagation();
     if (!isDrawingMode) {
       setIsEditing(true);
+      onSelect(id);
     }
   };
   
@@ -269,11 +271,12 @@ export function TextBoxComponent({
           zIndex: selected ? zIndex + 10 : zIndex,
           pointerEvents: isDrawingMode ? 'none' : 'auto',
           opacity: isPrinting && !text ? 0 : 1, // Hide empty text boxes when printing
+          cursor: 'move'
         }}
         size={{ width: size.width, height: size.height }}
         position={calculatePosition()}
         onDragStart={handleDragStart}
-        onDrag={handleDragStart}
+        onDrag={() => setIsDragging(true)}
         onDragStop={handleDragStop}
         onResizeStop={handleStopResize}
         bounds="parent"
@@ -283,7 +286,6 @@ export function TextBoxComponent({
         }}
         enableResizing={selected && !isEditing && !isPrinting && !isDrawingMode}
         disableDragging={isEditing || isPrinting || isDrawingMode}
-        dragHandleClassName={isDragging ? undefined : "textbox-drag-handle"}
       >
         <div 
           className={cn(
@@ -321,25 +323,7 @@ export function TextBoxComponent({
             </div>
           )}
           
-          {/* Drag handle */}
-          {showControls && (
-            <div className="textbox-drag-handle absolute top-1/2 left-0 -translate-x-full -translate-y-1/2 p-2 bg-primary/70 text-primary-foreground rounded-l-sm cursor-move text-box-controls touch-none">
-              <GripVertical size={16} />
-            </div>
-          )}
-          
-          {/* Make entire box draggable on touch devices */}
-          <div 
-            className={cn(
-              "absolute inset-0 z-10",
-              isEditing || isPrinting || isDrawingMode ? "hidden" : "block"
-            )}
-            onTouchStart={() => {
-              if (!isDrawingMode) {
-                // This div makes the whole text box draggable for touch devices
-              }
-            }}
-          />
+          {/* Drag handle - not needed since the entire box is now draggable */}
           
           {isEditing ? (
             <Textarea
