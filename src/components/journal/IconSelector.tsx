@@ -68,7 +68,16 @@ export function IconSelector({ onIconSelect }: IconSelectorProps) {
 
   const convertToSVG = (IconComponent: React.FC<any>) => {
     // Create an SVG string from the Lucide icon component
-    const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${IconComponent({}).props.children}</svg>`;
+    // Render the icon to get its SVG content
+    const element = IconComponent({});
+    
+    // Access the rendered SVG content safely, handling different React node types
+    let svgContent = '';
+    if (element && typeof element === 'object' && 'props' in element) {
+      svgContent = element.props?.children || '';
+    }
+    
+    const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${svgContent}</svg>`;
     
     // Convert to a data URL
     const encodedSvg = encodeURIComponent(svgString);

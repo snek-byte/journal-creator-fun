@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sticker as StickerIcon } from "lucide-react";
 import { toast } from "sonner";
-import { v4 as uuidv4 } from 'uuid';
 import type { Sticker } from '@/types/journal';
+import { v4 as uuidv4 } from 'uuid';
 
 interface StickerSelectorProps {
   onStickerSelect: (stickerUrl: string) => void;

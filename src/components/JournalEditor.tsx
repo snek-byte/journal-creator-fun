@@ -61,8 +61,8 @@ export function JournalEditor() {
     handleDrawingChange('');
   };
 
-  // Wrapped handlers for stickers and icons to ensure they have IDs
-  const handleStickerAddWithId = (stickerUrl: string) => {
+  // Function to create a sticker object from a URL
+  const handleStickerAddFromUrl = (stickerUrl: string) => {
     const newSticker: Sticker = {
       id: uuidv4(),
       url: stickerUrl,
@@ -114,7 +114,7 @@ export function JournalEditor() {
         onClearDrawing={handleClearDrawing}
         onBrushSizeChange={setCurrentBrushSize}
         currentBrushSize={currentBrushSize}
-        onStickerAdd={handleStickerAddWithId}
+        onStickerAdd={handleStickerAddFromUrl}
         onIconAdd={handleIconAddWithId}
         onBackgroundSelect={handleBackgroundSelect}
         onFilterChange={handleFilterChange}
