@@ -13,7 +13,6 @@ import { BackgroundImageSelector } from './BackgroundImageSelector';
 import { ImageFilterSelector } from './ImageFilterSelector';
 import { DrawingLayer } from './DrawingLayer';
 import { Save, Printer, Mail, Undo, Redo, RotateCcw, Camera, Palette, ImageIcon, Pencil, Filter } from 'lucide-react';
-// Fix for emoji-mart import
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import type { Mood, Sticker, Icon } from '@/types/journal';
@@ -184,7 +183,6 @@ export function JournalEditorSidebar({
         <TabsList className="w-full mb-4">
           <TabsTrigger value="write" className="flex-1">Write</TabsTrigger>
           <TabsTrigger value="style" className="flex-1">Style</TabsTrigger>
-          <TabsTrigger value="tools" className="flex-1">Tools</TabsTrigger>
         </TabsList>
 
         <ScrollArea className="flex-1 w-full">
@@ -237,7 +235,8 @@ export function JournalEditorSidebar({
             </div>
           </TabsContent>
 
-          <TabsContent value="style" className="mt-0 space-y-4">
+          <TabsContent value="style" className="mt-0 space-y-6">
+            {/* Text Styling Section */}
             <JournalStylingControls
               font={currentEntry.font}
               fontSize={currentEntry.fontSize}
@@ -252,98 +251,100 @@ export function JournalEditorSidebar({
               onTextStyleChange={setTextStyle}
               selectedIconId={selectedIconId}
             />
-          </TabsContent>
 
-          <TabsContent value="tools" className="mt-0 space-y-4">
-            <div className="grid grid-cols-3 gap-2 mb-4">
-              <Button
-                variant={toolsTab === 'stickers' ? 'default' : 'outline'}
-                className="flex flex-col items-center py-3"
-                onClick={() => handleToolClick('stickers')}
-              >
-                <Camera className="h-5 w-5 mb-1" />
-                <span className="text-xs">Stickers</span>
-              </Button>
+            {/* Tools Section */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-semibold tracking-tight">Tools</h3>
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                <Button
+                  variant={toolsTab === 'stickers' ? 'default' : 'outline'}
+                  className="flex flex-col items-center py-2"
+                  onClick={() => handleToolClick('stickers')}
+                >
+                  <Camera className="h-4 w-4 mb-1" />
+                  <span className="text-[10px]">Stickers</span>
+                </Button>
+                
+                <Button
+                  variant={toolsTab === 'icons' ? 'default' : 'outline'}
+                  className="flex flex-col items-center py-2"
+                  onClick={() => handleToolClick('icons')}
+                >
+                  <Palette className="h-4 w-4 mb-1" />
+                  <span className="text-[10px]">Icons</span>
+                </Button>
+                
+                <Button
+                  variant={toolsTab === 'backgrounds' ? 'default' : 'outline'}
+                  className="flex flex-col items-center py-2"
+                  onClick={() => handleToolClick('backgrounds')}
+                >
+                  <ImageIcon className="h-4 w-4 mb-1" />
+                  <span className="text-[10px]">Backgrounds</span>
+                </Button>
+                
+                <Button
+                  variant={toolsTab === 'drawing' ? 'default' : 'outline'}
+                  className="flex flex-col items-center py-2"
+                  onClick={() => handleToolClick('drawing')}
+                >
+                  <Pencil className="h-4 w-4 mb-1" />
+                  <span className="text-[10px]">Drawing</span>
+                </Button>
+                
+                <Button
+                  variant={toolsTab === 'filters' ? 'default' : 'outline'}
+                  className="flex flex-col items-center py-2"
+                  onClick={() => handleToolClick('filters')}
+                >
+                  <Filter className="h-4 w-4 mb-1" />
+                  <span className="text-[10px]">Filters</span>
+                </Button>
+              </div>
               
-              <Button
-                variant={toolsTab === 'icons' ? 'default' : 'outline'}
-                className="flex flex-col items-center py-3"
-                onClick={() => handleToolClick('icons')}
-              >
-                <Palette className="h-5 w-5 mb-1" />
-                <span className="text-xs">Icons</span>
-              </Button>
+              {toolsTab === 'stickers' && handleStickerAdd && (
+                <div className="border rounded-md p-2">
+                  <h3 className="text-[10px] font-medium mb-2">Stickers</h3>
+                  <StickerSelector onStickerSelect={handleStickerAdd} />
+                </div>
+              )}
               
-              <Button
-                variant={toolsTab === 'backgrounds' ? 'default' : 'outline'}
-                className="flex flex-col items-center py-3"
-                onClick={() => handleToolClick('backgrounds')}
-              >
-                <ImageIcon className="h-5 w-5 mb-1" />
-                <span className="text-xs">Backgrounds</span>
-              </Button>
+              {toolsTab === 'icons' && handleIconAdd && handleIconUpdate && (
+                <div className="border rounded-md p-2">
+                  <h3 className="text-[10px] font-medium mb-2">Icons</h3>
+                  <IconSelector onIconSelect={handleIconAdd} />
+                </div>
+              )}
               
-              <Button
-                variant={toolsTab === 'drawing' ? 'default' : 'outline'}
-                className="flex flex-col items-center py-3"
-                onClick={() => handleToolClick('drawing')}
-              >
-                <Pencil className="h-5 w-5 mb-1" />
-                <span className="text-xs">Drawing</span>
-              </Button>
+              {toolsTab === 'backgrounds' && handleBackgroundSelect && (
+                <div className="border rounded-md p-2">
+                  <h3 className="text-[10px] font-medium mb-2">Backgrounds</h3>
+                  <BackgroundImageSelector onImageSelect={handleBackgroundSelect} />
+                </div>
+              )}
               
-              <Button
-                variant={toolsTab === 'filters' ? 'default' : 'outline'}
-                className="flex flex-col items-center py-3"
-                onClick={() => handleToolClick('filters')}
-              >
-                <Filter className="h-5 w-5 mb-1" />
-                <span className="text-xs">Filters</span>
-              </Button>
+              {toolsTab === 'drawing' && handleDrawingChange && (
+                <div className="border rounded-md p-2">
+                  <h3 className="text-[10px] font-medium mb-2">Drawing Tool</h3>
+                  <DrawingLayer 
+                    width={300} 
+                    height={300} 
+                    onDrawingChange={handleDrawingChange}
+                    initialDrawing={drawing}
+                  />
+                </div>
+              )}
+              
+              {toolsTab === 'filters' && handleFilterChange && (
+                <div className="border rounded-md p-2">
+                  <h3 className="text-[10px] font-medium mb-2">Image Filters</h3>
+                  <ImageFilterSelector 
+                    onFilterSelect={handleFilterChange} 
+                    currentFilter={currentEntry.filter || 'none'} 
+                  />
+                </div>
+              )}
             </div>
-            
-            {toolsTab === 'stickers' && handleStickerAdd && (
-              <div className="border rounded-md p-2">
-                <h3 className="text-sm font-medium mb-2">Stickers</h3>
-                <StickerSelector onStickerSelect={handleStickerAdd} />
-              </div>
-            )}
-            
-            {toolsTab === 'icons' && handleIconAdd && handleIconUpdate && (
-              <div className="border rounded-md p-2">
-                <h3 className="text-sm font-medium mb-2">Icons</h3>
-                <IconSelector onIconSelect={handleIconAdd} />
-              </div>
-            )}
-            
-            {toolsTab === 'backgrounds' && handleBackgroundSelect && (
-              <div className="border rounded-md p-2">
-                <h3 className="text-sm font-medium mb-2">Backgrounds</h3>
-                <BackgroundImageSelector onImageSelect={handleBackgroundSelect} />
-              </div>
-            )}
-            
-            {toolsTab === 'drawing' && handleDrawingChange && (
-              <div className="border rounded-md p-2">
-                <h3 className="text-sm font-medium mb-2">Drawing Tool</h3>
-                <DrawingLayer 
-                  width={300} 
-                  height={300} 
-                  onDrawingChange={handleDrawingChange}
-                  initialDrawing={drawing}
-                />
-              </div>
-            )}
-            
-            {toolsTab === 'filters' && handleFilterChange && (
-              <div className="border rounded-md p-2">
-                <h3 className="text-sm font-medium mb-2">Image Filters</h3>
-                <ImageFilterSelector 
-                  onFilterSelect={handleFilterChange} 
-                  currentFilter={currentEntry.filter || 'none'} 
-                />
-              </div>
-            )}
           </TabsContent>
         </ScrollArea>
 
