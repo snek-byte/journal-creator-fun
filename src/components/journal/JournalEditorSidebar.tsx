@@ -8,11 +8,10 @@ import { Switch } from "@/components/ui/switch";
 import { JournalStylingControls } from './JournalStylingControls';
 import { MoodSelector } from './MoodSelector';
 import { DailyChallenge } from './DailyChallenge';
-import { Save, Printer, Mail } from 'lucide-react';
+import { Save, Printer, Mail, Undo, Redo, RotateCcw } from 'lucide-react';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import type { Mood } from '@/types/journal';
 import { PopoverTrigger, Popover, PopoverContent } from '@/components/ui/popover';
-import { gradients } from './config/editorConfig';
 
 interface JournalEditorSidebarProps {
   textareaRef: React.RefObject<HTMLTextAreaElement>;
@@ -43,6 +42,11 @@ interface JournalEditorSidebarProps {
   saveEntry: () => void;
   loadChallenge: () => void;
   applyChallenge: () => void;
+  handleUndo?: () => void;
+  handleRedo?: () => void;
+  handleResetToDefault?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
 }
 
 export function JournalEditorSidebar({
@@ -65,6 +69,11 @@ export function JournalEditorSidebar({
   saveEntry,
   loadChallenge,
   applyChallenge,
+  handleUndo,
+  handleRedo,
+  handleResetToDefault,
+  canUndo = false,
+  canRedo = false,
 }: JournalEditorSidebarProps) {
   const [activeTab, setActiveTab] = useState('write');
   const [charCount, setCharCount] = useState(0);
@@ -90,11 +99,50 @@ export function JournalEditorSidebar({
 
   return (
     <aside className="w-full lg:w-1/4 border-r p-4 flex flex-col h-auto lg:h-screen min-h-[400px] bg-background">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold">Journal Editor</h2>
+        <div className="flex gap-1">
+          {handleUndo && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleUndo}
+              disabled={!canUndo}
+              title="Undo"
+            >
+              <Undo className="h-4 w-4" />
+            </Button>
+          )}
+          
+          {handleRedo && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleRedo}
+              disabled={!canRedo}
+              title="Redo"
+            >
+              <Redo className="h-4 w-4" />
+            </Button>
+          )}
+          
+          {handleResetToDefault && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleResetToDefault}
+              title="Reset to Default"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
         <TabsList className="w-full mb-4">
           <TabsTrigger value="write" className="flex-1">Write</TabsTrigger>
           <TabsTrigger value="style" className="flex-1">Style</TabsTrigger>
-          <TabsTrigger value="publish" className="flex-1">Publish</TabsTrigger>
         </TabsList>
 
         <ScrollArea className="flex-1 w-full">
@@ -160,21 +208,6 @@ export function JournalEditorSidebar({
               onTextStyleChange={setTextStyle}
               selectedIconId={selectedIconId}
             />
-          </TabsContent>
-
-          <TabsContent value="publish" className="mt-0 space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-medium">Public Entry</label>
-                <Switch 
-                  checked={currentEntry.isPublic}
-                  onCheckedChange={setIsPublic}
-                />
-              </div>
-              <p className="text-[10px] text-muted-foreground">
-                Make your entry visible to other users
-              </p>
-            </div>
           </TabsContent>
         </ScrollArea>
 

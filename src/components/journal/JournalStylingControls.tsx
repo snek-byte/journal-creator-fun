@@ -1,6 +1,6 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { fontOptions, fontSizes, fontWeights, gradients } from "./config/editorConfig";
+import { fontOptions, fontSizes, fontWeights } from "./config/editorConfig";
 import { textStyles } from "@/utils/unicodeTextStyles";
 
 interface JournalStylingControlsProps {
@@ -155,32 +155,6 @@ export function JournalStylingControls({
           </div>
         </div>
       )}
-
-      {/* Background Controls Section - Always visible */}
-      <div className="space-y-3 pt-4 border-t">
-        <h3 className="text-xs font-semibold tracking-tight">Background</h3>
-        
-        <div className="space-y-2">
-          <label className="text-[10px] font-medium">Background Gradient</label>
-          <div className="grid grid-cols-3 gap-2">
-            {gradients.slice(0, 6).map((gradientOption, index) => (
-              <button
-                key={index}
-                onClick={() => onGradientChange(gradientOption.value)}
-                className={`h-12 rounded-md overflow-hidden border transition-all ${
-                  gradient === gradientOption.value ? 'ring-2 ring-primary' : 'hover:ring-2 hover:ring-primary/50'
-                }`}
-                style={{ background: gradientOption.value }}
-                aria-label={gradientOption.label}
-              />
-            ))}
-          </div>
-        </div>
-        
-        <div className="text-[9px] text-muted-foreground">
-          <p>Use the background selector in the journal toolbar to set images or view more gradients.</p>
-        </div>
-      </div>
     </div>
   );
 }
