@@ -32,15 +32,6 @@ interface GiphySticker {
   title: string;
 }
 
-// Pixabay image interface
-interface PixabayImage {
-  id: number;
-  webformatURL: string;
-  largeImageURL: string;
-  tags: string;
-  user: string;
-}
-
 // Combined sticker interface for our component
 interface StoreSticker {
   id: string;
@@ -49,7 +40,7 @@ interface StoreSticker {
   title: string;
   category: string;
   keywords: string[];
-  source: 'local' | 'giphy' | 'pixabay' | 'unsplash' | 'flaticon';
+  source: 'local' | 'giphy' | 'flaticon' | 'icons8' | 'emoji';
   isTransparent?: boolean;
 }
 
@@ -66,12 +57,9 @@ export function StickerSelector({
   const [page, setPage] = useState(1);
   const [allStickers, setAllStickers] = useState<StoreSticker[]>([]);
   const [giphyStickers, setGiphyStickers] = useState<StoreSticker[]>([]);
-  const [pixabayImages, setPixabayImages] = useState<StoreSticker[]>([]);
   
   // API Keys (these are public API keys - free tier)
   const GIPHY_API_KEY = 'GlVGYHkr3WSBnllca54iNt0yFbjz7L65';
-  const PIXABAY_API_KEY = '36933588-c28bbd3088d23da8dad6740f4';
-  const PEXELS_API_KEY = '2VQ6S6tGK8fQS0WKF2UpXWjPCKoAp1GcjIoJCtdUDfwX5jqCPiUiLaZh';
   
   // Update local size when prop changes
   useEffect(() => {
@@ -176,6 +164,42 @@ export function StickerSelector({
       { id: 'volleyball1', url: 'https://cdn-icons-png.flaticon.com/512/2834/2834395.png', title: 'Volleyball', category: 'sports', keywords: ['volleyball', 'ball', 'sport'], source: 'flaticon', isTransparent: true },
       { id: 'trophy1', url: 'https://cdn-icons-png.flaticon.com/512/3113/3113169.png', title: 'Trophy', category: 'sports', keywords: ['trophy', 'award', 'winner'], source: 'flaticon', isTransparent: true },
       { id: 'medal1', url: 'https://cdn-icons-png.flaticon.com/512/3250/3250256.png', title: 'Medal', category: 'sports', keywords: ['medal', 'award', 'winner'], source: 'flaticon', isTransparent: true },
+      
+      // Icons8 Beautiful Stickers
+      { id: 'unicorn1', url: 'https://img.icons8.com/stickers/100/null/unicorn.png', title: 'Unicorn', category: 'fantasy', keywords: ['unicorn', 'fantasy', 'magical'], source: 'icons8', isTransparent: true },
+      { id: 'dragon1', url: 'https://img.icons8.com/stickers/100/null/dragon.png', title: 'Dragon', category: 'fantasy', keywords: ['dragon', 'fantasy', 'magical'], source: 'icons8', isTransparent: true },
+      { id: 'mermaid1', url: 'https://img.icons8.com/stickers/100/null/mermaid.png', title: 'Mermaid', category: 'fantasy', keywords: ['mermaid', 'fantasy', 'magical', 'sea'], source: 'icons8', isTransparent: true },
+      { id: 'fairy1', url: 'https://img.icons8.com/stickers/100/null/fairy.png', title: 'Fairy', category: 'fantasy', keywords: ['fairy', 'fantasy', 'magical'], source: 'icons8', isTransparent: true },
+      { id: 'wizard1', url: 'https://img.icons8.com/stickers/100/null/wizard.png', title: 'Wizard', category: 'fantasy', keywords: ['wizard', 'fantasy', 'magical'], source: 'icons8', isTransparent: true },
+      { id: 'dinosaur1', url: 'https://img.icons8.com/stickers/100/null/dinosaur.png', title: 'Dinosaur', category: 'animals', keywords: ['dinosaur', 'animal', 'prehistoric'], source: 'icons8', isTransparent: true },
+      { id: 'robot1', url: 'https://img.icons8.com/stickers/100/null/robot.png', title: 'Robot', category: 'tech', keywords: ['robot', 'technology', 'ai'], source: 'icons8', isTransparent: true },
+      { id: 'astronaut1', url: 'https://img.icons8.com/stickers/100/null/astronaut.png', title: 'Astronaut', category: 'space', keywords: ['astronaut', 'space', 'cosmos'], source: 'icons8', isTransparent: true },
+      { id: 'alien1', url: 'https://img.icons8.com/stickers/100/null/alien.png', title: 'Alien', category: 'space', keywords: ['alien', 'space', 'fantasy'], source: 'icons8', isTransparent: true },
+      { id: 'rocket1', url: 'https://img.icons8.com/stickers/100/null/rocket.png', title: 'Rocket', category: 'space', keywords: ['rocket', 'space', 'ship'], source: 'icons8', isTransparent: true },
+      { id: 'rainbow2', url: 'https://img.icons8.com/stickers/100/null/rainbow.png', title: 'Rainbow', category: 'nature', keywords: ['rainbow', 'nature', 'colorful'], source: 'icons8', isTransparent: true },
+      { id: 'cloud2', url: 'https://img.icons8.com/stickers/100/null/cloud.png', title: 'Cloud', category: 'nature', keywords: ['cloud', 'nature', 'weather'], source: 'icons8', isTransparent: true },
+      { id: 'sun2', url: 'https://img.icons8.com/stickers/100/null/sun.png', title: 'Sun', category: 'nature', keywords: ['sun', 'nature', 'weather'], source: 'icons8', isTransparent: true },
+      { id: 'moon2', url: 'https://img.icons8.com/stickers/100/null/moon.png', title: 'Moon', category: 'nature', keywords: ['moon', 'nature', 'night'], source: 'icons8', isTransparent: true },
+      { id: 'star2', url: 'https://img.icons8.com/stickers/100/null/star.png', title: 'Star', category: 'nature', keywords: ['star', 'nature', 'night'], source: 'icons8', isTransparent: true },
+      { id: 'heart2', url: 'https://img.icons8.com/stickers/100/null/like.png', title: 'Heart', category: 'emotions', keywords: ['heart', 'love', 'emotion'], source: 'icons8', isTransparent: true },
+      { id: 'crown1', url: 'https://img.icons8.com/stickers/100/null/crown.png', title: 'Crown', category: 'objects', keywords: ['crown', 'royal', 'king'], source: 'icons8', isTransparent: true },
+      { id: 'diamond1', url: 'https://img.icons8.com/stickers/100/null/diamond.png', title: 'Diamond', category: 'objects', keywords: ['diamond', 'gem', 'jewel'], source: 'icons8', isTransparent: true },
+      { id: 'camera2', url: 'https://img.icons8.com/stickers/100/null/camera.png', title: 'Camera', category: 'objects', keywords: ['camera', 'photo', 'picture'], source: 'icons8', isTransparent: true },
+      { id: 'gift2', url: 'https://img.icons8.com/stickers/100/null/gift.png', title: 'Gift', category: 'objects', keywords: ['gift', 'present', 'box'], source: 'icons8', isTransparent: true },
+      
+      // Emoji style stickers
+      { id: 'emoji-smile', url: 'https://em-content.zobj.net/source/skype/289/grinning-face_1f600.png', title: 'Smile', category: 'emoji', keywords: ['smile', 'happy', 'emotion'], source: 'emoji', isTransparent: true },
+      { id: 'emoji-laugh', url: 'https://em-content.zobj.net/source/skype/289/face-with-tears-of-joy_1f602.png', title: 'Laugh', category: 'emoji', keywords: ['laugh', 'joy', 'emotion'], source: 'emoji', isTransparent: true },
+      { id: 'emoji-heart-eyes', url: 'https://em-content.zobj.net/source/skype/289/smiling-face-with-heart-eyes_1f60d.png', title: 'Heart Eyes', category: 'emoji', keywords: ['love', 'heart', 'emotion'], source: 'emoji', isTransparent: true },
+      { id: 'emoji-cool', url: 'https://em-content.zobj.net/source/skype/289/smiling-face-with-sunglasses_1f60e.png', title: 'Cool', category: 'emoji', keywords: ['cool', 'sunglasses', 'emotion'], source: 'emoji', isTransparent: true },
+      { id: 'emoji-thinking', url: 'https://em-content.zobj.net/source/skype/289/thinking-face_1f914.png', title: 'Thinking', category: 'emoji', keywords: ['thinking', 'thought', 'emotion'], source: 'emoji', isTransparent: true },
+      { id: 'emoji-party', url: 'https://em-content.zobj.net/source/skype/289/partying-face_1f973.png', title: 'Party', category: 'emoji', keywords: ['party', 'celebration', 'emotion'], source: 'emoji', isTransparent: true },
+      { id: 'emoji-fire', url: 'https://em-content.zobj.net/source/skype/289/fire_1f525.png', title: 'Fire', category: 'emoji', keywords: ['fire', 'hot', 'flame'], source: 'emoji', isTransparent: true },
+      { id: 'emoji-heart', url: 'https://em-content.zobj.net/source/skype/289/red-heart_2764-fe0f.png', title: 'Heart', category: 'emoji', keywords: ['heart', 'love', 'romance'], source: 'emoji', isTransparent: true },
+      { id: 'emoji-rainbow', url: 'https://em-content.zobj.net/source/skype/289/rainbow_1f308.png', title: 'Rainbow', category: 'emoji', keywords: ['rainbow', 'colors', 'nature'], source: 'emoji', isTransparent: true },
+      { id: 'emoji-star', url: 'https://em-content.zobj.net/source/skype/289/star_2b50.png', title: 'Star', category: 'emoji', keywords: ['star', 'night', 'sky'], source: 'emoji', isTransparent: true },
+      { id: 'emoji-cake', url: 'https://em-content.zobj.net/source/skype/289/birthday-cake_1f382.png', title: 'Cake', category: 'emoji', keywords: ['cake', 'birthday', 'celebration'], source: 'emoji', isTransparent: true },
+      { id: 'emoji-gift', url: 'https://em-content.zobj.net/source/skype/289/wrapped-gift_1f381.png', title: 'Gift', category: 'emoji', keywords: ['gift', 'present', 'celebration'], source: 'emoji', isTransparent: true },
     ];
     
     setAllStickers(prevStickers => {
@@ -191,9 +215,6 @@ export function StickerSelector({
     
     // Load Giphy stickers
     fetchGiphyStickers('trending');
-    
-    // Load Pixabay images with transparent backgrounds
-    fetchPixabayImages('transparent');
     
   }, []);
   
@@ -242,55 +263,11 @@ export function StickerSelector({
     }
   };
   
-  // Function to fetch images from Pixabay with transparent backgrounds
-  const fetchPixabayImages = async (searchTerm: string) => {
-    setIsLoading(true);
-    try {
-      const endpoint = `https://pixabay.com/api/?key=${PIXABAY_API_KEY}&q=${encodeURIComponent(searchTerm)}&image_type=photo&per_page=50&safesearch=true`;
-      
-      const response = await fetch(endpoint);
-      const data = await response.json();
-      
-      if (data.hits && Array.isArray(data.hits)) {
-        const formattedImages: StoreSticker[] = data.hits.map((image: PixabayImage) => ({
-          id: `pixabay-${image.id}`,
-          url: image.largeImageURL,
-          thumbnailUrl: image.webformatURL,
-          title: image.tags || 'Pixabay Image',
-          category: 'pixabay',
-          keywords: image.tags ? image.tags.split(', ') : ['image'],
-          source: 'pixabay',
-          isTransparent: searchTerm === 'transparent'
-        }));
-        
-        setPixabayImages(formattedImages);
-        
-        // Add to all stickers
-        setAllStickers(prevStickers => {
-          const combinedStickers = [...prevStickers, ...formattedImages];
-          
-          // Deduplicate stickers by ID
-          const uniqueStickers = combinedStickers.filter((sticker, index, self) => 
-            index === self.findIndex(s => s.id === sticker.id)
-          );
-          
-          return uniqueStickers;
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching Pixabay images:', error);
-      toast.error('Failed to load images from Pixabay');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
   // Handle search
   const handleSearch = () => {
     if (searchQuery.trim().length < 2) return;
     
     fetchGiphyStickers(searchQuery);
-    fetchPixabayImages(searchQuery + ' transparent');
   };
   
   // Filter stickers based on search and category
@@ -302,7 +279,7 @@ export function StickerSelector({
     }
     
     // Filter by search query (if not empty and we're not already searching via API)
-    if (searchQuery && sticker.source === 'local' || sticker.source === 'flaticon') {
+    if (searchQuery && (sticker.source === 'local' || sticker.source === 'flaticon' || sticker.source === 'icons8' || sticker.source === 'emoji')) {
       return sticker.keywords.some(keyword => 
         keyword.toLowerCase().includes(searchQuery.toLowerCase())
       ) || sticker.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -404,7 +381,7 @@ export function StickerSelector({
         <TabsList className="grid grid-cols-4 mb-2">
           <TabsTrigger value="food" className="text-[10px]">Food</TabsTrigger>
           <TabsTrigger value="travel" className="text-[10px]">Travel</TabsTrigger>
-          <TabsTrigger value="sports" className="text-[10px]">Sports</TabsTrigger>
+          <TabsTrigger value="emoji" className="text-[10px]">Emoji</TabsTrigger>
           <TabsTrigger value="giphy" className="text-[10px]">Giphy</TabsTrigger>
         </TabsList>
         
@@ -462,7 +439,7 @@ export function StickerSelector({
                 Found {filteredStickers.length} stickers
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Stickers provided by Giphy, Pixabay, and Flaticon
+                Stickers provided by Giphy, Icons8, Flaticon, and Emoji
               </p>
             </div>
           )}
