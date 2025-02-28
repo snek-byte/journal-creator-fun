@@ -94,11 +94,13 @@ export function JournalPreview({
     type: "image/jpeg",
     quality: 1.0
   });
+  
+  // Store the drawing state locally
   const [localDrawing, setLocalDrawing] = useState<string>(drawing || '');
-
+  
   // Update local drawing when prop changes
   useEffect(() => {
-    if (drawing) {
+    if (drawing && drawing !== localDrawing) {
       console.log("JournalPreview: Drawing prop updated, length:", drawing.length);
       setLocalDrawing(drawing);
     }

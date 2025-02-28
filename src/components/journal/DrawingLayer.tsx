@@ -66,8 +66,6 @@ export function DrawingLayer({
           ctxRef.current.drawImage(img, 0, 0);
           console.log("DrawingLayer: Initial drawing loaded successfully");
           setHasLoaded(true);
-          // Save immediately to ensure initial drawing persists
-          setTimeout(() => saveDrawing(), 100);
         }
       };
       img.onerror = (err) => {
@@ -94,7 +92,7 @@ export function DrawingLayer({
       }
     };
     
-  }, [width, height, onDrawingChange]);
+  }, [width, height]);
 
   // Separate effect to handle initialDrawing changes
   useEffect(() => {
