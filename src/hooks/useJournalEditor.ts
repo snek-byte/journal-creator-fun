@@ -41,6 +41,7 @@ export function useJournalEditor() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
   const [isDraggingText, setIsDraggingText] = useState(false);
+  const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -108,6 +109,10 @@ export function useJournalEditor() {
     }
   };
 
+  const handleIconSelect = (iconId: string | null) => {
+    setSelectedIconId(iconId);
+  };
+
   const handleTextDragStart = () => {
     setIsDraggingText(true);
   };
@@ -172,6 +177,59 @@ export function useJournalEditor() {
       console.error("Error selecting emoji:", error);
     }
   };
+
+  // Custom handlers for font size that check if an icon is selected
+  const handleFontSizeChange = (size: string) => {
+    if (selectedIconId) {
+      // If an icon is selected, update its size based on the font size
+      // Convert font size (e.g., "16px") to a number
+      const sizeValue = parseInt(size);
+      if (!isNaN(sizeValue)) {
+        const sizeMultiplier = 3; // Make icons bigger than text
+        handleIconUpdate(selectedIconId, { size: sizeValue * sizeMultiplier });
+      }
+    } else {
+      // Normal text size change
+      setFontSize(size);
+    }
+  };
+
+  const handleFontWeightChange = (weight: string) => {
+    if (!selectedIconId) {
+      setFontWeight(weight);
+    }
+    // Icon weight not implemented - could be used for stroke width in future
+  };
+
+  const handleFontChange = (font: string) => {
+    if (!selectedIconId) {
+      setFont(font);
+    }
+    // Font doesn't apply to icons
+  };
+
+  const handleFontColorChange = (color: string) => {
+    if (selectedIconId) {
+      // If we want to change icon color in the future
+      // handleIconUpdate(selectedIconId, { color });
+    } else {
+      setFontColor(color);
+    }
+  };
+
+  const handleGradientChange = (gradient: string) => {
+    if (!selectedIconId) {
+      setGradient(gradient);
+    }
+    // Gradient doesn't apply to icons
+  }
+
+  const handleTextStyleChange = (style: string) => {
+    if (!selectedIconId) {
+      setTextStyle(style);
+    }
+    // Style doesn't apply to icons
+  }
 
   const handleImageUpload = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -246,12 +304,14 @@ export function useJournalEditor() {
     isSending,
     textareaRef,
     isDraggingText,
+    selectedIconId,
     handlePrint,
     handleStickerAdd,
     handleIconAdd,
     handleStickerMove,
     handleIconMove,
     handleIconUpdate,
+    handleIconSelect,
     handleTextMove,
     handleTextDragStart,
     handleTextDragEnd,
@@ -261,6 +321,12 @@ export function useJournalEditor() {
     handleEmojiSelect,
     handleSendEmail,
     handleImageUpload,
+    handleFontSizeChange,
+    handleFontWeightChange,
+    handleFontChange,
+    handleFontColorChange,
+    handleGradientChange,
+    handleTextStyleChange,
     setShowEmailDialog,
     setEmailAddress,
     setMood,
@@ -269,12 +335,6 @@ export function useJournalEditor() {
     togglePreview,
     saveEntry,
     applyChallenge,
-    loadChallenge,
-    setFont,
-    setFontSize,
-    setFontWeight,
-    setFontColor,
-    setGradient,
-    setTextStyle
+    loadChallenge
   };
 }

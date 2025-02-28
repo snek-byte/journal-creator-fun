@@ -34,6 +34,7 @@ interface JournalPreviewProps {
   onStickerMove: (stickerId: string, position: { x: number, y: number }) => void;
   onIconMove: (iconId: string, position: { x: number, y: number }) => void;
   onIconUpdate: (iconId: string, updates: Partial<Icon>) => void;
+  onIconSelect: (iconId: string | null) => void;
   onTextMove: (position: { x: number, y: number }) => void;
   onTextDragStart?: () => void;
   onTextDragEnd?: () => void;
@@ -64,6 +65,7 @@ export function JournalPreview({
   onIconAdd,
   onIconMove,
   onIconUpdate,
+  onIconSelect,
   onStickerMove,
   onTextMove,
   onTextDragStart = () => {},
@@ -100,6 +102,11 @@ export function JournalPreview({
       }
     }
   }, [selectedIconId, icons]);
+
+  // Propagate selected icon to parent component
+  useEffect(() => {
+    onIconSelect(selectedIconId);
+  }, [selectedIconId, onIconSelect]);
 
   const getBackground = () => {
     // For uploaded images, we'll handle them separately as positioned elements
@@ -197,6 +204,9 @@ export function JournalPreview({
     e.preventDefault();
     e.stopPropagation();
     
+    // Clear any selected icon when interacting with text
+    setSelectedIconId(null);
+    
     const previewRect = previewRef.current.getBoundingClientRect();
     const textRect = textRef.current.getBoundingClientRect();
     
@@ -237,6 +247,9 @@ export function JournalPreview({
     if (!previewRef.current || !textRef.current || isDrawingMode) return;
     e.preventDefault();
     e.stopPropagation();
+    
+    // Clear any selected icon when interacting with text
+    setSelectedIconId(null);
     
     const touch = e.touches[0];
     const previewRect = previewRef.current.getBoundingClientRect();
@@ -290,6 +303,9 @@ export function JournalPreview({
 
   const handleStickerMouseDown = (e: React.MouseEvent, stickerId: string) => {
     e.stopPropagation();
+    
+    // Clear any selected icon when interacting with stickers
+    setSelectedIconId(null);
     
     setSelectedStickerId(stickerId);
     setShowDeleteButton(true);
@@ -359,6 +375,9 @@ export function JournalPreview({
   const handleIconClick = (iconId: string) => {
     setSelectedIconId(iconId);
     setShowIconControls(true);
+    
+    // Notify parent components about the selected icon
+    onIconSelect(iconId);
   };
 
   const handleIconSizeChange = (increase: boolean) => {
@@ -368,16 +387,6 @@ export function JournalPreview({
     setIconSize(newSize);
     
     onIconUpdate(selectedIconId, { size: newSize });
-  };
-
-  const handleIconSizeSet = (newSize: number) => {
-    if (!selectedIconId) return;
-    
-    // Ensure size is within reasonable bounds
-    const boundedSize = Math.max(16, Math.min(200, newSize));
-    setIconSize(boundedSize);
-    
-    onIconUpdate(selectedIconId, { size: boundedSize });
   };
 
   const handleMoveIcon = (direction: 'left' | 'right' | 'up' | 'down') => {
@@ -424,6 +433,7 @@ export function JournalPreview({
     
     setSelectedIconId(null);
     setShowIconControls(false);
+    onIconSelect(null);
   };
 
   const handleRemoveBackgroundImage = () => {
@@ -431,10 +441,12 @@ export function JournalPreview({
   };
 
   const handleBackgroundClick = () => {
+    // Clicking background deselects everything
     setSelectedStickerId(null);
     setShowDeleteButton(false);
     setSelectedIconId(null);
     setShowIconControls(false);
+    onIconSelect(null);
   };
 
   const toggleDrawingMode = () => {
@@ -594,54 +606,20 @@ export function JournalPreview({
             
             {selectedIconId && showIconControls && !isDialog && (
               <div className="absolute z-10 right-4 bottom-4 flex flex-col gap-2">
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleRemoveIcon}
+                    type="button"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Remove Icon
+                  </Button>
+                </div>
+                
+                {/* Position controls */}
                 <div className="flex flex-col gap-2 bg-background/90 p-3 rounded-lg border shadow-sm">
-                  <div className="text-sm font-medium">Adjust Icon Size</div>
-                  
-                  {/* Size slider */}
-                  <div className="flex items-center gap-2">
-                    <MinusSquare className="w-4 h-4 text-muted-foreground" />
-                    <input
-                      type="range"
-                      min="16"
-                      max="200"
-                      value={iconSize}
-                      onChange={(e) => handleIconSizeSet(parseInt(e.target.value))}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                    />
-                    <PlusSquare className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                  
-                  {/* Size value display */}
-                  <div className="text-xs text-center text-muted-foreground">
-                    Size: {iconSize}px
-                  </div>
-                  
-                  {/* Precise size adjustment buttons */}
-                  <div className="flex justify-center gap-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleIconSizeChange(false)}
-                      type="button"
-                      className="h-7 px-2"
-                    >
-                      <MinusSquare className="w-3 h-3 mr-1" /> Smaller
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleIconSizeChange(true)}
-                      type="button"
-                      className="h-7 px-2"
-                    >
-                      <PlusSquare className="w-3 h-3 mr-1" /> Larger
-                    </Button>
-                  </div>
-                  
-                  {/* Divider */}
-                  <div className="h-px bg-border my-1"></div>
-                  
-                  {/* Position controls */}
                   <div className="text-sm font-medium">Position Controls</div>
                   <div className="grid grid-cols-3 gap-1">
                     <div></div>
@@ -689,17 +667,9 @@ export function JournalPreview({
                     <div></div>
                   </div>
                   
-                  {/* Remove button */}
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleRemoveIcon}
-                    type="button"
-                    className="mt-1"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Remove Icon
-                  </Button>
+                  <div className="text-xs text-center text-muted-foreground mt-1">
+                    Use the font size controls in the sidebar to resize this icon
+                  </div>
                 </div>
               </div>
             )}

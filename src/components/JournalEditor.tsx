@@ -13,18 +13,26 @@ export function JournalEditor() {
     emailAddress,
     isSending,
     textareaRef,
+    selectedIconId,
     handlePrint,
     handleStickerAdd,
     handleIconAdd,
     handleStickerMove,
     handleIconMove,
     handleIconUpdate,
+    handleIconSelect,
     handleTextMove,
     handleBackgroundSelect,
     handleDrawingChange,
     handleFilterChange,
     handleEmojiSelect,
     handleSendEmail,
+    handleFontSizeChange,
+    handleFontWeightChange,
+    handleFontChange,
+    handleFontColorChange,
+    handleGradientChange,
+    handleTextStyleChange,
     setShowEmailDialog,
     setEmailAddress,
     setMood,
@@ -42,18 +50,19 @@ export function JournalEditor() {
         textareaRef={textareaRef}
         currentEntry={currentEntry}
         dailyChallenge={dailyChallenge}
+        selectedIconId={selectedIconId}
         handlePrint={handlePrint}
         handleEmojiSelect={handleEmojiSelect}
         setShowEmailDialog={setShowEmailDialog}
         setText={setText}
         setMood={setMood}
         setIsPublic={setIsPublic}
-        setFont={useJournalEditor().setFont}
-        setFontSize={useJournalEditor().setFontSize}
-        setFontWeight={useJournalEditor().setFontWeight}
-        setFontColor={useJournalEditor().setFontColor}
-        setGradient={useJournalEditor().setGradient}
-        setTextStyle={useJournalEditor().setTextStyle}
+        setFont={handleFontChange}
+        setFontSize={handleFontSizeChange}
+        setFontWeight={handleFontWeightChange}
+        setFontColor={handleFontColorChange}
+        setGradient={handleGradientChange}
+        setTextStyle={handleTextStyleChange}
         saveEntry={saveEntry}
         loadChallenge={loadChallenge}
         applyChallenge={applyChallenge}
@@ -89,6 +98,7 @@ export function JournalEditor() {
         onStickerMove={handleStickerMove}
         onIconMove={handleIconMove}
         onIconUpdate={handleIconUpdate}
+        onIconSelect={handleIconSelect}
         onTextMove={handleTextMove}
         onBackgroundSelect={handleBackgroundSelect}
         onDrawingChange={handleDrawingChange}
