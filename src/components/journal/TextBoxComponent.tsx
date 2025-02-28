@@ -36,11 +36,13 @@ export function TextBoxComponent({
   const [size, setSize] = useState({ width, height });
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
   const [isPrinting, setIsPrinting] = useState(false);
-  const [localPosition, setLocalPosition] = useState(calculatePixelPosition());
+  const [localPosition, setLocalPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
   
   // Refs
   const boxRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const initializedRef = useRef(false);
   
   // Print detection
   useEffect(() => {
@@ -68,8 +70,11 @@ export function TextBoxComponent({
         };
         setContainerDimensions(newDimensions);
         
-        // Update local position when container dimensions change
-        setLocalPosition(calculatePixelPosition(newDimensions));
+        if (!initializedRef.current) {
+          // Only set initial position once when dimensions are available
+          updateLocalPosition(newDimensions);
+          initializedRef.current = true;
+        }
       }
     };
     
@@ -94,9 +99,28 @@ export function TextBoxComponent({
     setSize({ width, height });
   }, [width, height]);
   
-  // Update local position when position prop changes
+  // Update local position when position prop changes or container dimensions change
+  const updateLocalPosition = (dimensions = containerDimensions) => {
+    if (!dimensions.width || !dimensions.height || isDragging) return;
+    
+    const x = (position.x / 100) * dimensions.width;
+    const y = (position.y / 100) * dimensions.height;
+    
+    setLocalPosition({ x, y });
+  };
+  
+  // Update position when container dimensions change (but not during drag)
   useEffect(() => {
-    setLocalPosition(calculatePixelPosition());
+    if (!isDragging && initializedRef.current) {
+      updateLocalPosition();
+    }
+  }, [containerDimensions, position]);
+  
+  // Update position when position prop changes (but not during drag)
+  useEffect(() => {
+    if (!isDragging && initializedRef.current) {
+      updateLocalPosition();
+    }
   }, [position]);
   
   // Activate edit mode when the component becomes selected
@@ -121,16 +145,6 @@ export function TextBoxComponent({
       return () => clearTimeout(timer);
     }
   }, [isEditing]);
-  
-  // Calculate position in pixels based on container dimensions and percentage position
-  function calculatePixelPosition(dimensions = containerDimensions) {
-    if (!dimensions.width || !dimensions.height) return { x: 0, y: 0 };
-    
-    const x = Math.min(95, Math.max(5, position.x)) / 100 * dimensions.width;
-    const y = Math.min(95, Math.max(5, position.y)) / 100 * dimensions.height;
-    
-    return { x, y };
-  }
   
   // Text styling
   const getTextStyles = (): React.CSSProperties => {
@@ -239,22 +253,32 @@ export function TextBoxComponent({
     onRemove(id);
   };
   
+  const handleDragStart = () => {
+    setIsDragging(true);
+    handleSelect();
+  };
+  
   const handleDragStop = (e: any, d: any) => {
     if (isEditing) return;
     
-    // Update local position first
+    // First update the local position for immediate UI feedback
     setLocalPosition({ x: d.x, y: d.y });
     
     // Convert pixel position to percentage
     const containerWidth = containerDimensions.width || 1;
     const containerHeight = containerDimensions.height || 1;
     
-    // Calculate percentage position, ensuring it's within bounds (5% to 95%)
+    // Calculate percentage position with bounds
     const xPercent = Math.min(95, Math.max(5, (d.x / containerWidth) * 100));
     const yPercent = Math.min(95, Math.max(5, (d.y / containerHeight) * 100));
     
     // Update the text box position through parent component
     onUpdate(id, { position: { x: xPercent, y: yPercent } });
+    
+    // End dragging state
+    setTimeout(() => {
+      setIsDragging(false);
+    }, 0);
   };
   
   const handleStopResize = (e: any, direction: any, ref: HTMLDivElement, delta: any) => {
@@ -292,7 +316,7 @@ export function TextBoxComponent({
         }}
         size={{ width: size.width, height: size.height }}
         position={localPosition}
-        onDragStart={handleSelect}
+        onDragStart={handleDragStart}
         onDragStop={handleDragStop}
         onResizeStop={handleStopResize}
         bounds="parent"
