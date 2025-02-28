@@ -117,22 +117,21 @@ export function JournalPreview({
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsDraggingText(true);
-    setTextOffset({ x: e.clientX, y: e.clientY });
+    setTextOffset({ x: e.clientX - textPosition.x, y: e.clientY - textPosition.y });
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDraggingText || !previewRef.current) return;
 
     const rect = previewRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - textOffset.x + textPosition.x;
-    const y = e.clientY - rect.top - textOffset.y + textPosition.y;
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
 
     // Ensure position stays within bounds (0-100%)
     const boundedX = Math.max(0, Math.min(100, x));
     const boundedY = Math.max(0, Math.min(100, y));
 
     onTextMove({ x: boundedX, y: boundedY });
-    setTextOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top });
   };
 
   const handleMouseUp = () => {
@@ -143,20 +142,39 @@ export function JournalPreview({
     setIsDraggingText(false);
   };
 
+  const toggleDrawingMode = () => {
+    setIsDrawingMode(!isDrawingMode);
+  };
+
   return (
     <div className={cn("relative flex-1 overflow-hidden bg-white", className)}>
       <div
-        className="absolute inset-0 z-0"
+        className="absolute inset-0 z-0 bg-white"
         style={{
           backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           filter: filter || undefined,
         }}
-        onClick={() => onBackgroundSelect('')}
       />
 
       <div className="relative h-full w-full" ref={previewRef}>
+        {/* Control overlay buttons */}
+        <div className="absolute top-4 right-4 z-50 flex gap-2">
+          <button
+            onClick={toggleDrawingMode}
+            className={`p-2 rounded-full ${isDrawingMode ? 'bg-primary text-white' : 'bg-gray-100'}`}
+            title={isDrawingMode ? "Exit Drawing Mode" : "Enter Drawing Mode"}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+              <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+              <path d="M2 2l7.586 7.586"></path>
+              <path d="M11 11l5 5"></path>
+            </svg>
+          </button>
+        </div>
+
         {/* Stickers */}
         {stickers.map((sticker) => (
           <img
@@ -175,8 +193,8 @@ export function JournalPreview({
             draggable={false}
             onMouseDown={(e) => {
               e.stopPropagation();
-              let offsetX = e.clientX - e.currentTarget.offsetLeft;
-              let offsetY = e.clientY - e.currentTarget.offsetTop;
+              let offsetX = e.clientX - (sticker.position.x / 100) * previewRef.current!.offsetWidth;
+              let offsetY = e.clientY - (sticker.position.y / 100) * previewRef.current!.offsetHeight;
 
               const handleMouseMove = (e: MouseEvent) => {
                 if (!previewRef.current) return;
@@ -210,35 +228,35 @@ export function JournalPreview({
             selected={selectedIconId === icon.id}
             onSelect={handleIconSelect}
             onMove={onIconMove}
+            onUpdate={onIconUpdate}
             containerRef={previewRef}
           />
         ))}
 
         {/* Text Area */}
         <div
-          className="absolute z-20 break-words w-[80%] font-normal"
+          className="absolute z-20 break-words w-[80%] font-normal cursor-move"
           style={{
             left: `${textPosition.x}%`,
             top: `${textPosition.y}%`,
             transform: 'translate(-50%, -50%)',
-            fontFamily: font,
-            fontSize: fontSize,
-            fontWeight: fontWeight,
-            color: fontColor,
-            backgroundImage: gradient ? `linear-gradient(${gradient})` : 'none',
-            WebkitBackgroundClip: gradient ? 'text' : 'none',
-            WebkitTextFillColor: gradient ? 'transparent' : fontColor,
+            fontFamily: font || 'inherit',
+            fontSize: fontSize || 'inherit',
+            fontWeight: fontWeight || 'inherit',
+            color: fontColor || 'inherit',
+            backgroundImage: gradient ? `${gradient}` : 'none',
+            WebkitBackgroundClip: gradient ? 'text' : 'unset',
+            WebkitTextFillColor: gradient ? 'transparent' : 'unset',
             fontStyle: textStyle?.includes('italic') ? 'italic' : 'normal',
             textDecoration: textStyle?.includes('underline') ? 'underline' : 'none',
             textAlign: textStyle?.includes('center') ? 'center' : 'left',
-            cursor: 'move',
           }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseLeave}
         >
-          {text}
+          {text || 'Start typing to add text...'}
         </div>
       
         {/* Drawing Layer */}
@@ -250,13 +268,15 @@ export function JournalPreview({
             tool={drawingTool}
             color={drawingColor}
             brushSize={brushSize}
+            initialDrawing={drawing}
           />
         )}
       </div>
 
-      {showPreview && (
+      {/* Display existing drawing */}
+      {drawing && !isDrawingMode && (
         <img
-          src={drawing || undefined}
+          src={drawing}
           alt="Drawing"
           className="absolute inset-0 z-10 pointer-events-none"
           style={{

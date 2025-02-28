@@ -4,6 +4,8 @@ import { JournalEditorSidebar } from './journal/JournalEditorSidebar';
 import { JournalPreview } from './journal/JournalPreview';
 import { EmailDialog } from './journal/EmailDialog';
 import { useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import type { Sticker, Icon } from '@/types/journal';
 
 export function JournalEditor() {
   const {
@@ -59,6 +61,30 @@ export function JournalEditor() {
     handleDrawingChange('');
   };
 
+  // Wrapped handlers for stickers and icons to ensure they have IDs
+  const handleStickerAddWithId = (stickerUrl: string) => {
+    const newSticker: Sticker = {
+      id: uuidv4(),
+      url: stickerUrl,
+      position: { x: 50, y: 50 },
+      width: 100,
+      height: 100
+    };
+    handleStickerAdd(newSticker);
+  };
+
+  const handleIconAddWithId = (iconData: { url: string, style: 'outline' | 'color' }) => {
+    const newIcon: Icon = {
+      id: uuidv4(),
+      url: iconData.url,
+      position: { x: 50, y: 50 },
+      color: '#000000',
+      size: 48,
+      style: iconData.style
+    };
+    handleIconAdd(newIcon);
+  };
+
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
       <JournalEditorSidebar 
@@ -88,8 +114,8 @@ export function JournalEditor() {
         onClearDrawing={handleClearDrawing}
         onBrushSizeChange={setCurrentBrushSize}
         currentBrushSize={currentBrushSize}
-        onStickerAdd={handleStickerAdd}
-        onIconAdd={handleIconAdd}
+        onStickerAdd={handleStickerAddWithId}
+        onIconAdd={handleIconAddWithId}
         onBackgroundSelect={handleBackgroundSelect}
         onFilterChange={handleFilterChange}
         handleUndo={handleUndo}
