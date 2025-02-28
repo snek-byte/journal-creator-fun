@@ -192,36 +192,21 @@ export function JournalEditorSidebar({
         </TabsContent>
         
         <TabsContent value="style" className="space-y-4">
-          {selectedIconId ? (
-            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-              <h3 className="font-semibold text-amber-700 mb-2">Icon Resizing Mode</h3>
+          {selectedIconId && (
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md mb-4">
+              <h3 className="font-semibold text-amber-700 mb-1">Icon Editing Mode</h3>
+              <p className="text-sm text-amber-600 mb-1">
+                • Use the font size control to resize the selected icon
+              </p>
               <p className="text-sm text-amber-600">
-                Use the font size control below to resize the selected icon.
+                • Press the Delete key to remove the selected icon
               </p>
             </div>
-          ) : null}
+          )}
           
           <div className="space-y-4">
             <div>
-              <Label>Font</Label>
-              <Select value={currentEntry.font} onValueChange={handleChangeFont}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {fontOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label>Font Size</Label>
+              <Label>{selectedIconId ? "Icon Size" : "Font Size"}</Label>
               <Select value={currentEntry.fontSize} onValueChange={handleChangeFontSize}>
                 <SelectTrigger>
                   <SelectValue />
@@ -238,26 +223,48 @@ export function JournalEditorSidebar({
               </Select>
             </div>
             
-            <div>
-              <Label>Font Weight</Label>
-              <Select value={currentEntry.fontWeight} onValueChange={handleChangeFontWeight}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {fontWeights.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
+            {!selectedIconId && (
+              <>
+                <div>
+                  <Label>Font</Label>
+                  <Select value={currentEntry.font} onValueChange={handleChangeFont}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {fontOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label>Font Weight</Label>
+                  <Select value={currentEntry.fontWeight} onValueChange={handleChangeFontWeight}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {fontWeights.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
             
             <div>
-              <Label>Text Color</Label>
+              <Label>{selectedIconId ? "Icon Color" : "Text Color"}</Label>
               <div className="grid grid-cols-5 gap-2 mt-2">
                 {['#000000', '#FF5555', '#3B82F6', '#10B981', '#F59E0B', '#EC4899', '#8B5CF6', '#6B7280', '#FFFFFF', '#EF4444'].map(color => (
                   <div
@@ -272,27 +279,29 @@ export function JournalEditorSidebar({
               </div>
             </div>
             
-            <div>
-              <Label>Background</Label>
-              <ScrollArea className="h-40 mt-2">
-                <div className="grid grid-cols-2 gap-2">
-                  {gradients.map(gradient => (
-                    <div
-                      key={gradient.value}
-                      className={`h-14 rounded-md cursor-pointer border ${
-                        currentEntry.gradient === gradient.value ? 'ring-2 ring-primary' : 'border-gray-200'
-                      }`}
-                      style={{ background: gradient.value }}
-                      onClick={() => handleChangeGradient(gradient.value)}
-                    >
-                      <div className="p-1 bg-white/70 text-xs font-medium rounded-sm m-1 w-fit">
-                        {gradient.label}
+            {!selectedIconId && (
+              <div>
+                <Label>Background</Label>
+                <ScrollArea className="h-40 mt-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    {gradients.map(gradient => (
+                      <div
+                        key={gradient.value}
+                        className={`h-14 rounded-md cursor-pointer border ${
+                          currentEntry.gradient === gradient.value ? 'ring-2 ring-primary' : 'border-gray-200'
+                        }`}
+                        style={{ background: gradient.value }}
+                        onClick={() => handleChangeGradient(gradient.value)}
+                      >
+                        <div className="p-1 bg-white/70 text-xs font-medium rounded-sm m-1 w-fit">
+                          {gradient.label}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
             
             <JournalStylingControls 
               font={currentEntry.font}
@@ -306,6 +315,7 @@ export function JournalEditorSidebar({
               onFontColorChange={handleChangeFontColor}
               onGradientChange={handleChangeGradient}
               onTextStyleChange={handleChangeTextStyle}
+              selectedIconId={selectedIconId}
             />
           </div>
         </TabsContent>

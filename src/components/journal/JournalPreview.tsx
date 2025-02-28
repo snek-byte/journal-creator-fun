@@ -1,5 +1,4 @@
-
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Maximize2, Trash2, Pencil, Filter, FileImage, X } from 'lucide-react';
 import { moodOptions } from './config/editorConfig';
@@ -82,7 +81,6 @@ export function JournalPreview({
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
-  const [showIconControls, setShowIconControls] = useState(false);
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
   const [bgImagePosition, setBgImagePosition] = useState({ x: 50, y: 50 });
   const [isDraggingBgImage, setIsDraggingBgImage] = useState(false);
@@ -97,6 +95,23 @@ export function JournalPreview({
   useEffect(() => {
     onIconSelect(selectedIconId);
   }, [selectedIconId, onIconSelect]);
+
+  // Handler for keyboard events to delete selected icons
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIconId) {
+      // Remove the icon by moving it off-screen
+      onIconMove(selectedIconId, { x: -999, y: -999 });
+      setSelectedIconId(null);
+    }
+  }, [selectedIconId, onIconMove]);
+
+  // Setup keyboard event listeners
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleKeyDown]);
 
   const getBackground = () => {
     // For uploaded images, we'll handle them separately as positioned elements
@@ -331,14 +346,15 @@ export function JournalPreview({
     window.addEventListener('mouseup', handleMouseUp);
   };
 
+  // Handle both clicking and dragging of icons
   const handleIconMouseDown = (e: React.MouseEvent, iconId: string) => {
     e.stopPropagation();
     
-    // Select the icon first, then handle dragging
+    // First select the icon
     setSelectedIconId(iconId);
-    setShowIconControls(true);
     onIconSelect(iconId);
     
+    // Then prepare for potential drag
     const icon = icons.find(i => i.id === iconId);
     if (!icon || !previewRef.current) return;
     
@@ -348,7 +364,10 @@ export function JournalPreview({
     const offsetX = e.clientX - startX;
     const offsetY = e.clientY - startY;
     
+    let hasMoved = false;
+    
     const handleMouseMove = (e: MouseEvent) => {
+      hasMoved = true;
       if (!previewRef.current) return;
       
       const previewRect = previewRef.current.getBoundingClientRect();
@@ -359,28 +378,14 @@ export function JournalPreview({
     };
     
     const handleMouseUp = () => {
+      // If the icon was just clicked (not dragged), we keep it selected
+      // Otherwise, we've already moved it
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
     
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
-  };
-
-  const handleIconClick = (e: React.MouseEvent, iconId: string) => {
-    e.stopPropagation();
-    e.preventDefault();
-    
-    // Toggle icon selection
-    if (selectedIconId === iconId) {
-      setSelectedIconId(null);
-      setShowIconControls(false);
-      onIconSelect(null);
-    } else {
-      setSelectedIconId(iconId);
-      setShowIconControls(true);
-      onIconSelect(iconId);
-    }
   };
 
   const handleRemoveSticker = () => {
@@ -392,16 +397,6 @@ export function JournalPreview({
     setShowDeleteButton(false);
   };
 
-  const handleRemoveIcon = () => {
-    if (!selectedIconId) return;
-    
-    onIconMove(selectedIconId, { x: -999, y: -999 });
-    
-    setSelectedIconId(null);
-    setShowIconControls(false);
-    onIconSelect(null);
-  };
-
   const handleRemoveBackgroundImage = () => {
     onBackgroundSelect('');
   };
@@ -411,7 +406,6 @@ export function JournalPreview({
     setSelectedStickerId(null);
     setShowDeleteButton(false);
     setSelectedIconId(null);
-    setShowIconControls(false);
     onIconSelect(null);
   };
 
@@ -535,7 +529,8 @@ export function JournalPreview({
                   transform: 'translate(-50%, -50%)',
                   position: 'absolute',
                 }}
-                className={`group relative ${selectedIconId === icon.id ? 'z-20' : 'z-10'}`}
+                className={`relative ${selectedIconId === icon.id ? 'z-20' : 'z-10'}`}
+                tabIndex={0} // Make the icon focusable for keyboard events
               >
                 <img
                   src={icon.url}
@@ -547,10 +542,9 @@ export function JournalPreview({
                   }}
                   className={`transition-all ${
                     selectedIconId === icon.id 
-                      ? 'ring-2 ring-primary' 
-                      : 'hover:ring-2 hover:ring-primary/50'
-                  } cursor-pointer`}
-                  onClick={(e) => handleIconClick(e, icon.id)}
+                      ? 'ring-2 ring-primary-500' 
+                      : 'hover:ring-2 hover:ring-primary-300'
+                  } cursor-move`}
                   onMouseDown={(e) => handleIconMouseDown(e, icon.id)}
                   draggable={false}
                 />
@@ -567,19 +561,6 @@ export function JournalPreview({
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Remove Sticker
-              </Button>
-            )}
-            
-            {selectedIconId && showIconControls && !isDialog && (
-              <Button
-                variant="destructive"
-                size="sm"
-                className="absolute z-10 right-4 bottom-4"
-                onClick={handleRemoveIcon}
-                type="button"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Remove Icon
               </Button>
             )}
 

@@ -15,6 +15,7 @@ interface JournalStylingControlsProps {
   onFontColorChange: (value: string) => void;
   onGradientChange: (value: string) => void;
   onTextStyleChange: (value: string) => void;
+  selectedIconId?: string | null;
 }
 
 export function JournalStylingControls({
@@ -29,12 +30,25 @@ export function JournalStylingControls({
   onFontColorChange,
   onGradientChange,
   onTextStyleChange,
+  selectedIconId
 }: JournalStylingControlsProps) {
   return (
     <div className="space-y-2">
+      {selectedIconId && (
+        <div className="p-2 mb-2 bg-yellow-50 border border-yellow-200 rounded-md">
+          <p className="text-[10px] font-medium text-amber-700">
+            Icon selected: Use font size to resize or press Delete key to remove
+          </p>
+        </div>
+      )}
+      
       <div className="space-y-0.5">
         <label className="text-[10px] font-medium">Text Style</label>
-        <Select onValueChange={onTextStyleChange} defaultValue="normal">
+        <Select 
+          onValueChange={onTextStyleChange} 
+          defaultValue="normal"
+          disabled={!!selectedIconId}
+        >
           <SelectTrigger className="h-7 text-[10px]">
             <SelectValue />
           </SelectTrigger>
@@ -50,7 +64,11 @@ export function JournalStylingControls({
 
       <div className="space-y-0.5">
         <label className="text-[10px] font-medium">Font Family</label>
-        <Select value={font} onValueChange={onFontChange}>
+        <Select 
+          value={font} 
+          onValueChange={onFontChange}
+          disabled={!!selectedIconId}
+        >
           <SelectTrigger className="h-7 text-[10px]">
             <SelectValue />
           </SelectTrigger>
@@ -66,7 +84,9 @@ export function JournalStylingControls({
 
       <div className="grid grid-cols-2 gap-1.5">
         <div className="space-y-0.5">
-          <label className="text-[10px] font-medium">Font Size</label>
+          <label className="text-[10px] font-medium">
+            {selectedIconId ? "Icon Size" : "Font Size"}
+          </label>
           <Select value={fontSize} onValueChange={onFontSizeChange}>
             <SelectTrigger className="h-7 text-[10px]">
               <SelectValue />
@@ -83,7 +103,11 @@ export function JournalStylingControls({
 
         <div className="space-y-0.5">
           <label className="text-[10px] font-medium">Font Weight</label>
-          <Select value={fontWeight} onValueChange={onFontWeightChange}>
+          <Select 
+            value={fontWeight} 
+            onValueChange={onFontWeightChange}
+            disabled={!!selectedIconId}
+          >
             <SelectTrigger className="h-7 text-[10px]">
               <SelectValue />
             </SelectTrigger>
@@ -99,7 +123,9 @@ export function JournalStylingControls({
       </div>
 
       <div className="space-y-0.5">
-        <label className="text-[10px] font-medium">Font Color</label>
+        <label className="text-[10px] font-medium">
+          {selectedIconId ? "Icon Color" : "Font Color"}
+        </label>
         <input
           type="color"
           value={fontColor}
