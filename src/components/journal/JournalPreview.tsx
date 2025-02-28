@@ -1,8 +1,13 @@
 
 import React, { useState, useRef } from 'react';
+import { StickerSelector } from './StickerSelector';
+import { IconSelector } from './IconSelector';
+import { BackgroundImageSelector } from './BackgroundImageSelector';
+import { DrawingLayer } from './DrawingLayer';
+import { ImageFilterSelector } from './ImageFilterSelector';
 import { Sticker, Icon } from '@/types/journal';
 import { IconContainer } from './IconContainer';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Button } from '../ui/button';
 
 interface JournalPreviewProps {
@@ -66,7 +71,9 @@ export function JournalPreview({
   onFilterChange,
   onTogglePreview,
 }: JournalPreviewProps) {
+  const [selectedSidebarItem, setSelectedSidebarItem] = useState<'stickers' | 'icons' | 'backgrounds' | 'drawing' | 'filters' | null>(null);
   const [isDraggingText, setIsDraggingText] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [startDragPosition, setStartDragPosition] = useState({ x: 0, y: 0 });
   const [startTextPosition, setStartTextPosition] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
@@ -187,6 +194,7 @@ export function JournalPreview({
     e.stopPropagation();
     setIsDraggingText(true);
     onTextDragStart();
+    setMousePosition({ x: e.clientX, y: e.clientY });
     setStartDragPosition({ x: e.clientX, y: e.clientY });
     setStartTextPosition({ ...textPosition });
   };
@@ -215,6 +223,94 @@ export function JournalPreview({
 
   return (
     <div className="flex-grow relative flex items-center justify-center overflow-hidden">
+      {/* Sidebar tools */}
+      <div className="absolute left-0 top-0 h-full z-10 flex">
+        <div className="bg-white border-r h-full flex flex-col p-2 space-y-2 shadow-md">
+          <Button
+            variant={selectedSidebarItem === 'stickers' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => selectedSidebarItem === 'stickers' ? setSelectedSidebarItem(null) : setSelectedSidebarItem('stickers')}
+          >
+            <span className="emoji" role="img" aria-label="Camera">📷</span>
+          </Button>
+          <Button
+            variant={selectedSidebarItem === 'icons' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => selectedSidebarItem === 'icons' ? setSelectedSidebarItem(null) : setSelectedSidebarItem('icons')}
+          >
+            <span className="emoji" role="img" aria-label="Paint">🎨</span>
+          </Button>
+          <Button
+            variant={selectedSidebarItem === 'backgrounds' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => selectedSidebarItem === 'backgrounds' ? setSelectedSidebarItem(null) : setSelectedSidebarItem('backgrounds')}
+          >
+            <span className="emoji" role="img" aria-label="Frame">🖼️</span>
+          </Button>
+          <Button
+            variant={selectedSidebarItem === 'drawing' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => selectedSidebarItem === 'drawing' ? setSelectedSidebarItem(null) : setSelectedSidebarItem('drawing')}
+          >
+            <span className="emoji" role="img" aria-label="Pencil">✏️</span>
+          </Button>
+          <Button
+            variant={selectedSidebarItem === 'filters' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => selectedSidebarItem === 'filters' ? setSelectedSidebarItem(null) : setSelectedSidebarItem('filters')}
+          >
+            <span className="emoji" role="img" aria-label="Magnifying Glass">🔍</span>
+          </Button>
+        </div>
+
+        {selectedSidebarItem && (
+          <div className="bg-white border-r h-full w-64 overflow-y-auto shadow-md">
+            <div className="flex justify-between items-center p-2 border-b">
+              <h3 className="text-sm font-medium">
+                {selectedSidebarItem === 'stickers' ? 'Stickers' :
+                 selectedSidebarItem === 'icons' ? 'Icons' :
+                 selectedSidebarItem === 'backgrounds' ? 'Backgrounds' :
+                 selectedSidebarItem === 'drawing' ? 'Drawing Tool' :
+                 selectedSidebarItem === 'filters' ? 'Image Filters' : 'Tools'}
+              </h3>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setSelectedSidebarItem(null)}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="p-2">
+              {selectedSidebarItem === 'stickers' && (
+                <StickerSelector onStickerSelect={onStickerAdd} />
+              )}
+              {selectedSidebarItem === 'icons' && (
+                <IconSelector onIconSelect={onIconAdd} />
+              )}
+              {selectedSidebarItem === 'backgrounds' && (
+                <BackgroundImageSelector onImageSelect={onBackgroundSelect} />
+              )}
+              {selectedSidebarItem === 'drawing' && (
+                <DrawingLayer 
+                  width={800} 
+                  height={600} 
+                  onDrawingChange={onDrawingChange} 
+                  initialDrawing={drawing}
+                />
+              )}
+              {selectedSidebarItem === 'filters' && (
+                <ImageFilterSelector 
+                  onFilterSelect={onFilterChange} 
+                  currentFilter={filter || 'none'}
+                />
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Journal Page */}
       <div 
         ref={containerRef}
@@ -241,8 +337,8 @@ export function JournalPreview({
             }}
           ></div>
         )}
-        
-        {/* Drawing display */}
+
+        {/* Drawing layer */}
         {drawing && (
           <div 
             className="absolute inset-0 pointer-events-none"
@@ -303,7 +399,7 @@ export function JournalPreview({
           <IconContainer
             key={icon.id}
             icon={icon}
-            selected={icon.id === icons.find(i => i.id === icon.id)?.id}
+            selected={false}
             onSelect={onIconSelect}
             onMove={onIconMove}
             containerRef={containerRef}
@@ -334,7 +430,23 @@ export function JournalPreview({
         >
         </div>
 
-        {/* No mood indicator here anymore */}
+        {/* Mood indicator - using special flag-emoji class for any flags */}
+        {mood && (
+          <div className="absolute top-4 right-4 text-4xl" title={`Mood: ${mood}`}>
+            <span className="emoji">
+              {mood === 'happy' ? '😊' :
+               mood === 'sad' ? '😢' :
+               mood === 'angry' ? '😠' :
+               mood === 'excited' ? '🤩' :
+               mood === 'relaxed' ? '😌' :
+               mood === 'anxious' ? '😰' :
+               mood === 'grateful' ? '🙏' :
+               mood === 'confused' ? '😕' :
+               mood === 'stressed' ? '😫' :
+               mood === 'calm' ? '😇' : '😐'}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Toggle preview button */}
