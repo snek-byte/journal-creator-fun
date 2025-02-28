@@ -47,7 +47,10 @@ export const fontSizes = [
   { value: '20px', label: 'Large' },
   { value: '24px', label: 'X-Large' },
   { value: '32px', label: 'XX-Large' },
-  { value: '48px', label: 'Huge' }
+  { value: '48px', label: 'Huge' },
+  { value: '64px', label: 'Giant' },
+  { value: '86px', label: 'Massive' },
+  { value: '120px', label: 'Enormous' }
 ];
 
 export const fontWeights = [

@@ -83,6 +83,7 @@ export function JournalPreview({
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
+  const [isTextSelected, setIsTextSelected] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const [previewWidth, setPreviewWidth] = useState(500);
@@ -121,10 +122,20 @@ export function JournalPreview({
     handleResize();
     window.addEventListener('resize', handleResize);
 
+    // Add global click handler to deselect text when clicking outside
+    const handleGlobalClick = (e: MouseEvent) => {
+      if (textRef.current && !textRef.current.contains(e.target as Node) && isTextSelected) {
+        setIsTextSelected(false);
+      }
+    };
+
+    window.addEventListener('click', handleGlobalClick);
+
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('click', handleGlobalClick);
     };
-  }, []);
+  }, [isTextSelected]);
 
   useEffect(() => {
     if (drawing) {
@@ -135,6 +146,7 @@ export function JournalPreview({
   const handleIconSelect = (id: string) => {
     setSelectedIconId(id);
     setSelectedStickerId(null);
+    setIsTextSelected(false);
     onIconSelect(id);
     onStickerSelect(null);
   };
@@ -142,6 +154,7 @@ export function JournalPreview({
   const handleStickerSelect = (id: string) => {
     console.log(`handleStickerSelect in JournalPreview: ${id}`);
     setSelectedStickerId(id);
+    setIsTextSelected(false);
     onStickerSelect(id);
     setSelectedIconId(null);
     onIconSelect('');
@@ -153,6 +166,7 @@ export function JournalPreview({
     if (e.target === e.currentTarget || (e.target as HTMLElement).className.includes('journal-page')) {
       setSelectedStickerId(null);
       setSelectedIconId(null);
+      setIsTextSelected(false);
       onIconSelect('');
       onStickerSelect(null);
     }
@@ -251,10 +265,11 @@ export function JournalPreview({
       maxWidth: '80%',
       minHeight: '30px',
       minWidth: '100px',
-      border: '2px dashed rgba(0,0,0,0.15)',
-      borderRadius: '4px',
       userSelect: 'none',
       touchAction: 'none',
+      // Only show border when text is selected
+      border: isTextSelected ? '2px dashed rgba(59, 130, 246, 0.7)' : 'none',
+      borderRadius: '4px',
     };
     
     // If using gradient for text
@@ -394,6 +409,7 @@ export function JournalPreview({
                 e.stopPropagation();
                 setSelectedStickerId(null);
                 setSelectedIconId(null);
+                setIsTextSelected(true);
                 onIconSelect('');
                 onStickerSelect(null);
               }}

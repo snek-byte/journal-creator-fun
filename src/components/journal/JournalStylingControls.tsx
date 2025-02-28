@@ -28,6 +28,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 
 interface JournalStylingControlsProps {
   font: string;
@@ -76,13 +78,17 @@ export function JournalStylingControls({
     { name: 'Times New Roman', value: 'times-new-roman' },
   ];
   
-  // Font sizes
+  // Font sizes - Added larger sizes
   const fontSizes = [
     { name: 'Small', value: '14px' },
     { name: 'Medium', value: '16px' },
     { name: 'Large', value: '18px' },
     { name: 'X-Large', value: '24px' },
     { name: 'XX-Large', value: '32px' },
+    { name: 'Huge', value: '48px' },
+    { name: 'Giant', value: '64px' },
+    { name: 'Massive', value: '86px' },
+    { name: 'Enormous', value: '120px' },
   ];
   
   // Font weights
@@ -126,6 +132,9 @@ export function JournalStylingControls({
     value: gradient.value ? `${gradient.value.replace('to right', '45deg')} text` : ''
   }));
   
+  // Extract the numeric value from fontSize (remove 'px')
+  const currentFontSize = parseInt(fontSize) || 16;
+  
   // Color picker state
   const [pickerColor, setPickerColor] = useState(fontColor);
   
@@ -139,6 +148,12 @@ export function JournalStylingControls({
   };
 
   const handleFontSizeChange = (newSize: string) => {
+    onFontSizeChange(newSize);
+  };
+
+  // Custom font size slider handler
+  const handleFontSizeSliderChange = (value: number[]) => {
+    const newSize = `${value[0]}px`;
     onFontSizeChange(newSize);
   };
 
@@ -198,6 +213,7 @@ export function JournalStylingControls({
               </DropdownMenu>
             </div>
             
+            {/* Dropdown for preset font sizes */}
             <div className="flex justify-between items-center">
               <span className="text-xs">Font Size</span>
               <DropdownMenu>
@@ -207,7 +223,7 @@ export function JournalStylingControls({
                     size="sm" 
                     className="px-2 h-8 text-xs justify-between w-32"
                   >
-                    {fontSizes.find(s => s.value === fontSize)?.name || 'Medium'}
+                    {fontSize}
                     <ChevronDown className="h-3 w-3 ml-1" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -217,11 +233,28 @@ export function JournalStylingControls({
                       key={s.value}
                       onClick={() => handleFontSizeChange(s.value)}
                     >
-                      {s.name}
+                      {s.name} ({s.value})
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
+            </div>
+            
+            {/* Custom font size slider */}
+            <div className="space-y-2 pt-2">
+              <div className="flex justify-between items-center">
+                <Label htmlFor="font-size-slider" className="text-xs">Custom Size</Label>
+                <span className="text-xs font-medium">{currentFontSize}px</span>
+              </div>
+              <Slider 
+                id="font-size-slider"
+                min={10}
+                max={200}
+                step={1}
+                value={[currentFontSize]}
+                onValueChange={handleFontSizeSliderChange}
+                className="my-2"
+              />
             </div>
             
             <div className="flex justify-between items-center">
