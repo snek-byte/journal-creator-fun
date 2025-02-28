@@ -14,8 +14,6 @@ export function JournalEditor() {
     isSending,
     textareaRef,
     selectedIconId,
-    canUndo,
-    canRedo,
     handlePrint,
     handleStickerAdd,
     handleIconAdd,
@@ -35,9 +33,6 @@ export function JournalEditor() {
     handleFontColorChange,
     handleGradientChange,
     handleTextStyleChange,
-    handleUndo,
-    handleRedo,
-    handleReset,
     setShowEmailDialog,
     setEmailAddress,
     setMood,
@@ -71,11 +66,6 @@ export function JournalEditor() {
         saveEntry={saveEntry}
         loadChallenge={loadChallenge}
         applyChallenge={applyChallenge}
-        canUndo={canUndo}
-        canRedo={canRedo}
-        handleUndo={handleUndo}
-        handleRedo={handleRedo}
-        handleReset={handleReset}
       />
 
       <EmailDialog

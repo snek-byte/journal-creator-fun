@@ -8,12 +8,11 @@ import { Switch } from "@/components/ui/switch";
 import { JournalStylingControls } from './JournalStylingControls';
 import { MoodSelector } from './MoodSelector';
 import { DailyChallenge } from './DailyChallenge';
-import { Save, Printer, Mail, RotateCcw, Undo, Redo } from 'lucide-react';
+import { Save, Printer, Mail } from 'lucide-react';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import type { Mood } from '@/types/journal';
 import { PopoverTrigger, Popover, PopoverContent } from '@/components/ui/popover';
 import { gradients } from './config/editorConfig';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface JournalEditorSidebarProps {
   textareaRef: React.RefObject<HTMLTextAreaElement>;
@@ -44,11 +43,6 @@ interface JournalEditorSidebarProps {
   saveEntry: () => void;
   loadChallenge: () => void;
   applyChallenge: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
-  handleUndo: () => void;
-  handleRedo: () => void;
-  handleReset: () => void;
 }
 
 export function JournalEditorSidebar({
@@ -71,11 +65,6 @@ export function JournalEditorSidebar({
   saveEntry,
   loadChallenge,
   applyChallenge,
-  canUndo,
-  canRedo,
-  handleUndo,
-  handleRedo,
-  handleReset,
 }: JournalEditorSidebarProps) {
   const [activeTab, setActiveTab] = useState('write');
   const [charCount, setCharCount] = useState(0);
@@ -111,58 +100,6 @@ export function JournalEditorSidebar({
         <ScrollArea className="flex-1 w-full">
           <TabsContent value="write" className="mt-0 h-full flex flex-col gap-4">
             <div className="space-y-4">
-              <div className="flex space-x-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="icon"
-                        disabled={!canUndo}
-                        onClick={handleUndo}
-                        className="h-8 w-8"
-                      >
-                        <Undo className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Undo</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="icon"
-                        disabled={!canRedo}
-                        onClick={handleRedo}
-                        className="h-8 w-8"
-                      >
-                        <Redo className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Redo</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="icon"
-                        onClick={handleReset}
-                        className="h-8 w-8"
-                      >
-                        <RotateCcw className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Reset to blank page</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              
               <MoodSelector 
                 mood={currentEntry.mood} 
                 isPublic={currentEntry.isPublic}
