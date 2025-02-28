@@ -18,6 +18,7 @@ export function JournalEditor() {
     isSending,
     textareaRef,
     selectedIconId,
+    selectedTextBoxId,
     handlePrint,
     handleStickerAdd,
     handleIconAdd,
@@ -25,6 +26,10 @@ export function JournalEditor() {
     handleIconMove,
     handleIconUpdate,
     handleIconSelect,
+    handleTextBoxAdd,
+    handleTextBoxUpdate,
+    handleTextBoxRemove,
+    handleTextBoxSelect,
     handleTextMove,
     handleTextDragStart,
     handleTextDragEnd,
@@ -176,6 +181,7 @@ export function JournalEditor() {
         dailyChallenge={dailyChallenge}
         selectedIconId={selectedIconId}
         selectedStickerId={selectedStickerId}
+        selectedTextBoxId={selectedTextBoxId}
         handlePrint={handlePrint}
         handleEmojiSelect={handleEmojiSelect}
         setShowEmailDialog={setShowEmailDialog}
@@ -211,6 +217,7 @@ export function JournalEditor() {
         canRedo={canRedo}
         isDrawingMode={isDrawingMode}
         onDrawingModeToggle={handleDrawingModeToggle}
+        onTextBoxAdd={handleTextBoxAdd}
       />
 
       <EmailDialog
@@ -234,6 +241,7 @@ export function JournalEditor() {
         textStyle={currentEntry.textStyle}
         stickers={currentEntry.stickers || []}
         icons={currentEntry.icons || []}
+        textBoxes={currentEntry.textBoxes || []}
         textPosition={currentEntry.textPosition}
         backgroundImage={currentEntry.backgroundImage}
         drawing={currentEntry.drawing}
@@ -245,6 +253,10 @@ export function JournalEditor() {
         onIconUpdate={handleIconUpdate}
         onIconSelect={handleIconSelect}
         onStickerSelect={handleStickerSelect}
+        onTextBoxAdd={handleTextBoxAdd}
+        onTextBoxUpdate={handleTextBoxUpdate}
+        onTextBoxRemove={handleTextBoxRemove}
+        onTextBoxSelect={handleTextBoxSelect}
         onTextMove={handleTextMove}
         onTextDragStart={handleTextDragStart}
         onTextDragEnd={handleTextDragEnd}

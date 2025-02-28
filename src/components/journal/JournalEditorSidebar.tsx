@@ -1,36 +1,36 @@
-
-import React, { useState } from 'react';
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
+import React, { useRef, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DrawingTools } from './DrawingTools';
-import { JournalStylingControls } from './JournalStylingControls';
-import { MoodSelector } from './MoodSelector';
-import { StickerSelector } from './StickerSelector';
-import { IconSelector } from './IconSelector';
-import { BackgroundImageSelector } from './BackgroundImageSelector';
-import { ImageFilterSelector } from './ImageFilterSelector';
-import { DailyChallenge } from './DailyChallenge';
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { RotateCcw, RotateCw, Save, Printer, Send, ChevronDown, Undo, Redo } from "lucide-react";
-import data from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
-import type { EmojiClickData } from 'emoji-picker-react';
-import type { JournalEntry, Challenge } from '@/types/journal';
-import { ImageUploader } from './ImageUploader';
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { JournalStylingControls } from "./JournalStylingControls";
+import { DailyChallenge } from "./DailyChallenge";
+import { StickerSelector } from "./StickerSelector";
+import { IconSelector } from "./IconSelector";
+import { MoodSelector } from "./MoodSelector";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { DrawingTools } from "./DrawingTools";
+import { BackgroundImageSelector } from "./BackgroundImageSelector";
+import { ImageFilterSelector } from "./ImageFilterSelector";
+import { Undo, Redo, Save, RotateCcw, PlusCircle } from 'lucide-react';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
+import { ProgressCard } from './ProgressCard';
+import { toast } from "sonner";
+import { JournalEntry, Challenge } from '@/types/journal';
 
 interface JournalEditorSidebarProps {
-  textareaRef: React.RefObject<HTMLTextAreaElement>;
+  textareaRef?: React.RefObject<HTMLTextAreaElement>;
   currentEntry: JournalEntry;
   dailyChallenge: Challenge | null;
-  selectedIconId?: string | null;
-  selectedStickerId?: string | null;
+  selectedIconId: string | null;
+  selectedStickerId: string | null;
+  selectedTextBoxId?: string | null;
   handlePrint: () => void;
-  handleEmojiSelect: (emoji: EmojiClickData) => void;
+  handleEmojiSelect: (emojiData: EmojiClickData) => void;
   setShowEmailDialog: (show: boolean) => void;
   setText: (text: string) => void;
   setMood: (mood: any) => void;
@@ -51,19 +51,20 @@ interface JournalEditorSidebarProps {
   onClearDrawing: () => void;
   onBrushSizeChange: (size: number) => void;
   currentBrushSize: number;
-  onStickerAdd: (url: string) => void;
-  onStickerResize?: (size: number) => void;
-  currentStickerSize?: number;
-  onIconAdd: (icon: { url: string, style: 'outline' | 'color' }) => void;
-  onBackgroundSelect: (url: string) => void;
-  onFilterChange: (filter: string) => void;
-  handleUndo: () => void;
-  handleRedo: () => void;
+  onStickerAdd: (stickerUrl: string) => void;
+  onStickerResize: (size: number) => void;
+  currentStickerSize: number;
+  onIconAdd: (iconData: { url: string, style: 'outline' | 'color' }) => void;
+  onBackgroundSelect: (imageUrl: string) => void;
+  onFilterChange: (filterId: string) => void;
+  handleUndo: () => boolean;
+  handleRedo: () => boolean;
   handleResetToDefault: () => void;
   canUndo: boolean;
   canRedo: boolean;
   isDrawingMode: boolean;
   onDrawingModeToggle: (enabled: boolean) => void;
+  onTextBoxAdd?: () => void;
 }
 
 export function JournalEditorSidebar({
@@ -72,6 +73,7 @@ export function JournalEditorSidebar({
   dailyChallenge,
   selectedIconId,
   selectedStickerId,
+  selectedTextBoxId,
   handlePrint,
   handleEmojiSelect,
   setShowEmailDialog,
@@ -106,222 +108,144 @@ export function JournalEditorSidebar({
   canUndo,
   canRedo,
   isDrawingMode,
-  onDrawingModeToggle
+  onDrawingModeToggle,
+  onTextBoxAdd
 }: JournalEditorSidebarProps) {
-  const [selectedTab, setSelectedTab] = useState('write');
-  
+  const [activeTab, setActiveTab] = useState("write");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  const handleSave = async () => {
+    await saveEntry();
+    toast.success("Journal entry saved!");
+  };
+
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
   };
-  
-  const handleImageSelect = (url: string) => {
-    onBackgroundSelect(url);
-  };
-  
+
   return (
-    <div className="p-4 w-full lg:w-96 border-r bg-white">
-      <div className="flex items-center justify-between pb-3">
-        <h2 className="text-xl font-semibold">Journal</h2>
-        <div className="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={handleUndo}
-            disabled={!canUndo}
-            title="Undo"
-            className="h-8 w-8"
-          >
-            <Undo className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={handleRedo}
-            disabled={!canRedo}
-            title="Redo"
-            className="h-8 w-8"
-          >
-            <Redo className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={handlePrint}
-            className="h-8 w-8"
-          >
-            <Printer className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={() => setShowEmailDialog(true)}
-            className="h-8 w-8"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-          <Button 
-            onClick={saveEntry}
-            className="h-8"
-          >
-            <Save className="h-4 w-4 mr-1" />
-            Save
-          </Button>
+    <div className="w-full lg:w-80 border-r border-gray-200 bg-white flex flex-col">
+      <ScrollArea className="flex-1">
+        <div className="p-4">
+          <ProgressCard />
         </div>
-      </div>
-      
-      <Tabs 
-        defaultValue="write" 
-        value={selectedTab} 
-        onValueChange={setSelectedTab}
-        className="space-y-4"
-      >
-        <TabsList className="grid grid-cols-3">
-          <TabsTrigger value="write">Write</TabsTrigger>
-          <TabsTrigger value="style">Style</TabsTrigger>
-          <TabsTrigger value="draw">Draw</TabsTrigger>
-        </TabsList>
-        
-        <ScrollArea className="h-[calc(100vh-150px)]">
-          <TabsContent value="write" className="space-y-4 pr-4 pb-8">
-            {dailyChallenge && (
-              <DailyChallenge 
-                dailyChallenge={dailyChallenge} 
-                onApply={applyChallenge}
-                onRefresh={loadChallenge}
+        <Tabs defaultValue="write" className="flex flex-col h-full" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="m-4">
+            <TabsTrigger value="write" className="col-span-3 lg:col-span-1">Write</TabsTrigger>
+            <TabsTrigger value="style" className="col-span-3 lg:col-span-1">Style</TabsTrigger>
+            <TabsTrigger value="stickers" className="col-span-3 lg:col-span-1">Stickers</TabsTrigger>
+            <TabsTrigger value="icons" className="col-span-3 lg:col-span-1">Icons</TabsTrigger>
+            <TabsTrigger value="drawing" className="col-span-3 lg:col-span-1">Drawing</TabsTrigger>
+            <TabsTrigger value="background" className="col-span-3 lg:col-span-1">Background</TabsTrigger>
+            <TabsTrigger value="filter" className="col-span-3 lg:col-span-1">Filter</TabsTrigger>
+          </TabsList>
+          <TabsContent value="write" className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="journal">Your Journal</Label>
+              <Textarea
+                id="journal"
+                placeholder="Write about your day..."
+                value={currentEntry.text}
+                onChange={handleTextChange}
+                ref={textareaRef}
+                className="resize-none h-48"
+              />
+            </div>
+            <div className="flex justify-between items-center">
+              <Button variant="outline" size="sm" onClick={() => setShowEmailDialog(true)}>
+                Email Me
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
+                {showEmojiPicker ? 'Hide Emoji' : 'Show Emoji'}
+              </Button>
+            </div>
+            {showEmojiPicker && (
+              <EmojiPicker
+                onEmojiClick={handleEmojiSelect}
+                theme="light"
+                width={300}
+                height={400}
               />
             )}
-          
-            <Textarea
-              ref={textareaRef}
-              className="min-h-[200px] resize-none"
-              placeholder="What's on your mind today..."
-              value={currentEntry.text}
-              onChange={handleTextChange}
-            />
-
-            <div className="flex justify-between">
-              <div className="space-y-1">
-                <Label htmlFor="public" className="text-xs">Make Public</Label>
-                <Switch
-                  id="public"
-                  checked={currentEntry.isPublic}
-                  onCheckedChange={setIsPublic}
-                />
-              </div>
-              
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="h-8">
-                    Emoji <ChevronDown className="h-3 w-3 ml-1" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="end">
-                  <Picker 
-                    data={data} 
-                    onEmojiSelect={handleEmojiSelect}
-                    previewPosition="none"
-                    skinTonePosition="none"
-                    theme="light"
-                  />
-                </PopoverContent>
-              </Popover>
+            <div className="flex justify-between items-center">
+              <Button variant="outline" size="sm" onClick={handlePrint}>
+                Print
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleSave}>
+                Save
+              </Button>
             </div>
-            
-            <MoodSelector 
-              selectedMood={currentEntry.mood} 
-              onMoodSelect={setMood} 
-            />
-            
-            <Button 
-              variant="outline" 
-              onClick={handleResetToDefault} 
-              className="w-full h-8 text-xs"
-            >
-              <RotateCcw className="h-3 w-3 mr-1" />
+            <Separator />
+            <DailyChallenge dailyChallenge={dailyChallenge} applyChallenge={applyChallenge} loadChallenge={loadChallenge} />
+            <Separator />
+            <div className="flex justify-between items-center">
+              <Button variant="outline" size="sm" onClick={handleUndo} disabled={!canUndo}>
+                <Undo className="mr-2 h-4 w-4" />
+                Undo
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleRedo} disabled={!canRedo}>
+                <Redo className="mr-2 h-4 w-4" />
+                Redo
+              </Button>
+            </div>
+            <Button variant="destructive" size="sm" onClick={handleResetToDefault}>
+              <RotateCcw className="mr-2 h-4 w-4" />
               Reset to Default
             </Button>
+            {onTextBoxAdd && (
+              <Button variant="secondary" size="sm" onClick={onTextBoxAdd}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Text Box
+              </Button>
+            )}
           </TabsContent>
-          
-          <TabsContent value="style" className="space-y-4 pr-4 pb-8">
+          <TabsContent value="style">
             <JournalStylingControls
-              font={currentEntry.font}
-              fontSize={currentEntry.fontSize}
-              fontWeight={currentEntry.fontWeight}
-              fontColor={currentEntry.fontColor}
-              gradient={currentEntry.gradient}
+              setFont={setFont}
+              setFontSize={setFontSize}
+              setFontWeight={setFontWeight}
+              setFontColor={setFontColor}
+              setGradient={setGradient}
+              setTextStyle={setTextStyle}
               selectedIconId={selectedIconId}
-              onFontChange={setFont}
-              onFontSizeChange={setFontSize}
-              onFontWeightChange={setFontWeight}
-              onFontColorChange={setFontColor}
-              onGradientChange={setGradient}
-              onTextStyleChange={setTextStyle}
+              selectedTextBoxId={selectedTextBoxId}
             />
-            
-            <Separator className="my-4" />
-            
-            <BackgroundImageSelector onBackgroundSelect={onBackgroundSelect} />
-            
-            <Separator className="my-4" />
-            
-            <ImageFilterSelector 
-              currentFilter={currentEntry.filter || 'none'} 
-              onFilterChange={onFilterChange} 
-            />
-            
-            <Separator className="my-4" />
-            
-            <StickerSelector 
-              onStickerSelect={onStickerAdd} 
-              onStickerResize={onStickerResize}
-              currentStickerSize={currentStickerSize}
-              selectedStickerId={selectedStickerId}
-            />
-            
-            <Separator className="my-4" />
-            
-            <IconSelector 
-              onIconSelect={onIconAdd}
-              selectedIconId={selectedIconId}
-              iconOptions={{
-                color: selectedIconId && currentEntry.icons.find(i => i.id === selectedIconId)?.color || '#000000',
-                size: selectedIconId && currentEntry.icons.find(i => i.id === selectedIconId)?.size || 48
-              }}
-              onIconUpdate={(updates) => {
-                if (selectedIconId) {
-                  if (updates.color) {
-                    setFontColor(updates.color);
-                  }
-                  if (updates.size) {
-                    setFontSize(`${updates.size}px`);
-                  }
-                }
-              }}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="mood">Mood</Label>
+              <MoodSelector setMood={setMood} />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="public">Public</Label>
+              <Switch id="public" checked={currentEntry.isPublic} onCheckedChange={setIsPublic} />
+            </div>
           </TabsContent>
-          
-          <TabsContent value="draw" className="space-y-4 pr-4 pb-8">
-            <DrawingTools 
-              onToolSelect={onDrawingToolSelect}
-              currentTool={currentDrawingTool}
-              onColorChange={onDrawingColorChange}
-              currentColor={currentDrawingColor}
-              onClear={onClearDrawing}
+          <TabsContent value="stickers">
+            <StickerSelector onStickerAdd={onStickerAdd} onStickerResize={onStickerResize} currentStickerSize={currentStickerSize} />
+          </TabsContent>
+          <TabsContent value="icons">
+            <IconSelector onIconAdd={onIconAdd} selectedIconId={selectedIconId} setFontSize={setFontSize} />
+          </TabsContent>
+          <TabsContent value="drawing">
+            <DrawingTools
+              onDrawingToolSelect={onDrawingToolSelect}
+              currentDrawingTool={currentDrawingTool}
+              onDrawingColorChange={onDrawingColorChange}
+              currentDrawingColor={currentDrawingColor}
+              onClearDrawing={onClearDrawing}
               onBrushSizeChange={onBrushSizeChange}
               currentBrushSize={currentBrushSize}
               isDrawingMode={isDrawingMode}
               onDrawingModeToggle={onDrawingModeToggle}
             />
-            
-            <Separator className="my-4" />
-            
-            <div className="space-y-2">
-              <h3 className="text-xs font-semibold tracking-tight">Upload Image</h3>
-              <ImageUploader onImageSelect={handleImageSelect} />
-            </div>
           </TabsContent>
-        </ScrollArea>
-      </Tabs>
+          <TabsContent value="background">
+            <BackgroundImageSelector onBackgroundSelect={onBackgroundSelect} />
+          </TabsContent>
+          <TabsContent value="filter">
+            <ImageFilterSelector onFilterChange={onFilterChange} />
+          </TabsContent>
+        </Tabs>
+      </ScrollArea>
     </div>
   );
 }
