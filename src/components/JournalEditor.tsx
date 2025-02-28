@@ -6,7 +6,6 @@ import { EmailDialog } from './journal/EmailDialog';
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Sticker, Icon } from '@/types/journal';
-import { toast } from "sonner";
 
 export function JournalEditor() {
   const {
@@ -89,7 +88,6 @@ export function JournalEditor() {
     };
     console.log("New sticker object:", newSticker);
     handleStickerAdd(newSticker);
-    toast.success("Sticker added!");
   };
 
   const handleIconAddWithId = (iconData: { url: string, style: 'outline' | 'color' }) => {
@@ -104,7 +102,6 @@ export function JournalEditor() {
     };
     console.log("New icon created:", newIcon);
     handleIconAdd(newIcon);
-    toast.success("Icon added!");
   };
 
   // Resize sticker handler
@@ -128,7 +125,6 @@ export function JournalEditor() {
         
         // Update the sticker by passing the entire updated sticker object
         handleStickerAdd(updatedSticker);
-        toast.success(`Sticker resized to ${size}px`);
       }
     }
   };
@@ -222,7 +218,7 @@ export function JournalEditor() {
         textStyle={currentEntry.textStyle}
         stickers={currentEntry.stickers || []}
         icons={currentEntry.icons || []}
-        textPosition={currentEntry.textPosition || { x: 50, y: 50 }}
+        textPosition={{ x: 50, y: 50 }} // Force text to center of the page
         backgroundImage={currentEntry.backgroundImage}
         drawing={currentEntry.drawing}
         filter={currentEntry.filter}

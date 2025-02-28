@@ -1,449 +1,137 @@
 
-import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, ArrowUpDown, Loader2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { toast } from "sonner";
-import { StickerSource } from '@/types/journal';
+import type { StickerSource } from '@/types/journal';
 
 interface StickerSelectorProps {
-  onStickerSelect: (stickerUrl: string) => void;
+  onStickerSelect: (sticker: string) => void;
   onStickerResize?: (size: number) => void;
   currentStickerSize?: number;
   selectedStickerId?: string | null;
 }
 
-// Giphy API sticker interface
-interface GiphySticker {
-  id: string;
-  url: string;
-  images: {
-    fixed_width: {
-      url: string;
-      width: string;
-      height: string;
-    },
-    original: {
-      url: string;
-    }
-  };
-  title: string;
-}
-
-// Combined sticker interface for our component
-interface StoreSticker {
-  id: string;
-  url: string;
-  thumbnailUrl?: string;
-  title: string;
-  category: string;
-  keywords: string[];
-  source: StickerSource;
-  isTransparent?: boolean;
-}
-
 export function StickerSelector({ 
   onStickerSelect, 
-  onStickerResize,
-  currentStickerSize = 100,
-  selectedStickerId
+  onStickerResize, 
+  currentStickerSize = 100, 
+  selectedStickerId 
 }: StickerSelectorProps) {
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [stickerSize, setStickerSize] = useState(currentStickerSize);
-  const [isLoading, setIsLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [allStickers, setAllStickers] = useState<StoreSticker[]>([]);
-  const [giphyStickers, setGiphyStickers] = useState<StoreSticker[]>([]);
+  const [activeTab, setActiveTab] = useState<StickerSource>("local");
+  const [size, setSize] = useState(currentStickerSize);
   
-  // API Keys (these are public API keys - free tier)
-  const GIPHY_API_KEY = 'GlVGYHkr3WSBnllca54iNt0yFbjz7L65';
+  // Local stickers (available in the public folder)
+  const localStickers = [
+    "/stickers/cake.svg",
+    "/stickers/camera.svg",
+    "/stickers/gift.svg",
+    "/stickers/happy.svg",
+    "/stickers/heart.svg",
+    "/stickers/sad.svg",
+    "/stickers/star.svg",
+    "/stickers/thumbsup.svg",
+  ];
   
-  // Update local size when prop changes
+  // Ensure sticker size updates when parent size changes
   useEffect(() => {
     console.log("StickerSelector: currentStickerSize prop changed to", currentStickerSize);
-    setStickerSize(currentStickerSize);
+    setSize(currentStickerSize);
   }, [currentStickerSize]);
   
-  // Load local stickers
+  console.log("StickerSelector: Current sticker size:", size);
+  console.log("StickerSelector: Selected sticker ID:", selectedStickerId);
+  
+  // Total stickers available - useful for debugging
   useEffect(() => {
-    // Pre-defined stickers array
-    const localStickers: StoreSticker[] = [
-      // Built-in stickers
-      { id: 'star', url: '/stickers/star.svg', title: 'Star', category: 'basic', keywords: ['star', 'achievement', 'award'], source: 'local', isTransparent: true },
-      { id: 'heart', url: '/stickers/heart.svg', title: 'Heart', category: 'basic', keywords: ['heart', 'love', 'like'], source: 'local', isTransparent: true },
-      { id: 'thumbsup', url: '/stickers/thumbsup.svg', title: 'Thumbs Up', category: 'basic', keywords: ['thumbs up', 'like', 'approval'], source: 'local', isTransparent: true },
-      { id: 'happy', url: '/stickers/happy.svg', title: 'Happy Face', category: 'basic', keywords: ['happy', 'smile', 'emotion'], source: 'local', isTransparent: true },
-      { id: 'sad', url: '/stickers/sad.svg', title: 'Sad Face', category: 'basic', keywords: ['sad', 'unhappy', 'emotion'], source: 'local', isTransparent: true },
-      { id: 'gift', url: '/stickers/gift.svg', title: 'Gift', category: 'celebration', keywords: ['gift', 'present', 'birthday', 'celebration'], source: 'local', isTransparent: true },
-      { id: 'cake', url: '/stickers/cake.svg', title: 'Cake', category: 'celebration', keywords: ['cake', 'birthday', 'celebration', 'dessert'], source: 'local', isTransparent: true },
-      { id: 'camera', url: '/stickers/camera.svg', title: 'Camera', category: 'objects', keywords: ['camera', 'photo', 'picture'], source: 'local', isTransparent: true },
-      
-      // Flaticon transparent stickers with attribution - Animals
-      { id: 'cat1', url: 'https://cdn-icons-png.flaticon.com/512/1864/1864514.png', title: 'Cat', category: 'animals', keywords: ['cat', 'pet', 'animal'], source: 'flaticon', isTransparent: true },
-      { id: 'dog1', url: 'https://cdn-icons-png.flaticon.com/512/1864/1864593.png', title: 'Dog', category: 'animals', keywords: ['dog', 'pet', 'animal'], source: 'flaticon', isTransparent: true },
-      { id: 'rabbit1', url: 'https://cdn-icons-png.flaticon.com/512/3069/3069172.png', title: 'Rabbit', category: 'animals', keywords: ['rabbit', 'bunny', 'pet', 'animal'], source: 'flaticon', isTransparent: true },
-      { id: 'elephant1', url: 'https://cdn-icons-png.flaticon.com/512/2395/2395796.png', title: 'Elephant', category: 'animals', keywords: ['elephant', 'animal', 'wildlife'], source: 'flaticon', isTransparent: true },
-      { id: 'lion1', url: 'https://cdn-icons-png.flaticon.com/512/616/616412.png', title: 'Lion', category: 'animals', keywords: ['lion', 'animal', 'wildlife'], source: 'flaticon', isTransparent: true },
-      { id: 'giraffe1', url: 'https://cdn-icons-png.flaticon.com/512/2395/2395752.png', title: 'Giraffe', category: 'animals', keywords: ['giraffe', 'animal', 'wildlife'], source: 'flaticon', isTransparent: true },
-      { id: 'monkey1', url: 'https://cdn-icons-png.flaticon.com/512/1998/1998610.png', title: 'Monkey', category: 'animals', keywords: ['monkey', 'animal', 'wildlife'], source: 'flaticon', isTransparent: true },
-      { id: 'penguin1', url: 'https://cdn-icons-png.flaticon.com/512/2395/2395766.png', title: 'Penguin', category: 'animals', keywords: ['penguin', 'animal', 'bird'], source: 'flaticon', isTransparent: true },
-      { id: 'fish1', url: 'https://cdn-icons-png.flaticon.com/512/1728/1728939.png', title: 'Fish', category: 'animals', keywords: ['fish', 'animal', 'sea'], source: 'flaticon', isTransparent: true },
-      { id: 'turtle1', url: 'https://cdn-icons-png.flaticon.com/512/5964/5964985.png', title: 'Turtle', category: 'animals', keywords: ['turtle', 'animal', 'reptile'], source: 'flaticon', isTransparent: true },
-      { id: 'fox1', url: 'https://cdn-icons-png.flaticon.com/512/4663/4663450.png', title: 'Fox', category: 'animals', keywords: ['fox', 'animal', 'wildlife'], source: 'flaticon', isTransparent: true },
-      { id: 'owl1', url: 'https://cdn-icons-png.flaticon.com/512/3069/3069167.png', title: 'Owl', category: 'animals', keywords: ['owl', 'animal', 'bird'], source: 'flaticon', isTransparent: true },
-      
-      // Nature
-      { id: 'flower1', url: 'https://cdn-icons-png.flaticon.com/512/826/826957.png', title: 'Flower', category: 'nature', keywords: ['flower', 'plant', 'nature'], source: 'flaticon', isTransparent: true },
-      { id: 'tree1', url: 'https://cdn-icons-png.flaticon.com/512/489/489969.png', title: 'Tree', category: 'nature', keywords: ['tree', 'plant', 'nature'], source: 'flaticon', isTransparent: true },
-      { id: 'sun1', url: 'https://cdn-icons-png.flaticon.com/512/869/869869.png', title: 'Sun', category: 'nature', keywords: ['sun', 'weather', 'sunny'], source: 'flaticon', isTransparent: true },
-      { id: 'cloud1', url: 'https://cdn-icons-png.flaticon.com/512/414/414927.png', title: 'Cloud', category: 'nature', keywords: ['cloud', 'weather', 'cloudy'], source: 'flaticon', isTransparent: true },
-      { id: 'rainbow1', url: 'https://cdn-icons-png.flaticon.com/512/4838/4838145.png', title: 'Rainbow', category: 'nature', keywords: ['rainbow', 'weather', 'colorful'], source: 'flaticon', isTransparent: true },
-      { id: 'leaf1', url: 'https://cdn-icons-png.flaticon.com/512/2925/2925577.png', title: 'Leaf', category: 'nature', keywords: ['leaf', 'plant', 'nature'], source: 'flaticon', isTransparent: true },
-      { id: 'cactus1', url: 'https://cdn-icons-png.flaticon.com/512/2933/2933707.png', title: 'Cactus', category: 'nature', keywords: ['cactus', 'plant', 'nature'], source: 'flaticon', isTransparent: true },
-      { id: 'moon1', url: 'https://cdn-icons-png.flaticon.com/512/1812/1812654.png', title: 'Moon', category: 'nature', keywords: ['moon', 'night', 'sky'], source: 'flaticon', isTransparent: true },
-      { id: 'raindrop1', url: 'https://cdn-icons-png.flaticon.com/512/427/427112.png', title: 'Raindrop', category: 'nature', keywords: ['raindrop', 'rain', 'water'], source: 'flaticon', isTransparent: true },
-      { id: 'snowflake1', url: 'https://cdn-icons-png.flaticon.com/512/2942/2942441.png', title: 'Snowflake', category: 'nature', keywords: ['snowflake', 'snow', 'winter'], source: 'flaticon', isTransparent: true },
-      { id: 'mountain1', url: 'https://cdn-icons-png.flaticon.com/512/1497/1497000.png', title: 'Mountain', category: 'nature', keywords: ['mountain', 'nature', 'landscape'], source: 'flaticon', isTransparent: true },
-      { id: 'planet1', url: 'https://cdn-icons-png.flaticon.com/512/3594/3594414.png', title: 'Planet', category: 'nature', keywords: ['planet', 'space', 'astronomy'], source: 'flaticon', isTransparent: true },
-      
-      // Food
-      { id: 'pizza1', url: 'https://cdn-icons-png.flaticon.com/512/3595/3595455.png', title: 'Pizza', category: 'food', keywords: ['pizza', 'food', 'meal'], source: 'flaticon', isTransparent: true },
-      { id: 'icecream1', url: 'https://cdn-icons-png.flaticon.com/512/938/938063.png', title: 'Ice Cream', category: 'food', keywords: ['ice cream', 'dessert', 'cold'], source: 'flaticon', isTransparent: true },
-      { id: 'coffee1', url: 'https://cdn-icons-png.flaticon.com/512/924/924514.png', title: 'Coffee', category: 'food', keywords: ['coffee', 'drink', 'hot'], source: 'flaticon', isTransparent: true },
-      { id: 'burger1', url: 'https://cdn-icons-png.flaticon.com/512/3075/3075977.png', title: 'Burger', category: 'food', keywords: ['burger', 'food', 'fast food'], source: 'flaticon', isTransparent: true },
-      { id: 'fruit1', url: 'https://cdn-icons-png.flaticon.com/512/415/415682.png', title: 'Apple', category: 'food', keywords: ['apple', 'fruit', 'food'], source: 'flaticon', isTransparent: true },
-      { id: 'donut1', url: 'https://cdn-icons-png.flaticon.com/512/541/541732.png', title: 'Donut', category: 'food', keywords: ['donut', 'dessert', 'sweet'], source: 'flaticon', isTransparent: true },
-      { id: 'cake2', url: 'https://cdn-icons-png.flaticon.com/512/3637/3637252.png', title: 'Birthday Cake', category: 'food', keywords: ['cake', 'birthday', 'dessert'], source: 'flaticon', isTransparent: true },
-      { id: 'sushi1', url: 'https://cdn-icons-png.flaticon.com/512/2252/2252075.png', title: 'Sushi', category: 'food', keywords: ['sushi', 'japanese', 'food'], source: 'flaticon', isTransparent: true },
-      { id: 'taco1', url: 'https://cdn-icons-png.flaticon.com/512/189/189046.png', title: 'Taco', category: 'food', keywords: ['taco', 'mexican', 'food'], source: 'flaticon', isTransparent: true },
-      { id: 'cupcake1', url: 'https://cdn-icons-png.flaticon.com/512/992/992763.png', title: 'Cupcake', category: 'food', keywords: ['cupcake', 'dessert', 'sweet'], source: 'flaticon', isTransparent: true },
-      { id: 'cookie1', url: 'https://cdn-icons-png.flaticon.com/512/1047/1047711.png', title: 'Cookie', category: 'food', keywords: ['cookie', 'dessert', 'sweet'], source: 'flaticon', isTransparent: true },
-      { id: 'watermelon1', url: 'https://cdn-icons-png.flaticon.com/512/874/874997.png', title: 'Watermelon', category: 'food', keywords: ['watermelon', 'fruit', 'food'], source: 'flaticon', isTransparent: true },
-      
-      // Travel
-      { id: 'plane1', url: 'https://cdn-icons-png.flaticon.com/512/3126/3126609.png', title: 'Plane', category: 'travel', keywords: ['plane', 'travel', 'airplane', 'flight'], source: 'flaticon', isTransparent: true },
-      { id: 'suitcase1', url: 'https://cdn-icons-png.flaticon.com/512/2553/2553627.png', title: 'Suitcase', category: 'travel', keywords: ['suitcase', 'travel', 'luggage'], source: 'flaticon', isTransparent: true },
-      { id: 'map1', url: 'https://cdn-icons-png.flaticon.com/512/854/854878.png', title: 'Map', category: 'travel', keywords: ['map', 'travel', 'location', 'direction'], source: 'flaticon', isTransparent: true },
-      { id: 'car1', url: 'https://cdn-icons-png.flaticon.com/512/3097/3097144.png', title: 'Car', category: 'travel', keywords: ['car', 'travel', 'vehicle'], source: 'flaticon', isTransparent: true },
-      { id: 'bus1', url: 'https://cdn-icons-png.flaticon.com/512/1023/1023435.png', title: 'Bus', category: 'travel', keywords: ['bus', 'travel', 'transport'], source: 'flaticon', isTransparent: true },
-      { id: 'train1', url: 'https://cdn-icons-png.flaticon.com/512/3066/3066994.png', title: 'Train', category: 'travel', keywords: ['train', 'travel', 'transport'], source: 'flaticon', isTransparent: true },
-      { id: 'boat1', url: 'https://cdn-icons-png.flaticon.com/512/2055/2055058.png', title: 'Boat', category: 'travel', keywords: ['boat', 'travel', 'ship'], source: 'flaticon', isTransparent: true },
-      { id: 'passport1', url: 'https://cdn-icons-png.flaticon.com/512/1147/1147129.png', title: 'Passport', category: 'travel', keywords: ['passport', 'travel', 'document'], source: 'flaticon', isTransparent: true },
-      { id: 'compass1', url: 'https://cdn-icons-png.flaticon.com/512/3106/3106703.png', title: 'Compass', category: 'travel', keywords: ['compass', 'travel', 'navigation'], source: 'flaticon', isTransparent: true },
-      { id: 'hotel1', url: 'https://cdn-icons-png.flaticon.com/512/1285/1285089.png', title: 'Hotel', category: 'travel', keywords: ['hotel', 'travel', 'accommodation'], source: 'flaticon', isTransparent: true },
-      { id: 'beach1', url: 'https://cdn-icons-png.flaticon.com/512/7794/7794575.png', title: 'Beach', category: 'travel', keywords: ['beach', 'travel', 'vacation'], source: 'flaticon', isTransparent: true },
-      { id: 'mountains1', url: 'https://cdn-icons-png.flaticon.com/512/2939/2939889.png', title: 'Mountains', category: 'travel', keywords: ['mountains', 'travel', 'hiking'], source: 'flaticon', isTransparent: true },
-      
-      // School
-      { id: 'book1', url: 'https://cdn-icons-png.flaticon.com/512/3616/3616986.png', title: 'Book', category: 'school', keywords: ['book', 'study', 'reading', 'education'], source: 'flaticon', isTransparent: true },
-      { id: 'pencil1', url: 'https://cdn-icons-png.flaticon.com/512/2919/2919592.png', title: 'Pencil', category: 'school', keywords: ['pencil', 'write', 'drawing', 'education'], source: 'flaticon', isTransparent: true },
-      { id: 'backpack1', url: 'https://cdn-icons-png.flaticon.com/512/2553/2553685.png', title: 'Backpack', category: 'school', keywords: ['backpack', 'bag', 'school'], source: 'flaticon', isTransparent: true },
-      { id: 'notebook1', url: 'https://cdn-icons-png.flaticon.com/512/3209/3209265.png', title: 'Notebook', category: 'school', keywords: ['notebook', 'notes', 'school'], source: 'flaticon', isTransparent: true },
-      { id: 'calculator1', url: 'https://cdn-icons-png.flaticon.com/512/943/943252.png', title: 'Calculator', category: 'school', keywords: ['calculator', 'math', 'school'], source: 'flaticon', isTransparent: true },
-      { id: 'ruler1', url: 'https://cdn-icons-png.flaticon.com/512/625/625632.png', title: 'Ruler', category: 'school', keywords: ['ruler', 'measure', 'school'], source: 'flaticon', isTransparent: true },
-      { id: 'globe1', url: 'https://cdn-icons-png.flaticon.com/512/44/44386.png', title: 'Globe', category: 'school', keywords: ['globe', 'world', 'geography'], source: 'flaticon', isTransparent: true },
-      { id: 'schoolbus1', url: 'https://cdn-icons-png.flaticon.com/512/3097/3097166.png', title: 'School Bus', category: 'school', keywords: ['school bus', 'bus', 'school'], source: 'flaticon', isTransparent: true },
-      
-      // Sports
-      { id: 'soccer1', url: 'https://cdn-icons-png.flaticon.com/512/53/53283.png', title: 'Soccer Ball', category: 'sports', keywords: ['soccer', 'football', 'sport'], source: 'flaticon', isTransparent: true },
-      { id: 'basketball1', url: 'https://cdn-icons-png.flaticon.com/512/889/889455.png', title: 'Basketball', category: 'sports', keywords: ['basketball', 'ball', 'sport'], source: 'flaticon', isTransparent: true },
-      { id: 'tennis1', url: 'https://cdn-icons-png.flaticon.com/512/2151/2151199.png', title: 'Tennis', category: 'sports', keywords: ['tennis', 'racket', 'sport'], source: 'flaticon', isTransparent: true },
-      { id: 'baseball1', url: 'https://cdn-icons-png.flaticon.com/512/3790/3790217.png', title: 'Baseball', category: 'sports', keywords: ['baseball', 'ball', 'sport'], source: 'flaticon', isTransparent: true },
-      { id: 'volleyball1', url: 'https://cdn-icons-png.flaticon.com/512/2834/2834395.png', title: 'Volleyball', category: 'sports', keywords: ['volleyball', 'ball', 'sport'], source: 'flaticon', isTransparent: true },
-      { id: 'trophy1', url: 'https://cdn-icons-png.flaticon.com/512/3113/3113169.png', title: 'Trophy', category: 'sports', keywords: ['trophy', 'award', 'winner'], source: 'flaticon', isTransparent: true },
-      { id: 'medal1', url: 'https://cdn-icons-png.flaticon.com/512/3250/3250256.png', title: 'Medal', category: 'sports', keywords: ['medal', 'award', 'winner'], source: 'flaticon', isTransparent: true },
-      
-      // Icons8 Beautiful Stickers
-      { id: 'unicorn1', url: 'https://img.icons8.com/stickers/100/null/unicorn.png', title: 'Unicorn', category: 'fantasy', keywords: ['unicorn', 'fantasy', 'magical'], source: 'icons8', isTransparent: true },
-      { id: 'dragon1', url: 'https://img.icons8.com/stickers/100/null/dragon.png', title: 'Dragon', category: 'fantasy', keywords: ['dragon', 'fantasy', 'magical'], source: 'icons8', isTransparent: true },
-      { id: 'mermaid1', url: 'https://img.icons8.com/stickers/100/null/mermaid.png', title: 'Mermaid', category: 'fantasy', keywords: ['mermaid', 'fantasy', 'magical', 'sea'], source: 'icons8', isTransparent: true },
-      { id: 'fairy1', url: 'https://img.icons8.com/stickers/100/null/fairy.png', title: 'Fairy', category: 'fantasy', keywords: ['fairy', 'fantasy', 'magical'], source: 'icons8', isTransparent: true },
-      { id: 'wizard1', url: 'https://img.icons8.com/stickers/100/null/wizard.png', title: 'Wizard', category: 'fantasy', keywords: ['wizard', 'fantasy', 'magical'], source: 'icons8', isTransparent: true },
-      { id: 'dinosaur1', url: 'https://img.icons8.com/stickers/100/null/dinosaur.png', title: 'Dinosaur', category: 'animals', keywords: ['dinosaur', 'animal', 'prehistoric'], source: 'icons8', isTransparent: true },
-      { id: 'robot1', url: 'https://img.icons8.com/stickers/100/null/robot.png', title: 'Robot', category: 'tech', keywords: ['robot', 'technology', 'ai'], source: 'icons8', isTransparent: true },
-      { id: 'astronaut1', url: 'https://img.icons8.com/stickers/100/null/astronaut.png', title: 'Astronaut', category: 'space', keywords: ['astronaut', 'space', 'cosmos'], source: 'icons8', isTransparent: true },
-      { id: 'alien1', url: 'https://img.icons8.com/stickers/100/null/alien.png', title: 'Alien', category: 'space', keywords: ['alien', 'space', 'fantasy'], source: 'icons8', isTransparent: true },
-      { id: 'rocket1', url: 'https://img.icons8.com/stickers/100/null/rocket.png', title: 'Rocket', category: 'space', keywords: ['rocket', 'space', 'ship'], source: 'icons8', isTransparent: true },
-      { id: 'rainbow2', url: 'https://img.icons8.com/stickers/100/null/rainbow.png', title: 'Rainbow', category: 'nature', keywords: ['rainbow', 'nature', 'colorful'], source: 'icons8', isTransparent: true },
-      { id: 'cloud2', url: 'https://img.icons8.com/stickers/100/null/cloud.png', title: 'Cloud', category: 'nature', keywords: ['cloud', 'nature', 'weather'], source: 'icons8', isTransparent: true },
-      { id: 'sun2', url: 'https://img.icons8.com/stickers/100/null/sun.png', title: 'Sun', category: 'nature', keywords: ['sun', 'nature', 'weather'], source: 'icons8', isTransparent: true },
-      { id: 'moon2', url: 'https://img.icons8.com/stickers/100/null/moon.png', title: 'Moon', category: 'nature', keywords: ['moon', 'nature', 'night'], source: 'icons8', isTransparent: true },
-      { id: 'star2', url: 'https://img.icons8.com/stickers/100/null/star.png', title: 'Star', category: 'nature', keywords: ['star', 'nature', 'night'], source: 'icons8', isTransparent: true },
-      { id: 'heart2', url: 'https://img.icons8.com/stickers/100/null/like.png', title: 'Heart', category: 'emotions', keywords: ['heart', 'love', 'emotion'], source: 'icons8', isTransparent: true },
-      { id: 'crown1', url: 'https://img.icons8.com/stickers/100/null/crown.png', title: 'Crown', category: 'objects', keywords: ['crown', 'royal', 'king'], source: 'icons8', isTransparent: true },
-      { id: 'diamond1', url: 'https://img.icons8.com/stickers/100/null/diamond.png', title: 'Diamond', category: 'objects', keywords: ['diamond', 'gem', 'jewel'], source: 'icons8', isTransparent: true },
-      { id: 'camera2', url: 'https://img.icons8.com/stickers/100/null/camera.png', title: 'Camera', category: 'objects', keywords: ['camera', 'photo', 'picture'], source: 'icons8', isTransparent: true },
-      { id: 'gift2', url: 'https://img.icons8.com/stickers/100/null/gift.png', title: 'Gift', category: 'objects', keywords: ['gift', 'present', 'box'], source: 'icons8', isTransparent: true },
-      
-      // Beautiful artistic stickers from reliable sources
-      { id: 'watercolor-flower1', url: 'https://i.imgur.com/cqLXdgK.png', title: 'Watercolor Flower', category: 'artistic', keywords: ['flower', 'watercolor', 'art'], source: 'artistic', isTransparent: true },
-      { id: 'watercolor-leaf1', url: 'https://i.imgur.com/9FVlJcE.png', title: 'Watercolor Leaf', category: 'artistic', keywords: ['leaf', 'watercolor', 'art'], source: 'artistic', isTransparent: true },
-      { id: 'watercolor-butterfly', url: 'https://i.imgur.com/f0wMk1g.png', title: 'Watercolor Butterfly', category: 'artistic', keywords: ['butterfly', 'watercolor', 'insect'], source: 'artistic', isTransparent: true },
-      { id: 'watercolor-feather', url: 'https://i.imgur.com/LpKjjZ6.png', title: 'Watercolor Feather', category: 'artistic', keywords: ['feather', 'watercolor', 'art'], source: 'artistic', isTransparent: true },
-      { id: 'watercolor-bird', url: 'https://i.imgur.com/7DT7KDw.png', title: 'Watercolor Bird', category: 'artistic', keywords: ['bird', 'watercolor', 'animal'], source: 'artistic', isTransparent: true },
-      { id: 'gold-star', url: 'https://i.imgur.com/4KZS6JY.png', title: 'Gold Star', category: 'artistic', keywords: ['star', 'gold', 'award'], source: 'artistic', isTransparent: true },
-      { id: 'gold-heart', url: 'https://i.imgur.com/j7lXAdU.png', title: 'Gold Heart', category: 'artistic', keywords: ['heart', 'gold', 'love'], source: 'artistic', isTransparent: true },
-      { id: 'gold-crown', url: 'https://i.imgur.com/dlZM9OM.png', title: 'Gold Crown', category: 'artistic', keywords: ['crown', 'gold', 'royal'], source: 'artistic', isTransparent: true },
-      { id: 'boho-arrow', url: 'https://i.imgur.com/eXEW2PV.png', title: 'Boho Arrow', category: 'artistic', keywords: ['arrow', 'boho', 'tribal'], source: 'artistic', isTransparent: true },
-      { id: 'boho-feather', url: 'https://i.imgur.com/vJ9qbBw.png', title: 'Boho Feather', category: 'artistic', keywords: ['feather', 'boho', 'tribal'], source: 'artistic', isTransparent: true },
-      { id: 'boho-dreamcatcher', url: 'https://i.imgur.com/FHe0h4L.png', title: 'Dreamcatcher', category: 'artistic', keywords: ['dreamcatcher', 'boho', 'tribal'], source: 'artistic', isTransparent: true },
-      { id: 'watercolor-succulent', url: 'https://i.imgur.com/tNHXdYr.png', title: 'Watercolor Succulent', category: 'artistic', keywords: ['succulent', 'watercolor', 'plant'], source: 'artistic', isTransparent: true },
-      { id: 'watercolor-rose', url: 'https://i.imgur.com/UQ7UKux.png', title: 'Watercolor Rose', category: 'artistic', keywords: ['rose', 'watercolor', 'flower'], source: 'artistic', isTransparent: true },
-      { id: 'watercolor-moon', url: 'https://i.imgur.com/I8PQnlj.png', title: 'Watercolor Moon', category: 'artistic', keywords: ['moon', 'watercolor', 'night'], source: 'artistic', isTransparent: true },
-      { id: 'watercolor-planet', url: 'https://i.imgur.com/o6wGb72.png', title: 'Watercolor Planet', category: 'artistic', keywords: ['planet', 'watercolor', 'space'], source: 'artistic', isTransparent: true },
-      { id: 'botanical-leaf', url: 'https://i.imgur.com/NQnx4sk.png', title: 'Botanical Leaf', category: 'artistic', keywords: ['leaf', 'botanical', 'plant'], source: 'artistic', isTransparent: true },
-      { id: 'botanical-branch', url: 'https://i.imgur.com/PVbVgZ8.png', title: 'Botanical Branch', category: 'artistic', keywords: ['branch', 'botanical', 'plant'], source: 'artistic', isTransparent: true },
-      { id: 'botanical-fern', url: 'https://i.imgur.com/xQrMJYG.png', title: 'Botanical Fern', category: 'artistic', keywords: ['fern', 'botanical', 'plant'], source: 'artistic', isTransparent: true },
-      { id: 'crystal-amethyst', url: 'https://i.imgur.com/FhqXVfA.png', title: 'Amethyst Crystal', category: 'artistic', keywords: ['crystal', 'amethyst', 'gem'], source: 'artistic', isTransparent: true },
-      { id: 'crystal-rose-quartz', url: 'https://i.imgur.com/tF0mOlZ.png', title: 'Rose Quartz', category: 'artistic', keywords: ['crystal', 'rose quartz', 'gem'], source: 'artistic', isTransparent: true },
-    ];
-    
-    setAllStickers(prevStickers => {
-      const combinedStickers = [...localStickers];
-      
-      // Deduplicate stickers by ID
-      const uniqueStickers = combinedStickers.filter((sticker, index, self) => 
-        index === self.findIndex(s => s.id === sticker.id)
-      );
-      
-      return uniqueStickers;
-    });
-    
-    // Load Giphy stickers
-    fetchGiphyStickers('trending');
-    
-  }, []);
+    const totalStickers = localStickers.length;
+    console.log("StickerSelector: Total stickers available:", totalStickers);
+  }, [localStickers]);
   
-  // Function to fetch stickers from Giphy API
-  const fetchGiphyStickers = async (searchTerm: string) => {
-    setIsLoading(true);
-    try {
-      const endpoint = searchTerm === 'trending' 
-        ? `https://api.giphy.com/v1/stickers/trending?api_key=${GIPHY_API_KEY}&limit=50`
-        : `https://api.giphy.com/v1/stickers/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(searchTerm)}&limit=50`;
-      
-      const response = await fetch(endpoint);
-      const data = await response.json();
-      
-      if (data.data && Array.isArray(data.data)) {
-        const formattedStickers: StoreSticker[] = data.data.map((sticker: GiphySticker) => ({
-          id: `giphy-${sticker.id}`,
-          url: sticker.images.original.url,
-          thumbnailUrl: sticker.images.fixed_width.url,
-          title: sticker.title || 'Giphy Sticker',
-          category: 'giphy',
-          keywords: sticker.title ? sticker.title.split(' ') : ['sticker'],
-          source: 'giphy',
-          isTransparent: true
-        }));
-        
-        setGiphyStickers(formattedStickers);
-        
-        // Add to all stickers
-        setAllStickers(prevStickers => {
-          const combinedStickers = [...prevStickers, ...formattedStickers];
-          
-          // Deduplicate stickers by ID
-          const uniqueStickers = combinedStickers.filter((sticker, index, self) => 
-            index === self.findIndex(s => s.id === sticker.id)
-          );
-          
-          return uniqueStickers;
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching Giphy stickers:', error);
-      toast.error('Failed to load stickers from Giphy');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  // Handle search
-  const handleSearch = () => {
-    if (searchQuery.trim().length < 2) return;
-    
-    fetchGiphyStickers(searchQuery);
-  };
-  
-  // Filter stickers based on search and category
-  const filteredStickers = allStickers.filter(sticker => {
-    // Filter by category
-    if (selectedCategory !== 'all' && selectedCategory !== sticker.source && 
-        selectedCategory !== sticker.category) {
-      return false;
-    }
-    
-    // Filter by search query (if not empty and we're not already searching via API)
-    if (searchQuery && (sticker.source === 'local' || sticker.source === 'flaticon' || sticker.source === 'icons8' || sticker.source === 'artistic')) {
-      return sticker.keywords.some(keyword => 
-        keyword.toLowerCase().includes(searchQuery.toLowerCase())
-      ) || sticker.title.toLowerCase().includes(searchQuery.toLowerCase());
-    }
-    
-    return true;
-  });
-  
-  const handleStickerSelect = (url: string) => {
-    console.log("Sticker selected:", url);
-    onStickerSelect(url);
-  };
-  
+  // Handle sticker size change
   const handleSizeChange = (value: number[]) => {
-    console.log("Slider value changed to:", value[0]);
     const newSize = value[0];
-    setStickerSize(newSize);
+    setSize(newSize);
+    
     if (onStickerResize) {
-      console.log("Calling onStickerResize with:", newSize);
       onStickerResize(newSize);
     }
   };
   
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  };
-  
-  const loadMoreGiphyStickers = () => {
-    const categories = ['cute', 'funny', 'love', 'animals', 'food', 'travel', 'happy', 'celebration', 'nature'];
-    const randomCategory = categories[Math.floor(Math.random() * categories.length)];
-    fetchGiphyStickers(randomCategory);
-  };
-  
-  console.log("StickerSelector: Current sticker size:", stickerSize);
-  console.log("StickerSelector: Selected sticker ID:", selectedStickerId);
-  console.log("StickerSelector: Total stickers available:", allStickers.length);
-  
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-xs font-semibold tracking-tight">Stickers ({allStickers.length})</h3>
-      </div>
-      
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search stickers..."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
+    <div className="space-y-2">
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="text-xs font-semibold tracking-tight">Stickers</h3>
+        
+        {/* Sticker Resize Slider */}
+        <div className="flex items-center space-x-2 w-32">
+          <Label htmlFor="sticker-size" className="text-xs">
+            Size
+          </Label>
+          <Slider
+            id="sticker-size"
+            min={20}
+            max={200}
+            step={10}
+            defaultValue={[size]}
+            value={[size]}
+            onValueChange={handleSizeChange}
+            className={selectedStickerId ? "" : "opacity-50"}
+            disabled={!selectedStickerId}
           />
+          <span className="text-xs w-8">{size}px</span>
         </div>
-        <Button 
-          size="sm" 
-          onClick={handleSearch}
-          disabled={searchQuery.trim().length < 2 || isLoading}
-          className="flex-shrink-0"
-        >
-          {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
-        </Button>
       </div>
       
-      {/* Sticker resizer control */}
-      <div className={`space-y-2 ${selectedStickerId ? '' : 'opacity-50'}`}>
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-            <h4 className="text-xs font-medium">Sticker Size</h4>
-          </div>
-          <span className="text-xs text-muted-foreground">{stickerSize}px</span>
-        </div>
-        <Slider 
-          value={[stickerSize]}
-          min={20} 
-          max={250} 
-          step={1}
-          onValueChange={handleSizeChange}
-          disabled={!selectedStickerId}
-          className="w-full"
-        />
-        <p className="text-xs text-muted-foreground">
-          {selectedStickerId 
-            ? "Adjust the size of the selected sticker" 
-            : "Select a sticker to resize it"}
-        </p>
-      </div>
-      
-      <Tabs defaultValue="all" value={selectedCategory} onValueChange={setSelectedCategory}>
-        <TabsList className="grid grid-cols-4 mb-2">
-          <TabsTrigger value="all" className="text-[10px]">All</TabsTrigger>
-          <TabsTrigger value="artistic" className="text-[10px]">Artistic</TabsTrigger>
-          <TabsTrigger value="animals" className="text-[10px]">Animals</TabsTrigger>
-          <TabsTrigger value="nature" className="text-[10px]">Nature</TabsTrigger>
+      <Tabs defaultValue="local" value={activeTab} onValueChange={(value) => setActiveTab(value as StickerSource)}>
+        <TabsList className="grid grid-cols-3 mb-2">
+          <TabsTrigger value="local" className="text-[10px]">Basic</TabsTrigger>
+          <TabsTrigger value="flaticon" className="text-[10px]">Flat</TabsTrigger>
+          <TabsTrigger value="artistic" className="text-[10px]">Art</TabsTrigger>
         </TabsList>
         
-        <TabsList className="grid grid-cols-4 mb-2">
-          <TabsTrigger value="food" className="text-[10px]">Food</TabsTrigger>
-          <TabsTrigger value="travel" className="text-[10px]">Travel</TabsTrigger>
-          <TabsTrigger value="fantasy" className="text-[10px]">Fantasy</TabsTrigger>
-          <TabsTrigger value="giphy" className="text-[10px]">Giphy</TabsTrigger>
-        </TabsList>
-        
-        <ScrollArea className="h-[300px] pr-2">
-          {isLoading && searchQuery ? (
-            <div className="flex flex-col items-center justify-center h-40">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
-              <p className="text-sm text-muted-foreground">Searching for stickers...</p>
+        <ScrollArea className="h-[150px]">
+          <TabsContent value="local" className="mt-0 space-y-4">
+            <div className="grid grid-cols-4 gap-2">
+              {localStickers.map((sticker, index) => (
+                <button
+                  key={index}
+                  className="bg-white rounded-md p-2 hover:bg-gray-50 border border-gray-200"
+                  onClick={() => onStickerSelect(sticker)}
+                  type="button"
+                >
+                  <img src={sticker} alt="Sticker" className="w-full h-10 object-contain" />
+                </button>
+              ))}
             </div>
-          ) : filteredStickers.length > 0 ? (
-            <div>
-              <div className="grid grid-cols-3 gap-2 mt-2">
-                {filteredStickers.map((sticker) => (
-                  <button
-                    key={sticker.id}
-                    className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-24 flex items-center justify-center p-2"
-                    onClick={() => handleStickerSelect(sticker.url)}
-                  >
-                    <img 
-                      src={sticker.thumbnailUrl || sticker.url} 
-                      alt={sticker.title} 
-                      className="max-h-full object-contain" 
-                      loading="lazy"
-                    />
-                  </button>
-                ))}
-              </div>
-              
-              {/* Load more button */}
-              {selectedCategory === 'all' || selectedCategory === 'giphy' ? (
-                <div className="flex justify-center mt-4">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={loadMoreGiphyStickers}
-                    disabled={isLoading}
-                    className="text-xs"
-                  >
-                    {isLoading ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-                    Load more stickers
-                  </Button>
-                </div>
-              ) : null}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-32 text-sm text-muted-foreground">
-              <p>No stickers found.</p>
-              <p className="text-xs mt-1">Try a different search term or category.</p>
-            </div>
-          )}
+          </TabsContent>
           
-          {!isLoading && filteredStickers.length > 0 && (
-            <div className="mt-4 mb-2 text-center">
-              <p className="text-xs text-muted-foreground">
-                Found {filteredStickers.length} stickers
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Stickers from multiple high-quality sources
-              </p>
+          <TabsContent value="flaticon" className="mt-0 space-y-4">
+            <div className="grid grid-cols-4 gap-2">
+              {[...Array(12)].map((_, index) => (
+                <div
+                  key={index}
+                  className="h-14 bg-gray-100/50 rounded-md flex items-center justify-center"
+                >
+                  <span className="text-xs text-gray-400">Coming soon</span>
+                </div>
+              ))}
             </div>
-          )}
+          </TabsContent>
+          
+          <TabsContent value="artistic" className="mt-0 space-y-4">
+            <div className="grid grid-cols-4 gap-2">
+              {[...Array(12)].map((_, index) => (
+                <div
+                  key={index}
+                  className="h-14 bg-gray-100/50 rounded-md flex items-center justify-center"
+                >
+                  <span className="text-xs text-gray-400">Coming soon</span>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
         </ScrollArea>
       </Tabs>
     </div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { DrawingLayer } from './DrawingLayer';
@@ -101,6 +102,14 @@ export function JournalPreview({
     bottom: 0,
     overflow: 'hidden',
   };
+
+  // Initialize text position to center of the page
+  useEffect(() => {
+    // Default to center if it's not set
+    if (textPosition.x === 0 && textPosition.y === 0) {
+      onTextMove({ x: 50, y: 50 });
+    }
+  }, []);
 
   useEffect(() => {
     if (!previewRef.current) return;
@@ -295,11 +304,13 @@ export function JournalPreview({
                 left: 0,
                 width: '100%',
                 height: '100%',
-                backgroundImage: `url(${backgroundImage})`,
+                backgroundImage: backgroundImage.includes('http') ? `url(${backgroundImage})` : backgroundImage,
+                backgroundColor: backgroundImage.includes('placehold.co') ? backgroundImage.split('/')[3] : undefined,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 filter: filter || undefined,
-                zIndex: 1
+                zIndex: 1,
+                border: '1px solid #e0e0e0'
               }}
               className="journal-page"
             />

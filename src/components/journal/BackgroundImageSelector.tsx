@@ -4,7 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageUploader } from './ImageUploader';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 
 interface BackgroundImageSelectorProps {
   onBackgroundSelect: (imageUrl: string) => void;
@@ -15,20 +14,20 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
   
   // Paper backgrounds with reliable URLs
   const paperBackgrounds = [
-    { name: "White Paper", url: "https://images.unsplash.com/photo-1587614298172-7d8d053ac252?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
-    { name: "Kraft Paper", url: "https://images.unsplash.com/photo-1541512348353-d5b975501d4a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
-    { name: "Textured Paper", url: "https://images.unsplash.com/photo-1553773077-91673524aafa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
-    { name: "Lined Paper", url: "https://images.unsplash.com/photo-1550985543-f1ea83b216fc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
-    { name: "Grid Paper", url: "https://images.unsplash.com/photo-1604335398333-51317b5e079f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
-    { name: "Vintage Paper", url: "https://images.unsplash.com/photo-1595079356063-3f4bb547de47?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" }
+    { name: "White Paper", url: "https://placehold.co/800x1000/FFFFFF/FFFFFF" },
+    { name: "Kraft Paper", url: "https://placehold.co/800x1000/D2B48C/D2B48C" },
+    { name: "Textured Paper", url: "https://placehold.co/800x1000/F5F5F5/F5F5F5" },
+    { name: "Lined Paper", url: "https://placehold.co/800x1000/FFFFFF/FFFFFF" },
+    { name: "Grid Paper", url: "https://placehold.co/800x1000/FFFFFF/FFFFFF" },
+    { name: "Vintage Paper", url: "https://placehold.co/800x1000/F8F0E3/F8F0E3" }
   ];
   
   // Nature background images
   const natureBackgrounds = [
-    { name: "Mountains", url: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
-    { name: "Beach", url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
-    { name: "Forest", url: "https://images.unsplash.com/photo-1448375240586-882707db888b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
-    { name: "Sunset", url: "https://images.unsplash.com/photo-1600073955016-50ddf9f14f3d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" }
+    { name: "Mountains", url: "https://placehold.co/800x1000/2E8BC0/2E8BC0" },
+    { name: "Beach", url: "https://placehold.co/800x1000/87CEEB/87CEEB" },
+    { name: "Forest", url: "https://placehold.co/800x1000/228B22/228B22" },
+    { name: "Sunset", url: "https://placehold.co/800x1000/FFA500/FFA500" }
   ];
   
   // Background gradients (not for text)
@@ -49,56 +48,16 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
 
   // Patterns and textures with reliable URLs
   const patternBackgrounds = [
-    { name: "Abstract", url: "https://images.unsplash.com/photo-1618759287629-ca51c8da5856?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
-    { name: "Geometric", url: "https://images.unsplash.com/photo-1557683311-eac922347aa1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
-    { name: "Marble", url: "https://images.unsplash.com/photo-1597773150796-e5c14ebecbf5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" },
-    { name: "Wood", url: "https://images.unsplash.com/photo-1566312262854-06079e1a1e6b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" }
+    { name: "Abstract", url: "https://placehold.co/800x1000/E0E0E0/E0E0E0" },
+    { name: "Geometric", url: "https://placehold.co/800x1000/D0D0D0/D0D0D0" },
+    { name: "Marble", url: "https://placehold.co/800x1000/F0F0F0/F0F0F0" },
+    { name: "Wood", url: "https://placehold.co/800x1000/CD853F/CD853F" }
   ];
   
   const handleBackgroundSelect = (url: string) => {
     console.log("Selected background:", url);
-    
-    // Add a random parameter to force re-render of images
-    if (url && !url.includes('linear-gradient')) {
-      const randomParam = `?random=${Math.random()}`;
-      url = url + randomParam;
-    }
-    
     onBackgroundSelect(url);
-    
-    // Show a toast notification for confirmation
-    if (url) {
-      toast.success("Background applied successfully!");
-    } else {
-      toast.info("Background removed");
-    }
   };
-  
-  // Function to check image URLs are accessible
-  const checkImageUrl = (url: string): Promise<boolean> => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => resolve(true);
-      img.onerror = () => resolve(false);
-      img.src = url;
-    });
-  };
-  
-  // Pre-load images to check availability
-  useState(() => {
-    const allImageUrls = [
-      ...paperBackgrounds,
-      ...natureBackgrounds,
-      ...patternBackgrounds
-    ].map(bg => bg.url);
-    
-    allImageUrls.forEach(async (url) => {
-      const isValid = await checkImageUrl(url);
-      if (!isValid) {
-        console.warn(`Image might be inaccessible: ${url}`);
-      }
-    });
-  });
   
   return (
     <div className="space-y-2">
@@ -123,11 +82,12 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                   onClick={() => handleBackgroundSelect(bg.url)}
                   type="button"
                 >
-                  <img 
-                    src={bg.url} 
-                    alt={bg.name} 
-                    className="w-full h-full object-cover" 
-                    loading="lazy"
+                  <div 
+                    className="w-full h-full"
+                    style={{ 
+                      backgroundColor: bg.url.includes('placehold.co') ? bg.url.split('/')[3] : 'white',
+                      border: '1px solid #e0e0e0'
+                    }}
                   />
                 </button>
               ))}
@@ -143,14 +103,11 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                   onClick={() => handleBackgroundSelect(bg.url)}
                   type="button"
                 >
-                  <img 
-                    src={bg.url} 
-                    alt={bg.name} 
-                    className="w-full h-full object-cover" 
-                    loading="lazy"
-                    onError={(e) => {
-                      console.error(`Failed to load image: ${bg.url}`);
-                      e.currentTarget.src = 'https://placehold.co/600x400/png?text=Image+Error';
+                  <div 
+                    className="w-full h-full"
+                    style={{ 
+                      backgroundColor: bg.url.includes('placehold.co') ? bg.url.split('/')[3] : 'lightblue',
+                      border: '1px solid #e0e0e0'
                     }}
                   />
                 </button>
@@ -167,14 +124,11 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                   onClick={() => handleBackgroundSelect(bg.url)}
                   type="button"
                 >
-                  <img 
-                    src={bg.url} 
-                    alt={bg.name} 
-                    className="w-full h-full object-cover" 
-                    loading="lazy"
-                    onError={(e) => {
-                      console.error(`Failed to load image: ${bg.url}`);
-                      e.currentTarget.src = 'https://placehold.co/600x400/png?text=Image+Error';
+                  <div 
+                    className="w-full h-full"
+                    style={{ 
+                      backgroundColor: bg.url.includes('placehold.co') ? bg.url.split('/')[3] : 'gray',
+                      border: '1px solid #e0e0e0'
                     }}
                   />
                 </button>
