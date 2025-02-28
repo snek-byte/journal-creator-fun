@@ -44,6 +44,11 @@ export function JournalEditor() {
     saveEntry,
     applyChallenge,
     loadChallenge,
+    handleUndo,
+    handleRedo,
+    handleResetToDefault,
+    canUndo,
+    canRedo,
   } = useJournalEditor();
 
   return (
@@ -68,6 +73,19 @@ export function JournalEditor() {
         saveEntry={saveEntry}
         loadChallenge={loadChallenge}
         applyChallenge={applyChallenge}
+        handleUndo={handleUndo}
+        handleRedo={handleRedo}
+        handleResetToDefault={handleResetToDefault}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        // Add tool functions
+        handleStickerAdd={handleStickerAdd}
+        handleIconAdd={handleIconAdd}
+        handleIconUpdate={handleIconUpdate}
+        handleBackgroundSelect={handleBackgroundSelect}
+        handleDrawingChange={handleDrawingChange}
+        handleFilterChange={handleFilterChange}
+        drawing={currentEntry.drawing}
       />
 
       <EmailDialog

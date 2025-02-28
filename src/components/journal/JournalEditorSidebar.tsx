@@ -8,9 +8,15 @@ import { Switch } from "@/components/ui/switch";
 import { JournalStylingControls } from './JournalStylingControls';
 import { MoodSelector } from './MoodSelector';
 import { DailyChallenge } from './DailyChallenge';
-import { Save, Printer, Mail, Undo, Redo, RotateCcw } from 'lucide-react';
-import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
-import type { Mood } from '@/types/journal';
+import { StickerSelector } from './StickerSelector';
+import { IconSelector } from './IconSelector';
+import { BackgroundImageSelector } from './BackgroundImageSelector';
+import { ImageFilterSelector } from './ImageFilterSelector';
+import { DrawingLayer } from './DrawingLayer';
+import { Save, Printer, Mail, Undo, Redo, RotateCcw, Camera, Palette, ImageIcon, Pencil, Filter } from 'lucide-react';
+import { data as emojiData } from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
+import type { Mood, Sticker, Icon } from '@/types/journal';
 import { PopoverTrigger, Popover, PopoverContent } from '@/components/ui/popover';
 
 interface JournalEditorSidebarProps {
@@ -24,11 +30,14 @@ interface JournalEditorSidebarProps {
     gradient: string;
     mood?: Mood;
     isPublic: boolean;
+    textStyle?: string;
+    backgroundImage?: string;
+    filter?: string;
   };
   dailyChallenge: any;
   selectedIconId: string | null;
   handlePrint: () => void;
-  handleEmojiSelect: (emojiData: EmojiClickData) => void;
+  handleEmojiSelect: (emoji: any) => void;
   setShowEmailDialog: (show: boolean) => void;
   setText: (text: string) => void;
   setMood: (mood: Mood) => void;
@@ -47,6 +56,14 @@ interface JournalEditorSidebarProps {
   handleResetToDefault?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
+  // New props for tool functions
+  handleStickerAdd?: (sticker: Sticker) => void;
+  handleIconAdd?: (icon: Icon) => void;
+  handleIconUpdate?: (iconId: string, updates: Partial<Icon>) => void;
+  handleBackgroundSelect?: (imageUrl: string) => void;
+  handleDrawingChange?: (dataUrl: string) => void;
+  handleFilterChange?: (filter: string) => void;
+  drawing?: string;
 }
 
 export function JournalEditorSidebar({
@@ -74,10 +91,19 @@ export function JournalEditorSidebar({
   handleResetToDefault,
   canUndo = false,
   canRedo = false,
+  handleStickerAdd,
+  handleIconAdd,
+  handleIconUpdate,
+  handleBackgroundSelect,
+  handleDrawingChange,
+  handleFilterChange,
+  drawing,
 }: JournalEditorSidebarProps) {
   const [activeTab, setActiveTab] = useState('write');
   const [charCount, setCharCount] = useState(0);
   const [wordCount, setWordCount] = useState(0);
+  const [toolsTab, setToolsTab] = useState<string | null>(null);
+  const [isDrawingActive, setIsDrawingActive] = useState(false);
 
   // Recalculate word and character counts when text changes
   useEffect(() => {
@@ -95,6 +121,21 @@ export function JournalEditorSidebar({
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
+  };
+
+  const handleToolClick = (tool: string) => {
+    setToolsTab(toolsTab === tool ? null : tool);
+    if (tool === 'drawing') {
+      setIsDrawingActive(!isDrawingActive);
+    } else if (toolsTab === 'drawing') {
+      setIsDrawingActive(false);
+    }
+  };
+
+  const handleEmojiPickerSelect = (emoji: any) => {
+    if (handleEmojiSelect && emoji.native) {
+      handleEmojiSelect({ emoji: emoji.native });
+    }
   };
 
   return (
@@ -143,6 +184,7 @@ export function JournalEditorSidebar({
         <TabsList className="w-full mb-4">
           <TabsTrigger value="write" className="flex-1">Write</TabsTrigger>
           <TabsTrigger value="style" className="flex-1">Style</TabsTrigger>
+          <TabsTrigger value="tools" className="flex-1">Tools</TabsTrigger>
         </TabsList>
 
         <ScrollArea className="flex-1 w-full">
@@ -176,10 +218,12 @@ export function JournalEditorSidebar({
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-full p-0" align="start">
-                    <EmojiPicker 
-                      onEmojiClick={handleEmojiSelect}
-                      width={300}
-                      height={320}
+                    <Picker 
+                      data={emojiData} 
+                      onEmojiSelect={handleEmojiPickerSelect}
+                      theme="light"
+                      previewPosition="none"
+                      skinTonePosition="none"
                     />
                   </PopoverContent>
                 </Popover>
@@ -208,6 +252,98 @@ export function JournalEditorSidebar({
               onTextStyleChange={setTextStyle}
               selectedIconId={selectedIconId}
             />
+          </TabsContent>
+
+          <TabsContent value="tools" className="mt-0 space-y-4">
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              <Button
+                variant={toolsTab === 'stickers' ? 'default' : 'outline'}
+                className="flex flex-col items-center py-3"
+                onClick={() => handleToolClick('stickers')}
+              >
+                <Camera className="h-5 w-5 mb-1" />
+                <span className="text-xs">Stickers</span>
+              </Button>
+              
+              <Button
+                variant={toolsTab === 'icons' ? 'default' : 'outline'}
+                className="flex flex-col items-center py-3"
+                onClick={() => handleToolClick('icons')}
+              >
+                <Palette className="h-5 w-5 mb-1" />
+                <span className="text-xs">Icons</span>
+              </Button>
+              
+              <Button
+                variant={toolsTab === 'backgrounds' ? 'default' : 'outline'}
+                className="flex flex-col items-center py-3"
+                onClick={() => handleToolClick('backgrounds')}
+              >
+                <ImageIcon className="h-5 w-5 mb-1" />
+                <span className="text-xs">Backgrounds</span>
+              </Button>
+              
+              <Button
+                variant={toolsTab === 'drawing' ? 'default' : 'outline'}
+                className="flex flex-col items-center py-3"
+                onClick={() => handleToolClick('drawing')}
+              >
+                <Pencil className="h-5 w-5 mb-1" />
+                <span className="text-xs">Drawing</span>
+              </Button>
+              
+              <Button
+                variant={toolsTab === 'filters' ? 'default' : 'outline'}
+                className="flex flex-col items-center py-3"
+                onClick={() => handleToolClick('filters')}
+              >
+                <Filter className="h-5 w-5 mb-1" />
+                <span className="text-xs">Filters</span>
+              </Button>
+            </div>
+            
+            {toolsTab === 'stickers' && handleStickerAdd && (
+              <div className="border rounded-md p-2">
+                <h3 className="text-sm font-medium mb-2">Stickers</h3>
+                <StickerSelector onStickerSelect={handleStickerAdd} />
+              </div>
+            )}
+            
+            {toolsTab === 'icons' && handleIconAdd && handleIconUpdate && (
+              <div className="border rounded-md p-2">
+                <h3 className="text-sm font-medium mb-2">Icons</h3>
+                <IconSelector onIconSelect={handleIconAdd} />
+              </div>
+            )}
+            
+            {toolsTab === 'backgrounds' && handleBackgroundSelect && (
+              <div className="border rounded-md p-2">
+                <h3 className="text-sm font-medium mb-2">Backgrounds</h3>
+                <BackgroundImageSelector onImageSelect={handleBackgroundSelect} />
+              </div>
+            )}
+            
+            {toolsTab === 'drawing' && handleDrawingChange && (
+              <div className="border rounded-md p-2">
+                <h3 className="text-sm font-medium mb-2">Drawing Tool</h3>
+                <DrawingLayer 
+                  width={300} 
+                  height={300} 
+                  onDrawingChange={handleDrawingChange}
+                  initialDrawing={drawing}
+                />
+              </div>
+            )}
+            
+            {toolsTab === 'filters' && handleFilterChange && (
+              <div className="border rounded-md p-2">
+                <h3 className="text-sm font-medium mb-2">Image Filters</h3>
+                <ImageFilterSelector 
+                  onFilterSelect={handleFilterChange} 
+                  currentFilter={currentEntry.filter || 'none'} 
+                />
+              </div>
+            )}
           </TabsContent>
         </ScrollArea>
 

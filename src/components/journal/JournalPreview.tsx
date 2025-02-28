@@ -1,15 +1,9 @@
 
 import React, { useState, useRef } from 'react';
-import { StickerSelector } from './StickerSelector';
-import { IconSelector } from './IconSelector';
-import { BackgroundImageSelector } from './BackgroundImageSelector';
-import { DrawingLayer } from './DrawingLayer';
-import { ImageFilterSelector } from './ImageFilterSelector';
 import { Sticker, Icon } from '@/types/journal';
 import { IconContainer } from './IconContainer';
-import { ChevronLeft, ChevronRight, Camera, Palette, ImageIcon, Pencil, Filter } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '../ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface JournalPreviewProps {
   showPreview: boolean;
@@ -72,13 +66,10 @@ export function JournalPreview({
   onFilterChange,
   onTogglePreview,
 }: JournalPreviewProps) {
-  const [activeTab, setActiveTab] = useState<string | null>(null);
   const [isDraggingText, setIsDraggingText] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [startDragPosition, setStartDragPosition] = useState({ x: 0, y: 0 });
   const [startTextPosition, setStartTextPosition] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isDrawingActive, setIsDrawingActive] = useState(false);
 
   // Helper to detect if a string segment is a flag emoji
   const isFlagEmoji = (text: string): boolean => {
@@ -196,7 +187,6 @@ export function JournalPreview({
     e.stopPropagation();
     setIsDraggingText(true);
     onTextDragStart();
-    setMousePosition({ x: e.clientX, y: e.clientY });
     setStartDragPosition({ x: e.clientX, y: e.clientY });
     setStartTextPosition({ ...textPosition });
   };
@@ -225,113 +215,6 @@ export function JournalPreview({
 
   return (
     <div className="flex-grow relative flex items-center justify-center overflow-hidden">
-      {/* Integrated sidebar with tabs */}
-      {activeTab !== null && (
-        <div className="absolute left-0 top-0 h-full z-10 bg-white border-r w-64 flex flex-col shadow-md">
-          <div className="p-2 border-b flex items-center justify-between">
-            <h3 className="text-sm font-medium">
-              {activeTab === 'stickers' ? 'Stickers' :
-               activeTab === 'icons' ? 'Icons' :
-               activeTab === 'backgrounds' ? 'Backgrounds' :
-               activeTab === 'drawing' ? 'Drawing Tool' :
-               activeTab === 'filters' ? 'Image Filters' : 'Tools'}
-            </h3>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => {
-                setActiveTab(null);
-                if (activeTab === 'drawing') {
-                  setIsDrawingActive(false);
-                }
-              }}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto">
-            {activeTab === 'stickers' && (
-              <StickerSelector onStickerSelect={onStickerAdd} />
-            )}
-            {activeTab === 'icons' && (
-              <IconSelector onIconSelect={onIconAdd} />
-            )}
-            {activeTab === 'backgrounds' && (
-              <BackgroundImageSelector onImageSelect={onBackgroundSelect} />
-            )}
-            {activeTab === 'filters' && (
-              <ImageFilterSelector 
-                onFilterSelect={onFilterChange} 
-                currentFilter={filter || 'none'}
-              />
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Tool selection buttons (always visible) */}
-      <div className="absolute left-4 top-4 z-20 flex flex-col gap-2">
-        <Button
-          variant={activeTab === 'stickers' ? 'default' : 'secondary'}
-          size="icon"
-          className="h-10 w-10 rounded-full shadow-md bg-white hover:bg-gray-100"
-          onClick={() => setActiveTab(activeTab === 'stickers' ? null : 'stickers')}
-          title="Stickers"
-        >
-          <Camera size={20} className="text-gray-700" />
-        </Button>
-        
-        <Button
-          variant={activeTab === 'icons' ? 'default' : 'secondary'}
-          size="icon"
-          className="h-10 w-10 rounded-full shadow-md bg-white hover:bg-gray-100"
-          onClick={() => setActiveTab(activeTab === 'icons' ? null : 'icons')}
-          title="Icons"
-        >
-          <Palette size={20} className="text-gray-700" />
-        </Button>
-        
-        <Button
-          variant={activeTab === 'backgrounds' ? 'default' : 'secondary'}
-          size="icon"
-          className="h-10 w-10 rounded-full shadow-md bg-white hover:bg-gray-100"
-          onClick={() => setActiveTab(activeTab === 'backgrounds' ? null : 'backgrounds')}
-          title="Backgrounds"
-        >
-          <ImageIcon size={20} className="text-gray-700" />
-        </Button>
-        
-        <Button
-          variant={activeTab === 'drawing' ? 'default' : 'secondary'}
-          size="icon"
-          className="h-10 w-10 rounded-full shadow-md bg-white hover:bg-gray-100"
-          onClick={() => {
-            if (activeTab === 'drawing') {
-              setActiveTab(null);
-              setIsDrawingActive(false);
-            } else {
-              setActiveTab('drawing');
-              setIsDrawingActive(true);
-            }
-          }}
-          title="Drawing"
-        >
-          <Pencil size={20} className="text-gray-700" />
-        </Button>
-        
-        <Button
-          variant={activeTab === 'filters' ? 'default' : 'secondary'}
-          size="icon"
-          className="h-10 w-10 rounded-full shadow-md bg-white hover:bg-gray-100"
-          onClick={() => setActiveTab(activeTab === 'filters' ? null : 'filters')}
-          title="Filters"
-        >
-          <Filter size={20} className="text-gray-700" />
-        </Button>
-      </div>
-
       {/* Journal Page */}
       <div 
         ref={containerRef}
@@ -358,19 +241,9 @@ export function JournalPreview({
             }}
           ></div>
         )}
-
-        {/* Drawing layer */}
-        {activeTab === 'drawing' && (
-          <DrawingLayer 
-            width={800} 
-            height={600} 
-            onDrawingChange={onDrawingChange} 
-            initialDrawing={drawing}
-          />
-        )}
         
-        {/* Drawing display (when not actively drawing) */}
-        {drawing && activeTab !== 'drawing' && (
+        {/* Drawing display */}
+        {drawing && (
           <div 
             className="absolute inset-0 pointer-events-none"
             style={{
@@ -430,7 +303,7 @@ export function JournalPreview({
           <IconContainer
             key={icon.id}
             icon={icon}
-            selected={false}
+            selected={icon.id === icons.find(i => i.id === icon.id)?.id}
             onSelect={onIconSelect}
             onMove={onIconMove}
             containerRef={containerRef}
@@ -461,7 +334,7 @@ export function JournalPreview({
         >
         </div>
 
-        {/* Mood indicator - using special flag-emoji class for any flags */}
+        {/* Mood indicator */}
         {mood && (
           <div className="absolute top-4 right-4 text-4xl" title={`Mood: ${mood}`}>
             <span className="emoji">

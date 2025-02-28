@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { Icon } from '@/types/journal';
 
 interface IconContainerProps {
@@ -18,6 +18,7 @@ export function IconContainer({
   containerRef
 }: IconContainerProps) {
   const iconRef = useRef<HTMLDivElement>(null);
+  const [isMoving, setIsMoving] = useState(false);
 
   // Global keyboard event listener for delete key
   useEffect(() => {
@@ -43,6 +44,7 @@ export function IconContainer({
     
     // Select this icon
     onSelect(icon.id);
+    setIsMoving(true);
     
     if (!containerRef.current) return;
     
@@ -72,6 +74,7 @@ export function IconContainer({
     };
     
     const handleMouseUp = () => {
+      setIsMoving(false);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
@@ -80,10 +83,15 @@ export function IconContainer({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSelect(icon.id);
+  };
+
   return (
     <div
       ref={iconRef}
-      className={`absolute cursor-move transition-all ${
+      className={`absolute cursor-move transition-shadow ${
         selected ? 'ring-2 ring-primary z-50' : 'hover:ring-1 hover:ring-primary/30 z-40'
       }`}
       style={{
@@ -92,6 +100,7 @@ export function IconContainer({
         transform: 'translate(-50%, -50%)',
       }}
       onMouseDown={handleMouseDown}
+      onClick={handleClick}
       tabIndex={0} // Make focusable for keyboard events
     >
       <img

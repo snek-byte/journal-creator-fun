@@ -4,7 +4,6 @@ import { useJournalStore } from '@/store/journalStore';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Mood, Sticker, Icon } from '@/types/journal';
-import { EmojiClickData } from 'emoji-picker-react';
 
 export function useJournalEditor() {
   const {
@@ -113,6 +112,7 @@ export function useJournalEditor() {
   const handleIconAdd = (icon: Icon) => {
     try {
       addIcon(icon);
+      setSelectedIconId(icon.id);
       toast.success('Icon added! Drag it to position on your journal.');
     } catch (error) {
       console.error("Error adding icon:", error);
@@ -213,7 +213,7 @@ export function useJournalEditor() {
     }
   };
 
-  const handleEmojiSelect = (emojiData: EmojiClickData) => {
+  const handleEmojiSelect = (emojiData: any) => {
     try {
       if (!textareaRef.current) return;
 
