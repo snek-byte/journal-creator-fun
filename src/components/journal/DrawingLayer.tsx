@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Paintbrush, Eraser, UndoIcon, RedoIcon, Trash2, CircleDashed, PaintBucket, Pencil, Highlighter, X, GripVertical, Minus } from "lucide-react";
@@ -16,6 +15,7 @@ interface DrawingLayerProps {
   width: number;
   height: number;
   onDrawingChange?: (dataUrl: string) => void;
+  initialDrawing?: string;
 }
 
 // Organized color palette - Primary colors
@@ -40,7 +40,7 @@ const brushTypes = [
   { name: 'Eraser', value: 'eraser', icon: <Eraser className="h-2.5 w-2.5" /> },
 ];
 
-export function DrawingLayer({ className, width, height, onDrawingChange }: DrawingLayerProps) {
+export function DrawingLayer({ className, width, height, onDrawingChange, initialDrawing }: DrawingLayerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -78,6 +78,15 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
     ctx.lineJoin = 'round';
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
+    // Load initial drawing if provided
+    if (initialDrawing) {
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0);
+      };
+      img.src = initialDrawing;
+    }
+    
     const emptyState = canvas.toDataURL();
     setUndoStack([emptyState]);
     
@@ -88,7 +97,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
         window.clearInterval(sprayInterval.current);
       }
     };
-  }, []);
+  }, [initialDrawing]);
 
   // Update brush settings when they change
   useEffect(() => {

@@ -56,6 +56,7 @@ interface JournalState {
   earnXP: (amount: number) => Promise<void>;
   setDrawing: (drawing: string) => void;
   setFilter: (filter: string) => void;
+  resetEntry: () => void;
 }
 
 export const useJournalStore = create<JournalState>()(
@@ -267,6 +268,27 @@ export const useJournalStore = create<JournalState>()(
           console.error('Error saving entry:', error);
           toast.error('Failed to save entry');
         }
+      },
+      resetEntry: () => {
+        set((state) => ({
+          currentEntry: {
+            text: '',
+            font: 'inter',
+            fontSize: '16px',
+            fontWeight: 'normal',
+            fontColor: '#000000',
+            gradient: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)',
+            isPublic: false,
+            textStyle: 'normal',
+            stickers: [],
+            icons: [],
+            textPosition: { x: 10, y: 10 },
+            backgroundImage: undefined,
+            drawing: undefined,
+            filter: 'none'
+          }
+        }));
+        toast.success('Reset to default settings');
       },
       loadEntries: async () => {
         const user = await supabase.auth.getUser();

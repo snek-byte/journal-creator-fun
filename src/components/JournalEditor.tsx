@@ -22,6 +22,8 @@ export function JournalEditor() {
     handleIconUpdate,
     handleIconSelect,
     handleTextMove,
+    handleTextDragStart,
+    handleTextDragEnd,
     handleBackgroundSelect,
     handleDrawingChange,
     handleFilterChange,
@@ -100,6 +102,8 @@ export function JournalEditor() {
         onIconUpdate={handleIconUpdate}
         onIconSelect={handleIconSelect}
         onTextMove={handleTextMove}
+        onTextDragStart={handleTextDragStart}
+        onTextDragEnd={handleTextDragEnd}
         onBackgroundSelect={handleBackgroundSelect}
         onDrawingChange={handleDrawingChange}
         onFilterChange={handleFilterChange}
