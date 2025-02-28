@@ -80,7 +80,7 @@ export function IconContainer({
   return (
     <div
       ref={iconRef}
-      className={`absolute cursor-move ${selected ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+      className={`absolute cursor-move ${selected ? 'outline outline-2 outline-primary' : ''}`}
       style={{
         left: `${icon.position.x}%`,
         top: `${icon.position.y}%`,
