@@ -8,7 +8,7 @@ interface ClearButtonProps {
 export const ClearButton: React.FC<ClearButtonProps> = ({ onClick }) => {
   return (
     <button
-      className="absolute top-4 left-4 bg-red-500 text-white p-2 rounded-full shadow-md"
+      className="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-md transition-colors"
       onClick={onClick}
       title="Clear Canvas"
     >
