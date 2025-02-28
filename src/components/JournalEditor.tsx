@@ -3,6 +3,7 @@ import { useJournalEditor } from '@/hooks/useJournalEditor';
 import { JournalEditorSidebar } from './journal/JournalEditorSidebar';
 import { JournalPreview } from './journal/JournalPreview';
 import { EmailDialog } from './journal/EmailDialog';
+import { useJournalStore } from '@/store/journalStore';
 
 export function JournalEditor() {
   const {
