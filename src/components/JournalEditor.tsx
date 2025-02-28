@@ -3,6 +3,7 @@ import { useJournalEditor } from '@/hooks/useJournalEditor';
 import { JournalEditorSidebar } from './journal/JournalEditorSidebar';
 import { JournalPreview } from './journal/JournalPreview';
 import { EmailDialog } from './journal/EmailDialog';
+import { useState } from 'react';
 
 export function JournalEditor() {
   const {
@@ -43,6 +44,15 @@ export function JournalEditor() {
     applyChallenge,
     loadChallenge,
   } = useJournalEditor();
+  
+  // Drawing tool state
+  const [currentDrawingTool, setCurrentDrawingTool] = useState('pen');
+  const [currentDrawingColor, setCurrentDrawingColor] = useState('#000000');
+  const [currentBrushSize, setCurrentBrushSize] = useState(3);
+
+  const handleClearDrawing = () => {
+    handleDrawingChange('');
+  };
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
@@ -66,6 +76,13 @@ export function JournalEditor() {
         saveEntry={saveEntry}
         loadChallenge={loadChallenge}
         applyChallenge={applyChallenge}
+        onDrawingToolSelect={setCurrentDrawingTool}
+        currentDrawingTool={currentDrawingTool}
+        onDrawingColorChange={setCurrentDrawingColor}
+        currentDrawingColor={currentDrawingColor}
+        onClearDrawing={handleClearDrawing}
+        onBrushSizeChange={setCurrentBrushSize}
+        currentBrushSize={currentBrushSize}
       />
 
       <EmailDialog
@@ -104,6 +121,9 @@ export function JournalEditor() {
         onDrawingChange={handleDrawingChange}
         onFilterChange={handleFilterChange}
         onTogglePreview={togglePreview}
+        drawingTool={currentDrawingTool}
+        drawingColor={currentDrawingColor}
+        brushSize={currentBrushSize}
       />
     </div>
   );

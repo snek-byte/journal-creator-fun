@@ -1,16 +1,14 @@
-
-import React, { useState, useRef } from 'react';
-import { StickerSelector } from './StickerSelector';
-import { IconSelector } from './IconSelector';
-import { BackgroundImageSelector } from './BackgroundImageSelector';
+import React, { useState, useRef, useEffect } from 'react';
+import { cn } from "@/lib/utils";
 import { DrawingLayer } from './DrawingLayer';
-import { ImageFilterSelector } from './ImageFilterSelector';
-import { Sticker, Icon } from '@/types/journal';
+import { Sticker } from '@/types/journal';
 import { IconContainer } from './IconContainer';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { Button } from '../ui/button';
+import { useScreenshot } from 'use-react-screenshot';
+import { ImageIcon } from 'lucide-react';
+import type { Icon } from '@/types/journal';
 
 interface JournalPreviewProps {
+  className?: string;
   showPreview: boolean;
   text: string;
   mood?: string;
@@ -19,7 +17,7 @@ interface JournalPreviewProps {
   fontWeight: string;
   fontColor: string;
   gradient: string;
-  textStyle?: string;
+  textStyle: string;
   stickers: Sticker[];
   icons: Icon[];
   textPosition: { x: number; y: number };
@@ -31,17 +29,19 @@ interface JournalPreviewProps {
   onStickerMove: (id: string, position: { x: number; y: number }) => void;
   onIconMove: (id: string, position: { x: number; y: number }) => void;
   onIconUpdate: (id: string, updates: Partial<Icon>) => void;
-  onIconSelect: (id: string | null) => void;
+  onIconSelect: (id: string) => void;
   onTextMove: (position: { x: number; y: number }) => void;
-  onTextDragStart: () => void;
-  onTextDragEnd: () => void;
-  onBackgroundSelect: (url: string) => void;
+  onBackgroundSelect: (image: string) => void;
   onDrawingChange: (dataUrl: string) => void;
   onFilterChange: (filter: string) => void;
   onTogglePreview: () => void;
+  drawingTool?: string;
+  drawingColor?: string;
+  brushSize?: number;
 }
 
 export function JournalPreview({
+  className,
   showPreview,
   text,
   mood,
@@ -64,334 +64,142 @@ export function JournalPreview({
   onIconUpdate,
   onIconSelect,
   onTextMove,
-  onTextDragStart,
-  onTextDragEnd,
   onBackgroundSelect,
   onDrawingChange,
   onFilterChange,
   onTogglePreview,
+  drawingTool = 'pen',
+  drawingColor = '#000000',
+  brushSize = 3
 }: JournalPreviewProps) {
-  const [selectedSidebarItem, setSelectedSidebarItem] = useState<'stickers' | 'icons' | 'backgrounds' | 'drawing' | 'filters' | null>(null);
+  const [isDrawingMode, setIsDrawingMode] = useState(false);
+  const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
+  const [previewWidth, setPreviewWidth] = useState(500);
+  const [previewHeight, setPreviewHeight] = useState(500);
   const [isDraggingText, setIsDraggingText] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [startDragPosition, setStartDragPosition] = useState({ x: 0, y: 0 });
-  const [startTextPosition, setStartTextPosition] = useState({ x: 0, y: 0 });
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [textOffset, setTextOffset] = useState({ x: 0, y: 0 });
+	const [image, takeScreenshot] = useScreenshot({
+    type: "image/jpeg",
+    quality: 1.0
+  });
 
-  // Helper to detect if a string segment is a flag emoji
-  const isFlagEmoji = (text: string): boolean => {
-    // Flag emojis consist of two regional indicator symbols (range U+1F1E6 to U+1F1FF)
-    if (text.length !== 4) return false;
-    
-    const firstChar = text.codePointAt(0);
-    const secondChar = text.codePointAt(2);
-    
-    return firstChar !== undefined && 
-           secondChar !== undefined && 
-           firstChar >= 0x1F1E6 && 
-           firstChar <= 0x1F1FF && 
-           secondChar >= 0x1F1E6 && 
-           secondChar <= 0x1F1FF;
-  };
+  useEffect(() => {
+    if (!previewRef.current) return;
 
-  // Process text to properly handle emojis and text styling
-  const processText = (input: string): string => {
-    if (!textStyle || textStyle === 'normal') {
-      // Only wrap flags in special spans even if no text styling
-      let processed = '';
-      for (let i = 0; i < input.length; i++) {
-        const char = input[i];
-        const codePoint = input.codePointAt(i);
-        
-        // Check if this could be the start of a flag emoji
-        if (codePoint && codePoint >= 0x1F1E6 && codePoint <= 0x1F1FF && i + 3 < input.length) {
-          const potentialFlag = input.substring(i, i + 4);
-          if (isFlagEmoji(potentialFlag)) {
-            processed += `<span class="flag-emoji" role="img">${potentialFlag}</span>`;
-            i += 3; // Skip the next 3 characters (flag emoji takes 4 total)
-            continue;
-          }
-        }
-        
-        processed += char;
-      }
-      return processed;
+    const handleResize = () => {
+      if (!previewRef.current) return;
+      const width = previewRef.current.offsetWidth;
+      const height = previewRef.current.offsetHeight;
+      setPreviewWidth(width);
+      setPreviewHeight(height);
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (drawing) {
+      setIsDrawingMode(true);
     }
-    
-    // If we have text styling, process the text while preserving emojis
-    let result = '';
-    for (let i = 0; i < input.length; i++) {
-      const codePoint = input.codePointAt(i);
-      
-      // Check for flag emoji (two regional indicator symbols)
-      if (codePoint && codePoint >= 0x1F1E6 && codePoint <= 0x1F1FF && i + 3 < input.length) {
-        const potentialFlag = input.substring(i, i + 4);
-        if (isFlagEmoji(potentialFlag)) {
-          result += `<span class="flag-emoji" role="img">${potentialFlag}</span>`;
-          i += 3; // Skip the next 3 characters
-          continue;
-        }
-      }
-      
-      // Check for regular emoji
-      if (codePoint && codePoint >= 0x1F000 && codePoint <= 0x1FFFF) {
-        const charLength = codePoint > 0xFFFF ? 2 : 1; // Check if surrogate pair
-        const emoji = input.substring(i, i + charLength);
-        result += `<span class="emoji" role="img">${emoji}</span>`;
-        i += charLength - 1; // Skip surrogate pair if needed
-        continue;
-      }
-      
-      // Regular character - apply styling
-      const char = input[i];
-      const transformed = applyTextStyle(char, textStyle);
-      result += transformed;
-    }
-    
-    return result;
-  };
-  
-  // Apply text styling to a single character
-  const applyTextStyle = (char: string, style: string): string => {
-    // Skip non-alphabet characters
-    if (!/[a-zA-Z]/.test(char)) {
-      return char;
-    }
-    
-    // Different transformations based on style
-    switch (style) {
-      case 'bold':
-        return transformToUnicode(char, 0x1D400, 0x1D41A);
-      case 'italic':
-        return transformToUnicode(char, 0x1D434, 0x1D44E);
-      case 'script':
-        return transformToUnicode(char, 0x1D49C, 0x1D4B6);
-      case 'fraktur':
-        return transformToUnicode(char, 0x1D504, 0x1D51E);
-      case 'monospace':
-        return transformToUnicode(char, 0x1D670, 0x1D68A);
-      default:
-        return char;
-    }
-  };
-  
-  // Helper to transform characters to Unicode
-  const transformToUnicode = (char: string, upperStart: number, lowerStart: number): string => {
-    const code = char.charCodeAt(0);
-    
-    if (code >= 65 && code <= 90) { // A-Z
-      return String.fromCodePoint(upperStart + (code - 65));
-    }
-    
-    if (code >= 97 && code <= 122) { // a-z
-      return String.fromCodePoint(lowerStart + (code - 97));
-    }
-    
-    return char;
+  }, [drawing]);
+
+  const handleIconSelect = (id: string) => {
+    setSelectedIconId(id);
+    onIconSelect(id);
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    e.stopPropagation();
+    e.preventDefault();
     setIsDraggingText(true);
-    onTextDragStart();
-    setMousePosition({ x: e.clientX, y: e.clientY });
-    setStartDragPosition({ x: e.clientX, y: e.clientY });
-    setStartTextPosition({ ...textPosition });
+    setTextOffset({ x: e.clientX, y: e.clientY });
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDraggingText) {
-      const dx = e.clientX - startDragPosition.x;
-      const dy = e.clientY - startDragPosition.y;
-      const newPosition = {
-        x: startTextPosition.x + dx,
-        y: startTextPosition.y + dy
-      };
-      onTextMove(newPosition);
-    }
+    if (!isDraggingText || !previewRef.current) return;
+
+    const rect = previewRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left - textOffset.x + textPosition.x;
+    const y = e.clientY - rect.top - textOffset.y + textPosition.y;
+
+    // Ensure position stays within bounds (0-100%)
+    const boundedX = Math.max(0, Math.min(100, x));
+    const boundedY = Math.max(0, Math.min(100, y));
+
+    onTextMove({ x: boundedX, y: boundedY });
+    setTextOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top });
   };
 
   const handleMouseUp = () => {
-    if (isDraggingText) {
-      setIsDraggingText(false);
-      onTextDragEnd();
-    }
+    setIsDraggingText(false);
   };
 
-  // Process the journal text with our enhanced emoji handler
-  const processedText = processText(text);
+  const handleMouseLeave = () => {
+    setIsDraggingText(false);
+  };
 
   return (
-    <div className="flex-grow relative flex items-center justify-center overflow-hidden">
-      {/* Sidebar tools */}
-      <div className="absolute left-0 top-0 h-full z-10 flex">
-        <div className="bg-white border-r h-full flex flex-col p-2 space-y-2 shadow-md">
-          <Button
-            variant={selectedSidebarItem === 'stickers' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => selectedSidebarItem === 'stickers' ? setSelectedSidebarItem(null) : setSelectedSidebarItem('stickers')}
-          >
-            <span className="emoji" role="img" aria-label="Camera">📷</span>
-          </Button>
-          <Button
-            variant={selectedSidebarItem === 'icons' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => selectedSidebarItem === 'icons' ? setSelectedSidebarItem(null) : setSelectedSidebarItem('icons')}
-          >
-            <span className="emoji" role="img" aria-label="Paint">🎨</span>
-          </Button>
-          <Button
-            variant={selectedSidebarItem === 'backgrounds' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => selectedSidebarItem === 'backgrounds' ? setSelectedSidebarItem(null) : setSelectedSidebarItem('backgrounds')}
-          >
-            <span className="emoji" role="img" aria-label="Frame">🖼️</span>
-          </Button>
-          <Button
-            variant={selectedSidebarItem === 'drawing' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => selectedSidebarItem === 'drawing' ? setSelectedSidebarItem(null) : setSelectedSidebarItem('drawing')}
-          >
-            <span className="emoji" role="img" aria-label="Pencil">✏️</span>
-          </Button>
-          <Button
-            variant={selectedSidebarItem === 'filters' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => selectedSidebarItem === 'filters' ? setSelectedSidebarItem(null) : setSelectedSidebarItem('filters')}
-          >
-            <span className="emoji" role="img" aria-label="Magnifying Glass">🔍</span>
-          </Button>
-        </div>
-
-        {selectedSidebarItem && (
-          <div className="bg-white border-r h-full w-64 overflow-y-auto shadow-md">
-            <div className="flex justify-between items-center p-2 border-b">
-              <h3 className="text-sm font-medium">
-                {selectedSidebarItem === 'stickers' ? 'Stickers' :
-                 selectedSidebarItem === 'icons' ? 'Icons' :
-                 selectedSidebarItem === 'backgrounds' ? 'Backgrounds' :
-                 selectedSidebarItem === 'drawing' ? 'Drawing Tool' :
-                 selectedSidebarItem === 'filters' ? 'Image Filters' : 'Tools'}
-              </h3>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setSelectedSidebarItem(null)}
-                className="h-6 w-6 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="p-2">
-              {selectedSidebarItem === 'stickers' && (
-                <StickerSelector onStickerSelect={onStickerAdd} />
-              )}
-              {selectedSidebarItem === 'icons' && (
-                <IconSelector onIconSelect={onIconAdd} />
-              )}
-              {selectedSidebarItem === 'backgrounds' && (
-                <BackgroundImageSelector onImageSelect={onBackgroundSelect} />
-              )}
-              {selectedSidebarItem === 'drawing' && (
-                <DrawingLayer 
-                  width={800} 
-                  height={600} 
-                  onDrawingChange={onDrawingChange} 
-                  initialDrawing={drawing}
-                />
-              )}
-              {selectedSidebarItem === 'filters' && (
-                <ImageFilterSelector 
-                  onFilterSelect={onFilterChange} 
-                  currentFilter={filter || 'none'}
-                />
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Journal Page */}
-      <div 
-        ref={containerRef}
-        className="w-full max-w-3xl h-[800px] bg-white shadow-lg rounded-lg overflow-hidden relative"
+    <div className={cn("relative flex-1 overflow-hidden bg-white", className)}>
+      <div
+        className="absolute inset-0 z-0"
         style={{
-          backgroundImage: backgroundImage ? `url(${backgroundImage})` : gradient,
+          backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
+          filter: filter || undefined,
         }}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onClick={() => onIconSelect(null)}
-      >
-        {/* Filter overlay */}
-        {filter && filter !== 'none' && (
-          <div 
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              filter: filter === 'grayscale' ? 'grayscale(1)' : 
-                     filter === 'sepia' ? 'sepia(0.8)' : 
-                     filter === 'blur' ? 'blur(2px)' :
-                     filter === 'brightness' ? 'brightness(1.2)' :
-                     filter === 'contrast' ? 'contrast(1.5)' : 'none'
-            }}
-          ></div>
-        )}
+        onClick={() => onBackgroundSelect('')}
+      />
 
-        {/* Drawing layer */}
-        {drawing && (
-          <div 
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              backgroundImage: `url(${drawing})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              opacity: 0.8
-            }}
-          ></div>
-        )}
-
+      <div className="relative h-full w-full" ref={previewRef}>
         {/* Stickers */}
         {stickers.map((sticker) => (
-          <div
+          <img
             key={sticker.id}
+            src={sticker.url}
+            alt="Sticker"
             className="absolute cursor-move"
             style={{
               left: `${sticker.position.x}%`,
               top: `${sticker.position.y}%`,
-              zIndex: 5,
-              userSelect: 'none',
+              transform: 'translate(-50%, -50%)',
+              width: `${sticker.size}px`,
+              height: `${sticker.size}px`,
+              zIndex: 30,
             }}
+            draggable={false}
             onMouseDown={(e) => {
               e.stopPropagation();
-              e.preventDefault();
-              const startX = e.clientX - sticker.position.x;
-              const startY = e.clientY - sticker.position.y;
-              
-              const handleMouseMove = (moveEvent: MouseEvent) => {
-                const newPosition = {
-                  x: moveEvent.clientX - startX,
-                  y: moveEvent.clientY - startY
-                };
-                onStickerMove(sticker.id, newPosition);
+              let offsetX = e.clientX - e.currentTarget.offsetLeft;
+              let offsetY = e.clientY - e.currentTarget.offsetTop;
+
+              const handleMouseMove = (e: MouseEvent) => {
+                if (!previewRef.current) return;
+                const containerRect = previewRef.current.getBoundingClientRect();
+                const x = ((e.clientX - offsetX - containerRect.left) / containerRect.width) * 100;
+                const y = ((e.clientY - offsetY - containerRect.top) / containerRect.height) * 100;
+
+                // Ensure position stays within bounds (0-100%)
+                const boundedX = Math.max(0, Math.min(100, x));
+                const boundedY = Math.max(0, Math.min(100, y));
+
+                onStickerMove(sticker.id, { x: boundedX, y: boundedY });
               };
-              
+
               const handleMouseUp = () => {
                 document.removeEventListener('mousemove', handleMouseMove);
                 document.removeEventListener('mouseup', handleMouseUp);
               };
-              
+
               document.addEventListener('mousemove', handleMouseMove);
               document.addEventListener('mouseup', handleMouseUp);
             }}
-          >
-            <img 
-              src={sticker.url} 
-              alt="Sticker" 
-              style={{ width: '100px', height: '100px', objectFit: 'contain' }}
-              draggable={false}
-            />
-          </div>
+          />
         ))}
 
         {/* Icons */}
@@ -399,64 +207,65 @@ export function JournalPreview({
           <IconContainer
             key={icon.id}
             icon={icon}
-            selected={false}
-            onSelect={onIconSelect}
+            selected={selectedIconId === icon.id}
+            onSelect={handleIconSelect}
             onMove={onIconMove}
-            containerRef={containerRef}
+            containerRef={previewRef}
           />
         ))}
 
-        {/* Text */}
+        {/* Text Area */}
         <div
-          className={`absolute p-4 ${isDraggingText ? 'cursor-grabbing' : 'cursor-grab'}`}
+          className="absolute z-20 break-words w-[80%] font-normal"
           style={{
-            left: `${textPosition.x}px`,
-            top: `${textPosition.y}px`,
+            left: `${textPosition.x}%`,
+            top: `${textPosition.y}%`,
+            transform: 'translate(-50%, -50%)',
             fontFamily: font,
-            fontSize,
-            fontWeight,
+            fontSize: fontSize,
+            fontWeight: fontWeight,
             color: fontColor,
-            maxWidth: '80%',
-            textShadow: '0 0 5px rgba(255, 255, 255, 0.5)',
-            zIndex: isDraggingText ? 20 : 1,
-            userSelect: 'none',
-            borderRadius: '5px',
-            background: isDraggingText ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
-            border: isDraggingText ? '1px dashed rgba(0, 0, 0, 0.2)' : 'none',
-            whiteSpace: 'pre-wrap',
+            backgroundImage: gradient ? `linear-gradient(${gradient})` : 'none',
+            WebkitBackgroundClip: gradient ? 'text' : 'none',
+            WebkitTextFillColor: gradient ? 'transparent' : fontColor,
+            fontStyle: textStyle?.includes('italic') ? 'italic' : 'normal',
+            textDecoration: textStyle?.includes('underline') ? 'underline' : 'none',
+            textAlign: textStyle?.includes('center') ? 'center' : 'left',
+            cursor: 'move',
           }}
           onMouseDown={handleMouseDown}
-          dangerouslySetInnerHTML={{ __html: processedText }}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
         >
+          {text}
         </div>
-
-        {/* Mood indicator - using special flag-emoji class for any flags */}
-        {mood && (
-          <div className="absolute top-4 right-4 text-4xl" title={`Mood: ${mood}`}>
-            <span className="emoji">
-              {mood === 'happy' ? '😊' :
-               mood === 'sad' ? '😢' :
-               mood === 'angry' ? '😠' :
-               mood === 'excited' ? '🤩' :
-               mood === 'relaxed' ? '😌' :
-               mood === 'anxious' ? '😰' :
-               mood === 'grateful' ? '🙏' :
-               mood === 'confused' ? '😕' :
-               mood === 'stressed' ? '😫' :
-               mood === 'calm' ? '😇' : '😐'}
-            </span>
-          </div>
+      
+        {/* Drawing Layer */}
+        {isDrawingMode && (
+          <DrawingLayer
+            width={previewWidth}
+            height={previewHeight}
+            onDrawingChange={onDrawingChange}
+            tool={drawingTool}
+            color={drawingColor}
+            brushSize={brushSize}
+          />
         )}
       </div>
 
-      {/* Toggle preview button */}
-      <Button
-        variant="ghost"
-        className="absolute bottom-4 right-4"
-        onClick={onTogglePreview}
-      >
-        {showPreview ? <ChevronRight /> : <ChevronLeft />}
-      </Button>
+      {showPreview && (
+        <img
+          src={drawing || undefined}
+          alt="Drawing"
+          className="absolute inset-0 z-10 pointer-events-none"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+          }}
+        />
+      )}
     </div>
   );
 }

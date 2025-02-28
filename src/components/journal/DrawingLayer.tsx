@@ -1,10 +1,6 @@
 
 import { useEffect, useRef, useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Paintbrush, Eraser, UndoIcon, RedoIcon, Trash2, CircleDashed, PaintBucket, Pencil, Highlighter, X, GripVertical, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { HexColorPicker } from "react-colorful";
 
 interface Point {
   x: number;
@@ -16,51 +12,41 @@ interface DrawingLayerProps {
   width: number;
   height: number;
   onDrawingChange?: (dataUrl: string) => void;
+  tool?: string;
+  color?: string;
+  brushSize?: number;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  onClear?: () => void;
+  onToolChange?: (tool: string) => void;
+  onColorChange?: (color: string) => void;
+  onBrushSizeChange?: (size: number) => void;
 }
 
-// Organized color palette - Primary colors
-const colors = [
-  { value: '#000000', label: 'Black' },
-  { value: '#1e40af', label: 'Blue' },
-  { value: '#7e22ce', label: 'Purple' },
-  { value: '#dc2626', label: 'Red' },
-  { value: '#ea580c', label: 'Orange' },
-  { value: '#ca8a04', label: 'Yellow' },
-  { value: '#16a34a', label: 'Green' },
-  { value: '#0d9488', label: 'Teal' },
-];
-
-// Brush types
-const brushTypes = [
-  { name: 'Pen', value: 'pen', icon: <Pencil className="h-2.5 w-2.5" /> },
-  { name: 'Marker', value: 'marker', icon: <Paintbrush className="h-2.5 w-2.5" /> },
-  { name: 'Highlighter', value: 'highlighter', icon: <Highlighter className="h-2.5 w-2.5" /> },
-  { name: 'Spray', value: 'spray', icon: <CircleDashed className="h-2.5 w-2.5" /> },
-  { name: 'Fill', value: 'fill', icon: <PaintBucket className="h-2.5 w-2.5" /> },
-  { name: 'Eraser', value: 'eraser', icon: <Eraser className="h-2.5 w-2.5" /> },
-];
-
-export function DrawingLayer({ className, width, height, onDrawingChange }: DrawingLayerProps) {
+export function DrawingLayer({ 
+  className, 
+  width, 
+  height, 
+  onDrawingChange,
+  tool = 'pen',
+  color = '#000000',
+  brushSize = 3,
+  onUndo,
+  onRedo,
+  onClear,
+  onToolChange,
+  onColorChange,
+  onBrushSizeChange
+}: DrawingLayerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const toolbarRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [lastPoint, setLastPoint] = useState<Point | null>(null);
-  const [currentColor, setCurrentColor] = useState('#000000');
-  const [lineWidth, setLineWidth] = useState(3);
-  const [brushType, setBrushType] = useState('pen');
+  const [opacity, setOpacity] = useState(1);
+  const sprayInterval = useRef<number | null>(null);
+  const hasInitialized = useRef(false);
   const [undoStack, setUndoStack] = useState<string[]>([]);
   const [redoStack, setRedoStack] = useState<string[]>([]);
-  const sprayInterval = useRef<number | null>(null);
-  const [opacity, setOpacity] = useState(1);
-  const hasInitialized = useRef(false);
-  
-  // For dragging functionality
-  const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState({ x: 10, y: 10 });
-  const dragStartPos = useRef({ x: 0, y: 0 });
-  const initialPos = useRef({ x: 0, y: 0 });
-  const [compactMode, setCompactMode] = useState(false);
-  const [isActive, setIsActive] = useState(false);
+  const [isActive, setIsActive] = useState(true);
 
   // Initialize canvas on mount
   useEffect(() => {
@@ -72,8 +58,8 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    ctx.strokeStyle = currentColor;
-    ctx.lineWidth = lineWidth;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = brushSize;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -96,68 +82,30 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
     const ctx = canvasRef.current.getContext('2d');
     if (!ctx) return;
     
-    if (brushType === 'eraser') {
+    if (tool === 'eraser') {
       ctx.globalCompositeOperation = 'destination-out';
     } else {
       ctx.globalCompositeOperation = 'source-over';
-      ctx.strokeStyle = currentColor;
+      ctx.strokeStyle = color;
       
-      if (brushType === 'highlighter') {
+      if (tool === 'highlighter') {
         ctx.globalAlpha = 0.3;
-      } else if (brushType === 'marker') {
+      } else if (tool === 'marker') {
         ctx.globalAlpha = 0.8;
       } else {
         ctx.globalAlpha = opacity;
       }
     }
-  }, [currentColor, brushType, opacity]);
+    
+    ctx.lineWidth = brushSize;
+  }, [color, tool, brushSize, opacity]);
 
-  // Improved dragging functionality
-  const handleDragStart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    setIsDragging(true);
-    
-    // Store the initial mouse position
-    dragStartPos.current = { x: e.clientX, y: e.clientY };
-    
-    // Store the initial position of the toolbar
-    initialPos.current = { ...position };
-  };
-
-  const handleDragMove = (e: MouseEvent) => {
-    if (!isDragging) return;
-    
-    // Calculate the distance moved from the start position
-    const dx = e.clientX - dragStartPos.current.x;
-    const dy = e.clientY - dragStartPos.current.y;
-    
-    // Update the position based on the initial position plus the distance moved
-    setPosition({
-      x: initialPos.current.x + dx,
-      y: initialPos.current.y + dy
-    });
-  };
-
-  const handleDragEnd = () => {
-    setIsDragging(false);
-  };
-
+  // Handle tool changes from parent
   useEffect(() => {
-    if (isDragging) {
-      window.addEventListener('mousemove', handleDragMove);
-      window.addEventListener('mouseup', handleDragEnd);
-    } else {
-      window.removeEventListener('mousemove', handleDragMove);
-      window.removeEventListener('mouseup', handleDragEnd);
+    if (onToolChange) {
+      setIsActive(true);
     }
-    
-    return () => {
-      window.removeEventListener('mousemove', handleDragMove);
-      window.removeEventListener('mouseup', handleDragEnd);
-    };
-  }, [isDragging]);
+  }, [tool, onToolChange]);
 
   const saveState = () => {
     if (!canvasRef.current || !isDrawing) return;
@@ -171,20 +119,34 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
     }
   };
 
+  // Expose undo/redo functions to parent
+  useEffect(() => {
+    if (onUndo) {
+      onUndo = () => undo();
+    }
+    if (onRedo) {
+      onRedo = () => redo();
+    }
+    if (onClear) {
+      onClear = () => clearCanvas();
+    }
+  }, [onUndo, onRedo, onClear]);
+
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isActive) return;
     e.preventDefault();
     setIsDrawing(true);
     const point = getPoint(e);
     setLastPoint(point);
 
     // Handle special brush types
-    if (brushType === 'fill') {
+    if (tool === 'fill') {
       fillArea(point);
       saveState();
       return;
     }
     
-    if (brushType === 'spray') {
+    if (tool === 'spray') {
       spray(point);
       sprayInterval.current = window.setInterval(() => {
         if (lastPoint) {
@@ -207,7 +169,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
   };
 
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!isDrawing || !canvasRef.current || !lastPoint) return;
+    if (!isActive || !isDrawing || !canvasRef.current || !lastPoint) return;
     e.preventDefault();
 
     const ctx = canvasRef.current.getContext('2d');
@@ -215,25 +177,25 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
 
     const currentPoint = getPoint(e);
     
-    if (brushType === 'spray') {
+    if (tool === 'spray') {
       setLastPoint(currentPoint);
       return; // Spray is handled in the interval
     }
     
-    if (brushType === 'eraser') {
+    if (tool === 'eraser') {
       ctx.globalCompositeOperation = 'destination-out';
-      ctx.lineWidth = lineWidth * 3; // Bigger eraser
+      ctx.lineWidth = brushSize * 3; // Bigger eraser
     } else {
       ctx.globalCompositeOperation = 'source-over';
       
-      if (brushType === 'highlighter') {
-        ctx.lineWidth = lineWidth * 3;
+      if (tool === 'highlighter') {
+        ctx.lineWidth = brushSize * 3;
         ctx.globalAlpha = 0.3;
-      } else if (brushType === 'marker') {
-        ctx.lineWidth = lineWidth * 2;
+      } else if (tool === 'marker') {
+        ctx.lineWidth = brushSize * 2;
         ctx.globalAlpha = 0.8;
       } else {
-        ctx.lineWidth = lineWidth;
+        ctx.lineWidth = brushSize;
         ctx.globalAlpha = opacity;
       }
     }
@@ -252,10 +214,10 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
     if (!ctx) return;
 
     // Spray parameters
-    const density = lineWidth * 5;
-    const radius = lineWidth * 3;
+    const density = brushSize * 5;
+    const radius = brushSize * 3;
 
-    ctx.fillStyle = currentColor;
+    ctx.fillStyle = color;
     ctx.globalAlpha = 0.05; // Lower opacity for spray particles
 
     for (let i = 0; i < density; i++) {
@@ -281,7 +243,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
 
     const imageData = ctx.getImageData(0, 0, canvasRef.current.width, canvasRef.current.height);
     const targetColor = getColorAtPixel(imageData, Math.floor(point.x), Math.floor(point.y));
-    const fillColor = hexToRgb(currentColor);
+    const fillColor = hexToRgb(color);
     
     if (fillColor) {
       floodFill(imageData, Math.floor(point.x), Math.floor(point.y), targetColor, fillColor);
@@ -447,215 +409,8 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
     }
   };
 
-  const handleBrushTypeChange = (type: string) => {
-    setBrushType(type);
-    
-    if (!canvasRef.current) return;
-    const ctx = canvasRef.current.getContext('2d');
-    if (!ctx) return;
-    
-    if (type === 'eraser') {
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.lineWidth = lineWidth * 3; // Bigger eraser
-    } else {
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.lineWidth = lineWidth;
-      
-      if (type === 'highlighter') {
-        ctx.globalAlpha = 0.3;
-      } else if (type === 'marker') {
-        ctx.globalAlpha = 0.8;
-      } else {
-        ctx.globalAlpha = opacity;
-      }
-    }
-  };
-
   return (
     <div className={cn("absolute inset-0", className)}>
-      <div 
-        ref={toolbarRef}
-        style={{ 
-          left: `${position.x}px`, 
-          top: `${position.y}px`,
-          position: 'absolute',
-          zIndex: 50
-        }}
-        className={cn(
-          "bg-white rounded-lg shadow-md border border-gray-200",
-          compactMode ? "w-auto" : "w-[160px]"
-        )}
-      >
-        {/* Draggable header */}
-        <div 
-          className="flex items-center justify-between bg-gray-50 rounded-t-lg px-2 py-1 cursor-move border-b border-gray-100"
-          onMouseDown={handleDragStart}
-        >
-          <div className="flex items-center gap-1">
-            <GripVertical className="h-2.5 w-2.5 text-gray-400" />
-            <span className="text-xs font-medium text-gray-600">Draw Tool</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-4 w-4 p-0 text-gray-400 hover:text-gray-600"
-              onClick={() => setCompactMode(!compactMode)}
-              type="button"
-            >
-              {compactMode ? <Paintbrush className="h-2.5 w-2.5" /> : <Minus className="h-2.5 w-2.5" />}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-4 w-4 p-0 text-gray-400 hover:text-gray-600"
-              onClick={() => {
-                setIsActive(false);
-                onDrawingChange && onDrawingChange('');
-              }}
-              type="button"
-            >
-              <X className="h-2.5 w-2.5" />
-            </Button>
-          </div>
-        </div>
-        
-        {!compactMode && (
-          <div className="p-2 space-y-2">
-            {/* Color palette */}
-            <div>
-              <div className="flex flex-wrap gap-1">
-                {colors.map((color) => (
-                  <button
-                    key={color.value}
-                    className={`w-3.5 h-3.5 rounded-full ${currentColor === color.value ? 'ring-1 ring-offset-1 ring-black' : ''}`}
-                    style={{ backgroundColor: color.value }}
-                    onClick={() => setCurrentColor(color.value)}
-                    title={color.label}
-                    type="button"
-                  />
-                ))}
-              </div>
-              
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    className="w-full h-5 mt-1 flex items-center justify-center gap-1 text-[10px]"
-                  >
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: currentColor }}></div>
-                    Custom Color
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-2">
-                  <HexColorPicker color={currentColor} onChange={setCurrentColor} />
-                </PopoverContent>
-              </Popover>
-            </div>
-            
-            {/* Brush types */}
-            <div>
-              <div className="grid grid-cols-3 gap-1">
-                {brushTypes.map((brush) => (
-                  <Button
-                    key={brush.value}
-                    variant={brushType === brush.value ? "secondary" : "ghost"}
-                    size="sm"
-                    className="h-5 p-0"
-                    onClick={() => {
-                      handleBrushTypeChange(brush.value);
-                      setIsActive(true);
-                    }}
-                    title={brush.name}
-                    type="button"
-                  >
-                    {brush.icon}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            
-            {/* Brush size */}
-            <div className="flex justify-between gap-1">
-              {[2, 4, 6, 8].map((size) => (
-                <button
-                  key={size}
-                  className={`flex-1 flex items-center justify-center rounded border ${lineWidth === size ? 'bg-primary/20 border-primary' : 'border-gray-300'} h-5`}
-                  onClick={() => setLineWidth(size)}
-                  type="button"
-                >
-                  <div 
-                    className="rounded-full"
-                    style={{ 
-                      width: `${size}px`, 
-                      height: `${size}px`,
-                      backgroundColor: brushType === 'eraser' ? '#888' : currentColor
-                    }}
-                  />
-                </button>
-              ))}
-            </div>
-            
-            {/* Opacity (only for certain brush types) */}
-            {brushType !== 'eraser' && brushType !== 'highlighter' && (
-              <div className="flex flex-col w-full">
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-medium">Opacity</span>
-                  <span className="text-[10px] text-gray-500">{opacity.toFixed(1)}</span>
-                </div>
-                <input
-                  type="range"
-                  min="0.1"
-                  max="1"
-                  step="0.1"
-                  value={opacity}
-                  onChange={(e) => setOpacity(parseFloat(e.target.value))}
-                  className="w-full h-1 mt-1"
-                />
-              </div>
-            )}
-            
-            {/* Control buttons - Redesigned to be narrower */}
-            <div className="grid grid-cols-3 gap-0.5">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-5 px-0 py-0 text-[8px]"
-                onClick={undo}
-                disabled={undoStack.length <= 1}
-                type="button"
-              >
-                <UndoIcon className="h-2 w-2 mr-0.5" />
-                Undo
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-5 px-0 py-0 text-[8px]"
-                onClick={redo}
-                disabled={redoStack.length === 0}
-                type="button"
-              >
-                <RedoIcon className="h-2 w-2 mr-0.5" />
-                Redo
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-5 px-0 py-0 text-[8px]"
-                onClick={clearCanvas}
-                type="button"
-              >
-                <Trash2 className="h-2 w-2 mr-0.5" />
-                Clr
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-
       <canvas
         ref={canvasRef}
         width={width}

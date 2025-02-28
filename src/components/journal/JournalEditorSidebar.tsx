@@ -8,10 +8,11 @@ import { Switch } from "@/components/ui/switch";
 import { JournalStylingControls } from './JournalStylingControls';
 import { MoodSelector } from './MoodSelector';
 import { DailyChallenge } from './DailyChallenge';
-import { Save, Printer, Mail, Undo, Redo, RotateCcw } from 'lucide-react';
+import { Save, Printer, Mail, Undo, Redo, RotateCcw, Paintbrush, Eraser, PaintBucket, CircleDashed, Pencil, Highlighter, Trash2 } from 'lucide-react';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import type { Mood } from '@/types/journal';
 import { PopoverTrigger, Popover, PopoverContent } from '@/components/ui/popover';
+import { Separator } from '@/components/ui/separator';
 
 interface JournalEditorSidebarProps {
   textareaRef: React.RefObject<HTMLTextAreaElement>;
@@ -47,7 +48,39 @@ interface JournalEditorSidebarProps {
   handleResetToDefault?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
+  onDrawingToolSelect?: (tool: string) => void;
+  currentDrawingTool?: string;
+  onDrawingColorChange?: (color: string) => void;
+  currentDrawingColor?: string;
+  onClearDrawing?: () => void;
+  onBrushSizeChange?: (size: number) => void;
+  currentBrushSize?: number;
 }
+
+// Drawing tool options with colors
+const drawingTools = [
+  { name: 'Pen', value: 'pen', icon: Pencil, color: '#9b87f5' },
+  { name: 'Marker', value: 'marker', icon: Paintbrush, color: '#7E69AB' },
+  { name: 'Highlighter', value: 'highlighter', icon: Highlighter, color: '#D6BCFA' },
+  { name: 'Spray', value: 'spray', icon: CircleDashed, color: '#FEC6A1' },
+  { name: 'Fill', value: 'fill', icon: PaintBucket, color: '#FDE1D3' },
+  { name: 'Eraser', value: 'eraser', icon: Eraser, color: '#8E9196' },
+];
+
+// Drawing color palette
+const drawingColors = [
+  { value: '#000000', label: 'Black' },
+  { value: '#1e40af', label: 'Blue' },
+  { value: '#7e22ce', label: 'Purple' },
+  { value: '#dc2626', label: 'Red' },
+  { value: '#ea580c', label: 'Orange' },
+  { value: '#ca8a04', label: 'Yellow' },
+  { value: '#16a34a', label: 'Green' },
+  { value: '#0d9488', label: 'Teal' },
+];
+
+// Brush sizes
+const brushSizes = [2, 4, 6, 8];
 
 export function JournalEditorSidebar({
   textareaRef,
@@ -74,6 +107,13 @@ export function JournalEditorSidebar({
   handleResetToDefault,
   canUndo = false,
   canRedo = false,
+  onDrawingToolSelect,
+  currentDrawingTool = 'pen',
+  onDrawingColorChange,
+  currentDrawingColor = '#000000',
+  onClearDrawing,
+  onBrushSizeChange,
+  currentBrushSize = 3,
 }: JournalEditorSidebarProps) {
   const [activeTab, setActiveTab] = useState('write');
   const [charCount, setCharCount] = useState(0);
@@ -208,6 +248,111 @@ export function JournalEditorSidebar({
               onTextStyleChange={setTextStyle}
               selectedIconId={selectedIconId}
             />
+            
+            {/* Drawing Tools Section */}
+            {onDrawingToolSelect && (
+              <div className="space-y-3 pt-4">
+                <Separator className="mb-4" />
+                <h3 className="text-xs font-semibold tracking-tight">Drawing Tools</h3>
+                
+                {/* Tool Selection */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-medium">Select Tool</label>
+                  <div className="flex flex-wrap gap-2">
+                    {drawingTools.map((tool) => (
+                      <button
+                        key={tool.value}
+                        onClick={() => onDrawingToolSelect(tool.value)}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                          currentDrawingTool === tool.value 
+                            ? 'ring-2 ring-primary ring-offset-2' 
+                            : 'hover:opacity-80'
+                        }`}
+                        style={{ backgroundColor: tool.color }}
+                        title={tool.name}
+                        type="button"
+                      >
+                        <tool.icon className="h-3.5 w-3.5 text-white" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Color Selection - Only for non-eraser tools */}
+                {currentDrawingTool !== 'eraser' && onDrawingColorChange && (
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-medium">Select Color</label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {drawingColors.map((color) => (
+                        <button
+                          key={color.value}
+                          className={`w-6 h-6 rounded-full ${
+                            currentDrawingColor === color.value 
+                              ? 'ring-2 ring-black ring-offset-1' 
+                              : ''
+                          }`}
+                          style={{ backgroundColor: color.value }}
+                          onClick={() => onDrawingColorChange(color.value)}
+                          title={color.label}
+                          type="button"
+                        />
+                      ))}
+                    </div>
+                    
+                    {/* Custom color picker */}
+                    <input
+                      type="color"
+                      value={currentDrawingColor}
+                      onChange={(e) => onDrawingColorChange(e.target.value)}
+                      className="w-full h-8 rounded-md cursor-pointer mt-1"
+                    />
+                  </div>
+                )}
+                
+                {/* Brush Size Selection */}
+                {onBrushSizeChange && currentDrawingTool !== 'fill' && (
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-medium">Brush Size</label>
+                    <div className="flex justify-between gap-1.5">
+                      {brushSizes.map((size) => (
+                        <button
+                          key={size}
+                          className={`flex-1 h-8 rounded-md flex items-center justify-center ${
+                            currentBrushSize === size 
+                              ? 'bg-primary/20 border border-primary' 
+                              : 'border border-gray-200'
+                          }`}
+                          onClick={() => onBrushSizeChange(size)}
+                          type="button"
+                        >
+                          <div 
+                            className="rounded-full"
+                            style={{ 
+                              width: `${size * 2}px`, 
+                              height: `${size * 2}px`, 
+                              backgroundColor: currentDrawingTool === 'eraser' ? '#888' : currentDrawingColor 
+                            }}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Clear Drawing Button */}
+                {onClearDrawing && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full mt-2"
+                    onClick={onClearDrawing}
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-2" />
+                    Clear Drawing
+                  </Button>
+                )}
+              </div>
+            )}
           </TabsContent>
         </ScrollArea>
 
