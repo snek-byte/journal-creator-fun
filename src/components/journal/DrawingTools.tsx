@@ -5,7 +5,7 @@ import {
   PenTool, 
   Eraser, 
   Highlighter, 
-  PaintbrushDashed, 
+  Paintbrush, 
   Droplets,
   Trash2,
   PaintBucket,
@@ -56,7 +56,7 @@ export function DrawingTools({
     { 
       id: 'marker', 
       name: 'Marker', 
-      icon: PaintbrushDashed, 
+      icon: Paintbrush, 
       description: 'Broad marker with semi-transparent effect'
     },
     { 
