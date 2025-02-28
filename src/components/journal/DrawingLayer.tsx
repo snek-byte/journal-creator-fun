@@ -5,7 +5,6 @@ import { Paintbrush, Eraser, UndoIcon, RedoIcon, Trash2, CircleDashed, PaintBuck
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HexColorPicker } from "react-colorful";
-import { toast } from "sonner";
 
 interface Point {
   x: number;
@@ -156,10 +155,6 @@ export function DrawingLayer({ className, width = 800, height = 600, onDrawingCh
   };
 
   const handleCloseDrawTool = () => {
-    // This function should close the drawing tool and clear the drawing
-    console.log("Close drawing tool clicked");
-    toast.info("Closing drawing tool");
-    
     // Set isActive to false to hide the toolbar
     setIsActive(false);
     
@@ -503,11 +498,6 @@ export function DrawingLayer({ className, width = 800, height = 600, onDrawingCh
       }
     }
   };
-
-  // Add a useEffect that runs once on mount to notify via toast
-  useEffect(() => {
-    toast.info("Drawing tool opened. Click X to close when done.");
-  }, []);
 
   return (
     <div className={cn("absolute inset-0", className)}>

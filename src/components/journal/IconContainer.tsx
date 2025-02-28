@@ -23,7 +23,6 @@ export function IconContainer({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (selected && (e.key === 'Delete' || e.key === 'Backspace')) {
-        console.log("Delete key pressed for icon:", icon.id);
         onMove(icon.id, { x: -999, y: -999 });
       }
     };
@@ -40,17 +39,15 @@ export function IconContainer({
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation();
-    e.preventDefault(); // Prevent default to avoid any browser-specific behavior
+    e.preventDefault();
     
-    // Select this icon
+    // Immediately select this icon without popup
     onSelect(icon.id);
     
-    if (!containerRef.current) return;
+    if (!containerRef.current || !iconRef.current) return;
     
     const containerRect = containerRef.current.getBoundingClientRect();
-    const iconRect = iconRef.current?.getBoundingClientRect();
-    
-    if (!iconRect) return;
+    const iconRect = iconRef.current.getBoundingClientRect();
     
     // Calculate the offset from the mouse position to the icon's top-left corner
     const offsetX = e.clientX - iconRect.left;
@@ -81,12 +78,6 @@ export function IconContainer({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-  // Stop propagation for all mouse events to prevent any bubbling
-  const stopPropagation = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-  };
-
   return (
     <div
       ref={iconRef}
@@ -99,10 +90,10 @@ export function IconContainer({
         transform: 'translate(-50%, -50%)',
       }}
       onMouseDown={handleMouseDown}
-      onClick={stopPropagation}
-      onContextMenu={stopPropagation}
-      onDoubleClick={stopPropagation}
-      tabIndex={0} // Make focusable for keyboard events
+      onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+      onContextMenu={(e) => { e.stopPropagation(); e.preventDefault(); }}
+      onDoubleClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+      tabIndex={0}
     >
       <img
         src={icon.url}
@@ -113,7 +104,7 @@ export function IconContainer({
           filter: icon.color ? `drop-shadow(0 0 0 ${icon.color})` : undefined,
         }}
         draggable={false}
-        onDragStart={stopPropagation}
+        onDragStart={(e) => { e.preventDefault(); }}
       />
     </div>
   );

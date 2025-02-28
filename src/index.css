@@ -78,18 +78,17 @@
 
 /* Emoji support */
 .emoji-container {
-  font-family: "Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Symbol", sans-serif;
-  display: inline-block;
-  height: 1em;
-  width: 1em;
-  line-height: 1;
-  text-align: center;
-  vertical-align: middle;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", sans-serif;
+  text-rendering: optimizeLegibility;
+  text-decoration: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Fix emoji display for flags and complex emojis */
-@supports (font-variation-settings: normal) {
-  .emoji-container {
-    font-variation-settings: "wght" 400;
-  }
+/* Fix multi-character emoji sequences like flags */
+.emoji-container {
+  unicode-bidi: isolate;
+  unicode-range: U+1F1E6-1F1FF, U+1F3FB-1F3FF;
+  font-variant-emoji: emoji;
+  text-variation-settings: "emoji" on;
 }

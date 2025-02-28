@@ -29,15 +29,9 @@ export function EmojiContainer({
     setPosition(emoji.position);
   }, [emoji.position]);
 
-  // Prevent any clicks from bubbling up
-  const stopAllPropagation = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-  };
-
   const handleMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation();
-    e.preventDefault(); // Prevent any default browser action
+    e.preventDefault();
     
     setIsDragging(true);
     setStartDragPosition({
@@ -49,7 +43,7 @@ export function EmojiContainer({
 
   const handleResizeStart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    e.preventDefault(); // Prevent default actions
+    e.preventDefault();
     
     setIsResizing(true);
     setStartSize(emoji.size);
@@ -69,7 +63,6 @@ export function EmojiContainer({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isSelected && (e.key === 'Delete' || e.key === 'Backspace')) {
-        console.log("Delete key pressed for emoji:", emoji.id);
         onMove(emoji.id, { x: -999, y: -999 });
       }
     };
@@ -132,30 +125,34 @@ export function EmojiContainer({
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
-        fontSize: `${emoji.size}px`,
-        transform: `rotate(${rotateDeg}deg)`,
         userSelect: 'none',
-        // Use these styles to ensure emoji display correctly
-        display: 'flex',
-        justifyContent: 'center', 
-        alignItems: 'center',
-        fontFamily: '"Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Symbol", sans-serif',
+        transform: `rotate(${rotateDeg}deg)`,
       }}
       onMouseDown={handleMouseDown}
       onDoubleClick={handleDoubleClick}
-      onClick={stopAllPropagation}
-      onContextMenu={stopAllPropagation}
+      onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+      onContextMenu={(e) => { e.stopPropagation(); e.preventDefault(); }}
     >
-      <span className="emoji-container">{emoji.symbol}</span>
+      <div
+        className="emoji-container"
+        style={{
+          fontSize: `${emoji.size}px`,
+          lineHeight: 1,
+          textAlign: 'center',
+          fontFamily: '"Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Symbol", sans-serif',
+          display: 'inline-block',
+          width: '1em',
+          height: '1em',
+        }}
+      >
+        {emoji.symbol}
+      </div>
       
       {isSelected && (
-        <>
-          {/* Resize handle */}
-          <div
-            className="absolute -bottom-2 -right-2 w-4 h-4 bg-white border border-gray-400 rounded-full cursor-se-resize z-20"
-            onMouseDown={handleResizeStart}
-          />
-        </>
+        <div
+          className="absolute -bottom-2 -right-2 w-4 h-4 bg-white border border-gray-400 rounded-full cursor-se-resize z-20"
+          onMouseDown={handleResizeStart}
+        />
       )}
     </div>
   );
