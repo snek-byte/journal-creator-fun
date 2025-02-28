@@ -2,9 +2,10 @@
 import { useState, useRef, useEffect, useReducer } from 'react';
 import { useJournalStore } from '@/store/journalStore';
 import { supabase } from "@/integrations/supabase/client";
-import type { Mood, Sticker, Icon, HistoryEntry } from '@/types/journal';
+import type { Mood, Sticker, Icon, HistoryEntry, TextBox } from '@/types/journal';
 import { EmojiClickData } from 'emoji-picker-react';
 import { toast } from "sonner";
+import { v4 as uuidv4 } from 'uuid';
 
 // Define initial state
 const initialState = {
@@ -22,7 +23,8 @@ const initialState = {
   textPosition: { x: 50, y: 50 },
   backgroundImage: '',
   drawing: '',
-  filter: 'none'
+  filter: 'none',
+  textBoxes: [] as TextBox[]
 };
 
 // We use this type for both the state and the history entries
@@ -46,6 +48,10 @@ type Action =
   | { type: 'SET_BACKGROUND_IMAGE'; payload: string }
   | { type: 'SET_DRAWING'; payload: string }
   | { type: 'SET_FILTER'; payload: string }
+  | { type: 'SET_TEXT_BOXES'; payload: TextBox[] }
+  | { type: 'ADD_TEXT_BOX'; payload: TextBox }
+  | { type: 'UPDATE_TEXT_BOX'; payload: { id: string, updates: Partial<TextBox> } }
+  | { type: 'REMOVE_TEXT_BOX'; payload: string }
   | { type: 'RESET' }
   | { type: 'UNDO' }
   | { type: 'REDO' };
@@ -300,6 +306,65 @@ function editorReducer(state: EditorState, action: Action): EditorState {
       };
     }
     
+    case 'SET_TEXT_BOXES': {
+      const newState = {
+        ...state.currentState,
+        textBoxes: action.payload
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'ADD_TEXT_BOX': {
+      const newState = {
+        ...state.currentState,
+        textBoxes: [...state.currentState.textBoxes, action.payload]
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'UPDATE_TEXT_BOX': {
+      const { id, updates } = action.payload;
+      const newState = {
+        ...state.currentState,
+        textBoxes: state.currentState.textBoxes.map(box => 
+          box.id === id ? { ...box, ...updates } : box
+        )
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'REMOVE_TEXT_BOX': {
+      const newState = {
+        ...state.currentState,
+        textBoxes: state.currentState.textBoxes.filter(box => box.id !== action.payload)
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
     case 'RESET': {
       return {
         ...state,
@@ -371,6 +436,7 @@ export function useJournalEditor() {
     setBackgroundImage: setStoreBackgroundImage,
     setDrawing: setStoreDrawing,
     setFilter: setStoreFilter,
+    setTextBoxes: setStoreTextBoxes,
     togglePreview,
     saveEntry: storeSaveEntry,
     loadChallenge,
@@ -380,7 +446,8 @@ export function useJournalEditor() {
   // Initialize state with values from the store
   const initialStateFromStore = {
     ...initialState,
-    ...storeEntry
+    ...storeEntry,
+    textBoxes: storeEntry.textBoxes || []
   };
 
   // Set up reducer
@@ -395,6 +462,7 @@ export function useJournalEditor() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isDraggingText, setIsDraggingText] = useState(false);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
+  const [selectedTextBoxId, setSelectedTextBoxId] = useState<string | null>(null);
   
   // Initialize data
   useEffect(() => {
@@ -429,6 +497,7 @@ export function useJournalEditor() {
     setStoreBackgroundImage(state.backgroundImage);
     setStoreDrawing(state.drawing);
     setStoreFilter(state.filter);
+    setStoreTextBoxes(state.textBoxes);
   };
 
   // Print function
@@ -496,6 +565,22 @@ export function useJournalEditor() {
   const setFilter = (filter: string) => {
     dispatch({ type: 'SET_FILTER', payload: filter });
   };
+  
+  const setTextBoxes = (textBoxes: TextBox[]) => {
+    dispatch({ type: 'SET_TEXT_BOXES', payload: textBoxes });
+  };
+  
+  const addTextBox = (textBox: TextBox) => {
+    dispatch({ type: 'ADD_TEXT_BOX', payload: textBox });
+  };
+  
+  const updateTextBox = (id: string, updates: Partial<TextBox>) => {
+    dispatch({ type: 'UPDATE_TEXT_BOX', payload: { id, updates } });
+  };
+  
+  const removeTextBox = (id: string) => {
+    dispatch({ type: 'REMOVE_TEXT_BOX', payload: id });
+  };
 
   // Helper functions
   const addSticker = (sticker: Sticker) => {
@@ -551,6 +636,36 @@ export function useJournalEditor() {
       console.error("Error adding icon:", error);
     }
   };
+  
+  const handleTextBoxAdd = (textBox: TextBox) => {
+    try {
+      console.log("Adding text box:", textBox);
+      addTextBox(textBox);
+    } catch (error) {
+      console.error("Error adding text box:", error);
+    }
+  };
+  
+  const handleTextBoxUpdate = (id: string, updates: Partial<TextBox>) => {
+    try {
+      console.log(`Updating text box ${id} with:`, updates);
+      updateTextBox(id, updates);
+    } catch (error) {
+      console.error("Error updating text box:", error);
+    }
+  };
+  
+  const handleTextBoxRemove = (id: string) => {
+    try {
+      console.log("Removing text box with ID:", id);
+      removeTextBox(id);
+      if (selectedTextBoxId === id) {
+        setSelectedTextBoxId(null);
+      }
+    } catch (error) {
+      console.error("Error removing text box:", error);
+    }
+  };
 
   const handleStickerMove = (stickerId: string, position: { x: number, y: number }) => {
     try {
@@ -602,7 +717,14 @@ export function useJournalEditor() {
 
   const handleIconSelect = (iconId: string | null) => {
     setSelectedIconId(iconId);
+    setSelectedTextBoxId(null);
     console.log("Selected icon ID:", iconId);
+  };
+  
+  const handleTextBoxSelect = (id: string | null) => {
+    setSelectedTextBoxId(id);
+    setSelectedIconId(null);
+    console.log("Selected text box ID:", id);
   };
 
   const handleTextDragStart = () => {
@@ -682,19 +804,28 @@ export function useJournalEditor() {
       if (!isNaN(sizeValue)) {
         handleIconUpdate(selectedIconId, { size: sizeValue });
       }
+    } else if (selectedTextBoxId) {
+      console.log("Setting font size for text box:", selectedTextBoxId, "to:", size);
+      handleTextBoxUpdate(selectedTextBoxId, { fontSize: size });
     } else {
       setFontSize(size);
     }
   };
 
   const handleFontWeightChange = (weight: string) => {
-    if (!selectedIconId) {
+    if (selectedTextBoxId) {
+      console.log("Setting font weight for text box:", selectedTextBoxId, "to:", weight);
+      handleTextBoxUpdate(selectedTextBoxId, { fontWeight: weight });
+    } else if (!selectedIconId) {
       setFontWeight(weight);
     }
   };
 
   const handleFontChange = (font: string) => {
-    if (!selectedIconId) {
+    if (selectedTextBoxId) {
+      console.log("Setting font for text box:", selectedTextBoxId, "to:", font);
+      handleTextBoxUpdate(selectedTextBoxId, { font });
+    } else if (!selectedIconId) {
       setFont(font);
     }
   };
@@ -703,20 +834,29 @@ export function useJournalEditor() {
     if (selectedIconId) {
       console.log("Setting color for icon:", selectedIconId, "to:", color);
       handleIconUpdate(selectedIconId, { color });
+    } else if (selectedTextBoxId) {
+      console.log("Setting font color for text box:", selectedTextBoxId, "to:", color);
+      handleTextBoxUpdate(selectedTextBoxId, { fontColor: color });
     } else {
       setFontColor(color);
     }
   };
 
   const handleGradientChange = (gradient: string) => {
-    if (!selectedIconId) {
+    if (selectedTextBoxId) {
+      console.log("Setting gradient for text box:", selectedTextBoxId, "to:", gradient);
+      handleTextBoxUpdate(selectedTextBoxId, { gradient });
+    } else if (!selectedIconId) {
       console.log("Setting gradient to:", gradient);
       setGradient(gradient);
     }
   };
 
   const handleTextStyleChange = (style: string) => {
-    if (!selectedIconId) {
+    if (selectedTextBoxId) {
+      console.log("Setting text style for text box:", selectedTextBoxId, "to:", style);
+      handleTextBoxUpdate(selectedTextBoxId, { textStyle: style });
+    } else if (!selectedIconId) {
       setTextStyle(style);
     }
   };
@@ -838,6 +978,7 @@ export function useJournalEditor() {
     textareaRef,
     isDraggingText,
     selectedIconId,
+    selectedTextBoxId,
     handlePrint,
     handleStickerAdd,
     handleIconAdd,
@@ -845,6 +986,10 @@ export function useJournalEditor() {
     handleIconMove,
     handleIconUpdate,
     handleIconSelect,
+    handleTextBoxAdd,
+    handleTextBoxUpdate,
+    handleTextBoxRemove,
+    handleTextBoxSelect,
     handleTextMove,
     handleTextDragStart,
     handleTextDragEnd,
