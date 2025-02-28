@@ -6,6 +6,7 @@ import { TextBox } from '@/types/journal';
 import { applyTextStyle, TextStyle } from '@/utils/unicodeTextStyles';
 import { X, Trash2, RotateCw, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface TextBoxComponentProps {
   textBox: TextBox;
@@ -36,6 +37,8 @@ export function TextBoxComponent({
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
   const [isTouching, setIsTouching] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const { toast } = useToast();
   
   // Detect when the page is being printed
   useEffect(() => {
@@ -115,10 +118,20 @@ export function TextBoxComponent({
     onUpdate(id, { width: newWidth, height: newHeight });
   };
   
+  const handleDragStart = () => {
+    setIsDragging(true);
+  };
+  
   const handleDragStop = (e: any, d: any) => {
+    setIsDragging(false);
+    
     // Convert pixel position to percentage
-    const xPercent = (d.x / containerDimensions.width) * 100;
-    const yPercent = (d.y / containerDimensions.height) * 100;
+    const containerWidth = containerDimensions.width || 1;
+    const containerHeight = containerDimensions.height || 1;
+    
+    // Calculate percentage position, ensuring it's within bounds (5% to 95%)
+    const xPercent = Math.min(95, Math.max(5, (d.x / containerWidth) * 100));
+    const yPercent = Math.min(95, Math.max(5, (d.y / containerHeight) * 100));
     
     onUpdate(id, { position: { x: xPercent, y: yPercent } });
   };
@@ -126,9 +139,9 @@ export function TextBoxComponent({
   const calculatePosition = () => {
     if (!containerDimensions.width || !containerDimensions.height) return { x: 0, y: 0 };
     
-    // Convert percentage position to pixels
-    const x = (position.x / 100) * containerDimensions.width;
-    const y = (position.y / 100) * containerDimensions.height;
+    // Ensure position is within bounds (5% to 95%)
+    const x = Math.min(95, Math.max(5, position.x)) / 100 * containerDimensions.width;
+    const y = Math.min(95, Math.max(5, position.y)) / 100 * containerDimensions.height;
     
     return { x, y };
   };
@@ -151,6 +164,7 @@ export function TextBoxComponent({
       overflow: 'hidden',
       boxSizing: 'border-box',
       transition: 'all 0.2s ease',
+      wordBreak: 'break-word',
     };
     
     if (textStyle) {
@@ -182,7 +196,9 @@ export function TextBoxComponent({
     onUpdate(id, { rotation: newRotation });
   };
   
-  const handleDoubleClick = () => {
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (!isDrawingMode) {
       setIsEditing(true);
     }
@@ -199,6 +215,10 @@ export function TextBoxComponent({
       e.preventDefault();
       setIsEditing(false);
       onUpdate(id, { text: editValue });
+      toast({
+        title: "Text saved",
+        description: "Your text has been updated."
+      });
     }
     
     // Cancel on Escape
@@ -213,6 +233,10 @@ export function TextBoxComponent({
     e.preventDefault();
     e.stopPropagation();
     onRemove(id);
+    toast({
+      title: "Text box removed",
+      description: "Text box has been deleted."
+    });
   };
   
   // Create a CSS class for printing that hides UI elements
@@ -230,6 +254,12 @@ export function TextBoxComponent({
     }
   `;
   
+  // Convert text to a simple string without showing "Double-click to edit" when printing
+  const displayText = isPrinting ? (text || '') : (processText(text) || 'Double-click to edit');
+  
+  // If editing or printing, hide all controls
+  const showControls = selected && !isEditing && !isPrinting && !isDrawingMode;
+  
   return (
     <>
       <style>{printStyles}</style>
@@ -238,32 +268,33 @@ export function TextBoxComponent({
           ...style,
           zIndex: selected ? zIndex + 10 : zIndex,
           pointerEvents: isDrawingMode ? 'none' : 'auto',
+          opacity: isPrinting && !text ? 0 : 1, // Hide empty text boxes when printing
         }}
         size={{ width: size.width, height: size.height }}
         position={calculatePosition()}
+        onDragStart={handleDragStart}
+        onDrag={handleDragStart}
         onDragStop={handleDragStop}
         onResizeStop={handleStopResize}
-        dragHandleClassName="textbox-drag-handle"
         bounds="parent"
         onClick={(e) => {
           e.stopPropagation();
           onSelect(id);
         }}
-        enableResizing={selected && !isEditing && !isPrinting}
-        disableDragging={isEditing || isPrinting}
+        enableResizing={selected && !isEditing && !isPrinting && !isDrawingMode}
+        disableDragging={isEditing || isPrinting || isDrawingMode}
+        dragHandleClassName={isDragging ? undefined : "textbox-drag-handle"}
       >
         <div 
           className={cn(
             "relative h-full w-full text-box-border",
-            // Only show border when selected and not printing
-            selected && !isPrinting ? "ring-2 ring-primary ring-inset" : "ring-0 ring-transparent",
-            // When not selected but hovered and not printing
-            !selected && !isPrinting ? "hover:ring-1 hover:ring-gray-300" : ""
+            selected && !isPrinting && !isDrawingMode ? "ring-2 ring-primary ring-inset" : "ring-0 ring-transparent",
+            !selected && !isPrinting && !isDrawingMode ? "hover:ring-1 hover:ring-gray-300" : ""
           )}
           onDoubleClick={handleDoubleClick}
         >
-          {/* Delete button - only visible when selected and not printing */}
-          {selected && !isPrinting && (
+          {/* Delete button */}
+          {showControls && (
             <button
               className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg z-10 text-box-controls"
               onClick={handleDelete}
@@ -277,8 +308,8 @@ export function TextBoxComponent({
             </button>
           )}
           
-          {/* Rotate button - only visible when selected and not printing */}
-          {selected && !isEditing && !isPrinting && (
+          {/* Rotate button */}
+          {showControls && (
             <div className="absolute -top-2 -left-2 flex gap-1 text-box-controls">
               <button
                 className="bg-primary text-primary-foreground hover:bg-primary/90 p-1 rounded-full"
@@ -290,12 +321,25 @@ export function TextBoxComponent({
             </div>
           )}
           
-          {/* Drag handle - only visible when selected, not editing, and not printing */}
-          {selected && !isEditing && !isPrinting && (
-            <div className="textbox-drag-handle absolute top-1/2 left-0 -translate-x-full -translate-y-1/2 p-2 bg-primary/70 text-primary-foreground rounded-l-sm cursor-move text-box-controls">
+          {/* Drag handle */}
+          {showControls && (
+            <div className="textbox-drag-handle absolute top-1/2 left-0 -translate-x-full -translate-y-1/2 p-2 bg-primary/70 text-primary-foreground rounded-l-sm cursor-move text-box-controls touch-none">
               <GripVertical size={16} />
             </div>
           )}
+          
+          {/* Make entire box draggable on touch devices */}
+          <div 
+            className={cn(
+              "absolute inset-0 z-10",
+              isEditing || isPrinting || isDrawingMode ? "hidden" : "block"
+            )}
+            onTouchStart={() => {
+              if (!isDrawingMode) {
+                // This div makes the whole text box draggable for touch devices
+              }
+            }}
+          />
           
           {isEditing ? (
             <Textarea
@@ -313,7 +357,7 @@ export function TextBoxComponent({
               className="w-full h-full whitespace-pre-wrap overflow-hidden"
               style={getTextStyles()}
             >
-              {processText(text) || 'Double-click to edit'}
+              {displayText}
             </div>
           )}
         </div>
