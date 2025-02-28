@@ -3,8 +3,9 @@ import { useState, useRef, useEffect } from 'react';
 import { useJournalStore } from '@/store/journalStore';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { Mood, Sticker, Icon } from '@/types/journal';
+import type { Mood, Sticker, Icon, Emoji } from '@/types/journal';
 import { EmojiClickData } from 'emoji-picker-react';
+import { v4 as uuidv4 } from 'uuid';
 
 export function useJournalEditor() {
   const {
@@ -22,14 +23,18 @@ export function useJournalEditor() {
     setTextStyle,
     setStickers,
     setIcons,
+    setEmojis,
     setTextPosition,
     setBackgroundImage,
     setDrawing,
     setFilter,
     addSticker,
     addIcon,
+    addEmoji,
     updateIcon,
+    updateEmoji,
     removeIcon,
+    removeEmoji,
     togglePreview,
     saveEntry,
     loadChallenge,
@@ -44,6 +49,8 @@ export function useJournalEditor() {
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
   const [isDraggingText, setIsDraggingText] = useState(false);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
+  const [selectedEmojiId, setSelectedEmojiId] = useState<string | null>(null);
+  const [emojiMode, setEmojiMode] = useState<'text' | 'graphic'>('text');
   
   // History management
   const [history, setHistory] = useState<Array<any>>([]);
@@ -92,6 +99,7 @@ export function useJournalEditor() {
     currentEntry.textStyle,
     currentEntry.stickers,
     currentEntry.icons,
+    currentEntry.emojis,
     currentEntry.textPosition,
     currentEntry.backgroundImage,
     currentEntry.drawing,
@@ -158,6 +166,25 @@ export function useJournalEditor() {
     }
   };
 
+  const handleEmojiMove = (emojiId: string, position: { x: number, y: number }) => {
+    try {
+      // If position is off-screen, it's a deletion
+      if (position.x < -900 || position.y < -900) {
+        console.log("Removing emoji with ID:", emojiId);
+        removeEmoji(emojiId);
+        setSelectedEmojiId(null);
+      } else {
+        setEmojis(
+          (currentEntry.emojis || []).map(e => 
+            e.id === emojiId ? { ...e, position } : e
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error moving/removing emoji:", error);
+    }
+  };
+
   const handleIconUpdate = (iconId: string, updates: Partial<Icon>) => {
     try {
       console.log(`Updating icon ${iconId} with:`, updates);
@@ -167,9 +194,25 @@ export function useJournalEditor() {
     }
   };
 
+  const handleEmojiUpdate = (emojiId: string, updates: Partial<Emoji>) => {
+    try {
+      console.log(`Updating emoji ${emojiId} with:`, updates);
+      updateEmoji(emojiId, updates);
+    } catch (error) {
+      console.error("Error updating emoji:", error);
+    }
+  };
+
   const handleIconSelect = (iconId: string | null) => {
     setSelectedIconId(iconId);
+    setSelectedEmojiId(null);
     console.log("Selected icon ID:", iconId);
+  };
+
+  const handleEmojiSelect = (emojiId: string | null) => {
+    setSelectedEmojiId(emojiId);
+    setSelectedIconId(null);
+    console.log("Selected emoji ID:", emojiId);
   };
 
   const handleTextDragStart = () => {
@@ -213,60 +256,90 @@ export function useJournalEditor() {
     }
   };
 
-  const handleEmojiSelect = (emojiData: EmojiClickData) => {
+  const handleEmojiPickerSelect = (emojiData: EmojiClickData) => {
     try {
-      if (!textareaRef.current) return;
+      if (emojiMode === 'text') {
+        // Insert emoji into text at cursor position
+        if (!textareaRef.current) return;
 
-      const start = textareaRef.current.selectionStart;
-      const end = textareaRef.current.selectionEnd;
-      const text = currentEntry.text;
-      
-      // Use the actual emoji character, not a unicode reference
-      const newText = text.substring(0, start) + emojiData.emoji + text.substring(end);
-      setText(newText);
-      
-      // Restore cursor position after emoji insertion
-      setTimeout(() => {
-        if (textareaRef.current) {
-          const newPosition = start + emojiData.emoji.length;
-          textareaRef.current.selectionStart = newPosition;
-          textareaRef.current.selectionEnd = newPosition;
-          textareaRef.current.focus();
-        }
-      }, 0);
+        const start = textareaRef.current.selectionStart;
+        const end = textareaRef.current.selectionEnd;
+        const text = currentEntry.text;
+        
+        // Use the actual emoji character, not a unicode reference
+        const newText = text.substring(0, start) + emojiData.emoji + text.substring(end);
+        setText(newText);
+        
+        // Restore cursor position after emoji insertion
+        setTimeout(() => {
+          if (textareaRef.current) {
+            const newPosition = start + emojiData.emoji.length;
+            textareaRef.current.selectionStart = newPosition;
+            textareaRef.current.selectionEnd = newPosition;
+            textareaRef.current.focus();
+          }
+        }, 0);
+      } else {
+        // Add emoji as a graphical element
+        const newEmoji: Emoji = {
+          id: uuidv4(),
+          symbol: emojiData.emoji,
+          position: { x: 100, y: 100 }, // Default position in the center
+          size: 48, // Default size
+          rotation: 0
+        };
+        
+        addEmoji(newEmoji);
+        toast.success('Emoji added! Drag it to position on your journal.');
+      }
     } catch (error) {
-      console.error("Error selecting emoji:", error);
+      console.error("Error with emoji:", error);
     }
   };
 
-  // Handler for font size that adjusts icon size when needed
-  const handleFontSizeChange = (size: string) => {
-    if (selectedIconId) {
-      console.log("Setting size for icon:", selectedIconId, "to:", size);
-      // Get the numeric value from the font size
-      const sizeValue = parseInt(size);
-      if (!isNaN(sizeValue)) {
+  const toggleEmojiMode = () => {
+    setEmojiMode(prev => prev === 'text' ? 'graphic' : 'text');
+    toast.info(`Emoji mode: ${emojiMode === 'text' ? 'Graphical' : 'Text'}`);
+  };
+
+  // Handler for size change that adjusts emoji or icon size when needed
+  const handleSizeChange = (size: string) => {
+    const sizeValue = parseInt(size);
+    if (!isNaN(sizeValue)) {
+      if (selectedIconId) {
+        console.log("Setting size for icon:", selectedIconId, "to:", size);
         // Make icon size directly proportional to the font size
         const iconSize = sizeValue * 3; // Make icon 3x the font size
-        
-        // Update the icon with the new size
         handleIconUpdate(selectedIconId, { size: iconSize });
+      } else if (selectedEmojiId) {
+        console.log("Setting size for emoji:", selectedEmojiId, "to:", sizeValue);
+        handleEmojiUpdate(selectedEmojiId, { size: sizeValue });
+      } else {
+        // Normal text size change
+        setFontSize(size);
       }
-    } else {
-      // Normal text size change
-      setFontSize(size);
     }
   };
 
   const handleFontWeightChange = (weight: string) => {
-    if (!selectedIconId) {
+    if (!selectedIconId && !selectedEmojiId) {
       setFontWeight(weight);
     }
   };
 
   const handleFontChange = (font: string) => {
-    if (!selectedIconId) {
+    if (!selectedIconId && !selectedEmojiId) {
       setFont(font);
+    }
+  };
+
+  const handleRotateEmoji = (rotation: number) => {
+    if (selectedEmojiId) {
+      const currentEmoji = currentEntry.emojis.find(e => e.id === selectedEmojiId);
+      if (currentEmoji) {
+        const currentRotation = currentEmoji.rotation || 0;
+        handleEmojiUpdate(selectedEmojiId, { rotation: currentRotation + rotation });
+      }
     }
   };
 
@@ -281,13 +354,13 @@ export function useJournalEditor() {
   };
 
   const handleGradientChange = (gradient: string) => {
-    if (!selectedIconId) {
+    if (!selectedIconId && !selectedEmojiId) {
       setGradient(gradient);
     }
   }
 
   const handleTextStyleChange = (style: string) => {
-    if (!selectedIconId) {
+    if (!selectedIconId && !selectedEmojiId) {
       setTextStyle(style);
     }
   }
@@ -374,6 +447,7 @@ export function useJournalEditor() {
       setTextStyle(previousState.textStyle);
       setStickers(previousState.stickers || []);
       setIcons(previousState.icons || []);
+      setEmojis(previousState.emojis || []);
       setTextPosition(previousState.textPosition);
       setBackgroundImage(previousState.backgroundImage || '');
       setDrawing(previousState.drawing || '');
@@ -403,6 +477,7 @@ export function useJournalEditor() {
       setTextStyle(nextState.textStyle);
       setStickers(nextState.stickers || []);
       setIcons(nextState.icons || []);
+      setEmojis(nextState.emojis || []);
       setTextPosition(nextState.textPosition);
       setBackgroundImage(nextState.backgroundImage || '');
       setDrawing(nextState.drawing || '');
@@ -434,28 +509,35 @@ export function useJournalEditor() {
     textareaRef,
     isDraggingText,
     selectedIconId,
+    selectedEmojiId,
+    emojiMode,
     handlePrint,
     handleStickerAdd,
     handleIconAdd,
     handleStickerMove,
     handleIconMove,
+    handleEmojiMove,
     handleIconUpdate,
+    handleEmojiUpdate,
     handleIconSelect,
+    handleEmojiSelect,
     handleTextMove,
     handleTextDragStart,
     handleTextDragEnd,
     handleBackgroundSelect,
     handleDrawingChange,
     handleFilterChange,
-    handleEmojiSelect,
+    handleEmojiPickerSelect,
+    toggleEmojiMode,
     handleSendEmail,
     handleImageUpload,
-    handleFontSizeChange,
+    handleSizeChange,
     handleFontWeightChange,
     handleFontChange,
     handleFontColorChange,
     handleGradientChange,
     handleTextStyleChange,
+    handleRotateEmoji,
     setShowEmailDialog,
     setEmailAddress,
     setMood,
