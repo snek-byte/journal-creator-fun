@@ -1,40 +1,3 @@
-
-export type Mood = 
-  | 'happy' 
-  | 'sad' 
-  | 'angry' 
-  | 'excited' 
-  | 'relaxed' 
-  | 'anxious'
-  | 'grateful'
-  | 'confused'
-  | 'stressed'
-  | 'calm'
-  | 'neutral';
-
-export interface Sticker {
-  id: string;
-  url: string;
-  position: {
-    x: number;
-    y: number;
-  };
-  width?: number;
-  height?: number;
-}
-
-export interface Icon {
-  id: string;
-  url: string;
-  position: {
-    x: number;
-    y: number;
-  };
-  color?: string;
-  size?: number;
-  style: 'outline' | 'color';
-}
-
 export interface JournalEntry {
   id: number;
   date: string;
@@ -51,10 +14,7 @@ export interface JournalEntry {
   textStyle?: string;
   stickers: Sticker[];
   icons: Icon[];
-  textPosition?: {
-    x: number;
-    y: number;
-  };
+  textPosition: { x: number; y: number };
   backgroundImage?: string;
   drawing?: string;
   filter?: string;
@@ -86,10 +46,45 @@ export interface UserProgress {
   earnedBadges: string[];
 }
 
-// Updated sticker sources
-export type StickerSource = 'decorative' | 'nature' | 'food';
+export type Mood =
+  | 'happy'
+  | 'excited'
+  | 'content'
+  | 'grateful'
+  | 'relaxed'
+  | 'hopeful'
+  | 'motivated'
+  | 'proud'
+  | 'silly'
+  | 'calm'
+  | 'okay'
+  | 'tired'
+  | 'bored'
+  | 'stressed'
+  | 'anxious'
+  | 'sad'
+  | 'angry'
+  | 'frustrated'
+  | 'overwhelmed'
+  | 'lonely';
 
-// History entry for undo/redo
+export interface Sticker {
+  id: string;
+  url: string;
+  position: { x: number; y: number };
+  width: number;
+  height: number;
+}
+
+export interface Icon {
+  id: string;
+  url: string;
+  position: { x: number; y: number };
+  size: number;
+  color: string;
+  style: 'outline' | 'color';
+}
+
 export interface HistoryEntry {
   text: string;
   font: string;
@@ -103,7 +98,7 @@ export interface HistoryEntry {
   textStyle: string;
   stickers: Sticker[];
   icons: Icon[];
-  textPosition: { x: number, y: number };
+  textPosition: { x: number; y: number };
   backgroundImage?: string;
   drawing?: string;
   filter?: string;

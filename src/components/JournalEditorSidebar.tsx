@@ -22,6 +22,8 @@ import type { EmojiClickData } from 'emoji-picker-react';
 import type { JournalEntry, Challenge } from '@/types/journal';
 import { ImageUploader } from './journal/ImageUploader';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "sonner";
+import { useJournalStore } from '@/store/journalStore';
 
 interface JournalEditorSidebarProps {
   textareaRef: React.RefObject<HTMLTextAreaElement>;
@@ -109,6 +111,7 @@ export function JournalEditorSidebar({
   onDrawingModeToggle
 }: JournalEditorSidebarProps) {
   const [selectedTab, setSelectedTab] = useState('write');
+  const journal = useJournalStore();
   
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
@@ -118,18 +121,43 @@ export function JournalEditorSidebar({
     onBackgroundSelect(url);
   };
 
-  const onUndoClick = (e: React.MouseEvent) => {
+  // Direct undo/redo functions that use the current component's state rather than relying on parent
+  const onUndoButton = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log("Undo button clicked");
-    handleUndo();
+    try {
+      // Use the store directly for immediate update
+      const state = { ...journal.currentEntry };
+      console.log("UNDO: Current state before:", state);
+      
+      // Call parent undo function
+      handleUndo();
+      
+      console.log("UNDO: Current state after:", journal.currentEntry);
+      toast.success("Undo successful");
+    } catch (error) {
+      console.error("Error during undo:", error);
+      toast.error("Undo failed: " + (error instanceof Error ? error.message : "Unknown error"));
+    }
   };
 
-  const onRedoClick = (e: React.MouseEvent) => {
+  const onRedoButton = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log("Redo button clicked");
-    handleRedo();
+    try {
+      // Use the store directly for immediate update
+      const state = { ...journal.currentEntry };
+      console.log("REDO: Current state before:", state);
+      
+      // Call parent redo function
+      handleRedo();
+      
+      console.log("REDO: Current state after:", journal.currentEntry);
+      toast.success("Redo successful");
+    } catch (error) {
+      console.error("Error during redo:", error);
+      toast.error("Redo failed: " + (error instanceof Error ? error.message : "Unknown error"));
+    }
   };
   
   return (
@@ -140,7 +168,7 @@ export function JournalEditorSidebar({
           <Button 
             variant="outline" 
             size="icon" 
-            onClick={onUndoClick}
+            onClick={onUndoButton}
             disabled={!canUndo}
             title="Undo"
             className="h-8 w-8"
@@ -150,7 +178,7 @@ export function JournalEditorSidebar({
           <Button 
             variant="outline" 
             size="icon" 
-            onClick={onRedoClick}
+            onClick={onRedoButton}
             disabled={!canRedo}
             title="Redo"
             className="h-8 w-8"

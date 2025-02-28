@@ -1,11 +1,188 @@
-import { useState, useRef, useEffect } from 'react';
+
+import { useState, useRef, useEffect, useReducer } from 'react';
 import { useJournalStore } from '@/store/journalStore';
 import { supabase } from "@/integrations/supabase/client";
 import type { Mood, Sticker, Icon } from '@/types/journal';
 import { EmojiClickData } from 'emoji-picker-react';
 import { toast } from "sonner";
-import { useUndoRedoState } from './useUndoRedoState';
 
+// Define actions for our reducer
+type Action = 
+  | { type: 'UPDATE_ENTRY', payload: Partial<typeof initialState> }
+  | { type: 'SET_TEXT', payload: string }
+  | { type: 'SET_FONT', payload: string }
+  | { type: 'SET_FONT_SIZE', payload: string }
+  | { type: 'SET_FONT_WEIGHT', payload: string }
+  | { type: 'SET_FONT_COLOR', payload: string }
+  | { type: 'SET_GRADIENT', payload: string }
+  | { type: 'SET_MOOD', payload: Mood | undefined }
+  | { type: 'SET_IS_PUBLIC', payload: boolean }
+  | { type: 'SET_TEXT_STYLE', payload: string }
+  | { type: 'SET_STICKERS', payload: Sticker[] }
+  | { type: 'SET_ICONS', payload: Icon[] }
+  | { type: 'SET_TEXT_POSITION', payload: { x: number, y: number } }
+  | { type: 'SET_BACKGROUND_IMAGE', payload: string }
+  | { type: 'SET_DRAWING', payload: string }
+  | { type: 'SET_FILTER', payload: string }
+  | { type: 'RESET' }
+  | { type: 'UNDO' }
+  | { type: 'REDO' };
+
+// Our initial state
+const initialState = {
+  text: '',
+  font: 'sans-serif',
+  fontSize: '16px',
+  fontWeight: 'normal',
+  fontColor: '#000000',
+  gradient: '',
+  mood: undefined as Mood | undefined,
+  isPublic: false,
+  textStyle: '',
+  stickers: [] as Sticker[],
+  icons: [] as Icon[],
+  textPosition: { x: 50, y: 50 },
+  backgroundImage: '',
+  drawing: '',
+  filter: 'none'
+};
+
+// History state type
+type HistoryState = {
+  past: typeof initialState[];
+  present: typeof initialState;
+  future: typeof initialState[];
+};
+
+// Our reducer function
+function historyReducer(state: HistoryState, action: Action): HistoryState {
+  const { past, present, future } = state;
+
+  switch (action.type) {
+    case 'UPDATE_ENTRY':
+      return {
+        past: [...past, present],
+        present: { ...present, ...action.payload },
+        future: []
+      };
+    case 'SET_TEXT':
+      return {
+        past: [...past, present],
+        present: { ...present, text: action.payload },
+        future: []
+      };
+    case 'SET_FONT':
+      return {
+        past: [...past, present],
+        present: { ...present, font: action.payload },
+        future: []
+      };
+    case 'SET_FONT_SIZE':
+      return {
+        past: [...past, present],
+        present: { ...present, fontSize: action.payload },
+        future: []
+      };
+    case 'SET_FONT_WEIGHT':
+      return {
+        past: [...past, present],
+        present: { ...present, fontWeight: action.payload },
+        future: []
+      };
+    case 'SET_FONT_COLOR':
+      return {
+        past: [...past, present],
+        present: { ...present, fontColor: action.payload },
+        future: []
+      };
+    case 'SET_GRADIENT':
+      return {
+        past: [...past, present],
+        present: { ...present, gradient: action.payload },
+        future: []
+      };
+    case 'SET_MOOD':
+      return {
+        past: [...past, present],
+        present: { ...present, mood: action.payload },
+        future: []
+      };
+    case 'SET_IS_PUBLIC':
+      return {
+        past: [...past, present],
+        present: { ...present, isPublic: action.payload },
+        future: []
+      };
+    case 'SET_TEXT_STYLE':
+      return {
+        past: [...past, present],
+        present: { ...present, textStyle: action.payload },
+        future: []
+      };
+    case 'SET_STICKERS':
+      return {
+        past: [...past, present],
+        present: { ...present, stickers: action.payload },
+        future: []
+      };
+    case 'SET_ICONS':
+      return {
+        past: [...past, present],
+        present: { ...present, icons: action.payload },
+        future: []
+      };
+    case 'SET_TEXT_POSITION':
+      return {
+        past: [...past, present],
+        present: { ...present, textPosition: action.payload },
+        future: []
+      };
+    case 'SET_BACKGROUND_IMAGE':
+      return {
+        past: [...past, present],
+        present: { ...present, backgroundImage: action.payload },
+        future: []
+      };
+    case 'SET_DRAWING':
+      return {
+        past: [...past, present],
+        present: { ...present, drawing: action.payload },
+        future: []
+      };
+    case 'SET_FILTER':
+      return {
+        past: [...past, present],
+        present: { ...present, filter: action.payload },
+        future: []
+      };
+    case 'RESET':
+      return {
+        past: [],
+        present: initialState,
+        future: []
+      };
+    case 'UNDO':
+      if (past.length === 0) return state;
+      const previous = past[past.length - 1];
+      return {
+        past: past.slice(0, past.length - 1),
+        present: previous,
+        future: [present, ...future]
+      };
+    case 'REDO':
+      if (future.length === 0) return state;
+      const next = future[0];
+      return {
+        past: [...past, present],
+        present: next,
+        future: future.slice(1)
+      };
+    default:
+      return state;
+  }
+}
+
+// Main hook
 export function useJournalEditor() {
   const {
     currentEntry: storeEntry,
@@ -36,21 +213,37 @@ export function useJournalEditor() {
     applyChallenge,
   } = useJournalStore();
 
-  const {
-    state: currentEntry,
-    setState: setCurrentEntry,
-    undo: handleUndo,
-    redo: handleRedo,
-    resetHistory,
-    canUndo,
-    canRedo
-  } = useUndoRedoState(storeEntry);
+  // Initialize history reducer with store's initial state
+  const [state, dispatch] = useReducer(historyReducer, {
+    past: [],
+    present: { ...initialState, ...storeEntry },
+    future: []
+  });
 
-  useEffect(() => {
-    syncStateToStore(currentEntry);
-  }, [currentEntry]);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [emailAddress, setEmailAddress] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isDraggingText, setIsDraggingText] = useState(false);
+  const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
   
-  const syncStateToStore = (entry: typeof storeEntry) => {
+  // Initialize data
+  useEffect(() => {
+    loadChallenge();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.email) {
+        setEmailAddress(user.email);
+      }
+    });
+  }, []);
+
+  // Sync reducer state to store
+  useEffect(() => {
+    syncStateToStore(state.present);
+  }, [state.present]);
+
+  // Function to sync our state to the store
+  const syncStateToStore = (entry: typeof initialState) => {
     setStoreText(entry.text);
     setStoreFont(entry.font);
     setStoreFontSize(entry.fontSize);
@@ -68,112 +261,100 @@ export function useJournalEditor() {
     setStoreFilter(entry.filter);
   };
 
-  const [showEmailDialog, setShowEmailDialog] = useState(false);
-  const [emailAddress, setEmailAddress] = useState("");
-  const [isSending, setIsSending] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [isDraggingText, setIsDraggingText] = useState(false);
-  const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
-
-  useEffect(() => {
-    loadChallenge();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user?.email) {
-        setEmailAddress(user.email);
-      }
-    });
-  }, []);
-
+  // Print function
   const handlePrint = () => {
     window.print();
   };
 
+  // Entry update functions using dispatch
   const setText = (text: string) => {
-    setCurrentEntry({ ...currentEntry, text });
+    dispatch({ type: 'SET_TEXT', payload: text });
   };
 
   const setFont = (font: string) => {
-    setCurrentEntry({ ...currentEntry, font });
+    dispatch({ type: 'SET_FONT', payload: font });
   };
 
   const setFontSize = (fontSize: string) => {
-    setCurrentEntry({ ...currentEntry, fontSize });
+    dispatch({ type: 'SET_FONT_SIZE', payload: fontSize });
   };
 
   const setFontWeight = (fontWeight: string) => {
-    setCurrentEntry({ ...currentEntry, fontWeight });
+    dispatch({ type: 'SET_FONT_WEIGHT', payload: fontWeight });
   };
 
   const setFontColor = (fontColor: string) => {
-    setCurrentEntry({ ...currentEntry, fontColor });
+    dispatch({ type: 'SET_FONT_COLOR', payload: fontColor });
   };
 
   const setGradient = (gradient: string) => {
-    setCurrentEntry({ ...currentEntry, gradient });
+    dispatch({ type: 'SET_GRADIENT', payload: gradient });
   };
 
   const setMood = (mood: Mood) => {
-    setCurrentEntry({ ...currentEntry, mood });
+    dispatch({ type: 'SET_MOOD', payload: mood });
   };
 
   const setIsPublic = (isPublic: boolean) => {
-    setCurrentEntry({ ...currentEntry, isPublic });
+    dispatch({ type: 'SET_IS_PUBLIC', payload: isPublic });
   };
 
   const setTextStyle = (textStyle: string) => {
-    setCurrentEntry({ ...currentEntry, textStyle });
+    dispatch({ type: 'SET_TEXT_STYLE', payload: textStyle });
   };
 
   const setStickers = (stickers: Sticker[]) => {
-    setCurrentEntry({ ...currentEntry, stickers });
+    dispatch({ type: 'SET_STICKERS', payload: stickers });
   };
 
   const setIcons = (icons: Icon[]) => {
-    setCurrentEntry({ ...currentEntry, icons });
+    dispatch({ type: 'SET_ICONS', payload: icons });
   };
 
   const setTextPosition = (textPosition: { x: number, y: number }) => {
-    setCurrentEntry({ ...currentEntry, textPosition });
+    dispatch({ type: 'SET_TEXT_POSITION', payload: textPosition });
   };
 
   const setBackgroundImage = (backgroundImage: string) => {
-    setCurrentEntry({ ...currentEntry, backgroundImage });
+    dispatch({ type: 'SET_BACKGROUND_IMAGE', payload: backgroundImage });
   };
 
   const setDrawing = (drawing: string) => {
-    setCurrentEntry({ ...currentEntry, drawing });
+    dispatch({ type: 'SET_DRAWING', payload: drawing });
   };
 
   const setFilter = (filter: string) => {
-    setCurrentEntry({ ...currentEntry, filter });
+    dispatch({ type: 'SET_FILTER', payload: filter });
   };
 
+  // Helper functions
   const addSticker = (sticker: Sticker) => {
-    if (sticker.id && currentEntry.stickers.some(s => s.id === sticker.id)) {
+    if (sticker.id && state.present.stickers.some(s => s.id === sticker.id)) {
       setStickers(
-        currentEntry.stickers.map(s => s.id === sticker.id ? sticker : s)
+        state.present.stickers.map(s => s.id === sticker.id ? sticker : s)
       );
     } else {
-      setStickers([...currentEntry.stickers, sticker]);
+      setStickers([...state.present.stickers, sticker]);
     }
   };
 
   const addIcon = (icon: Icon) => {
-    setIcons([...currentEntry.icons, icon]);
+    setIcons([...state.present.icons, icon]);
   };
 
   const updateIcon = (iconId: string, updates: Partial<Icon>) => {
     setIcons(
-      currentEntry.icons.map(icon => 
+      state.present.icons.map(icon => 
         icon.id === iconId ? { ...icon, ...updates } : icon
       )
     );
   };
 
   const removeIcon = (iconId: string) => {
-    setIcons(currentEntry.icons.filter(i => i.id !== iconId));
+    setIcons(state.present.icons.filter(i => i.id !== iconId));
   };
 
+  // Handler functions
   const handleStickerAdd = (sticker: Sticker) => {
     try {
       console.log("Adding sticker to journal:", sticker);
@@ -206,11 +387,11 @@ export function useJournalEditor() {
       if (position.x < -900 || position.y < -900) {
         console.log("Removing sticker with ID:", stickerId);
         setStickers(
-          (currentEntry.stickers || []).filter(s => s.id !== stickerId)
+          (state.present.stickers || []).filter(s => s.id !== stickerId)
         );
       } else {
         setStickers(
-          (currentEntry.stickers || []).map(s => 
+          (state.present.stickers || []).map(s => 
             s.id === stickerId ? { ...s, position } : s
           )
         );
@@ -228,7 +409,7 @@ export function useJournalEditor() {
         removeIcon(iconId);
         setSelectedIconId(null);
       } else {
-        const updatedIcons = (currentEntry.icons || []).map(i => 
+        const updatedIcons = (state.present.icons || []).map(i => 
           i.id === iconId ? { ...i, position } : i
         );
         
@@ -304,7 +485,7 @@ export function useJournalEditor() {
 
       const start = textareaRef.current.selectionStart;
       const end = textareaRef.current.selectionEnd;
-      const text = currentEntry.text;
+      const text = state.present.text;
       
       const newText = text.substring(0, start) + emojiData.emoji + text.substring(end);
       
@@ -323,6 +504,7 @@ export function useJournalEditor() {
     }
   };
 
+  // Handler for font size that adjusts icon size when needed
   const handleFontSizeChange = (size: string) => {
     if (selectedIconId) {
       console.log("Setting size for icon:", selectedIconId, "to:", size);
@@ -396,7 +578,7 @@ export function useJournalEditor() {
       return;
     }
 
-    if (!currentEntry.text.trim()) {
+    if (!state.present.text.trim()) {
       return;
     }
 
@@ -410,8 +592,8 @@ export function useJournalEditor() {
       const response = await supabase.functions.invoke('send-journal', {
         body: {
           to: emailAddress,
-          text: currentEntry.text,
-          mood: currentEntry.mood,
+          text: state.present.text,
+          mood: state.present.mood,
           date: new Date().toISOString(),
         },
       });
@@ -428,57 +610,42 @@ export function useJournalEditor() {
     }
   };
 
+  // Reset function
   const handleResetToDefault = () => {
-    const defaultState = {
-      text: '',
-      font: 'sans-serif',
-      fontSize: '16px',
-      fontWeight: 'normal',
-      fontColor: '#000000',
-      gradient: '',
-      mood: undefined,
-      isPublic: false,
-      textStyle: '',
-      stickers: [],
-      icons: [],
-      textPosition: { x: 50, y: 50 },
-      backgroundImage: '',
-      drawing: '',
-      filter: 'none'
-    };
-    
-    syncStateToStore(defaultState);
-    
-    resetHistory(defaultState);
-    
+    dispatch({ type: 'RESET' });
     toast.success("Journal reset to default");
   };
 
+  // Undo function
+  const handleUndo = () => {
+    try {
+      dispatch({ type: 'UNDO' });
+      console.log("Performing UNDO - Past length:", state.past.length);
+      return true;
+    } catch (error) {
+      console.error("Error during undo:", error);
+      return false;
+    }
+  };
+
+  // Redo function
+  const handleRedo = () => {
+    try {
+      dispatch({ type: 'REDO' });
+      console.log("Performing REDO - Future length:", state.future.length);
+      return true;
+    } catch (error) {
+      console.error("Error during redo:", error);
+      return false;
+    }
+  };
+
+  // Save function
   const saveEntry = async () => {
     try {
-      syncStateToStore(currentEntry);
-      
+      syncStateToStore(state.present);
       await storeSaveEntry();
-      
-      const newDefaultState = {
-        text: '',
-        font: 'sans-serif',
-        fontSize: '16px',
-        fontWeight: 'normal',
-        fontColor: '#000000',
-        gradient: '',
-        mood: undefined,
-        isPublic: false,
-        textStyle: '',
-        stickers: [],
-        icons: [],
-        textPosition: { x: 50, y: 50 },
-        backgroundImage: '',
-        drawing: '',
-        filter: 'none'
-      };
-      
-      resetHistory(newDefaultState);
+      dispatch({ type: 'RESET' });
     } catch (error) {
       console.error("Error saving entry:", error);
       toast.error("Failed to save entry");
@@ -486,7 +653,7 @@ export function useJournalEditor() {
   };
 
   return {
-    currentEntry,
+    currentEntry: state.present,
     showPreview,
     dailyChallenge,
     showEmailDialog,
@@ -529,7 +696,7 @@ export function useJournalEditor() {
     handleUndo,
     handleRedo,
     handleResetToDefault,
-    canUndo,
-    canRedo,
+    canUndo: state.past.length > 0,
+    canRedo: state.future.length > 0,
   };
 }
