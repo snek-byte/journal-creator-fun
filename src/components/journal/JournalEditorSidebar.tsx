@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, lazy, Suspense } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -25,12 +25,11 @@ import { JournalStylingControls } from "./JournalStylingControls";
 import { MoodSelector } from "./MoodSelector";
 import { DailyChallenge } from "./DailyChallenge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import dynamic from "next/dynamic";
 import { Separator } from "../ui/separator";
 
-const EmojiPicker = dynamic(
-  () => import("emoji-picker-react").then((mod) => mod.default),
-  { ssr: false }
+// Lazy load EmojiPicker to reduce initial bundle size
+const EmojiPicker = lazy(() => 
+  import("emoji-picker-react").then((mod) => ({ default: mod.default }))
 );
 
 interface JournalEditorSidebarProps {
@@ -168,7 +167,7 @@ export function JournalEditorSidebar({
             >
               <div className="flex justify-between mb-3">
                 <DailyChallenge
-                  challenge={dailyChallenge}
+                  prompt={dailyChallenge?.prompt || "Loading..."}
                   onApply={applyChallenge}
                   onRefresh={loadChallenge}
                 />
@@ -180,14 +179,16 @@ export function JournalEditorSidebar({
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent side="bottom" className="w-full p-0">
-                    <EmojiPicker
-                      onEmojiClick={(emojiData) => {
-                        handleEmojiSelect(emojiData);
-                        setShowEmojiPicker(false);
-                      }}
-                      width="100%"
-                      height={350}
-                    />
+                    <Suspense fallback={<div className="p-4 text-center">Loading emoji picker...</div>}>
+                      <EmojiPicker
+                        onEmojiClick={(emojiData) => {
+                          handleEmojiSelect(emojiData);
+                          setShowEmojiPicker(false);
+                        }}
+                        width="100%"
+                        height={350}
+                      />
+                    </Suspense>
                   </PopoverContent>
                 </Popover>
               </div>
@@ -241,8 +242,8 @@ export function JournalEditorSidebar({
 
             <TabsContent value="mood" className="mt-0 h-full">
               <MoodSelector
-                selectedMood={currentEntry.mood}
-                onMoodSelect={setMood}
+                mood={currentEntry.mood}
+                onSelect={setMood}
               />
             </TabsContent>
           </CardContent>
