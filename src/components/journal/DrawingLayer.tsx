@@ -28,11 +28,15 @@ export function DrawingLayer({
   
   // Force regenerate the dataURL when we need to
   const forceUpdate = useRef<boolean>(false);
+  const initialDrawingRef = useRef<string | undefined>(initialDrawing);
 
   // Initialize canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    console.log("DrawingLayer: Initializing canvas with width:", width, "height:", height);
+    console.log("DrawingLayer: Initial drawing available:", !!initialDrawing, "hasLoaded:", hasLoaded);
 
     // Set canvas dimensions
     canvas.width = width;
@@ -49,15 +53,25 @@ export function DrawingLayer({
     ctx.lineJoin = 'round';
     updateBrushStyles();
     
+    // Always update the initialDrawingRef when initialDrawing changes
+    initialDrawingRef.current = initialDrawing;
+    
     // Load initial drawing if provided
     if (initialDrawing && !hasLoaded) {
+      console.log("DrawingLayer: Loading initial drawing");
       const img = new Image();
       img.onload = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
-        setHasLoaded(true);
-        // Save immediately to ensure initial drawing persists
-        setTimeout(() => saveDrawing(), 100);
+        if (ctxRef.current) {
+          ctxRef.current.clearRect(0, 0, canvas.width, canvas.height);
+          ctxRef.current.drawImage(img, 0, 0);
+          console.log("DrawingLayer: Initial drawing loaded successfully");
+          setHasLoaded(true);
+          // Save immediately to ensure initial drawing persists
+          setTimeout(() => saveDrawing(), 100);
+        }
+      };
+      img.onerror = (err) => {
+        console.error("DrawingLayer: Error loading initial drawing:", err);
       };
       img.src = initialDrawing;
     }
@@ -80,7 +94,36 @@ export function DrawingLayer({
       }
     };
     
-  }, [width, height, initialDrawing, hasLoaded, onDrawingChange]);
+  }, [width, height, onDrawingChange]);
+
+  // Separate effect to handle initialDrawing changes
+  useEffect(() => {
+    // If initialDrawing changes, we need to reload it
+    if (initialDrawing !== initialDrawingRef.current) {
+      console.log("DrawingLayer: initialDrawing changed, reloading");
+      initialDrawingRef.current = initialDrawing;
+      
+      const canvas = canvasRef.current;
+      const ctx = ctxRef.current;
+      if (!canvas || !ctx) return;
+      
+      if (initialDrawing) {
+        const img = new Image();
+        img.onload = () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+          console.log("DrawingLayer: Reloaded drawing from new initialDrawing");
+        };
+        img.onerror = () => {
+          console.error("Failed to load initialDrawing");
+        };
+        img.src = initialDrawing;
+      } else {
+        // If initialDrawing is null/undefined/empty, clear the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+  }, [initialDrawing]);
 
   // Update brush styles when props change
   const updateBrushStyles = () => {

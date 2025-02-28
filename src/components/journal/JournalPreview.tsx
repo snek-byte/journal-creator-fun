@@ -149,6 +149,12 @@ export function JournalPreview({
     };
   }, [isTextSelected]);
 
+  // Effect to log drawing mode changes
+  useEffect(() => {
+    console.log("JournalPreview: Drawing mode changed to:", isDrawingMode);
+    console.log("JournalPreview: Current drawing length:", localDrawing?.length || 0);
+  }, [isDrawingMode, localDrawing]);
+
   const handleIconSelect = (id: string) => {
     console.log("Icon selected:", id);
     setSelectedIconId(id);
@@ -421,6 +427,21 @@ export function JournalPreview({
           )}
 
           <div className="relative h-full w-full" ref={previewRef}>
+            {/* Display existing drawing when not in drawing mode */}
+            {localDrawing && !isDrawingMode && (
+              <img
+                src={localDrawing}
+                alt="Drawing"
+                className="absolute inset-0 z-20 pointer-events-none"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  filter: !backgroundImage ? getCssFilter() : undefined
+                }}
+              />
+            )}
+
             {/* Drawing Canvas (when in drawing mode) */}
             {isDrawingMode && (
               <div className="absolute inset-0 z-40">
@@ -435,21 +456,6 @@ export function JournalPreview({
                   onClear={() => handleDrawingChange('')}
                 />
               </div>
-            )}
-
-            {/* Display existing drawing when not in drawing mode */}
-            {localDrawing && !isDrawingMode && (
-              <img
-                src={localDrawing}
-                alt="Drawing"
-                className="absolute inset-0 z-20 pointer-events-none"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
-                  filter: !backgroundImage ? getCssFilter() : undefined
-                }}
-              />
             )}
 
             {/* Text element with proper gradient styling */}
