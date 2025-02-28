@@ -35,6 +35,8 @@ export function DrawingLayer({
   const [isDrawing, setIsDrawing] = useState(false);
   const [lastPoint, setLastPoint] = useState<Point | null>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const sprayIntervalRef = useRef<number | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   // Initialize canvas
   useEffect(() => {
@@ -57,24 +59,26 @@ export function DrawingLayer({
     updateBrushStyles();
     
     // Load initial drawing if provided
-    if (initialDrawing) {
+    if (initialDrawing && !hasLoaded) {
       const img = new Image();
       img.onload = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
+        setHasLoaded(true);
       };
       img.src = initialDrawing;
     }
     
     console.log("DrawingLayer: Canvas initialized with dimensions", width, "x", height);
     
-    // Draw a test pixel to confirm canvas is working
-    ctx.fillStyle = 'rgba(255, 0, 0, 0.1)';
-    ctx.fillRect(10, 10, 10, 10);
+    return () => {
+      // Clean up spray interval if it exists
+      if (sprayIntervalRef.current) {
+        window.clearInterval(sprayIntervalRef.current);
+      }
+    };
     
-    toast.info("Drawing canvas ready! Click and drag to draw.");
-    
-  }, [width, height, initialDrawing]);
+  }, [width, height, initialDrawing, hasLoaded]);
 
   // Update brush styles when props change
   const updateBrushStyles = () => {
@@ -82,27 +86,44 @@ export function DrawingLayer({
     if (!ctx) return;
     
     ctx.strokeStyle = tool === 'eraser' ? '#ffffff' : color;
-    ctx.lineWidth = brushSize;
+    
+    // Different line widths based on tool
+    if (tool === 'pen') {
+      ctx.lineWidth = brushSize;
+    } else if (tool === 'marker') {
+      ctx.lineWidth = brushSize * 2; // Marker is thicker
+    } else if (tool === 'highlighter') {
+      ctx.lineWidth = brushSize * 3; // Highlighter is even thicker
+    } else if (tool === 'eraser') {
+      ctx.lineWidth = brushSize * 2.5; // Eraser is also thicker
+    } else {
+      ctx.lineWidth = brushSize;
+    }
     
     // Special tool settings
     if (tool === 'eraser') {
       ctx.globalCompositeOperation = 'destination-out';
+      ctx.globalAlpha = 1;
     } else {
       ctx.globalCompositeOperation = 'source-over';
-    }
-    
-    if (tool === 'highlighter') {
-      ctx.globalAlpha = 0.3;
-    } else if (tool === 'marker') {
-      ctx.globalAlpha = 0.8;
-    } else {
-      ctx.globalAlpha = 1;
+      
+      // Different opacity based on tool
+      if (tool === 'highlighter') {
+        ctx.globalAlpha = 0.3;
+      } else if (tool === 'marker') {
+        ctx.globalAlpha = 0.7; // Marker is semi-transparent
+      } else if (tool === 'pen') {
+        ctx.globalAlpha = 1; // Pen is fully opaque
+      } else {
+        ctx.globalAlpha = 1;
+      }
     }
     
     console.log("DrawingLayer: Updated brush settings:", { 
       tool, 
       color, 
       brushSize, 
+      lineWidth: ctx.lineWidth,
       globalCompositeOperation: ctx.globalCompositeOperation,
       globalAlpha: ctx.globalAlpha
     });
@@ -127,9 +148,36 @@ export function DrawingLayer({
     
     console.log("DrawingLayer: Started drawing at", point);
     
-    // For single click, draw a dot
+    // Special handling for different tools
+    if (tool === 'spray') {
+      // Start spray effect
+      spray(point);
+      
+      // Set up an interval to continue spraying while the mouse is down
+      sprayIntervalRef.current = window.setInterval(() => {
+        spray(point);
+      }, 50);
+      
+      return;
+    }
+    
+    if (tool === 'fill') {
+      // Flood fill algorithm
+      floodFill(point);
+      saveDrawing();
+      return;
+    }
+    
+    // For single click with pen, marker, highlighter - draw a dot
     ctx.beginPath();
-    ctx.arc(point.x, point.y, brushSize / 2, 0, Math.PI * 2);
+    
+    if (tool === 'marker') {
+      // Marker makes a slightly larger, more rounded dot
+      ctx.arc(point.x, point.y, brushSize, 0, Math.PI * 2);
+    } else {
+      ctx.arc(point.x, point.y, brushSize / 2, 0, Math.PI * 2);
+    }
+    
     ctx.fill();
   };
 
@@ -144,13 +192,149 @@ export function DrawingLayer({
     
     const currentPoint = getPoint(e);
     
+    // Update spray position if currently spraying
+    if (tool === 'spray') {
+      setLastPoint(currentPoint);
+      return; // Spray effect is handled by the interval
+    }
+    
     // Draw line from last point to current point
-    ctx.beginPath();
-    ctx.moveTo(lastPoint.x, lastPoint.y);
-    ctx.lineTo(currentPoint.x, currentPoint.y);
-    ctx.stroke();
+    if (tool === 'marker') {
+      // Marker uses quadratic curves for smoother effect
+      ctx.beginPath();
+      ctx.moveTo(lastPoint.x, lastPoint.y);
+      
+      const midPoint = {
+        x: (lastPoint.x + currentPoint.x) / 2,
+        y: (lastPoint.y + currentPoint.y) / 2
+      };
+      
+      ctx.quadraticCurveTo(lastPoint.x, lastPoint.y, midPoint.x, midPoint.y);
+      ctx.stroke();
+      
+      // Start a new path for the next segment
+      ctx.beginPath();
+      ctx.moveTo(midPoint.x, midPoint.y);
+    } else {
+      // Standard drawing for pen and other tools
+      ctx.beginPath();
+      ctx.moveTo(lastPoint.x, lastPoint.y);
+      ctx.lineTo(currentPoint.x, currentPoint.y);
+      ctx.stroke();
+    }
     
     setLastPoint(currentPoint);
+  };
+
+  const spray = (point: Point) => {
+    const ctx = ctxRef.current;
+    if (!ctx) return;
+    
+    const density = brushSize * 5; // How many particles to spray
+    const radius = brushSize * 2;  // Spray radius
+    
+    ctx.fillStyle = color;
+    
+    // Draw random dots inside the radius
+    for (let i = 0; i < density; i++) {
+      const offsetX = (Math.random() - 0.5) * radius * 2;
+      const offsetY = (Math.random() - 0.5) * radius * 2;
+      
+      // Only draw inside the circle
+      if (offsetX * offsetX + offsetY * offsetY <= radius * radius) {
+        ctx.beginPath();
+        ctx.arc(point.x + offsetX, point.y + offsetY, 0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  };
+
+  const floodFill = (point: Point) => {
+    const canvas = canvasRef.current;
+    const ctx = ctxRef.current;
+    if (!canvas || !ctx) return;
+    
+    // Get image data from the canvas
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    
+    // Get the color of the clicked pixel
+    const targetX = Math.floor(point.x);
+    const targetY = Math.floor(point.y);
+    const targetIndex = (targetY * canvas.width + targetX) * 4;
+    
+    // Extract target RGBA
+    const targetR = data[targetIndex];
+    const targetG = data[targetIndex + 1];
+    const targetB = data[targetIndex + 2];
+    const targetA = data[targetIndex + 3];
+    
+    // Parse the fill color
+    const fillColorMatch = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
+    if (!fillColorMatch) return;
+    
+    const fillR = parseInt(fillColorMatch[1], 16);
+    const fillG = parseInt(fillColorMatch[2], 16);
+    const fillB = parseInt(fillColorMatch[3], 16);
+    const fillA = 255;
+    
+    // Check if target color is the same as fill color
+    if (
+      targetR === fillR &&
+      targetG === fillG &&
+      targetB === fillB &&
+      targetA === fillA
+    ) {
+      return; // No need to fill with the same color
+    }
+    
+    // Queue for flood fill algorithm (x, y coordinates)
+    const queue: [number, number][] = [[targetX, targetY]];
+    const visited = new Set<string>(); // Track visited pixels
+    
+    // Process the queue
+    while (queue.length > 0) {
+      const [x, y] = queue.shift()!;
+      const pixelKey = `${x},${y}`;
+      
+      // Skip if out of bounds or already visited
+      if (
+        x < 0 || x >= canvas.width ||
+        y < 0 || y >= canvas.height ||
+        visited.has(pixelKey)
+      ) {
+        continue;
+      }
+      
+      // Get current pixel index
+      const index = (y * canvas.width + x) * 4;
+      
+      // Check if the color matches the target color
+      if (
+        Math.abs(data[index] - targetR) <= 10 &&
+        Math.abs(data[index + 1] - targetG) <= 10 &&
+        Math.abs(data[index + 2] - targetB) <= 10 &&
+        Math.abs(data[index + 3] - targetA) <= 10
+      ) {
+        // Set the color to the fill color
+        data[index] = fillR;
+        data[index + 1] = fillG;
+        data[index + 2] = fillB;
+        data[index + 3] = fillA;
+        
+        // Mark pixel as visited
+        visited.add(pixelKey);
+        
+        // Add adjacent pixels to the queue
+        queue.push([x + 1, y]);
+        queue.push([x - 1, y]);
+        queue.push([x, y + 1]);
+        queue.push([x, y - 1]);
+      }
+    }
+    
+    // Update the canvas with the filled area
+    ctx.putImageData(imageData, 0, 0);
   };
 
   const endDrawing = () => {
@@ -160,6 +344,12 @@ export function DrawingLayer({
     saveDrawing();
     
     console.log("DrawingLayer: Ended drawing");
+    
+    // Clear spray interval if it exists
+    if (sprayIntervalRef.current) {
+      window.clearInterval(sprayIntervalRef.current);
+      sprayIntervalRef.current = null;
+    }
   };
 
   const saveDrawing = () => {
@@ -177,6 +367,10 @@ export function DrawingLayer({
 
     const rect = canvas.getBoundingClientRect();
     
+    // Calculate scale ratios in case the canvas is stretched
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
     let clientX, clientY;
     
     if ('touches' in e) {
@@ -189,10 +383,10 @@ export function DrawingLayer({
       clientY = e.clientY;
     }
     
-    // Get coordinates relative to canvas
+    // Get coordinates relative to canvas and adjust for scaling
     return {
-      x: clientX - rect.left,
-      y: clientY - rect.top
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY
     };
   };
 

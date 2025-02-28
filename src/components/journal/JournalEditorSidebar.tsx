@@ -11,7 +11,6 @@ import { IconSelector } from './IconSelector';
 import { BackgroundImageSelector } from './BackgroundImageSelector';
 import { ImageFilterSelector } from './ImageFilterSelector';
 import { DailyChallenge } from './DailyChallenge';
-import { ProgressCard } from './ProgressCard';
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -22,6 +21,7 @@ import Picker from '@emoji-mart/react';
 import type { EmojiClickData } from 'emoji-picker-react';
 import type { JournalEntry, Challenge } from '@/types/journal';
 import { ImageUploader } from './ImageUploader';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface JournalEditorSidebarProps {
   textareaRef: React.RefObject<HTMLTextAreaElement>;
@@ -181,144 +181,146 @@ export function JournalEditorSidebar({
           <TabsTrigger value="draw">Draw</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="write" className="space-y-4">
-          {dailyChallenge && (
-            <DailyChallenge 
-              dailyChallenge={dailyChallenge} 
-              onApply={applyChallenge}
-              onRefresh={loadChallenge}
-            />
-          )}
-        
-          <Textarea
-            ref={textareaRef}
-            className="min-h-[200px] resize-none"
-            placeholder="What's on your mind today..."
-            value={currentEntry.text}
-            onChange={handleTextChange}
-          />
-
-          <div className="flex justify-between">
-            <div className="space-y-1">
-              <Label htmlFor="public" className="text-xs">Make Public</Label>
-              <Switch
-                id="public"
-                checked={currentEntry.isPublic}
-                onCheckedChange={setIsPublic}
+        <ScrollArea className="h-[calc(100vh-150px)]">
+          <TabsContent value="write" className="space-y-4 pr-4 pb-8">
+            {dailyChallenge && (
+              <DailyChallenge 
+                dailyChallenge={dailyChallenge} 
+                onApply={applyChallenge}
+                onRefresh={loadChallenge}
               />
+            )}
+          
+            <Textarea
+              ref={textareaRef}
+              className="min-h-[200px] resize-none"
+              placeholder="What's on your mind today..."
+              value={currentEntry.text}
+              onChange={handleTextChange}
+            />
+
+            <div className="flex justify-between">
+              <div className="space-y-1">
+                <Label htmlFor="public" className="text-xs">Make Public</Label>
+                <Switch
+                  id="public"
+                  checked={currentEntry.isPublic}
+                  onCheckedChange={setIsPublic}
+                />
+              </div>
+              
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="h-8">
+                    Emoji <ChevronDown className="h-3 w-3 ml-1" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="end">
+                  <Picker 
+                    data={data} 
+                    onEmojiSelect={handleEmojiSelect}
+                    previewPosition="none"
+                    skinTonePosition="none"
+                    theme="light"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="h-8">
-                  Emoji <ChevronDown className="h-3 w-3 ml-1" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0" align="end">
-                <Picker 
-                  data={data} 
-                  onEmojiSelect={handleEmojiSelect}
-                  previewPosition="none"
-                  skinTonePosition="none"
-                  theme="light"
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+            <MoodSelector 
+              selectedMood={currentEntry.mood} 
+              onMoodSelect={setMood} 
+            />
+            
+            <Button 
+              variant="outline" 
+              onClick={handleResetToDefault} 
+              className="w-full h-8 text-xs"
+            >
+              <RotateCcw className="h-3 w-3 mr-1" />
+              Reset to Default
+            </Button>
+          </TabsContent>
           
-          <MoodSelector 
-            selectedMood={currentEntry.mood} 
-            onMoodSelect={setMood} 
-          />
-          
-          <Button 
-            variant="outline" 
-            onClick={handleResetToDefault} 
-            className="w-full h-8 text-xs"
-          >
-            <RotateCcw className="h-3 w-3 mr-1" />
-            Reset to Default
-          </Button>
-        </TabsContent>
-        
-        <TabsContent value="style" className="space-y-4">
-          <JournalStylingControls
-            font={currentEntry.font}
-            fontSize={currentEntry.fontSize}
-            fontWeight={currentEntry.fontWeight}
-            fontColor={currentEntry.fontColor}
-            gradient={currentEntry.gradient}
-            selectedIconId={selectedIconId}
-            onFontChange={setFont}
-            onFontSizeChange={setFontSize}
-            onFontWeightChange={setFontWeight}
-            onFontColorChange={setFontColor}
-            onGradientChange={setGradient}
-            onTextStyleChange={setTextStyle}
-          />
-          
-          <Separator className="my-4" />
-          
-          <StickerSelector 
-            onStickerSelect={onStickerAdd} 
-            onStickerResize={onStickerResize}
-            currentStickerSize={currentStickerSize}
-            selectedStickerId={selectedStickerId}
-          />
-          
-          <Separator className="my-4" />
-          
-          <IconSelector 
-            onIconSelect={onIconAdd}
-            selectedIconId={selectedIconId}
-            iconOptions={{
-              color: selectedIconId && currentEntry.icons.find(i => i.id === selectedIconId)?.color || '#000000',
-              size: selectedIconId && currentEntry.icons.find(i => i.id === selectedIconId)?.size || 48
-            }}
-            onIconUpdate={(updates) => {
-              if (selectedIconId) {
-                if (updates.color) {
-                  setFontColor(updates.color);
+          <TabsContent value="style" className="space-y-4 pr-4 pb-8">
+            <JournalStylingControls
+              font={currentEntry.font}
+              fontSize={currentEntry.fontSize}
+              fontWeight={currentEntry.fontWeight}
+              fontColor={currentEntry.fontColor}
+              gradient={currentEntry.gradient}
+              selectedIconId={selectedIconId}
+              onFontChange={setFont}
+              onFontSizeChange={setFontSize}
+              onFontWeightChange={setFontWeight}
+              onFontColorChange={setFontColor}
+              onGradientChange={setGradient}
+              onTextStyleChange={setTextStyle}
+            />
+            
+            <Separator className="my-4" />
+            
+            <BackgroundImageSelector onBackgroundSelect={onBackgroundSelect} />
+            
+            <Separator className="my-4" />
+            
+            <ImageFilterSelector 
+              currentFilter={currentEntry.filter || 'none'} 
+              onFilterChange={onFilterChange} 
+            />
+            
+            <Separator className="my-4" />
+            
+            <StickerSelector 
+              onStickerSelect={onStickerAdd} 
+              onStickerResize={onStickerResize}
+              currentStickerSize={currentStickerSize}
+              selectedStickerId={selectedStickerId}
+            />
+            
+            <Separator className="my-4" />
+            
+            <IconSelector 
+              onIconSelect={onIconAdd}
+              selectedIconId={selectedIconId}
+              iconOptions={{
+                color: selectedIconId && currentEntry.icons.find(i => i.id === selectedIconId)?.color || '#000000',
+                size: selectedIconId && currentEntry.icons.find(i => i.id === selectedIconId)?.size || 48
+              }}
+              onIconUpdate={(updates) => {
+                if (selectedIconId) {
+                  if (updates.color) {
+                    setFontColor(updates.color);
+                  }
+                  if (updates.size) {
+                    setFontSize(`${updates.size}px`);
+                  }
                 }
-                if (updates.size) {
-                  setFontSize(`${updates.size}px`);
-                }
-              }
-            }}
-          />
+              }}
+            />
+          </TabsContent>
           
-          <Separator className="my-4" />
-          
-          <BackgroundImageSelector onBackgroundSelect={onBackgroundSelect} />
-          
-          <Separator className="my-4" />
-          
-          <ImageFilterSelector 
-            currentFilter={currentEntry.filter || 'none'} 
-            onFilterChange={onFilterChange} 
-          />
-        </TabsContent>
-        
-        <TabsContent value="draw" className="space-y-4">
-          <DrawingTools 
-            onToolSelect={onDrawingToolSelect}
-            currentTool={currentDrawingTool}
-            onColorChange={onDrawingColorChange}
-            currentColor={currentDrawingColor}
-            onClear={onClearDrawing}
-            onBrushSizeChange={onBrushSizeChange}
-            currentBrushSize={currentBrushSize}
-            isDrawingMode={isDrawingMode}
-            onDrawingModeToggle={onDrawingModeToggle}
-          />
-          
-          <Separator className="my-4" />
-          
-          <div className="space-y-2">
-            <h3 className="text-xs font-semibold tracking-tight">Upload Image</h3>
-            <ImageUploader onImageSelect={handleImageSelect} />
-          </div>
-        </TabsContent>
+          <TabsContent value="draw" className="space-y-4 pr-4 pb-8">
+            <DrawingTools 
+              onToolSelect={onDrawingToolSelect}
+              currentTool={currentDrawingTool}
+              onColorChange={onDrawingColorChange}
+              currentColor={currentDrawingColor}
+              onClear={onClearDrawing}
+              onBrushSizeChange={onBrushSizeChange}
+              currentBrushSize={currentBrushSize}
+              isDrawingMode={isDrawingMode}
+              onDrawingModeToggle={onDrawingModeToggle}
+            />
+            
+            <Separator className="my-4" />
+            
+            <div className="space-y-2">
+              <h3 className="text-xs font-semibold tracking-tight">Upload Image</h3>
+              <ImageUploader onImageSelect={handleImageSelect} />
+            </div>
+          </TabsContent>
+        </ScrollArea>
       </Tabs>
     </div>
   );

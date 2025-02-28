@@ -2,14 +2,15 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { 
-  Pencil, 
+  PenTool, 
   Eraser, 
   Highlighter, 
-  Paintbrush, 
+  PaintbrushDashed, 
   Droplets,
   Trash2,
   PaintBucket,
-  X
+  Maximize2,
+  Minimize2
 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -17,6 +18,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HexColorPicker } from "react-colorful";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
 
 interface DrawingToolsProps {
   onToolSelect: (tool: string) => void;
@@ -42,14 +44,45 @@ export function DrawingTools({
   onDrawingModeToggle
 }: DrawingToolsProps) {
   const [selectedType, setSelectedType] = useState<'brush' | 'fill'>('brush');
+  const [showColorPicker, setShowColorPicker] = useState(true);
   
   const tools = [
-    { id: 'pen', name: 'Pen', icon: Pencil },
-    { id: 'marker', name: 'Marker', icon: Paintbrush },
-    { id: 'highlighter', name: 'Highlighter', icon: Highlighter },
-    { id: 'eraser', name: 'Eraser', icon: Eraser },
-    { id: 'spray', name: 'Spray', icon: Droplets },
-    { id: 'fill', name: 'Fill', icon: PaintBucket },
+    { 
+      id: 'pen', 
+      name: 'Pen', 
+      icon: PenTool, 
+      description: 'Fine-tipped pen for precise drawing'
+    },
+    { 
+      id: 'marker', 
+      name: 'Marker', 
+      icon: PaintbrushDashed, 
+      description: 'Broad marker with semi-transparent effect'
+    },
+    { 
+      id: 'highlighter', 
+      name: 'Highlighter', 
+      icon: Highlighter, 
+      description: 'Transparent highlighting effect'
+    },
+    { 
+      id: 'eraser', 
+      name: 'Eraser', 
+      icon: Eraser, 
+      description: 'Erase parts of your drawing'
+    },
+    { 
+      id: 'spray', 
+      name: 'Spray', 
+      icon: Droplets, 
+      description: 'Spray paint effect with particle spread'
+    },
+    { 
+      id: 'fill', 
+      name: 'Fill', 
+      icon: PaintBucket, 
+      description: 'Fill enclosed areas with color'
+    },
   ];
 
   const handleToolClick = (toolId: string) => {
@@ -73,13 +106,18 @@ export function DrawingTools({
     }
   };
   
+  const toggleColorPicker = () => {
+    setShowColorPicker(!showColorPicker);
+  };
+  
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between mb-2">
+      {/* Drawing Mode Toggle */}
+      <div className="flex items-center justify-between">
         <h3 className="text-xs font-semibold tracking-tight">Drawing Tools</h3>
         <div className="flex items-center space-x-2">
-          <Label htmlFor="drawing-mode" className="text-xs">
-            {isDrawingMode ? "Drawing Mode On" : "Drawing Mode Off"}
+          <Label htmlFor="drawing-mode" className="text-xs text-muted-foreground">
+            {isDrawingMode ? "Drawing Mode" : "Editing Mode"}
           </Label>
           <Switch 
             id="drawing-mode" 
@@ -89,13 +127,15 @@ export function DrawingTools({
         </div>
       </div>
       
+      {/* Tool Type Selection */}
       <Tabs value={selectedType} onValueChange={(v) => setSelectedType(v as 'brush' | 'fill')}>
         <TabsList className="grid grid-cols-2 h-8">
-          <TabsTrigger value="brush" className="text-xs">Brushes</TabsTrigger>
-          <TabsTrigger value="fill" className="text-xs">Fill</TabsTrigger>
+          <TabsTrigger value="brush" className="text-xs">Drawing Tools</TabsTrigger>
+          <TabsTrigger value="fill" className="text-xs">Fill Tools</TabsTrigger>
         </TabsList>
       </Tabs>
       
+      {/* Tool Selection */}
       {selectedType === 'brush' ? (
         <div className="grid grid-cols-3 gap-2">
           {tools.slice(0, 5).map((tool) => {
@@ -107,6 +147,7 @@ export function DrawingTools({
                 size="sm"
                 className="flex-col h-auto py-2 px-0"
                 onClick={() => handleToolClick(tool.id)}
+                title={tool.description}
               >
                 <Icon className="h-4 w-4 mb-1" />
                 <span className="text-[10px]">{tool.name}</span>
@@ -125,6 +166,7 @@ export function DrawingTools({
                 size="sm"
                 className="flex-col h-auto py-2"
                 onClick={() => handleToolClick(tool.id)}
+                title={tool.description}
               >
                 <div className="flex items-center">
                   <Icon className="h-4 w-4 mr-2" />
@@ -136,6 +178,9 @@ export function DrawingTools({
         </div>
       )}
       
+      <Separator className="my-2" />
+      
+      {/* Brush Size Control */}
       <div className="space-y-2">
         <div className="flex justify-between items-center">
           <Label htmlFor="brush-size-slider" className="text-xs">Brush Size</Label>
@@ -151,15 +196,44 @@ export function DrawingTools({
         />
       </div>
       
+      <Separator className="my-2" />
+      
+      {/* Color Picker Section */}
       <div className="space-y-2">
-        <Label className="text-xs">Color</Label>
-        <HexColorPicker 
-          color={currentColor} 
-          onChange={onColorChange} 
-          className="w-full"
-        />
+        <div className="flex justify-between items-center">
+          <Label className="text-xs">Color</Label>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-6 w-6 p-0" 
+            onClick={toggleColorPicker}
+          >
+            {showColorPicker ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+          </Button>
+        </div>
+        
+        {/* Color Preview */}
+        <div className="flex gap-2 items-center">
+          <div 
+            className="w-8 h-8 rounded-full border border-gray-200" 
+            style={{ backgroundColor: currentColor }}
+          />
+          <div className="text-xs font-mono">{currentColor}</div>
+        </div>
+        
+        {/* Expandable Color Picker */}
+        {showColorPicker && (
+          <HexColorPicker 
+            color={currentColor} 
+            onChange={onColorChange} 
+            className="w-full"
+          />
+        )}
       </div>
       
+      <Separator className="my-2" />
+      
+      {/* Clear Drawing Button */}
       <Button
         variant="destructive"
         size="sm"
@@ -167,11 +241,19 @@ export function DrawingTools({
           onClear();
           toast.info("Drawing cleared");
         }}
-        className="w-full mt-2"
+        className="w-full"
       >
         <Trash2 className="h-4 w-4 mr-2" />
         Clear Drawing
       </Button>
+      
+      {/* Tool Information */}
+      {isDrawingMode && (
+        <div className="mt-4 text-xs text-muted-foreground bg-muted p-3 rounded-md">
+          <p className="font-semibold mb-1">Current Tool: {currentTool.charAt(0).toUpperCase() + currentTool.slice(1)}</p>
+          <p>{tools.find(t => t.id === currentTool)?.description}</p>
+        </div>
+      )}
     </div>
   );
 }

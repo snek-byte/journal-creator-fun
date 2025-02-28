@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { DrawingLayer } from './DrawingLayer';
@@ -318,7 +319,7 @@ export function JournalPreview({
     if (!backgroundImage) return {};
     
     const filterValue = getCssFilter();
-    console.log("JournalPreview: Applying filter:", filterValue);
+    console.log("JournalPreview: Applying filter:", filterValue, "to background:", backgroundImage);
     
     if (isGradientBackground) {
       return {
@@ -329,6 +330,7 @@ export function JournalPreview({
     }
     
     if (isPatternBackground) {
+      console.log("Pattern background detected:", backgroundImage);
       return {
         backgroundImage: `url(${backgroundImage})`,
         backgroundColor: '#faf9f6', // Off-white background for patterns
@@ -339,6 +341,7 @@ export function JournalPreview({
     }
     
     // Regular image background
+    console.log("Regular image background:", backgroundImage);
     return {
       backgroundImage: backgroundImage.includes('http') ? `url(${backgroundImage})` : backgroundImage,
       backgroundColor: backgroundImage.includes('placehold.co') ? backgroundImage.split('/')[3] : undefined,
@@ -365,9 +368,19 @@ export function JournalPreview({
     onStickerAdd(updatedSticker);
   };
 
+  // Log background state for debugging
+  useEffect(() => {
+    console.log("JournalPreview: Background state - ", { 
+      backgroundImage, 
+      isGradientBackground, 
+      isPatternBackground,
+      filter 
+    });
+  }, [backgroundImage, filter]);
+
   return (
     <div className={cn("relative flex-1 overflow-hidden bg-gray-50", className)}>
-      <div className="absolute inset-0 flex items-center justify-center" onClick={handlePageClick}>
+      <div className="absolute inset-0 flex items-center justify-center p-4" onClick={handlePageClick}>
         {/* Journal page with proper styling */}
         <div style={journalPageStyle} className="journal-page">
           {/* Background layer */}
@@ -382,7 +395,7 @@ export function JournalPreview({
                 ...getBackgroundStyle(),
                 zIndex: 1
               }}
-              className="journal-page"
+              className="journal-page-background"
             />
           )}
 

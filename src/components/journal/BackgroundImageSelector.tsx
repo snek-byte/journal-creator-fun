@@ -3,6 +3,9 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageUploader } from './ImageUploader';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
 
 interface BackgroundImageSelectorProps {
   onBackgroundSelect: (imageUrl: string) => void;
@@ -34,7 +37,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     { name: "Desert", url: "https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?auto=format&fit=crop&w=800&h=1000&q=80" }
   ];
   
-  // Background gradients (not for text)
+  // Background gradients
   const gradientBackgrounds = [
     { name: "Sunset", url: "linear-gradient(to right, #f83600 0%, #f9d423 100%)" },
     { name: "Blue-Purple", url: "linear-gradient(to right, #4facfe 0%, #00f2fe 100%)" },
@@ -50,7 +53,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     { name: "Light Blue", url: "linear-gradient(to top, #accbee 0%, #e7f0fd 100%)" }
   ];
 
-  // Actual repeating patterns (not photos)
+  // Actual repeating patterns
   const patternBackgrounds = [
     { name: "Subtle Dots", url: "https://www.transparenttextures.com/patterns/subtle-dots.png" },
     { name: "Grid", url: "https://www.transparenttextures.com/patterns/grid.png" },
@@ -69,6 +72,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
   const handleBackgroundSelect = (url: string) => {
     console.log("Selected background:", url);
     onBackgroundSelect(url);
+    toast.info(`Background ${url ? 'applied' : 'cleared'}`);
   };
 
   // Helper function to generate a full CSS background for papers and patterns
@@ -83,8 +87,8 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
   };
   
   return (
-    <div className="space-y-2">
-      <h3 className="text-xs font-semibold tracking-tight">Background Images & Gradients</h3>
+    <div className="space-y-3">
+      <h3 className="text-sm font-semibold tracking-tight">Background Images & Patterns</h3>
       
       <Tabs defaultValue="papers" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-5 mb-2">
@@ -95,7 +99,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
           <TabsTrigger value="upload" className="text-[10px]">Upload</TabsTrigger>
         </TabsList>
         
-        <ScrollArea className="h-[150px]">
+        <ScrollArea className="h-[220px]">
           <TabsContent value="papers" className="mt-0 space-y-4">
             <div className="grid grid-cols-3 gap-2">
               {paperBackgrounds.map((bg, index) => (
@@ -104,11 +108,11 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                   className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-20"
                   onClick={() => handleBackgroundSelect(bg.url)}
                   type="button"
+                  title={bg.name}
                 >
                   <div 
                     className="w-full h-full"
                     style={getPatternBackgroundStyle(bg.url)}
-                    title={bg.name}
                   />
                 </button>
               ))}
@@ -123,6 +127,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                   className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-20"
                   onClick={() => handleBackgroundSelect(bg.url)}
                   type="button"
+                  title={bg.name}
                 >
                   <div 
                     className="w-full h-full"
@@ -131,7 +136,6 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                       backgroundSize: 'cover',
                       backgroundPosition: 'center'
                     }}
-                    title={bg.name}
                   />
                 </button>
               ))}
@@ -146,11 +150,11 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                   className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-20"
                   onClick={() => handleBackgroundSelect(bg.url)}
                   type="button"
+                  title={bg.name}
                 >
                   <div 
                     className="w-full h-full"
                     style={getPatternBackgroundStyle(bg.url)}
-                    title={bg.name}
                   />
                 </button>
               ))}
@@ -165,11 +169,11 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                   className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-20"
                   onClick={() => handleBackgroundSelect(bg.url)}
                   type="button"
+                  title={bg.name}
                 >
                   <div 
                     className="w-full h-full rounded" 
                     style={{ background: bg.url }}
-                    title={bg.name}
                   />
                 </button>
               ))}
@@ -183,16 +187,17 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
           </TabsContent>
         </ScrollArea>
         
+        <Separator className="my-2" />
+        
         {/* Clear background button */}
-        <div className="mt-2">
-          <button
-            className="w-full py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded"
-            onClick={() => handleBackgroundSelect("")}
-            type="button"
-          >
-            Clear Background
-          </button>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleBackgroundSelect("")}
+          className="w-full mt-2 text-xs"
+        >
+          Clear Background
+        </Button>
       </Tabs>
     </div>
   );
