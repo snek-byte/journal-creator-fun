@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useJournalStore } from '@/store/journalStore';
 import { supabase } from "@/integrations/supabase/client";
@@ -182,17 +183,19 @@ export function useJournalEditor() {
   };
 
   const handleTextDragStart = () => {
+    console.log("Text drag started");
     setIsDraggingText(true);
   };
 
   const handleTextDragEnd = () => {
+    console.log("Text drag ended");
     setIsDraggingText(false);
   };
 
   const handleTextMove = (position: { x: number, y: number }) => {
     try {
+      console.log("Moving text to:", position);
       setTextPosition(position);
-      console.log("Text moved to:", position);
     } catch (error) {
       console.error("Error moving text:", error);
     }
