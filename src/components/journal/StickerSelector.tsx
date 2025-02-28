@@ -3,11 +3,15 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, ArrowsOutCardinal } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 
 interface StickerSelectorProps {
   onStickerSelect: (stickerUrl: string) => void;
+  onStickerResize?: (size: number) => void;
+  currentStickerSize?: number;
+  selectedStickerId?: string | null;
 }
 
 // Sticker metadata structure
@@ -18,11 +22,22 @@ interface Sticker {
   name: string;
 }
 
-export function StickerSelector({ onStickerSelect }: StickerSelectorProps) {
+export function StickerSelector({ 
+  onStickerSelect, 
+  onStickerResize,
+  currentStickerSize = 100,
+  selectedStickerId 
+}: StickerSelectorProps) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [stickers, setStickers] = useState<Sticker[]>([]);
+  const [stickerSize, setStickerSize] = useState(currentStickerSize);
+  
+  // Update local size state when prop changes
+  useEffect(() => {
+    setStickerSize(currentStickerSize);
+  }, [currentStickerSize]);
   
   // Initialize sticker library with actual stickers (SVGs with transparency)
   useEffect(() => {
@@ -347,6 +362,14 @@ export function StickerSelector({ onStickerSelect }: StickerSelectorProps) {
     console.log("Sticker selected:", stickerUrl);
     onStickerSelect(stickerUrl);
   };
+  
+  const handleSizeChange = (value: number[]) => {
+    const newSize = value[0];
+    setStickerSize(newSize);
+    if (onStickerResize) {
+      onStickerResize(newSize);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -362,6 +385,32 @@ export function StickerSelector({ onStickerSelect }: StickerSelectorProps) {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
+      </div>
+      
+      {/* Sticker Size Control */}
+      <div className={`space-y-2 ${selectedStickerId ? '' : 'opacity-50'}`}>
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <ArrowsOutCardinal className="h-4 w-4 text-muted-foreground" />
+            <h4 className="text-xs font-medium">Sticker Size</h4>
+          </div>
+          <span className="text-xs text-muted-foreground">{stickerSize}px</span>
+        </div>
+        <Slider 
+          defaultValue={[stickerSize]}
+          value={[stickerSize]} 
+          min={20} 
+          max={250} 
+          step={1}
+          onValueChange={handleSizeChange}
+          disabled={!selectedStickerId}
+          className="w-full"
+        />
+        <p className="text-xs text-muted-foreground">
+          {selectedStickerId 
+            ? "Adjust the size of the selected sticker" 
+            : "Select a sticker to resize it"}
+        </p>
       </div>
 
       <Tabs defaultValue="all" value={selectedCategory} onValueChange={setSelectedCategory}>

@@ -56,6 +56,10 @@ export function JournalEditor() {
   const [currentDrawingTool, setCurrentDrawingTool] = useState('pen');
   const [currentDrawingColor, setCurrentDrawingColor] = useState('#000000');
   const [currentBrushSize, setCurrentBrushSize] = useState(3);
+  
+  // Sticker resize state
+  const [stickerSize, setStickerSize] = useState(100);
+  const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
 
   const handleClearDrawing = () => {
     handleDrawingChange('');
@@ -68,8 +72,8 @@ export function JournalEditor() {
       id: uuidv4(),
       url: stickerUrl,
       position: { x: 50, y: 50 },
-      width: 100,
-      height: 100
+      width: stickerSize,
+      height: stickerSize
     };
     console.log("New sticker object:", newSticker);
     handleStickerAdd(newSticker);
@@ -89,6 +93,57 @@ export function JournalEditor() {
     handleIconAdd(newIcon);
   };
 
+  // Resize sticker handler
+  const handleStickerResize = (size: number) => {
+    setStickerSize(size);
+    
+    // If a sticker is selected, update its size
+    if (selectedStickerId) {
+      const updatedStickers = currentEntry.stickers.map(sticker => 
+        sticker.id === selectedStickerId 
+          ? { ...sticker, width: size, height: size } 
+          : sticker
+      );
+      
+      // Update all stickers with the new array
+      currentEntry.stickers.forEach(sticker => {
+        if (sticker.id === selectedStickerId) {
+          handleStickerUpdate(sticker.id, { width: size, height: size });
+        }
+      });
+    }
+  };
+
+  // Handler to update sticker with new properties
+  const handleStickerUpdate = (id: string, updates: Partial<Sticker>) => {
+    const updatedStickers = currentEntry.stickers.map(sticker => 
+      sticker.id === id ? { ...sticker, ...updates } : sticker
+    );
+    
+    // Use the existing state setter to update stickers
+    handleStickerReplace(updatedStickers);
+  };
+
+  // Function to replace all stickers (used for updates)
+  const handleStickerReplace = (newStickers: Sticker[]) => {
+    const updatedEntry = { ...currentEntry, stickers: newStickers };
+    // Set directly in the editor state
+    setText(updatedEntry.text); // Trigger state update via any setter
+  };
+
+  // Handler for sticker selection
+  const handleStickerSelect = (id: string | null) => {
+    setSelectedStickerId(id);
+    
+    // If a sticker is selected, update the size slider to match
+    if (id) {
+      const selectedSticker = currentEntry.stickers.find(s => s.id === id);
+      if (selectedSticker && selectedSticker.width) {
+        setStickerSize(selectedSticker.width);
+      }
+    }
+  };
+
   console.log("Current stickers in entry:", currentEntry.stickers);
 
   return (
@@ -98,6 +153,7 @@ export function JournalEditor() {
         currentEntry={currentEntry}
         dailyChallenge={dailyChallenge}
         selectedIconId={selectedIconId}
+        selectedStickerId={selectedStickerId}
         handlePrint={handlePrint}
         handleEmojiSelect={handleEmojiSelect}
         setShowEmailDialog={setShowEmailDialog}
@@ -121,6 +177,8 @@ export function JournalEditor() {
         onBrushSizeChange={setCurrentBrushSize}
         currentBrushSize={currentBrushSize}
         onStickerAdd={handleStickerAddFromUrl}
+        onStickerResize={handleStickerResize}
+        currentStickerSize={stickerSize}
         onIconAdd={handleIconAddWithId}
         onBackgroundSelect={handleBackgroundSelect}
         onFilterChange={handleFilterChange}
@@ -162,6 +220,7 @@ export function JournalEditor() {
         onIconMove={handleIconMove}
         onIconUpdate={handleIconUpdate}
         onIconSelect={handleIconSelect}
+        onStickerSelect={handleStickerSelect}
         onTextMove={handleTextMove}
         onBackgroundSelect={handleBackgroundSelect}
         onDrawingChange={handleDrawingChange}
