@@ -75,6 +75,7 @@ export function JournalPreview({
 }: JournalPreviewProps) {
   const previewRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
+  const backgroundImageRef = useRef<HTMLImageElement>(null);
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
@@ -82,6 +83,14 @@ export function JournalPreview({
   const [showIconControls, setShowIconControls] = useState(false);
   const [iconSize, setIconSize] = useState<number>(48);
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
+  const [bgImagePosition, setBgImagePosition] = useState({ x: 50, y: 50 });
+  const [isDraggingBgImage, setIsDraggingBgImage] = useState(false);
+  const [isUploadedImage, setIsUploadedImage] = useState(false);
+
+  useEffect(() => {
+    // Detect if the current background image is an uploaded image (data URL)
+    setIsUploadedImage(!!backgroundImage && backgroundImage.startsWith('data:'));
+  }, [backgroundImage]);
 
   useEffect(() => {
     if (selectedIconId) {
@@ -93,6 +102,10 @@ export function JournalPreview({
   }, [selectedIconId, icons]);
 
   const getBackground = () => {
+    // For uploaded images, we'll handle them separately as positioned elements
+    if (backgroundImage && backgroundImage.startsWith('data:')) {
+      return gradient; // Use gradient as base layer
+    }
     if (backgroundImage) {
       return `url(${backgroundImage})`;
     }
@@ -100,12 +113,11 @@ export function JournalPreview({
   };
 
   const getBackgroundSize = () => {
-    // If it's an uploaded image (typically data URLs start with "data:") 
-    // then we use "contain" to prevent tiling
-    if (backgroundImage && backgroundImage.startsWith('data:')) {
-      return 'contain';
+    // No need to set background-size for uploaded images since we're handling them separately
+    if (backgroundImage && !backgroundImage.startsWith('data:')) {
+      return 'cover'; // Default behavior for other images
     }
-    return 'cover'; // Default behavior for other images
+    return undefined;
   };
 
   const getFilterStyle = () => {
@@ -137,6 +149,46 @@ export function JournalPreview({
       default:
         return '';
     }
+  };
+
+  // Handle background image drag events
+  const handleBgImageMouseDown = (e: React.MouseEvent) => {
+    if (isDrawingMode || !isUploadedImage) return;
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsDraggingBgImage(true);
+    
+    const previewRect = previewRef.current?.getBoundingClientRect();
+    if (!previewRect) return;
+    
+    const offsetX = e.clientX - previewRect.left;
+    const offsetY = e.clientY - previewRect.top;
+    
+    const onMouseMove = (e: MouseEvent) => {
+      if (!previewRef.current) return;
+      
+      const previewRect = previewRef.current.getBoundingClientRect();
+      
+      // Calculate the new position as a percentage of the container
+      const newX = ((e.clientX - previewRect.left) / previewRect.width) * 100;
+      const newY = ((e.clientY - previewRect.top) / previewRect.height) * 100;
+      
+      // Ensure position stays within bounds (0-100%)
+      const boundedX = Math.max(0, Math.min(100, newX));
+      const boundedY = Math.max(0, Math.min(100, newY));
+      
+      setBgImagePosition({ x: boundedX, y: boundedY });
+    };
+    
+    const onMouseUp = () => {
+      setIsDraggingBgImage(false);
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+    
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
   };
 
   // Text element mouse and touch event handlers
@@ -302,6 +354,10 @@ export function JournalPreview({
     setShowIconControls(false);
   };
 
+  const handleRemoveBackgroundImage = () => {
+    onBackgroundSelect('');
+  };
+
   const handleBackgroundClick = () => {
     setSelectedStickerId(null);
     setShowDeleteButton(false);
@@ -327,6 +383,39 @@ export function JournalPreview({
         {mood && (
           <div className="absolute top-4 left-4 text-lg">
             Mood: {moodOptions.find(m => m.value === mood)?.icon}
+          </div>
+        )}
+        
+        {/* Render uploaded background image as a draggable element */}
+        {isUploadedImage && backgroundImage && (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <img
+              ref={backgroundImageRef}
+              src={backgroundImage}
+              alt="Background"
+              className={`absolute max-w-[80%] max-h-[80%] ${isDraggingBgImage ? 'ring-2 ring-primary/50' : 'hover:ring-2 hover:ring-primary/30'} pointer-events-auto cursor-move transition-all`}
+              style={{
+                left: `${bgImagePosition.x}%`,
+                top: `${bgImagePosition.y}%`,
+                transform: 'translate(-50%, -50%)',
+                filter: getFilterStyle(),
+              }}
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={handleBgImageMouseDown}
+              draggable={false}
+            />
+            {isUploadedImage && !isDialog && (
+              <Button
+                variant="destructive"
+                size="sm"
+                className="absolute z-10 right-4 top-4 pointer-events-auto"
+                onClick={handleRemoveBackgroundImage}
+                type="button"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Remove Image
+              </Button>
+            )}
           </div>
         )}
         
@@ -524,7 +613,7 @@ export function JournalPreview({
                   backgroundSize: getBackgroundSize(),
                   backgroundPosition: 'center',
                   backgroundRepeat: 'no-repeat',
-                  filter: getFilterStyle(),
+                  filter: !isUploadedImage ? getFilterStyle() : undefined,
                   position: 'relative',
                   width: '100%',
                   height: '100%',
@@ -549,7 +638,7 @@ export function JournalPreview({
             backgroundRepeat: 'no-repeat',
             WebkitPrintColorAdjust: 'exact',
             printColorAdjust: 'exact',
-            filter: getFilterStyle(),
+            filter: !isUploadedImage ? getFilterStyle() : undefined,
           }}
           className="w-full h-full rounded-lg overflow-hidden shadow-lg transition-all duration-300 animate-fadeIn print:shadow-none print:rounded-none print:min-h-screen relative"
           onClick={handleBackgroundClick}
