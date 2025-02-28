@@ -6,6 +6,7 @@ import { EmailDialog } from './journal/EmailDialog';
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Sticker, Icon } from '@/types/journal';
+import { toast } from "sonner";
 
 export function JournalEditor() {
   const {
@@ -135,11 +136,18 @@ export function JournalEditor() {
   console.log("Selected sticker ID:", selectedStickerId);
   console.log("Current sticker size:", stickerSize);
 
+  // For TypeScript to accept currentEntry as JournalEntry
+  const fullEntry = {
+    ...currentEntry,
+    id: 0,
+    date: new Date().toISOString()
+  };
+
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
       <JournalEditorSidebar 
         textareaRef={textareaRef}
-        currentEntry={currentEntry}
+        currentEntry={fullEntry}
         dailyChallenge={dailyChallenge}
         selectedIconId={selectedIconId}
         selectedStickerId={selectedStickerId}

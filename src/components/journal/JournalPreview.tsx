@@ -92,7 +92,7 @@ export function JournalPreview({
     quality: 1.0
   });
 
-  // Journal page styles - simplified for better gradient display
+  // Journal page styles
   const journalPageStyle = {
     backgroundColor: '#fff',
     boxShadow: '0 0 20px rgba(0, 0, 0, 0.1)',
@@ -103,30 +103,6 @@ export function JournalPreview({
     position: 'absolute' as 'absolute',
     overflow: 'hidden',
   };
-
-  // Separate background image and gradient containers
-  const backgroundImageStyle = backgroundImage ? {
-    position: 'absolute' as 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundImage: `url(${backgroundImage})`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    filter: filter && filter !== 'none' ? filter : undefined,
-  } : {};
-  
-  // Gradient overlay with full opacity
-  const gradientStyle = gradient ? {
-    position: 'absolute' as 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundImage: gradient,
-    filter: filter && filter !== 'none' ? filter : undefined,
-  } : {};
 
   useEffect(() => {
     if (!previewRef.current) return;
@@ -230,22 +206,52 @@ export function JournalPreview({
     return text;
   };
 
-  // Log stickers for debugging
+  // Log key properties for debugging
   useEffect(() => {
-    console.log("Stickers in preview:", stickers);
-  }, [stickers]);
+    console.log("Background image:", backgroundImage);
+    console.log("Filter:", filter);
+    console.log("Gradient:", gradient);
+  }, [backgroundImage, filter, gradient]);
 
   return (
     <div className={cn("relative flex-1 overflow-hidden bg-gray-50", className)}>
       {/* Journal page with proper styling */}
       <div style={journalPageStyle}>
         {/* Background image layer */}
-        {backgroundImage && <div style={backgroundImageStyle}></div>}
+        {backgroundImage && (
+          <div 
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              backgroundImage: `url(${backgroundImage})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              filter: filter || undefined,
+              zIndex: 1
+            }}
+          />
+        )}
         
-        {/* Gradient layer - separate from background image for better display */}
-        {gradient && <div style={gradientStyle}></div>}
+        {/* Gradient background layer */}
+        {gradient && (
+          <div 
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              background: gradient,
+              opacity: 0.7,
+              zIndex: 2
+            }}
+          />
+        )}
 
-        <div className="relative h-full w-full" ref={previewRef}>
+        <div className="relative h-full w-full z-10" ref={previewRef}>
           {/* Control overlay buttons */}
           <div className="absolute top-4 right-4 z-50 flex gap-2">
             <button
@@ -347,9 +353,9 @@ export function JournalPreview({
               fontSize: fontSize || 'inherit',
               fontWeight: fontWeight || 'inherit',
               color: fontColor || 'inherit',
-              backgroundImage: gradient ? gradient : 'none',
-              WebkitBackgroundClip: gradient ? 'text' : 'unset',
-              WebkitTextFillColor: gradient ? 'transparent' : 'unset',
+              backgroundImage: gradient && gradient.includes('text') ? gradient : 'none',
+              WebkitBackgroundClip: gradient && gradient.includes('text') ? 'text' : 'unset',
+              WebkitTextFillColor: gradient && gradient.includes('text') ? 'transparent' : 'unset',
               fontStyle: textStyle?.includes('italic') ? 'italic' : 'normal',
               textDecoration: textStyle?.includes('underline') ? 'underline' : 'none',
               textAlign: textStyle?.includes('center') ? 'center' : 'left',

@@ -1,252 +1,143 @@
 
-import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ImagePlus, Upload, RefreshCw } from "lucide-react";
 import { ImageUploader } from './ImageUploader';
-import { Card, CardContent } from "@/components/ui/card";
-import { gradients } from './config/editorConfig';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface BackgroundImageSelectorProps {
   onBackgroundSelect: (imageUrl: string) => void;
 }
 
 export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageSelectorProps) {
-  const [activeTab, setActiveTab] = useState('paper');
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [unsplashImages, setUnsplashImages] = useState<Array<{id: string, url: string, alt: string}>>([]);
-
-  // Helper function to preview gradient
-  const getGradientStyle = (gradientValue: string) => {
-    return {
-      backgroundImage: gradientValue,
-      width: '100%',
-      height: '80px',
-      borderRadius: '4px',
-    };
-  };
-
-  // Initialize Unsplash images
-  useEffect(() => {
-    // Create Unsplash image objects with the current refresh key
-    const timestamp = new Date().getTime();
-    const images = [
-      {
-        id: 'nature1',
-        url: `https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80&t=${timestamp + refreshKey}`,
-        alt: 'Foggy mountains',
-      },
-      {
-        id: 'nature2',
-        url: `https://images.unsplash.com/photo-1547471080-91f798e60c3e?auto=format&fit=crop&w=800&q=80&t=${timestamp + refreshKey}`,
-        alt: 'Northern lights',
-      },
-      {
-        id: 'nature3',
-        url: `https://images.unsplash.com/photo-1418065460487-3e41a6c84dc5?auto=format&fit=crop&w=800&q=80&t=${timestamp + refreshKey}`,
-        alt: 'Mountain peak',
-      },
-      {
-        id: 'nature4',
-        url: `https://images.unsplash.com/photo-1431794062232-2a99a5431c6c?auto=format&fit=crop&w=800&q=80&t=${timestamp + refreshKey}`,
-        alt: 'Valley view',
-      },
-      {
-        id: 'abstract1',
-        url: `https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=800&q=80&t=${timestamp + refreshKey}`,
-        alt: 'Abstract gradient',
-      },
-      {
-        id: 'abstract2',
-        url: `https://images.unsplash.com/photo-1567095761054-7a02e69e5c43?auto=format&fit=crop&w=800&q=80&t=${timestamp + refreshKey}`,
-        alt: 'Colorful waves',
-      },
-      {
-        id: 'abstract3',
-        url: `https://images.unsplash.com/photo-1557672172-298e090bd0f1?auto=format&fit=crop&w=800&q=80&t=${timestamp + refreshKey}`,
-        alt: 'Abstract colors',
-      },
-      {
-        id: 'abstract4',
-        url: `https://images.unsplash.com/photo-1579548122080-c35fd6820ecb?auto=format&fit=crop&w=800&q=80&t=${timestamp + refreshKey}`,
-        alt: 'Geometric pattern',
-      },
-    ];
-    setUnsplashImages(images);
-  }, [refreshKey]);
-
-  // Function to refresh Unsplash images
-  const refreshUnsplashImages = () => {
-    setRefreshKey(prev => prev + 1);
-  };
-
-  // Paper texture backgrounds
-  const paperTextures = [
-    { id: 'paper1', url: 'https://www.transparenttextures.com/patterns/clean-gray-paper.png', name: 'Classic Paper' },
-    { id: 'paper2', url: 'https://www.transparenttextures.com/patterns/old-paper.png', name: 'Vintage Paper' },
-    { id: 'paper3', url: 'https://www.transparenttextures.com/patterns/white-paper.png', name: 'Recycled Paper' },
-    { id: 'paper4', url: 'https://www.transparenttextures.com/patterns/light-paper-fibers.png', name: 'Craft Paper' },
-    { id: 'paper5', url: 'https://www.transparenttextures.com/patterns/notebook.png', name: 'Lined Paper' },
-    { id: 'paper6', url: 'https://www.transparenttextures.com/patterns/grid-noise.png', name: 'Grid Paper' },
-    { id: 'paper7', url: 'https://www.transparenttextures.com/patterns/subtle-white-feathers.png', name: 'Dot Paper' },
-    { id: 'paper8', url: 'https://www.transparenttextures.com/patterns/little-pluses.png', name: 'Cream Paper' },
+  const [activeTab, setActiveTab] = useState("papers");
+  
+  // Sample paper background images
+  const paperBackgrounds = [
+    { name: "White", url: "https://i.imgur.com/RmSH8r0.jpg" },
+    { name: "Light Texture", url: "https://i.imgur.com/0X1KZsB.jpg" },
+    { name: "Parchment", url: "https://i.imgur.com/5ZKxlGI.jpg" },
+    { name: "Lined Paper", url: "https://i.imgur.com/nY4y1I8.jpg" },
+    { name: "Grid Paper", url: "https://i.imgur.com/gJ5mWgP.jpg" },
+    { name: "Dotted Paper", url: "https://i.imgur.com/vL2t7OL.jpg" },
+    { name: "Vintage Paper", url: "https://i.imgur.com/b7mwuAZ.jpg" },
+    { name: "Craft Paper", url: "https://i.imgur.com/XrPQCaK.jpg" },
+    { name: "Blue Paper", url: "https://i.imgur.com/ZzO8Urn.jpg" },
+    { name: "Pink Paper", url: "https://i.imgur.com/fITZsWa.jpg" },
+    { name: "Yellow Paper", url: "https://i.imgur.com/QiRmJnA.jpg" },
+    { name: "Green Paper", url: "https://i.imgur.com/KFMGVWZ.jpg" },
   ];
   
-  // Solid colors backgrounds
-  const solidColors = [
-    { id: 'white', color: '#ffffff', name: 'White' },
-    { id: 'light', color: '#f8f9fa', name: 'Light' },
-    { id: 'cream', color: '#f5f5dc', name: 'Cream' },
-    { id: 'gray', color: '#e9ecef', name: 'Gray' },
-    { id: 'blue', color: '#e6f4ff', name: 'Blue' },
-    { id: 'green', color: '#e6ffea', name: 'Green' },
-    { id: 'yellow', color: '#fffde6', name: 'Yellow' },
-    { id: 'pink', color: '#ffe6f2', name: 'Pink' },
-    { id: 'lavender', color: '#f2e6ff', name: 'Lavender' },
-    { id: 'mint', color: '#e6fff4', name: 'Mint' },
-    { id: 'peach', color: '#ffe6e6', name: 'Peach' },
-    { id: 'darkmode', color: '#1c1c1c', name: 'Dark Mode' },
+  // Nature background images
+  const natureBackgrounds = [
+    { name: "Mountains", url: "https://i.imgur.com/RdXdbXB.jpg" },
+    { name: "Beach", url: "https://i.imgur.com/JfQ9wjy.jpg" },
+    { name: "Forest", url: "https://i.imgur.com/9uXw53C.jpg" },
+    { name: "Sunset", url: "https://i.imgur.com/5PgkUWK.jpg" },
+    { name: "Waterfall", url: "https://i.imgur.com/sRKKhwd.jpg" },
+    { name: "Desert", url: "https://i.imgur.com/R8nmRj5.jpg" },
   ];
-
-  // Handle image selection from the ImageUploader
-  const handleImageSelect = (url: string) => {
+  
+  // Patterns and textures
+  const patternBackgrounds = [
+    { name: "Abstract 1", url: "https://i.imgur.com/tBqvnAB.jpg" },
+    { name: "Geometric", url: "https://i.imgur.com/DQZYRsT.jpg" },
+    { name: "Marble", url: "https://i.imgur.com/YHXbG5C.jpg" },
+    { name: "Wood", url: "https://i.imgur.com/0yf1xJr.jpg" },
+    { name: "Bokeh", url: "https://i.imgur.com/VGaIMu0.jpg" },
+    { name: "Watercolor", url: "https://i.imgur.com/m1eBjLe.jpg" },
+  ];
+  
+  const handleBackgroundSelect = (url: string) => {
+    console.log("Selected background:", url);
     onBackgroundSelect(url);
   };
-
-  // Set solid color background
-  const handleColorSelect = (color: string) => {
-    onBackgroundSelect(`linear-gradient(to bottom, ${color}, ${color})`);
-  };
-
-  // Apply gradient directly when selected
-  const handleGradientSelect = (gradient: string) => {
-    onBackgroundSelect(gradient);
-  };
-
-  // Handle paper texture selection
-  const handlePaperSelect = (url: string) => {
-    const backgroundWithTexture = `url("${url}") repeat, #ffffff`;
-    onBackgroundSelect(backgroundWithTexture);
-  };
-
+  
   return (
-    <div className="space-y-4">
-      <h3 className="text-xs font-semibold tracking-tight">Background</h3>
+    <div className="space-y-2">
+      <h3 className="text-xs font-semibold tracking-tight">Background Images</h3>
       
-      <Tabs defaultValue="paper" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full grid grid-cols-4 mb-4">
-          <TabsTrigger value="paper" className="text-xs">Paper</TabsTrigger>
-          <TabsTrigger value="gradients" className="text-xs">Gradients</TabsTrigger>
-          <TabsTrigger value="unsplash" className="text-xs">Photos</TabsTrigger>
-          <TabsTrigger value="upload" className="text-xs">Upload</TabsTrigger>
+      <Tabs defaultValue="papers" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid grid-cols-3 mb-2">
+          <TabsTrigger value="papers" className="text-[10px]">Papers</TabsTrigger>
+          <TabsTrigger value="nature" className="text-[10px]">Nature</TabsTrigger>
+          <TabsTrigger value="patterns" className="text-[10px]">Patterns</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="paper" className="mt-0">
-          <ScrollArea className="h-[250px]">
-            <div className="grid grid-cols-2 gap-2">
-              {paperTextures.map((paper) => (
+        <ScrollArea className="h-[150px]">
+          <TabsContent value="papers" className="mt-0 space-y-4">
+            <div className="grid grid-cols-3 gap-2">
+              {paperBackgrounds.map((bg, index) => (
                 <button
-                  key={paper.id}
-                  className="relative overflow-hidden rounded-md border border-input hover:border-primary transition-colors"
-                  onClick={() => handlePaperSelect(paper.url)}
-                  title={paper.name}
-                >
-                  <div
-                    className="aspect-[4/3] w-full h-full"
-                    style={{ 
-                      backgroundImage: `url("${paper.url}")`,
-                      backgroundRepeat: 'repeat',
-                      backgroundColor: '#ffffff'
-                    }}
-                  ></div>
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-1 text-center">
-                    {paper.name}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </ScrollArea>
-        </TabsContent>
-        
-        <TabsContent value="unsplash" className="mt-0">
-          <div className="flex justify-between items-center mb-2">
-            <h4 className="text-xs font-medium text-muted-foreground">Random Images</h4>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={refreshUnsplashImages} 
-              className="h-8 px-2"
-            >
-              <RefreshCw className="h-3.5 w-3.5 mr-1" />
-              Refresh
-            </Button>
-          </div>
-          
-          <ScrollArea className="h-[250px]">
-            <div className="grid grid-cols-2 gap-2">
-              {unsplashImages.map((image) => (
-                <button
-                  key={image.id}
-                  className="relative overflow-hidden rounded-md border border-input hover:border-primary transition-colors"
-                  onClick={() => onBackgroundSelect(`url("${image.url}")`)}
-                  title={image.alt}
+                  key={index}
+                  className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-20"
+                  onClick={() => handleBackgroundSelect(bg.url)}
                 >
                   <img 
-                    src={image.url} 
-                    alt={image.alt}
-                    className="aspect-[4/3] object-cover w-full h-full"
+                    src={bg.url} 
+                    alt={bg.name} 
+                    className="w-full h-full object-cover" 
+                    loading="lazy"
                   />
                 </button>
               ))}
             </div>
-          </ScrollArea>
-        </TabsContent>
-        
-        <TabsContent value="gradients" className="mt-0 space-y-4">
-          <ScrollArea className="h-[250px]">
-            <div className="grid grid-cols-2 gap-2">
-              {gradients.map((gradient) => (
+          </TabsContent>
+          
+          <TabsContent value="nature" className="mt-0 space-y-4">
+            <div className="grid grid-cols-3 gap-2">
+              {natureBackgrounds.map((bg, index) => (
                 <button
-                  key={gradient.label}
-                  className="overflow-hidden rounded-md border border-input hover:border-primary transition-colors"
-                  onClick={() => handleGradientSelect(gradient.value)}
-                  title={gradient.label}
+                  key={index}
+                  className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-20"
+                  onClick={() => handleBackgroundSelect(bg.url)}
                 >
-                  <div style={getGradientStyle(gradient.value)} />
-                </button>
-              ))}
-              
-              <h4 className="col-span-2 mt-4 mb-2 text-xs font-medium text-muted-foreground">Solid Colors</h4>
-              
-              {solidColors.map((color) => (
-                <button
-                  key={color.id}
-                  className="overflow-hidden rounded-md border border-input hover:border-primary transition-colors"
-                  onClick={() => handleColorSelect(color.color)}
-                  title={color.name}
-                >
-                  <div 
-                    style={{ 
-                      backgroundColor: color.color,
-                      width: '100%',
-                      height: '40px',
-                      borderRadius: '4px',
-                    }} 
+                  <img 
+                    src={bg.url} 
+                    alt={bg.name} 
+                    className="w-full h-full object-cover" 
+                    loading="lazy"
                   />
                 </button>
               ))}
             </div>
-          </ScrollArea>
-        </TabsContent>
+          </TabsContent>
+          
+          <TabsContent value="patterns" className="mt-0 space-y-4">
+            <div className="grid grid-cols-3 gap-2">
+              {patternBackgrounds.map((bg, index) => (
+                <button
+                  key={index}
+                  className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-20"
+                  onClick={() => handleBackgroundSelect(bg.url)}
+                >
+                  <img 
+                    src={bg.url} 
+                    alt={bg.name} 
+                    className="w-full h-full object-cover" 
+                    loading="lazy"
+                  />
+                </button>
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="upload" className="mt-0 space-y-4">
+            <ImageUploader 
+              onImageUploaded={handleBackgroundSelect} 
+              label="Upload Background" 
+            />
+          </TabsContent>
+        </ScrollArea>
         
-        <TabsContent value="upload" className="mt-0">
-          <Card className="border-dashed">
-            <CardContent className="pt-6">
-              <ImageUploader onImageSelect={handleImageSelect} />
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {/* Clear background button */}
+        <div className="mt-2">
+          <button
+            className="w-full py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded"
+            onClick={() => handleBackgroundSelect("")}
+          >
+            Clear Background
+          </button>
+        </div>
       </Tabs>
     </div>
   );

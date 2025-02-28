@@ -27,6 +27,7 @@ export function ImageFilterSelector({ onFilterChange }: ImageFilterSelectorProps
   ];
   
   const handleFilterSelect = (filter: string) => {
+    console.log("Applying filter:", filter);
     setSelectedFilter(filter);
     onFilterChange(filter);
   };

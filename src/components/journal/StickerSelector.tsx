@@ -1,9 +1,9 @@
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Loader2, ArrowUpDown } from "lucide-react"; // Fixed to ArrowUpDown (not ArrowsUpDown)
+import { Search, ArrowUpDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 
@@ -14,169 +14,101 @@ interface StickerSelectorProps {
   selectedStickerId?: string | null;
 }
 
-// Sticker metadata structure
-interface Sticker {
-  url: string;
-  keywords: string[];
-  category: string;
-  name: string;
-}
-
 export function StickerSelector({ 
   onStickerSelect, 
   onStickerResize,
   currentStickerSize = 100,
-  selectedStickerId 
+  selectedStickerId
 }: StickerSelectorProps) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [stickers, setStickers] = useState<Sticker[]>([]);
   const [stickerSize, setStickerSize] = useState(currentStickerSize);
   
-  // Update local size state when prop changes
+  // Update local size when prop changes
   useEffect(() => {
     setStickerSize(currentStickerSize);
   }, [currentStickerSize]);
   
-  // Initialize sticker library with actual stickers (SVGs with transparency)
-  useEffect(() => {
-    // These are SVG stickers with transparency - actual stickers, not background images
-    const stickerLibrary: Sticker[] = [
-      {
-        url: '/stickers/star.svg',
-        keywords: ['star', 'favorite', 'achievement', 'rating'],
-        category: 'basic',
-        name: 'Star'
-      },
-      {
-        url: '/stickers/heart.svg',
-        keywords: ['heart', 'love', 'like', 'romance'],
-        category: 'basic',
-        name: 'Heart'
-      },
-      {
-        url: '/stickers/happy.svg',
-        keywords: ['happy', 'smile', 'emotion', 'face'],
-        category: 'basic',
-        name: 'Smile'
-      },
-      {
-        url: '/stickers/sad.svg',
-        keywords: ['sad', 'frown', 'emotion', 'face'],
-        category: 'basic',
-        name: 'Frown'
-      },
-      {
-        url: '/stickers/thumbsup.svg',
-        keywords: ['thumbs up', 'like', 'approve', 'good'],
-        category: 'basic',
-        name: 'Thumbs Up'
-      },
-      {
-        url: '/stickers/camera.svg',
-        keywords: ['camera', 'photo', 'picture', 'image'],
-        category: 'basic',
-        name: 'Camera'
-      },
-      {
-        url: '/stickers/gift.svg',
-        keywords: ['gift', 'present', 'birthday', 'celebration'],
-        category: 'basic',
-        name: 'Gift'
-      },
-      {
-        url: '/stickers/cake.svg',
-        keywords: ['cake', 'birthday', 'celebration', 'dessert', 'food'],
-        category: 'food',
-        name: 'Cake'
-      }
-    ];
-    
-    setStickers(stickerLibrary);
-  }, []);
-
-  // Filter stickers based on search query and category
-  const filteredStickers = useMemo(() => {
-    // Show loading state while filtering
-    setIsLoading(true);
-    
-    let results = [...stickers];
-    
-    // Filter by category if not "all"
-    if (selectedCategory !== 'all') {
-      results = results.filter(sticker => sticker.category === selectedCategory);
+  // Pre-defined stickers array
+  const stickers = [
+    // Basic stickers
+    { url: '/stickers/star.svg', category: 'basic', keywords: ['star', 'achievement', 'award'] },
+    { url: '/stickers/heart.svg', category: 'basic', keywords: ['heart', 'love', 'like'] },
+    { url: '/stickers/thumbsup.svg', category: 'basic', keywords: ['thumbs up', 'like', 'approval'] },
+    { url: '/stickers/happy.svg', category: 'emotions', keywords: ['happy', 'smile', 'emotion'] },
+    { url: '/stickers/sad.svg', category: 'emotions', keywords: ['sad', 'unhappy', 'emotion'] },
+    { url: '/stickers/gift.svg', category: 'celebration', keywords: ['gift', 'present', 'birthday', 'celebration'] },
+    { url: '/stickers/cake.svg', category: 'celebration', keywords: ['cake', 'birthday', 'celebration', 'dessert'] },
+    { url: '/stickers/camera.svg', category: 'objects', keywords: ['camera', 'photo', 'picture'] },
+    // Additional stickers
+    { url: 'https://cdn-icons-png.flaticon.com/512/1968/1968666.png', category: 'animals', keywords: ['cat', 'pet', 'animal'] },
+    { url: 'https://cdn-icons-png.flaticon.com/512/1864/1864593.png', category: 'animals', keywords: ['dog', 'pet', 'animal'] },
+    { url: 'https://cdn-icons-png.flaticon.com/512/7870/7870952.png', category: 'nature', keywords: ['flower', 'plant', 'nature'] },
+    { url: 'https://cdn-icons-png.flaticon.com/512/1146/1146066.png', category: 'nature', keywords: ['tree', 'plant', 'nature'] },
+    { url: 'https://cdn-icons-png.flaticon.com/512/2956/2956744.png', category: 'weather', keywords: ['sun', 'weather', 'sunny'] },
+    { url: 'https://cdn-icons-png.flaticon.com/512/1146/1146858.png', category: 'weather', keywords: ['cloud', 'weather', 'cloudy'] },
+    { url: 'https://cdn-icons-png.flaticon.com/512/2864/2864653.png', category: 'weather', keywords: ['rainbow', 'weather', 'colorful'] },
+    { url: 'https://cdn-icons-png.flaticon.com/512/599/599516.png', category: 'food', keywords: ['pizza', 'food', 'meal'] },
+    { url: 'https://cdn-icons-png.flaticon.com/512/1046/1046751.png', category: 'food', keywords: ['ice cream', 'dessert', 'cold'] },
+    { url: 'https://cdn-icons-png.flaticon.com/512/2405/2405412.png', category: 'food', keywords: ['coffee', 'drink', 'hot'] },
+    { url: 'https://cdn-icons-png.flaticon.com/512/2977/2977492.png', category: 'travel', keywords: ['plane', 'travel', 'airplane', 'flight'] },
+    { url: 'https://cdn-icons-png.flaticon.com/512/2553/2553627.png', category: 'travel', keywords: ['suitcase', 'travel', 'luggage'] },
+    { url: 'https://cdn-icons-png.flaticon.com/512/8018/8018042.png', category: 'travel', keywords: ['map', 'travel', 'location', 'direction'] },
+    { url: 'https://cdn-icons-png.flaticon.com/512/3616/3616986.png', category: 'school', keywords: ['book', 'study', 'reading', 'education'] },
+    { url: 'https://cdn-icons-png.flaticon.com/512/694/694593.png', category: 'school', keywords: ['pencil', 'write', 'drawing', 'education'] },
+  ];
+  
+  // Filter stickers based on search and category
+  const filteredStickers = stickers.filter(sticker => {
+    // Filter by category
+    if (selectedCategory !== 'all' && sticker.category !== selectedCategory) {
+      return false;
     }
     
     // Filter by search query
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      results = results.filter(sticker => {
-        // Check if query matches any keyword or the name
-        return sticker.keywords.some(keyword => 
-          keyword.toLowerCase().includes(query)
-        ) || sticker.name.toLowerCase().includes(query);
-      });
+    if (searchQuery && !sticker.keywords.some(keyword => 
+      keyword.toLowerCase().includes(searchQuery.toLowerCase())
+    )) {
+      return false;
     }
     
-    // Sort by relevance if there's a search query
-    if (searchQuery.trim()) {
-      results.sort((a, b) => {
-        // Give higher priority to exact matches in name
-        const aNameMatch = a.name.toLowerCase().includes(searchQuery.toLowerCase());
-        const bNameMatch = b.name.toLowerCase().includes(searchQuery.toLowerCase());
-        
-        if (aNameMatch && !bNameMatch) return -1;
-        if (!aNameMatch && bNameMatch) return 1;
-        
-        // Then check keyword matches
-        const aKeywordMatch = a.keywords.filter(k => 
-          k.toLowerCase().includes(searchQuery.toLowerCase())
-        ).length;
-        const bKeywordMatch = b.keywords.filter(k => 
-          k.toLowerCase().includes(searchQuery.toLowerCase())
-        ).length;
-        
-        return bKeywordMatch - aKeywordMatch;
-      });
-    }
-    
-    // Clear loading state
-    setIsLoading(false);
-    
-    return results;
-  }, [stickers, searchQuery, selectedCategory]);
-
-  const handleStickerSelect = (stickerUrl: string) => {
-    console.log("Sticker selected:", stickerUrl);
-    onStickerSelect(stickerUrl);
+    return true;
+  });
+  
+  const handleStickerSelect = (url: string) => {
+    console.log("Sticker selected:", url);
+    onStickerSelect(url);
   };
   
   const handleSizeChange = (value: number[]) => {
     const newSize = value[0];
     setStickerSize(newSize);
     if (onStickerResize) {
+      console.log("Resizing sticker to:", newSize);
       onStickerResize(newSize);
     }
   };
-
+  
+  console.log("Current sticker size:", stickerSize);
+  console.log("Selected sticker ID:", selectedStickerId);
+  
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-xs font-semibold tracking-tight">Sticker Library</h3>
+        <h3 className="text-xs font-semibold tracking-tight">Stickers</h3>
       </div>
-
+      
       <div className="relative">
         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search stickers (e.g. rose, cat, coffee)..."
+          placeholder="Search stickers..."
           className="pl-8"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
       
-      {/* Sticker Size Control */}
+      {/* Sticker resizer control */}
       <div className={`space-y-2 ${selectedStickerId ? '' : 'opacity-50'}`}>
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -186,8 +118,7 @@ export function StickerSelector({
           <span className="text-xs text-muted-foreground">{stickerSize}px</span>
         </div>
         <Slider 
-          defaultValue={[stickerSize]}
-          value={[stickerSize]} 
+          value={[stickerSize]}
           min={20} 
           max={250} 
           step={1}
@@ -201,59 +132,47 @@ export function StickerSelector({
             : "Select a sticker to resize it"}
         </p>
       </div>
-
+      
       <Tabs defaultValue="all" value={selectedCategory} onValueChange={setSelectedCategory}>
-        <TabsList className="w-full grid grid-cols-5">
+        <TabsList className="grid grid-cols-4 mb-2">
           <TabsTrigger value="all" className="text-[10px]">All</TabsTrigger>
           <TabsTrigger value="basic" className="text-[10px]">Basic</TabsTrigger>
-          <TabsTrigger value="nature" className="text-[10px]">Nature</TabsTrigger>
+          <TabsTrigger value="emotions" className="text-[10px]">Emotions</TabsTrigger>
           <TabsTrigger value="animals" className="text-[10px]">Animals</TabsTrigger>
-          <TabsTrigger value="food" className="text-[10px]">Food</TabsTrigger>
         </TabsList>
         
-        <div className="mt-2">
-          <ScrollArea className="h-[220px] pr-2">
-            {isLoading ? (
-              <div className="flex justify-center items-center h-full">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              </div>
-            ) : filteredStickers.length > 0 ? (
-              <div className="grid grid-cols-3 gap-2">
-                {filteredStickers.map((sticker, index) => (
-                  <button
-                    key={index}
-                    className="rounded-md border border-muted hover:border-primary transition-colors bg-card overflow-hidden flex flex-col items-center"
-                    onClick={() => handleStickerSelect(sticker.url)}
-                    title={sticker.name}
-                  >
-                    <div className="w-full aspect-square flex items-center justify-center p-1 bg-gray-50">
-                      <img 
-                        src={sticker.url} 
-                        alt={sticker.name}
-                        className="max-h-full max-w-full object-contain" 
-                        loading="lazy"
-                      />
-                    </div>
-                    <div className="w-full bg-muted/30 p-1 text-[10px] text-center truncate">
-                      {sticker.name}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-[150px] text-sm text-muted-foreground">
-                <p>No stickers found.</p>
-                <p className="text-xs mt-1">Try a different search term.</p>
-              </div>
-            )}
-          </ScrollArea>
-          
-          <div className="mt-2 text-xs text-muted-foreground">
-            {filteredStickers.length > 0 && (
-              <p>{filteredStickers.length} stickers found</p>
-            )}
+        <TabsList className="grid grid-cols-4 mb-2">
+          <TabsTrigger value="nature" className="text-[10px]">Nature</TabsTrigger>
+          <TabsTrigger value="food" className="text-[10px]">Food</TabsTrigger>
+          <TabsTrigger value="travel" className="text-[10px]">Travel</TabsTrigger>
+          <TabsTrigger value="celebration" className="text-[10px]">Party</TabsTrigger>
+        </TabsList>
+        
+        <ScrollArea className="h-[200px] pr-2">
+          <div className="grid grid-cols-3 gap-2 mt-2">
+            {filteredStickers.map((sticker, index) => (
+              <button
+                key={index}
+                className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-24 flex items-center justify-center p-2"
+                onClick={() => handleStickerSelect(sticker.url)}
+              >
+                <img 
+                  src={sticker.url} 
+                  alt={`Sticker ${index + 1}`} 
+                  className="max-h-full object-contain" 
+                  loading="lazy"
+                />
+              </button>
+            ))}
           </div>
-        </div>
+          
+          {filteredStickers.length === 0 && (
+            <div className="flex flex-col items-center justify-center h-32 text-sm text-muted-foreground">
+              <p>No stickers found.</p>
+              <p className="text-xs mt-1">Try a different search term.</p>
+            </div>
+          )}
+        </ScrollArea>
       </Tabs>
     </div>
   );
