@@ -5,7 +5,7 @@ import { JournalPreview } from './journal/JournalPreview';
 import { EmailDialog } from './journal/EmailDialog';
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import type { Sticker, Icon } from '@/types/journal';
+import type { Sticker, Icon, TextBox } from '@/types/journal';
 import { toast } from 'sonner';
 
 export function JournalEditor() {
@@ -18,6 +18,7 @@ export function JournalEditor() {
     isSending,
     textareaRef,
     selectedIconId,
+    selectedTextBoxId,
     handlePrint,
     handleStickerAdd,
     handleIconAdd,
@@ -25,6 +26,10 @@ export function JournalEditor() {
     handleIconMove,
     handleIconUpdate,
     handleIconSelect,
+    handleTextBoxAdd,
+    handleTextBoxUpdate,
+    handleTextBoxRemove,
+    handleTextBoxSelect,
     handleTextMove,
     handleTextDragStart,
     handleTextDragEnd,
@@ -117,6 +122,30 @@ export function JournalEditor() {
     };
     console.log("New icon created:", newIcon);
     handleIconAdd(newIcon);
+  };
+
+  // Function to create a new text box
+  const handleCreateTextBox = () => {
+    console.log("Creating new text box");
+    const newTextBox: TextBox = {
+      id: uuidv4(),
+      text: 'Double-click to edit this text box',
+      position: { x: 50, y: 50 },
+      width: 200,
+      height: 100,
+      font: currentEntry.font,
+      fontSize: currentEntry.fontSize,
+      fontWeight: currentEntry.fontWeight,
+      fontColor: currentEntry.fontColor,
+      gradient: currentEntry.gradient,
+      textStyle: currentEntry.textStyle,
+      rotation: 0,
+      zIndex: (currentEntry.textBoxes?.length || 0) + 10
+    };
+    
+    handleTextBoxAdd(newTextBox);
+    handleTextBoxSelect(newTextBox.id);
+    toast.success("New text box added");
   };
 
   // Resize sticker handler
@@ -234,6 +263,7 @@ export function JournalEditor() {
         textStyle={currentEntry.textStyle}
         stickers={currentEntry.stickers || []}
         icons={currentEntry.icons || []}
+        textBoxes={currentEntry.textBoxes || []}
         textPosition={currentEntry.textPosition}
         backgroundImage={currentEntry.backgroundImage}
         drawing={currentEntry.drawing}
@@ -245,6 +275,10 @@ export function JournalEditor() {
         onIconUpdate={handleIconUpdate}
         onIconSelect={handleIconSelect}
         onStickerSelect={handleStickerSelect}
+        onTextBoxAdd={handleTextBoxAdd}
+        onTextBoxUpdate={handleTextBoxUpdate}
+        onTextBoxRemove={handleTextBoxRemove}
+        onTextBoxSelect={handleTextBoxSelect}
         onTextMove={handleTextMove}
         onTextDragStart={handleTextDragStart}
         onTextDragEnd={handleTextDragEnd}
