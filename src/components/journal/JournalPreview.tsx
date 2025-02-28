@@ -540,7 +540,7 @@ export function JournalPreview({
                   style={{
                     width: `${icon.size || 48}px`,
                     height: `${icon.size || 48}px`,
-                    filter: icon.color ? `drop-shadow(0 0 0 ${icon.color})` : undefined,
+                    filter: icon.color ? `drop-shadow(0 0 0 ${icon.color}) brightness(0) saturate(100%)` : undefined,
                   }}
                   draggable={false}
                 />

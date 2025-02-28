@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useJournalStore } from '@/store/journalStore';
 import { supabase } from "@/integrations/supabase/client";
@@ -206,16 +205,8 @@ export function useJournalEditor() {
         // Make icon size directly proportional to the font size
         const iconSize = sizeValue * 3; // Make icon 3x the font size
         
-        // Update the icon size
-        const updatedIcons = currentEntry.icons.map(icon => {
-          if (icon.id === selectedIconId) {
-            return { ...icon, size: iconSize };
-          }
-          return icon;
-        });
-        
-        // Apply the update directly instead of using updateIcon
-        setIcons(updatedIcons);
+        // Update the icon with the new size
+        handleIconUpdate(selectedIconId, { size: iconSize });
       }
     } else {
       // Normal text size change
@@ -238,14 +229,8 @@ export function useJournalEditor() {
   const handleFontColorChange = (color: string) => {
     if (selectedIconId) {
       // If an icon is selected, update its color directly
-      const updatedIcons = currentEntry.icons.map(icon => {
-        if (icon.id === selectedIconId) {
-          return { ...icon, color };
-        }
-        return icon;
-      });
-      
-      setIcons(updatedIcons);
+      console.log("Setting color for icon:", selectedIconId, "to:", color);
+      handleIconUpdate(selectedIconId, { color });
     } else {
       setFontColor(color);
     }
