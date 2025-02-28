@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Maximize2, Trash2, Pencil, Filter, FileImage, X } from 'lucide-react';
 import { moodOptions } from './config/editorConfig';
@@ -7,6 +7,7 @@ import { applyTextStyle } from '@/utils/unicodeTextStyles';
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { StickerSelector } from './StickerSelector';
 import { IconSelector } from './IconSelector';
+import { IconContainer } from './IconContainer';
 import { BackgroundImageSelector } from './BackgroundImageSelector';
 import { ImageFilterSelector } from './ImageFilterSelector';
 import { DrawingLayer } from './DrawingLayer';
@@ -92,27 +93,8 @@ export function JournalPreview({
 
   useEffect(() => {
     onIconSelect(selectedIconId);
+    console.log("Icon selected:", selectedIconId);
   }, [selectedIconId, onIconSelect]);
-
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    console.log("Key pressed:", e.key, "Selected icon:", selectedIconId);
-    if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIconId) {
-      console.log("Removing icon:", selectedIconId);
-      const iconToRemove = icons.find(i => i.id === selectedIconId);
-      if (iconToRemove) {
-        onIconMove(selectedIconId, { x: -999, y: -999 });
-        setSelectedIconId(null);
-        console.log("Icon removed successfully");
-      }
-    }
-  }, [selectedIconId, icons, onIconMove]);
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [handleKeyDown]);
 
   const getBackground = () => {
     if (backgroundImage && backgroundImage.startsWith('data:')) {
@@ -332,42 +314,10 @@ export function JournalPreview({
     window.addEventListener('mouseup', handleMouseUp);
   };
 
-  const handleIconMouseDown = (e: React.MouseEvent, iconId: string) => {
-    e.stopPropagation();
-    
+  const handleIconSelect = (iconId: string) => {
     setSelectedIconId(iconId);
     onIconSelect(iconId);
-    console.log("Icon selected:", iconId);
-    
-    const icon = icons.find(i => i.id === iconId);
-    if (!icon || !previewRef.current) return;
-    
-    const previewRect = previewRef.current.getBoundingClientRect();
-    const startX = (icon.position.x / 100) * previewRect.width;
-    const startY = (icon.position.y / 100) * previewRect.height;
-    const offsetX = e.clientX - startX;
-    const offsetY = e.clientY - startY;
-    
-    let hasMoved = false;
-    
-    const handleMouseMove = (e: MouseEvent) => {
-      hasMoved = true;
-      if (!previewRef.current) return;
-      
-      const previewRect = previewRef.current.getBoundingClientRect();
-      const x = ((e.clientX - offsetX) / previewRect.width) * 100;
-      const y = ((e.clientY - offsetY) / previewRect.height) * 100;
-      
-      onIconMove(iconId, { x, y });
-    };
-    
-    const handleMouseUp = () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-    
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
+    console.log("Icon selected in JournalPreview:", iconId);
   };
 
   const handleRemoveSticker = () => {
@@ -499,34 +449,14 @@ export function JournalPreview({
             ))}
 
             {icons.filter(icon => icon.position.x > -100 && icon.position.y > -100).map((icon) => (
-              <div
+              <IconContainer
                 key={icon.id}
-                style={{
-                  left: `${icon.position.x}%`,
-                  top: `${icon.position.y}%`,
-                  transform: 'translate(-50%, -50%)',
-                  position: 'absolute',
-                }}
-                className={`relative ${selectedIconId === icon.id ? 'z-20' : 'z-10'}`}
-                tabIndex={0}
-              >
-                <img
-                  src={icon.url}
-                  alt="Icon"
-                  style={{
-                    width: `${icon.size || 48}px`,
-                    height: `${icon.size || 48}px`,
-                    color: icon.color,
-                  }}
-                  className={`transition-all ${
-                    selectedIconId === icon.id 
-                      ? 'ring-2 ring-primary-500' 
-                      : 'hover:ring-2 hover:ring-primary-300'
-                  } cursor-move`}
-                  onMouseDown={(e) => handleIconMouseDown(e, icon.id)}
-                  draggable={false}
-                />
-              </div>
+                icon={icon}
+                selected={selectedIconId === icon.id}
+                onSelect={handleIconSelect}
+                onMove={onIconMove}
+                containerRef={previewRef}
+              />
             ))}
             
             {selectedStickerId && showDeleteButton && !isDialog && (
