@@ -6,6 +6,7 @@ import { Sticker } from '@/types/journal';
 import { IconContainer } from './IconContainer';
 import { useScreenshot } from 'use-react-screenshot';
 import type { Icon } from '@/types/journal';
+import { applyTextStyle } from '@/utils/unicodeTextStyles';
 
 interface JournalPreviewProps {
   className?: string;
@@ -232,6 +233,17 @@ export function JournalPreview({
     };
   }, [isResizing, resizingStickerId, initialSize, initialMousePos]);
 
+  // Function to process text and apply special Unicode text styles
+  const processText = (text: string) => {
+    // Handle special style transformations from the utility
+    if (textStyle && textStyle !== 'normal' && !textStyle.includes(' ')) {
+      return applyTextStyle(text, textStyle);
+    }
+    
+    // Return regular text if no special transformation is needed
+    return text;
+  };
+
   return (
     <div className={cn("relative flex-1 overflow-hidden bg-white", className)}>
       <div
@@ -381,7 +393,7 @@ export function JournalPreview({
             onIconSelect('');
           }}
         >
-          {text || 'Start typing to add text...'}
+          {processText(text) || 'Start typing to add text...'}
         </div>
       
         {/* Drawing Layer */}

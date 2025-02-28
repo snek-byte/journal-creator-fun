@@ -5,7 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { fontOptions, fontSizes, fontWeights } from "./config/editorConfig";
-import { textStyles } from "@/utils/unicodeTextStyles";
+import { textStyles, applyTextStyle } from "@/utils/unicodeTextStyles";
 import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -44,6 +44,8 @@ export function JournalStylingControls({
   const [iconSize, setIconSize] = useState(48);
   const [iconColor, setIconColor] = useState(fontColor || "#000000");
   const [textStyle, setTextStyle] = useState("normal");
+  const [stylePreviewText, setStylePreviewText] = useState("Sample Text");
+  const [textStylesInnerTab, setTextStylesInnerTab] = useState("basic");
 
   // Update local state when props change
   useEffect(() => {
@@ -89,6 +91,12 @@ export function JournalStylingControls({
     const newStyleString = newStyles.join(" ");
     setTextStyle(newStyleString);
     onTextStyleChange(newStyleString);
+  };
+
+  // Apply the specialized text style
+  const applySpecialTextStyle = (style: string) => {
+    setTextStyle(style);
+    onTextStyleChange(style);
   };
 
   return (
@@ -311,80 +319,102 @@ export function JournalStylingControls({
           {/* Style Selection Tab */}
           <TabsContent value="style" className="mt-4 space-y-4">
             <div className="space-y-3">
-              {/* Text Style Buttons */}
-              <div className="space-y-1.5">
-                <Label className="text-[11px] font-medium">Text Style</Label>
-                <div className="flex gap-1">
-                  <Button
-                    variant={textStyle.includes("normal") ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleStyleToggle("normal")}
-                    title="Normal"
-                  >
-                    Normal
-                  </Button>
-                  <Button
-                    variant={textStyle.includes("italic") ? "default" : "outline"}
-                    size="icon"
-                    onClick={() => handleStyleToggle("italic")}
-                    title="Italic"
-                  >
-                    <Italic className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={textStyle.includes("underline") ? "default" : "outline"}
-                    size="icon"
-                    onClick={() => handleStyleToggle("underline")}
-                    title="Underline"
-                  >
-                    <Underline className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={textStyle.includes("bold") ? "default" : "outline"}
-                    size="icon"
-                    onClick={() => handleStyleToggle("bold")}
-                    title="Bold"
-                  >
-                    <Bold className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={textStyle.includes("center") ? "default" : "outline"}
-                    size="icon"
-                    onClick={() => handleStyleToggle("center")}
-                    title="Center"
-                  >
-                    <AlignCenter className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              
-              {/* Special Text Styles */}
-              <div className="space-y-1.5">
-                <Label className="text-[11px] font-medium">Special Styles</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {textStyles.map((style) => (
-                    <button
-                      key={style.value}
-                      className={`p-2 rounded border ${textStyle === style.value ? 'border-primary bg-primary/10' : 'border-muted'} hover:border-primary`}
-                      onClick={() => {
-                        setTextStyle(style.value);
-                        onTextStyleChange(style.value);
-                      }}
-                    >
-                      <div 
-                        className="text-center text-xs"
-                        style={{
-                          fontStyle: style.value.includes('italic') ? 'italic' : 'normal',
-                          textDecoration: style.value.includes('underline') ? 'underline' : 'none',
-                          textAlign: style.value.includes('center') ? 'center' : 'left',
-                        }}
+              {/* Text Style Tabs */}
+              <Tabs defaultValue="basic" value={textStylesInnerTab} onValueChange={setTextStylesInnerTab}>
+                <TabsList className="w-full grid grid-cols-2 mb-2">
+                  <TabsTrigger value="basic" className="text-[10px]">Basic Styling</TabsTrigger>
+                  <TabsTrigger value="fancy" className="text-[10px]">Text Styler</TabsTrigger>
+                </TabsList>
+                
+                {/* Basic Styling Tab */}
+                <TabsContent value="basic" className="mt-2 space-y-3">
+                  {/* Text Style Buttons */}
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-medium">Text Style</Label>
+                    <div className="flex gap-1">
+                      <Button
+                        variant={textStyle.includes("normal") ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleStyleToggle("normal")}
+                        title="Normal"
                       >
-                        {style.label}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
+                        Normal
+                      </Button>
+                      <Button
+                        variant={textStyle.includes("italic") ? "default" : "outline"}
+                        size="icon"
+                        onClick={() => handleStyleToggle("italic")}
+                        title="Italic"
+                      >
+                        <Italic className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant={textStyle.includes("underline") ? "default" : "outline"}
+                        size="icon"
+                        onClick={() => handleStyleToggle("underline")}
+                        title="Underline"
+                      >
+                        <Underline className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant={textStyle.includes("bold") ? "default" : "outline"}
+                        size="icon"
+                        onClick={() => handleStyleToggle("bold")}
+                        title="Bold"
+                      >
+                        <Bold className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant={textStyle.includes("center") ? "default" : "outline"}
+                        size="icon"
+                        onClick={() => handleStyleToggle("center")}
+                        title="Center"
+                      >
+                        <AlignCenter className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                {/* Text Styler Tab */}
+                <TabsContent value="fancy" className="mt-2 space-y-3">
+                  {/* Text Styler Preview */}
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-medium">Preview Text</Label>
+                    <Input 
+                      value={stylePreviewText}
+                      onChange={(e) => setStylePreviewText(e.target.value)}
+                      placeholder="Enter text to style"
+                      className="mb-3"
+                    />
+                  </div>
+                  
+                  {/* Fancy Text Styles */}
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-medium">Fancy Text Styles</Label>
+                    <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto pr-2">
+                      {textStyles.map((style) => (
+                        <button
+                          key={style.value}
+                          className={`p-2 rounded border ${
+                            textStyle === style.value ? 'border-primary bg-primary/10' : 'border-muted'
+                          } hover:border-primary text-left`}
+                          onClick={() => applySpecialTextStyle(style.value)}
+                        >
+                          <div>
+                            <span className="text-xs font-medium text-muted-foreground">{style.label}</span>
+                            <div className="mt-1 text-sm">
+                              {style.value === 'normal' 
+                                ? stylePreviewText 
+                                : applyTextStyle(stylePreviewText, style.value)}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
           </TabsContent>
         </Tabs>
