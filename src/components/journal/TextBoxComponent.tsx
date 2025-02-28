@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Rnd } from 'react-rnd';
 import { TextBox } from '@/types/journal';
 import { applyTextStyle, TextStyle } from '@/utils/unicodeTextStyles';
-import { X, Trash2, RotateCw, GripVertical } from "lucide-react";
+import { X, Trash2, RotateCw, GripVertical, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -203,10 +203,34 @@ export function TextBoxComponent({
     if (!isDrawingMode) {
       setIsEditing(true);
       onSelect(id);
+      
+      // Ensure focus happens after state updates
+      setTimeout(() => {
+        if (textAreaRef.current) {
+          textAreaRef.current.focus();
+        }
+      }, 10);
+    }
+  };
+  
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDrawingMode) {
+      setIsEditing(true);
+      onSelect(id);
+      
+      // Ensure focus happens after state updates
+      setTimeout(() => {
+        if (textAreaRef.current) {
+          textAreaRef.current.focus();
+        }
+      }, 10);
     }
   };
   
   const handleBlur = () => {
+    console.log(`TextBox ${id}: Blur event - saving text:`, editValue);
     setIsEditing(false);
     onUpdate(id, { text: editValue });
   };
@@ -215,6 +239,7 @@ export function TextBoxComponent({
     // Save on Ctrl+Enter or Cmd+Enter
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
+      console.log(`TextBox ${id}: Saving text with Ctrl+Enter:`, editValue);
       setIsEditing(false);
       onUpdate(id, { text: editValue });
       toast({
@@ -271,7 +296,7 @@ export function TextBoxComponent({
           zIndex: selected ? zIndex + 10 : zIndex,
           pointerEvents: isDrawingMode ? 'none' : 'auto',
           opacity: isPrinting && !text ? 0 : 1, // Hide empty text boxes when printing
-          cursor: 'move'
+          cursor: isEditing ? 'text' : 'move' 
         }}
         size={{ width: size.width, height: size.height }}
         position={calculatePosition()}
@@ -327,26 +352,21 @@ export function TextBoxComponent({
           {showControls && (
             <button
               className="absolute -bottom-3 right-3 bg-primary text-primary-foreground hover:bg-primary/90 p-1 rounded-full shadow-lg z-10 text-box-controls"
-              onClick={() => {
-                setIsEditing(true);
-                onSelect(id);
-              }}
+              onClick={handleEditClick}
               aria-label="Edit text"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-              </svg>
+              <Edit size={14} />
             </button>
           )}
-          
-          {/* Drag handle - not needed since the entire box is now draggable */}
           
           {isEditing ? (
             <Textarea
               ref={textAreaRef}
               value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
+              onChange={(e) => {
+                console.log(`TextBox ${id}: Text changed to:`, e.target.value);
+                setEditValue(e.target.value);
+              }}
               onBlur={handleBlur}
               onKeyDown={handleKeyDown}
               className="w-full h-full resize-none border-none focus-visible:ring-0 focus-visible:outline-none p-2"
