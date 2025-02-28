@@ -22,6 +22,7 @@ interface JournalState {
     textPosition: { x: number, y: number };
     backgroundImage?: string;
     drawing?: string;
+    filter?: string;
   };
   entries: JournalEntry[];
   dailyChallenge: Challenge | null;
@@ -55,6 +56,7 @@ interface JournalState {
   applyChallenge: () => void;
   earnXP: (amount: number) => Promise<void>;
   setDrawing: (drawing: string) => void;
+  setFilter: (filter: string) => void;
 }
 
 export const useJournalStore = create<JournalState>()(
@@ -73,7 +75,8 @@ export const useJournalStore = create<JournalState>()(
         icons: [],
         textPosition: { x: 10, y: 10 },
         backgroundImage: undefined,
-        drawing: undefined
+        drawing: undefined,
+        filter: 'none'
       },
       entries: [],
       dailyChallenge: null,
@@ -158,6 +161,9 @@ export const useJournalStore = create<JournalState>()(
       setDrawing: (drawing) => set((state) => ({
         currentEntry: { ...state.currentEntry, drawing }
       })),
+      setFilter: (filter) => set((state) => ({
+        currentEntry: { ...state.currentEntry, filter }
+      })),
       addSticker: (sticker) => set((state) => ({
         currentEntry: { 
           ...state.currentEntry, 
@@ -225,7 +231,8 @@ export const useJournalStore = create<JournalState>()(
               icons: state.currentEntry.icons,
               text_position: state.currentEntry.textPosition,
               background_image: state.currentEntry.backgroundImage || null,
-              drawing: state.currentEntry.drawing || null
+              drawing: state.currentEntry.drawing || null,
+              filter: state.currentEntry.filter || 'none'
             });
 
           if (entryError) throw entryError;
@@ -244,7 +251,8 @@ export const useJournalStore = create<JournalState>()(
               icons: [],
               textPosition: { x: 10, y: 10 },
               backgroundImage: undefined,
-              drawing: undefined
+              drawing: undefined,
+              filter: 'none'
             }
           }));
 
@@ -295,7 +303,8 @@ export const useJournalStore = create<JournalState>()(
           icons: entry.icons as Icon[] || [],
           textPosition: entry.text_position as { x: number, y: number } || { x: 10, y: 10 },
           backgroundImage: entry.background_image as string | undefined,
-          drawing: entry.drawing as string | undefined
+          drawing: entry.drawing as string | undefined,
+          filter: entry.filter as string | undefined
         }));
 
         set({ entries });
