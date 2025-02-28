@@ -128,6 +128,7 @@ export function useJournalEditor() {
   const handleBackgroundSelect = (imageUrl: string) => {
     try {
       setBackgroundImage(imageUrl);
+      console.log("Background image set to:", imageUrl ? (imageUrl.length > 100 ? `${imageUrl.substring(0, 100)}...` : imageUrl) : "none");
     } catch (error) {
       console.error("Error selecting background:", error);
     }
@@ -183,6 +184,8 @@ export function useJournalEditor() {
       const reader = new FileReader();
       reader.onload = (e) => {
         if (typeof e.target?.result === 'string') {
+          // Apply the image immediately to the journal
+          setBackgroundImage(e.target.result);
           resolve(e.target.result);
         } else {
           reject(new Error('Failed to read image'));
