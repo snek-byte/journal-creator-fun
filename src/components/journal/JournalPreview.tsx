@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { StickerSelector } from './StickerSelector';
 import { IconSelector } from './IconSelector';
 import { BackgroundImageSelector } from './BackgroundImageSelector';
@@ -8,7 +8,7 @@ import { ImageFilterSelector } from './ImageFilterSelector';
 import { Sticker, Icon, Emoji } from '@/types/journal';
 import { IconContainer } from './IconContainer';
 import { EmojiContainer } from './EmojiContainer';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Button } from '../ui/button';
 
 interface JournalPreviewProps {
@@ -86,6 +86,7 @@ export function JournalPreview({
   const [startDragPosition, setStartDragPosition] = useState({ x: 0, y: 0 });
   const [startTextPosition, setStartTextPosition] = useState({ x: 0, y: 0 });
   const [selectedEmojiId, setSelectedEmojiId] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Calculate transformed text based on textStyle
   let transformedText = text;
@@ -155,6 +156,12 @@ export function JournalPreview({
     }
   };
 
+  // Explicitly handle closing drawing tool
+  const handleCloseDrawingTool = () => {
+    setSelectedSidebarItem(null);
+    onDrawingChange(''); // Clear the drawing
+  };
+
   return (
     <div className="flex-grow relative flex items-center justify-center overflow-hidden">
       {/* Sidebar tools */}
@@ -199,35 +206,55 @@ export function JournalPreview({
 
         {selectedSidebarItem && (
           <div className="bg-white border-r h-full w-64 overflow-y-auto shadow-md">
-            {selectedSidebarItem === 'stickers' && (
-              <StickerSelector onStickerSelect={onStickerAdd} />
-            )}
-            {selectedSidebarItem === 'icons' && (
-              <IconSelector onIconSelect={onIconAdd} />
-            )}
-            {selectedSidebarItem === 'backgrounds' && (
-              <BackgroundImageSelector onImageSelect={onBackgroundSelect} />
-            )}
-            {selectedSidebarItem === 'drawing' && (
-              <DrawingLayer 
-                width={800} 
-                height={600} 
-                onDrawingChange={onDrawingChange} 
-                initialDrawing={drawing}
-              />
-            )}
-            {selectedSidebarItem === 'filters' && (
-              <ImageFilterSelector 
-                onFilterSelect={onFilterChange} 
-                currentFilter={filter || 'none'}
-              />
-            )}
+            <div className="flex justify-between items-center p-2 border-b">
+              <h3 className="text-sm font-medium">
+                {selectedSidebarItem === 'stickers' ? 'Stickers' :
+                 selectedSidebarItem === 'icons' ? 'Icons' :
+                 selectedSidebarItem === 'backgrounds' ? 'Backgrounds' :
+                 selectedSidebarItem === 'drawing' ? 'Drawing Tool' :
+                 selectedSidebarItem === 'filters' ? 'Image Filters' : 'Tools'}
+              </h3>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setSelectedSidebarItem(null)}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="p-2">
+              {selectedSidebarItem === 'stickers' && (
+                <StickerSelector onStickerSelect={onStickerAdd} />
+              )}
+              {selectedSidebarItem === 'icons' && (
+                <IconSelector onIconSelect={onIconAdd} />
+              )}
+              {selectedSidebarItem === 'backgrounds' && (
+                <BackgroundImageSelector onImageSelect={onBackgroundSelect} />
+              )}
+              {selectedSidebarItem === 'drawing' && (
+                <DrawingLayer 
+                  width={800} 
+                  height={600} 
+                  onDrawingChange={onDrawingChange} 
+                  initialDrawing={drawing}
+                />
+              )}
+              {selectedSidebarItem === 'filters' && (
+                <ImageFilterSelector 
+                  onFilterSelect={onFilterChange} 
+                  currentFilter={filter || 'none'}
+                />
+              )}
+            </div>
           </div>
         )}
       </div>
 
       {/* Journal Page */}
       <div 
+        ref={containerRef}
         className="w-full max-w-3xl h-[800px] bg-white shadow-lg rounded-lg overflow-hidden relative"
         style={{
           backgroundImage: backgroundImage ? `url(${backgroundImage})` : gradient,
@@ -281,6 +308,7 @@ export function JournalPreview({
             }}
             onMouseDown={(e) => {
               e.stopPropagation();
+              e.preventDefault();
               const startX = e.clientX - sticker.position.x;
               const startY = e.clientY - sticker.position.y;
               
@@ -312,52 +340,14 @@ export function JournalPreview({
 
         {/* Icons */}
         {icons.map((icon) => (
-          <div
+          <IconContainer
             key={icon.id}
-            className="absolute cursor-move"
-            style={{
-              left: `${icon.position.x}px`,
-              top: `${icon.position.y}px`,
-              color: icon.color || 'currentColor',
-              fontSize: `${icon.size || 24}px`,
-              zIndex: 5,
-            }}
-            onMouseDown={(e) => {
-              e.stopPropagation();
-              onIconSelect(icon.id);
-              const startX = e.clientX - icon.position.x;
-              const startY = e.clientY - icon.position.y;
-              
-              const handleMouseMove = (moveEvent: MouseEvent) => {
-                const newPosition = {
-                  x: moveEvent.clientX - startX,
-                  y: moveEvent.clientY - startY
-                };
-                onIconMove(icon.id, newPosition);
-              };
-              
-              const handleMouseUp = () => {
-                document.removeEventListener('mousemove', handleMouseMove);
-                document.removeEventListener('mouseup', handleMouseUp);
-              };
-              
-              document.addEventListener('mousemove', handleMouseMove);
-              document.addEventListener('mouseup', handleMouseUp);
-            }}
-          >
-            <svg 
-              width="1em" 
-              height="1em" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            >
-              <path d={icon.url} />
-            </svg>
-          </div>
+            icon={icon}
+            selected={icon.id === selectedEmojiId}
+            onSelect={onIconSelect}
+            onMove={onIconMove}
+            containerRef={containerRef}
+          />
         ))}
 
         {/* Emojis */}

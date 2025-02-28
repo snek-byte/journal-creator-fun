@@ -5,6 +5,7 @@ import { Paintbrush, Eraser, UndoIcon, RedoIcon, Trash2, CircleDashed, PaintBuck
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HexColorPicker } from "react-colorful";
+import { toast } from "sonner";
 
 interface Point {
   x: number;
@@ -155,20 +156,25 @@ export function DrawingLayer({ className, width = 800, height = 600, onDrawingCh
   };
 
   const handleCloseDrawTool = () => {
-    // This closes the drawing tool panel in the parent component
-    if (onDrawingChange) {
-      // Clear the drawing data
-      if (canvasRef.current) {
-        const ctx = canvasRef.current.getContext('2d');
-        if (ctx) {
-          ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-        }
-        onDrawingChange('');
-      }
-    }
+    // This function should close the drawing tool and clear the drawing
+    console.log("Close drawing tool clicked");
+    toast.info("Closing drawing tool");
     
     // Set isActive to false to hide the toolbar
     setIsActive(false);
+    
+    // Clear the canvas
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext('2d');
+      if (ctx) {
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      }
+    }
+    
+    // Notify parent that drawing is cleared
+    if (onDrawingChange) {
+      onDrawingChange('');
+    }
   };
 
   useEffect(() => {
@@ -498,6 +504,11 @@ export function DrawingLayer({ className, width = 800, height = 600, onDrawingCh
     }
   };
 
+  // Add a useEffect that runs once on mount to notify via toast
+  useEffect(() => {
+    toast.info("Drawing tool opened. Click X to close when done.");
+  }, []);
+
   return (
     <div className={cn("absolute inset-0", className)}>
       <div 
@@ -536,7 +547,7 @@ export function DrawingLayer({ className, width = 800, height = 600, onDrawingCh
             <Button
               variant="ghost"
               size="icon"
-              className="h-4 w-4 p-0 text-gray-400 hover:text-gray-600"
+              className="h-4 w-4 p-0 text-red-400 hover:text-red-600"
               onClick={handleCloseDrawTool}
               type="button"
               aria-label="Close drawing tool"

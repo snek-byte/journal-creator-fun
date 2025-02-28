@@ -29,6 +29,12 @@ export function EmojiContainer({
     setPosition(emoji.position);
   }, [emoji.position]);
 
+  // Prevent any clicks from bubbling up
+  const stopAllPropagation = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
+
   const handleMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault(); // Prevent any default browser action
@@ -122,18 +128,25 @@ export function EmojiContainer({
   return (
     <div
       ref={emojiRef}
-      className={`absolute cursor-move transition-shadow ${isSelected ? 'ring-2 ring-primary shadow-lg z-50' : 'z-40'}`}
+      className={`absolute cursor-move ${isSelected ? 'ring-2 ring-primary shadow-lg z-50' : 'z-40'}`}
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
         fontSize: `${emoji.size}px`,
         transform: `rotate(${rotateDeg}deg)`,
         userSelect: 'none',
+        // Use these styles to ensure emoji display correctly
+        display: 'flex',
+        justifyContent: 'center', 
+        alignItems: 'center',
+        fontFamily: '"Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Symbol", sans-serif',
       }}
       onMouseDown={handleMouseDown}
       onDoubleClick={handleDoubleClick}
+      onClick={stopAllPropagation}
+      onContextMenu={stopAllPropagation}
     >
-      {emoji.symbol}
+      <span className="emoji-container">{emoji.symbol}</span>
       
       {isSelected && (
         <>

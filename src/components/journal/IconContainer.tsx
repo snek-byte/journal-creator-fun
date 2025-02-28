@@ -81,6 +81,12 @@ export function IconContainer({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+  // Stop propagation for all mouse events to prevent any bubbling
+  const stopPropagation = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
+
   return (
     <div
       ref={iconRef}
@@ -93,6 +99,9 @@ export function IconContainer({
         transform: 'translate(-50%, -50%)',
       }}
       onMouseDown={handleMouseDown}
+      onClick={stopPropagation}
+      onContextMenu={stopPropagation}
+      onDoubleClick={stopPropagation}
       tabIndex={0} // Make focusable for keyboard events
     >
       <img
@@ -104,6 +113,7 @@ export function IconContainer({
           filter: icon.color ? `drop-shadow(0 0 0 ${icon.color})` : undefined,
         }}
         draggable={false}
+        onDragStart={stopPropagation}
       />
     </div>
   );
