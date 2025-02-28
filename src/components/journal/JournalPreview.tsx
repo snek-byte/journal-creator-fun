@@ -1,7 +1,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Pencil, ImagePlus, Filter, FileImage, X, ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react';
+import { Eye, EyeOff, Maximize2, Trash2, Pencil, Filter, FileImage, X } from 'lucide-react';
 import { moodOptions } from './config/editorConfig';
 import type { Mood, Sticker as StickerType, Icon } from '@/types/journal';
 import { applyTextStyle } from '@/utils/unicodeTextStyles';
@@ -83,7 +83,6 @@ export function JournalPreview({
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const [showIconControls, setShowIconControls] = useState(false);
-  const [iconSize, setIconSize] = useState<number>(48);
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
   const [bgImagePosition, setBgImagePosition] = useState({ x: 50, y: 50 });
   const [isDraggingBgImage, setIsDraggingBgImage] = useState(false);
@@ -93,15 +92,6 @@ export function JournalPreview({
     // Detect if the current background image is an uploaded image (data URL)
     setIsUploadedImage(!!backgroundImage && backgroundImage.startsWith('data:'));
   }, [backgroundImage]);
-
-  useEffect(() => {
-    if (selectedIconId) {
-      const icon = icons.find(i => i.id === selectedIconId);
-      if (icon) {
-        setIconSize(icon.size || 48);
-      }
-    }
-  }, [selectedIconId, icons]);
 
   // Propagate selected icon to parent component
   useEffect(() => {
@@ -380,43 +370,6 @@ export function JournalPreview({
     onIconSelect(iconId);
   };
 
-  const handleIconSizeChange = (increase: boolean) => {
-    if (!selectedIconId) return;
-    
-    const newSize = increase ? iconSize + 8 : Math.max(16, iconSize - 8);
-    setIconSize(newSize);
-    
-    onIconUpdate(selectedIconId, { size: newSize });
-  };
-
-  const handleMoveIcon = (direction: 'left' | 'right' | 'up' | 'down') => {
-    if (!selectedIconId) return;
-    
-    const icon = icons.find(i => i.id === selectedIconId);
-    if (!icon) return;
-    
-    const step = 2; // Smaller step for finer control (percentage)
-    let newX = icon.position.x;
-    let newY = icon.position.y;
-    
-    switch (direction) {
-      case 'left':
-        newX = Math.max(0, icon.position.x - step);
-        break;
-      case 'right':
-        newX = Math.min(100, icon.position.x + step);
-        break;
-      case 'up':
-        newY = Math.max(0, icon.position.y - step);
-        break;
-      case 'down':
-        newY = Math.min(100, icon.position.y + step);
-        break;
-    }
-    
-    onIconMove(selectedIconId, { x: newX, y: newY });
-  };
-
   const handleRemoveSticker = () => {
     if (!selectedStickerId) return;
     
@@ -605,73 +558,16 @@ export function JournalPreview({
             )}
             
             {selectedIconId && showIconControls && !isDialog && (
-              <div className="absolute z-10 right-4 bottom-4 flex flex-col gap-2">
-                <div className="flex gap-2 justify-end">
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleRemoveIcon}
-                    type="button"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Remove Icon
-                  </Button>
-                </div>
-                
-                {/* Position controls */}
-                <div className="flex flex-col gap-2 bg-background/90 p-3 rounded-lg border shadow-sm">
-                  <div className="text-sm font-medium">Position Controls</div>
-                  <div className="grid grid-cols-3 gap-1">
-                    <div></div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleMoveIcon('up')}
-                      type="button"
-                      className="h-7 w-7 p-0"
-                    >
-                      <ArrowUp className="w-3 h-3" />
-                    </Button>
-                    <div></div>
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleMoveIcon('left')}
-                      type="button"
-                      className="h-7 w-7 p-0"
-                    >
-                      <ArrowLeft className="w-3 h-3" />
-                    </Button>
-                    <div></div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleMoveIcon('right')}
-                      type="button"
-                      className="h-7 w-7 p-0"
-                    >
-                      <ArrowRight className="w-3 h-3" />
-                    </Button>
-                    
-                    <div></div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleMoveIcon('down')}
-                      type="button"
-                      className="h-7 w-7 p-0"
-                    >
-                      <ArrowDown className="w-3 h-3" />
-                    </Button>
-                    <div></div>
-                  </div>
-                  
-                  <div className="text-xs text-center text-muted-foreground mt-1">
-                    Use the font size controls in the sidebar to resize this icon
-                  </div>
-                </div>
-              </div>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="absolute z-10 right-4 bottom-4"
+                onClick={handleRemoveIcon}
+                type="button"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Remove Icon
+              </Button>
             )}
 
             {drawing && (

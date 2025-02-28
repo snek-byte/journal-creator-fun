@@ -106,7 +106,7 @@ export function JournalEditorSidebar({
         
         <TabsContent value="write" className="space-y-4">
           <DailyChallenge 
-            dailyChallenge={dailyChallenge} 
+            challenge={dailyChallenge} 
             onRefresh={loadChallenge}
             onApply={applyChallenge}
           />
