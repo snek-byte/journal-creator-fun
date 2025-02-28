@@ -27,6 +27,7 @@ export function IconContainer({
   const handleDragStart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
     setIsDragging(true);
     onSelect(icon.id);
     
