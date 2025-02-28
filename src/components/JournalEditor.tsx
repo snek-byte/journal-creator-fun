@@ -58,7 +58,7 @@ export function JournalEditor() {
   const [currentDrawingColor, setCurrentDrawingColor] = useState('#000000');
   const [currentBrushSize, setCurrentBrushSize] = useState(3);
   
-  // Sticker resize state
+  // Sticker resize state - default to 100px
   const [stickerSize, setStickerSize] = useState(100);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
 
@@ -68,6 +68,7 @@ export function JournalEditor() {
       const sticker = currentEntry.stickers.find(s => s.id === selectedStickerId);
       if (sticker && sticker.width) {
         setStickerSize(sticker.width);
+        console.log("Set sticker size to:", sticker.width);
       }
     }
   }, [selectedStickerId, currentEntry.stickers]);
@@ -88,6 +89,7 @@ export function JournalEditor() {
     };
     console.log("New sticker object:", newSticker);
     handleStickerAdd(newSticker);
+    toast.success("Sticker added!");
   };
 
   const handleIconAddWithId = (iconData: { url: string, style: 'outline' | 'color' }) => {
@@ -102,6 +104,7 @@ export function JournalEditor() {
     };
     console.log("New icon created:", newIcon);
     handleIconAdd(newIcon);
+    toast.success("Icon added!");
   };
 
   // Resize sticker handler
@@ -125,6 +128,7 @@ export function JournalEditor() {
         
         // Update the sticker by passing the entire updated sticker object
         handleStickerAdd(updatedSticker);
+        toast.success(`Sticker resized to ${size}px`);
       }
     }
   };
@@ -133,6 +137,14 @@ export function JournalEditor() {
   const handleStickerSelect = (id: string | null) => {
     console.log("Sticker selected:", id);
     setSelectedStickerId(id);
+    
+    // If we selected a new sticker, update the size state
+    if (id) {
+      const sticker = currentEntry.stickers.find(s => s.id === id);
+      if (sticker && sticker.width) {
+        setStickerSize(sticker.width);
+      }
+    }
   };
 
   console.log("Current stickers in entry:", currentEntry.stickers);

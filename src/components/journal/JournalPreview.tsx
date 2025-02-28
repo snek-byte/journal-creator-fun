@@ -83,10 +83,6 @@ export function JournalPreview({
   const [previewHeight, setPreviewHeight] = useState(500);
   const [isDraggingText, setIsDraggingText] = useState(false);
   const [textOffset, setTextOffset] = useState({ x: 0, y: 0 });
-  const [isResizing, setIsResizing] = useState(false);
-  const [resizingStickerId, setResizingStickerId] = useState<string | null>(null);
-  const [initialSize, setInitialSize] = useState({ width: 0, height: 0 });
-  const [initialMousePos, setInitialMousePos] = useState({ x: 0, y: 0 });
   const [image, takeScreenshot] = useScreenshot({
     type: "image/jpeg",
     quality: 1.0
@@ -167,30 +163,54 @@ export function JournalPreview({
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent event from bubbling to parent elements
     setIsDraggingText(true);
-    setTextOffset({ x: e.clientX - textPosition.x, y: e.clientY - textPosition.y });
+    
+    if (!previewRef.current) return;
+    
+    const rect = previewRef.current.getBoundingClientRect();
+    // Calculate offset from click position to text center
+    setTextOffset({ 
+      x: e.clientX - rect.left - (textPosition.x / 100) * rect.width, 
+      y: e.clientY - rect.top - (textPosition.y / 100) * rect.height 
+    });
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDraggingText || !previewRef.current) return;
-
+    e.preventDefault();
+    
     const rect = previewRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-
+    
+    // Calculate new position based on mouse position and original offset
+    const newX = ((e.clientX - rect.left - textOffset.x) / rect.width) * 100;
+    const newY = ((e.clientY - rect.top - textOffset.y) / rect.height) * 100;
+    
     // Ensure position stays within bounds (0-100%)
-    const boundedX = Math.max(0, Math.min(100, x));
-    const boundedY = Math.max(0, Math.min(100, y));
-
+    const boundedX = Math.max(0, Math.min(100, newX));
+    const boundedY = Math.max(0, Math.min(100, newY));
+    
     onTextMove({ x: boundedX, y: boundedY });
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = (e: React.MouseEvent) => {
+    e.preventDefault();
     setIsDraggingText(false);
   };
 
   const handleMouseLeave = () => {
     setIsDraggingText(false);
+  };
+
+  // This stops the general page click from affecting text position
+  const handlePageClick = (e: React.MouseEvent) => {
+    // Only deselect items if clicking on the background, not on any specific element
+    if (e.target === e.currentTarget || (e.target as HTMLElement).className.includes('journal-page')) {
+      setSelectedStickerId(null);
+      setSelectedIconId(null);
+      onIconSelect('');
+      onStickerSelect(null);
+    }
   };
 
   const toggleDrawingMode = () => {
@@ -258,9 +278,9 @@ export function JournalPreview({
 
   return (
     <div className={cn("relative flex-1 overflow-hidden bg-gray-50", className)}>
-      <div className="absolute inset-0 flex items-center justify-center">
+      <div className="absolute inset-0 flex items-center justify-center" onClick={handlePageClick}>
         {/* Journal page with proper styling */}
-        <div style={journalPageStyle}>
+        <div style={journalPageStyle} className="journal-page">
           {/* Background image layer */}
           {backgroundImage && !isGradientBackground && (
             <div 
@@ -276,6 +296,7 @@ export function JournalPreview({
                 filter: filter || undefined,
                 zIndex: 1
               }}
+              className="journal-page"
             />
           )}
           
@@ -292,10 +313,11 @@ export function JournalPreview({
                 opacity: 0.9,
                 zIndex: 1
               }}
+              className="journal-page"
             />
           )}
 
-          <div className="relative h-full w-full z-10" ref={previewRef}>
+          <div className="relative h-full w-full z-10 journal-page" ref={previewRef}>
             {/* Control overlay buttons */}
             <div className="absolute top-4 right-4 z-50 flex gap-2">
               <button
@@ -317,7 +339,7 @@ export function JournalPreview({
               <div
                 key={sticker.id}
                 className={`absolute cursor-move ${
-                  selectedStickerId === sticker.id ? 'outline outline-2 outline-primary z-40' : 'z-30'
+                  selectedStickerId === sticker.id ? 'border-2 border-primary z-40' : 'z-30'
                 }`}
                 style={{
                   left: `${sticker.position.x}%`,
@@ -365,7 +387,7 @@ export function JournalPreview({
 
             {/* Text Area */}
             <div
-              className="absolute z-20 break-words w-[80%] font-normal cursor-move"
+              className="absolute z-20 break-words w-[80%] font-normal cursor-move p-4 rounded hover:bg-gray-50/10"
               style={{
                 left: `${textPosition.x}%`,
                 top: `${textPosition.y}%`,
@@ -385,7 +407,8 @@ export function JournalPreview({
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseLeave}
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 // Deselect any selected sticker or icon when clicking on text
                 setSelectedStickerId(null);
                 setSelectedIconId(null);

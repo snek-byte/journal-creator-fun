@@ -88,7 +88,7 @@ export function IconContainer({
     }
 
     if (icon.style === 'outline') {
-      // For outlined icons, we use a color filter
+      // For outlined icons, use a color filter
       return {
         filter: `invert(0.5) sepia(1) saturate(5) hue-rotate(${getHueRotation(icon.color)}deg)`,
       };
@@ -132,14 +132,20 @@ export function IconContainer({
     <div
       ref={iconRef}
       className={`absolute cursor-move transition-all ${
-        selected ? 'ring-2 ring-primary z-50' : 'hover:ring-1 hover:ring-primary/30 z-40'
+        selected ? 'border-2 border-primary z-50' : 'hover:border hover:border-primary/30 z-40'
       }`}
       style={{
         left: `${icon.position.x}%`,
         top: `${icon.position.y}%`,
         transform: 'translate(-50%, -50%)',
+        borderRadius: '4px',
+        padding: '2px'
       }}
       onMouseDown={handleMouseDown}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect(icon.id);
+      }}
       tabIndex={0} // Make focusable for keyboard events
     >
       <img
