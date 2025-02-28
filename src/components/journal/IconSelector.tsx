@@ -1,170 +1,215 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Compass, Lightbulb, Heart, Star, Sun, Moon, Cloud, Flag, Bookmark, Award, Gift, Music, Camera, 
-         ShoppingCart, Coffee, Cpu, Globe, Home, Map, Smile, Mail, Phone, Settings, User, Users, FileText, 
-         Calendar, Clock, Bell, Book, Briefcase, Building, Link, Tag, Truck, Zap, Target, Umbrella, 
-         Diamond, Palette, Scissors, Headphones, MessageSquare } from "lucide-react";
-import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Search, Palette } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { IconColorPicker } from './IconColorPicker';
 
 interface IconSelectorProps {
-  onIconSelect: (icon: { url: string, style: 'outline' | 'color' }) => void;
+  onIconSelect: (iconData: { url: string, style: 'outline' | 'color' }) => void;
+  selectedIconId: string | null;
+  onIconColorChange?: (color: string) => void;
+  currentIconColor?: string;
 }
 
-export function IconSelector({ onIconSelect }: IconSelectorProps) {
+export function IconSelector({ 
+  onIconSelect, 
+  selectedIconId,
+  onIconColorChange,
+  currentIconColor = '#000000'
+}: IconSelectorProps) {
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [iconStyle, setIconStyle] = useState<'outline' | 'color'>('outline');
-  const [category, setCategory] = useState('general');
-  
-  // All available Lucide icons organized by category
-  const iconSets = {
-    general: [
-      { component: Search, name: 'Search' },
-      { component: Compass, name: 'Compass' },
-      { component: Lightbulb, name: 'Lightbulb' },
-      { component: Heart, name: 'Heart' },
-      { component: Star, name: 'Star' },
-      { component: Settings, name: 'Settings' },
-      { component: User, name: 'User' },
-      { component: FileText, name: 'Document' },
-      { component: Zap, name: 'Zap' },
-      { component: Target, name: 'Target' },
-      { component: Diamond, name: 'Diamond' },
-      { component: Palette, name: 'Palette' },
-    ],
-    nature: [
-      { component: Sun, name: 'Sun' },
-      { component: Moon, name: 'Moon' },
-      { component: Cloud, name: 'Cloud' },
-      { component: Globe, name: 'Globe' },
-      { component: Map, name: 'Map' },
-      { component: Flag, name: 'Flag' },
-      { component: Umbrella, name: 'Umbrella' },
-    ],
-    objects: [
-      { component: Bookmark, name: 'Bookmark' },
-      { component: Award, name: 'Award' },
-      { component: Gift, name: 'Gift' },
-      { component: Music, name: 'Music' },
-      { component: Camera, name: 'Camera' },
-      { component: Book, name: 'Book' },
-      { component: Briefcase, name: 'Briefcase' },
-      { component: Building, name: 'Building' },
-      { component: Scissors, name: 'Scissors' },
-      { component: Headphones, name: 'Headphones' },
-    ],
-    activities: [
-      { component: ShoppingCart, name: 'Shopping' },
-      { component: Coffee, name: 'Coffee' },
-      { component: Cpu, name: 'Technology' },
-      { component: Home, name: 'Home' },
-      { component: Calendar, name: 'Calendar' },
-      { component: Clock, name: 'Clock' },
-      { component: Bell, name: 'Notification' },
-    ],
-    communication: [
-      { component: Smile, name: 'Smile' },
-      { component: Mail, name: 'Email' },
-      { component: Phone, name: 'Phone' },
-      { component: Link, name: 'Link' },
-      { component: Tag, name: 'Tag' },
-      { component: Truck, name: 'Shipping' },
-      { component: Users, name: 'Users' },
-      { component: MessageSquare, name: 'Message' },
-    ],
-  };
+  const [iconColor, setIconColor] = useState(currentIconColor);
 
-  type CategoryKey = keyof typeof iconSets;
-
-  const handleIconSelect = (name: string) => {
-    // Create a data URL for the icon
-    const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${iconStyle === 'color' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L15 6 21 7 17 11 18 17 12 14 6 17 7 11 3 7 9 6 12 2z"/></svg>`;
+  // Icons data: URLs of SVG icons
+  const icons = [
+    // Basic icons
+    { url: 'https://api.iconify.design/lucide/heart.svg', category: 'basic', name: 'Heart' },
+    { url: 'https://api.iconify.design/lucide/star.svg', category: 'basic', name: 'Star' },
+    { url: 'https://api.iconify.design/lucide/thumbs-up.svg', category: 'basic', name: 'Thumbs Up' },
+    { url: 'https://api.iconify.design/lucide/smile.svg', category: 'basic', name: 'Smile' },
+    { url: 'https://api.iconify.design/lucide/frown.svg', category: 'basic', name: 'Frown' },
+    { url: 'https://api.iconify.design/lucide/badge-check.svg', category: 'basic', name: 'Check' },
+    { url: 'https://api.iconify.design/lucide/award.svg', category: 'basic', name: 'Award' },
+    { url: 'https://api.iconify.design/lucide/crown.svg', category: 'basic', name: 'Crown' },
     
-    // Different SVG strings based on icon name
-    let iconSvg = '';
-    switch (name) {
-      case 'Star':
-        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${iconStyle === 'color' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
-        break;
-      case 'Heart':
-        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${iconStyle === 'color' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
-        break;
-      case 'Smile':
-        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${iconStyle === 'color' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>`;
-        break;
-      case 'Sun': 
-        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${iconStyle === 'color' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
-        break;
-      case 'Moon':
-        iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${iconStyle === 'color' ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
-        break;
-      default:
-        iconSvg = svgString;
+    // Weather icons
+    { url: 'https://api.iconify.design/lucide/sun.svg', category: 'weather', name: 'Sun' },
+    { url: 'https://api.iconify.design/lucide/cloud.svg', category: 'weather', name: 'Cloud' },
+    { url: 'https://api.iconify.design/lucide/cloud-rain.svg', category: 'weather', name: 'Rain' },
+    { url: 'https://api.iconify.design/lucide/cloud-snow.svg', category: 'weather', name: 'Snow' },
+    { url: 'https://api.iconify.design/lucide/wind.svg', category: 'weather', name: 'Wind' },
+    { url: 'https://api.iconify.design/lucide/cloud-lightning.svg', category: 'weather', name: 'Lightning' },
+    
+    // Nature icons
+    { url: 'https://api.iconify.design/lucide/flower.svg', category: 'nature', name: 'Flower' },
+    { url: 'https://api.iconify.design/lucide/palm-tree.svg', category: 'nature', name: 'Palm Tree' },
+    { url: 'https://api.iconify.design/lucide/leaf.svg', category: 'nature', name: 'Leaf' },
+    { url: 'https://api.iconify.design/lucide/mountain.svg', category: 'nature', name: 'Mountain' },
+    
+    // Animal icons
+    { url: 'https://api.iconify.design/lucide/paw-print.svg', category: 'animal', name: 'Paw Print' },
+    { url: 'https://api.iconify.design/lucide/fish.svg', category: 'animal', name: 'Fish' },
+    { url: 'https://api.iconify.design/lucide/butterfly.svg', category: 'animal', name: 'Butterfly' },
+    
+    // Food icons
+    { url: 'https://api.iconify.design/lucide/coffee.svg', category: 'food', name: 'Coffee' },
+    { url: 'https://api.iconify.design/lucide/dessert.svg', category: 'food', name: 'Dessert' },
+    { url: 'https://api.iconify.design/lucide/pizza.svg', category: 'food', name: 'Pizza' },
+    { url: 'https://api.iconify.design/lucide/sandwich.svg', category: 'food', name: 'Sandwich' },
+    { url: 'https://api.iconify.design/lucide/ice-cream.svg', category: 'food', name: 'Ice Cream' },
+    
+    // Travel icons
+    { url: 'https://api.iconify.design/lucide/plane.svg', category: 'travel', name: 'Airplane' },
+    { url: 'https://api.iconify.design/lucide/ship.svg', category: 'travel', name: 'Ship' },
+    { url: 'https://api.iconify.design/lucide/train.svg', category: 'travel', name: 'Train' },
+    { url: 'https://api.iconify.design/lucide/car.svg', category: 'travel', name: 'Car' },
+    { url: 'https://api.iconify.design/lucide/bicycle.svg', category: 'travel', name: 'Bicycle' },
+    { url: 'https://api.iconify.design/lucide/map.svg', category: 'travel', name: 'Map' },
+    { url: 'https://api.iconify.design/lucide/compass.svg', category: 'travel', name: 'Compass' },
+    
+    // Tech icons
+    { url: 'https://api.iconify.design/lucide/smartphone.svg', category: 'tech', name: 'Smartphone' },
+    { url: 'https://api.iconify.design/lucide/laptop.svg', category: 'tech', name: 'Laptop' },
+    { url: 'https://api.iconify.design/lucide/headphones.svg', category: 'tech', name: 'Headphones' },
+    { url: 'https://api.iconify.design/lucide/camera.svg', category: 'tech', name: 'Camera' },
+    { url: 'https://api.iconify.design/lucide/gamepad.svg', category: 'tech', name: 'Gamepad' },
+    { url: 'https://api.iconify.design/lucide/tv.svg', category: 'tech', name: 'TV' },
+    { url: 'https://api.iconify.design/lucide/radio.svg', category: 'tech', name: 'Radio' },
+    
+    // Social & communication
+    { url: 'https://api.iconify.design/lucide/message-circle.svg', category: 'social', name: 'Message' },
+    { url: 'https://api.iconify.design/lucide/mail.svg', category: 'social', name: 'Mail' },
+    { url: 'https://api.iconify.design/lucide/phone.svg', category: 'social', name: 'Phone' },
+    { url: 'https://api.iconify.design/lucide/send.svg', category: 'social', name: 'Send' },
+    { url: 'https://api.iconify.design/lucide/bell.svg', category: 'social', name: 'Notification' },
+    { url: 'https://api.iconify.design/lucide/share.svg', category: 'social', name: 'Share' },
+    
+    // Misc
+    { url: 'https://api.iconify.design/lucide/gift.svg', category: 'misc', name: 'Gift' },
+    { url: 'https://api.iconify.design/lucide/music.svg', category: 'misc', name: 'Music' },
+    { url: 'https://api.iconify.design/lucide/book.svg', category: 'misc', name: 'Book' },
+    { url: 'https://api.iconify.design/lucide/globe.svg', category: 'misc', name: 'Globe' },
+    { url: 'https://api.iconify.design/lucide/flag.svg', category: 'misc', name: 'Flag' },
+    { url: 'https://api.iconify.design/lucide/tag.svg', category: 'misc', name: 'Tag' },
+    { url: 'https://api.iconify.design/lucide/calendar.svg', category: 'misc', name: 'Calendar' },
+    { url: 'https://api.iconify.design/lucide/clock.svg', category: 'misc', name: 'Clock' },
+  ];
+  
+  // Filter icons based on search and category
+  const filteredIcons = icons.filter(icon => {
+    if (selectedCategory !== 'all' && icon.category !== selectedCategory) {
+      return false;
     }
     
-    // Convert to a data URL
-    const encodedSvg = encodeURIComponent(iconSvg);
-    const dataUrl = `data:image/svg+xml;utf8,${encodedSvg}`;
+    if (searchQuery) {
+      return icon.name.toLowerCase().includes(searchQuery.toLowerCase());
+    }
     
-    onIconSelect({ url: dataUrl, style: iconStyle });
+    return true;
+  });
+
+  const handleIconSelect = (iconUrl: string) => {
+    onIconSelect({ url: iconUrl, style: iconStyle });
+  };
+  
+  const handleColorChange = (color: string) => {
+    setIconColor(color);
+    if (onIconColorChange && selectedIconId) {
+      onIconColorChange(color);
+    }
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-xs font-semibold tracking-tight">Icons</h3>
+      <div className="relative">
+        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search icons..."
+          className="pl-8"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
       </div>
-
-      <Tabs defaultValue="outline" className="w-full">
-        <TabsList className="w-full grid grid-cols-2 mb-2">
-          <TabsTrigger 
-            value="outline" 
+      
+      {/* Icon Style Selection */}
+      <div className="flex justify-between items-center">
+        <span className="text-xs font-medium">Icon Style:</span>
+        <div className="flex gap-2">
+          <Button 
+            size="sm" 
+            variant={iconStyle === 'outline' ? "default" : "outline"} 
             onClick={() => setIconStyle('outline')}
-            className="text-xs"
+            className="text-xs h-8"
           >
             Outline
-          </TabsTrigger>
-          <TabsTrigger 
-            value="color" 
+          </Button>
+          <Button 
+            size="sm" 
+            variant={iconStyle === 'color' ? "default" : "outline"} 
             onClick={() => setIconStyle('color')}
-            className="text-xs"
+            className="text-xs h-8"
           >
             Color
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+          </Button>
+        </div>
+      </div>
       
-      <Tabs defaultValue="general" value={category} onValueChange={setCategory}>
-        <TabsList className="w-full grid grid-cols-5 mb-2">
-          <TabsTrigger value="general" className="text-[9px]">General</TabsTrigger>
-          <TabsTrigger value="nature" className="text-[9px]">Nature</TabsTrigger>
-          <TabsTrigger value="objects" className="text-[9px]">Objects</TabsTrigger>
-          <TabsTrigger value="activities" className="text-[9px]">Activities</TabsTrigger>
-          <TabsTrigger value="communication" className="text-[9px]">Comm.</TabsTrigger>
+      {/* Icon Color Picker */}
+      <IconColorPicker 
+        selectedColor={iconColor}
+        onChange={handleColorChange}
+        disabled={!selectedIconId}
+      />
+
+      <Tabs defaultValue="all" value={selectedCategory} onValueChange={setSelectedCategory}>
+        <TabsList className="grid grid-cols-4 mb-2">
+          <TabsTrigger value="all" className="text-[10px]">All</TabsTrigger>
+          <TabsTrigger value="basic" className="text-[10px]">Basic</TabsTrigger>
+          <TabsTrigger value="weather" className="text-[10px]">Weather</TabsTrigger>
+          <TabsTrigger value="nature" className="text-[10px]">Nature</TabsTrigger>
         </TabsList>
         
-        {Object.entries(iconSets).map(([cat, icons]) => (
-          <TabsContent key={cat} value={cat}>
-            <ScrollArea className="h-[200px]">
-              <div className="grid grid-cols-4 gap-2">
-                {icons.map(({ component: IconComponent, name }) => (
-                  <button
-                    key={name}
-                    className="p-1 rounded hover:bg-accent transition-colors flex flex-col items-center justify-center h-16"
-                    onClick={() => handleIconSelect(name)}
-                    title={name}
-                  >
-                    <div className="h-8 w-8 mb-1 flex items-center justify-center">
-                      <IconComponent className="h-6 w-6" />
-                    </div>
-                    <span className="text-[10px] text-muted-foreground truncate w-full text-center">{name}</span>
-                  </button>
-                ))}
-              </div>
-            </ScrollArea>
-          </TabsContent>
-        ))}
+        <TabsList className="grid grid-cols-4">
+          <TabsTrigger value="animal" className="text-[10px]">Animals</TabsTrigger>
+          <TabsTrigger value="food" className="text-[10px]">Food</TabsTrigger>
+          <TabsTrigger value="tech" className="text-[10px]">Tech</TabsTrigger>
+          <TabsTrigger value="misc" className="text-[10px]">Misc</TabsTrigger>
+        </TabsList>
+        
+        <ScrollArea className="h-[270px] mt-2">
+          <div className="grid grid-cols-4 gap-2">
+            {filteredIcons.map((icon, index) => (
+              <Button
+                key={index}
+                variant="outline"
+                className="p-2 h-16 flex flex-col gap-1 items-center justify-center"
+                onClick={() => handleIconSelect(icon.url)}
+                title={icon.name}
+              >
+                <img 
+                  src={icon.url} 
+                  alt={icon.name} 
+                  className="w-6 h-6"
+                  style={iconStyle === 'color' ? {
+                    filter: 'brightness(0) saturate(100%) invert(30%) sepia(80%) saturate(200%) hue-rotate(330deg)'
+                  } : {}}
+                />
+                <span className="text-[9px] truncate w-full text-center">{icon.name}</span>
+              </Button>
+            ))}
+          </div>
+          
+          {filteredIcons.length === 0 && (
+            <div className="flex items-center justify-center h-32 text-muted-foreground">
+              <p className="text-sm">No icons found</p>
+            </div>
+          )}
+        </ScrollArea>
       </Tabs>
     </div>
   );

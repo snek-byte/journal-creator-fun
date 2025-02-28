@@ -3,9 +3,10 @@ import { useJournalEditor } from '@/hooks/useJournalEditor';
 import { JournalEditorSidebar } from './journal/JournalEditorSidebar';
 import { JournalPreview } from './journal/JournalPreview';
 import { EmailDialog } from './journal/EmailDialog';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Sticker, Icon } from '@/types/journal';
+import { toast } from "sonner";
 
 export function JournalEditor() {
   const {
@@ -50,6 +51,7 @@ export function JournalEditor() {
     handleResetToDefault,
     canUndo,
     canRedo,
+    setStickers,
   } = useJournalEditor();
   
   // Drawing tool state
@@ -93,7 +95,7 @@ export function JournalEditor() {
     handleIconAdd(newIcon);
   };
 
-  // Resize sticker handler
+  // Improved sticker resize handler that updates the sticker in the store
   const handleStickerResize = (size: number) => {
     setStickerSize(size);
     
@@ -101,19 +103,15 @@ export function JournalEditor() {
     if (selectedStickerId) {
       console.log("Resizing sticker:", selectedStickerId, "to size:", size);
       
-      // Find the sticker to update
-      const stickerToUpdate = currentEntry.stickers.find(s => s.id === selectedStickerId);
-      if (stickerToUpdate) {
-        // Create updated sticker with new size
-        const updatedSticker: Sticker = {
-          ...stickerToUpdate,
-          width: size,
-          height: size
-        };
-        
-        // Update the sticker by passing the entire updated sticker object
-        handleStickerAdd(updatedSticker);
-      }
+      // Update the sticker directly in the store using the setter
+      const updatedStickers = currentEntry.stickers.map(sticker => 
+        sticker.id === selectedStickerId 
+          ? { ...sticker, width: size, height: size } 
+          : sticker
+      );
+      
+      console.log("Updated stickers array:", updatedStickers);
+      setStickers(updatedStickers);
     }
   };
 
@@ -131,9 +129,18 @@ export function JournalEditor() {
     }
   };
 
-  console.log("Current stickers in entry:", currentEntry.stickers);
-  console.log("Selected sticker ID:", selectedStickerId);
-  console.log("Current sticker size:", stickerSize);
+  // Create an icon color handler specifically for the sidebar controls
+  const handleIconColorChange = (color: string) => {
+    if (selectedIconId) {
+      handleIconUpdate(selectedIconId, { color });
+    }
+  };
+
+  useEffect(() => {
+    console.log("Current stickers in entry:", currentEntry.stickers);
+    console.log("Selected sticker ID:", selectedStickerId);
+    console.log("Current sticker size:", stickerSize);
+  }, [currentEntry.stickers, selectedStickerId, stickerSize]);
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
@@ -153,6 +160,7 @@ export function JournalEditor() {
         setFontSize={handleFontSizeChange}
         setFontWeight={handleFontWeightChange}
         setFontColor={handleFontColorChange}
+        setIconColor={handleIconColorChange}
         setGradient={handleGradientChange}
         setTextStyle={handleTextStyleChange}
         saveEntry={saveEntry}
