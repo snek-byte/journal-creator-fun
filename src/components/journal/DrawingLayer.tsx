@@ -61,7 +61,7 @@ export function DrawingLayer({ className, width = 800, height = 600, onDrawingCh
   const dragStartPos = useRef({ x: 0, y: 0 });
   const initialPos = useRef({ x: 0, y: 0 });
   const [compactMode, setCompactMode] = useState(false);
-  const [isActive, setIsActive] = useState(false);
+  const [isActive, setIsActive] = useState(true);
 
   // Initialize canvas on mount
   useEffect(() => {
@@ -155,9 +155,16 @@ export function DrawingLayer({ className, width = 800, height = 600, onDrawingCh
   };
 
   const handleCloseDrawTool = () => {
-    setIsActive(false);
+    // This closes the drawing tool panel in the parent component
     if (onDrawingChange) {
-      onDrawingChange('');
+      // Clear the drawing data
+      if (canvasRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+        if (ctx) {
+          ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        }
+        onDrawingChange('');
+      }
     }
   };
 
@@ -496,7 +503,8 @@ export function DrawingLayer({ className, width = 800, height = 600, onDrawingCh
           left: `${position.x}px`, 
           top: `${position.y}px`,
           position: 'absolute',
-          zIndex: 50
+          zIndex: 50,
+          display: isActive ? 'block' : 'none'
         }}
         className={cn(
           "bg-white rounded-lg shadow-md border border-gray-200",
@@ -578,7 +586,6 @@ export function DrawingLayer({ className, width = 800, height = 600, onDrawingCh
                     className="h-5 p-0"
                     onClick={() => {
                       handleBrushTypeChange(brush.value);
-                      setIsActive(true);
                     }}
                     title={brush.name}
                     type="button"

@@ -43,99 +43,94 @@ export function JournalStylingControls({
   const currentSize = parseInt(fontSize.replace('px', '')) || 16;
   
   return (
-    <div className="space-y-2 pt-0">
+    <div className="space-y-1">
       {/* Text Styling Controls Section - Only visible when no emoji or icon is selected */}
       {!selectedIconId && !selectedEmojiId && (
-        <div className="space-y-2">
-          <h3 className="text-xs font-semibold tracking-tight">Text Styling</h3>
-          
-          <div className="space-y-1">
-            <div className="space-y-0.5">
-              <label className="text-[10px] font-medium">Text Style</label>
-              <Select 
-                onValueChange={onTextStyleChange} 
-                defaultValue="normal"
-              >
-                <SelectTrigger className="h-7 text-[10px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {textStyles.map((style) => (
-                    <SelectItem key={style.value} value={style.value} className="text-[10px]">
-                      {style.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-0.5">
-              <label className="text-[10px] font-medium">Font Family</label>
-              <Select value={font} onValueChange={onFontChange}>
-                <SelectTrigger className="h-7 text-[10px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {fontOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value} className="text-[10px]">
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-0.5">
-              <label className="text-[10px] font-medium">Font Size</label>
-              <Select value={fontSize} onValueChange={onFontSizeChange}>
-                <SelectTrigger className="h-7 text-[10px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {fontSizes.map((option) => (
-                    <SelectItem key={option.value} value={option.value} className="text-[10px]">
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-0.5">
-              <label className="text-[10px] font-medium">Font Weight</label>
-              <Select value={fontWeight} onValueChange={onFontWeightChange}>
-                <SelectTrigger className="h-7 text-[10px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {fontWeights.map((option) => (
-                    <SelectItem key={option.value} value={option.value} className="text-[10px]">
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-0.5">
-              <label className="text-[10px] font-medium">Font Color</label>
-              <input
-                type="color"
-                value={fontColor}
-                onChange={(e) => onFontColorChange(e.target.value)}
-                className="w-full h-7 rounded-md cursor-pointer"
-              />
-            </div>
+        <>
+          <div className="space-y-0.5">
+            <label className="text-[10px] font-medium">Text Style</label>
+            <Select 
+              onValueChange={onTextStyleChange} 
+              defaultValue="normal"
+            >
+              <SelectTrigger className="h-7 text-[10px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {textStyles.map((style) => (
+                  <SelectItem key={style.value} value={style.value} className="text-[10px]">
+                    {style.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </div>
+
+          <div className="space-y-0.5">
+            <label className="text-[10px] font-medium">Font Family</label>
+            <Select value={font} onValueChange={onFontChange}>
+              <SelectTrigger className="h-7 text-[10px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {fontOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value} className="text-[10px]">
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-0.5">
+            <label className="text-[10px] font-medium">Font Size</label>
+            <Select value={fontSize} onValueChange={onFontSizeChange}>
+              <SelectTrigger className="h-7 text-[10px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {fontSizes.map((option) => (
+                  <SelectItem key={option.value} value={option.value} className="text-[10px]">
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-0.5">
+            <label className="text-[10px] font-medium">Font Weight</label>
+            <Select value={fontWeight} onValueChange={onFontWeightChange}>
+              <SelectTrigger className="h-7 text-[10px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {fontWeights.map((option) => (
+                  <SelectItem key={option.value} value={option.value} className="text-[10px]">
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-0.5">
+            <label className="text-[10px] font-medium">Font Color</label>
+            <input
+              type="color"
+              value={fontColor}
+              onChange={(e) => onFontColorChange(e.target.value)}
+              className="w-full h-7 rounded-md cursor-pointer"
+            />
+          </div>
+        </>
       )}
 
       {/* Icon Styling Section - Only visible when icon is selected */}
       {selectedIconId && (
-        <div className="space-y-2">
-          <h3 className="text-xs font-semibold tracking-tight">Icon Styling</h3>
-          <div className="space-y-2 border-2 border-primary/10 bg-primary/5 p-3 rounded-md">
-            <p className="text-[10px] text-primary/70 font-medium">
+        <>
+          <div className="border-2 border-primary/10 bg-primary/5 p-2 rounded-md">
+            <p className="text-[10px] text-primary/70 font-medium mb-1">
               Editing Icon
             </p>
             
@@ -165,21 +160,20 @@ export function JournalStylingControls({
               />
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Emoji Styling Section - Only visible when emoji is selected */}
       {selectedEmojiId && onEmojiRotate && (
-        <div className="space-y-2">
-          <h3 className="text-xs font-semibold tracking-tight">Emoji Styling</h3>
-          <div className="space-y-2 border-2 border-primary/10 bg-primary/5 p-3 rounded-md">
-            <p className="text-[10px] text-primary/70 font-medium">
+        <>
+          <div className="border-2 border-primary/10 bg-primary/5 p-2 rounded-md">
+            <p className="text-[10px] text-primary/70 font-medium mb-1">
               Editing Emoji
             </p>
             
             <div className="space-y-0.5">
               <label className="text-[10px] font-medium">Emoji Size</label>
-              <div className="py-2">
+              <div className="py-1">
                 <Slider
                   defaultValue={[currentSize]}
                   min={12}
@@ -215,7 +209,7 @@ export function JournalStylingControls({
               </p>
             </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

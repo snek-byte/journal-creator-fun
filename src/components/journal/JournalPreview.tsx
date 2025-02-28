@@ -146,6 +146,15 @@ export function JournalPreview({
     onEmojiSelect(id);
   };
 
+  // Handle tool selection, closing any previous selection
+  const handleToolSelect = (tool: 'stickers' | 'icons' | 'backgrounds' | 'drawing' | 'filters' | null) => {
+    if (selectedSidebarItem === tool) {
+      setSelectedSidebarItem(null);
+    } else {
+      setSelectedSidebarItem(tool);
+    }
+  };
+
   return (
     <div className="flex-grow relative flex items-center justify-center overflow-hidden">
       {/* Sidebar tools */}
@@ -154,35 +163,35 @@ export function JournalPreview({
           <Button
             variant={selectedSidebarItem === 'stickers' ? 'default' : 'ghost'}
             size="sm"
-            onClick={() => setSelectedSidebarItem(selectedSidebarItem === 'stickers' ? null : 'stickers')}
+            onClick={() => handleToolSelect('stickers')}
           >
             📷
           </Button>
           <Button
             variant={selectedSidebarItem === 'icons' ? 'default' : 'ghost'}
             size="sm"
-            onClick={() => setSelectedSidebarItem(selectedSidebarItem === 'icons' ? null : 'icons')}
+            onClick={() => handleToolSelect('icons')}
           >
             🎨
           </Button>
           <Button
             variant={selectedSidebarItem === 'backgrounds' ? 'default' : 'ghost'}
             size="sm"
-            onClick={() => setSelectedSidebarItem(selectedSidebarItem === 'backgrounds' ? null : 'backgrounds')}
+            onClick={() => handleToolSelect('backgrounds')}
           >
             🖼️
           </Button>
           <Button
             variant={selectedSidebarItem === 'drawing' ? 'default' : 'ghost'}
             size="sm"
-            onClick={() => setSelectedSidebarItem(selectedSidebarItem === 'drawing' ? null : 'drawing')}
+            onClick={() => handleToolSelect('drawing')}
           >
             ✏️
           </Button>
           <Button
             variant={selectedSidebarItem === 'filters' ? 'default' : 'ghost'}
             size="sm"
-            onClick={() => setSelectedSidebarItem(selectedSidebarItem === 'filters' ? null : 'filters')}
+            onClick={() => handleToolSelect('filters')}
           >
             🔍
           </Button>
