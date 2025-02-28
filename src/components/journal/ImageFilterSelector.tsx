@@ -17,19 +17,20 @@ export function ImageFilterSelector({ onFilterChange, currentFilter = 'none' }: 
     setSelectedFilter(currentFilter);
   }, [currentFilter]);
   
+  // Enhanced filter presets with stronger effects for better visibility
   const filterPresets = [
     { name: 'None', value: 'none' },
     { name: 'Grayscale', value: 'grayscale(100%)' },
-    { name: 'Sepia', value: 'sepia(70%)' },
-    { name: 'Vintage', value: 'sepia(50%) contrast(90%) brightness(90%)' },
-    { name: 'Warm', value: 'brightness(110%) saturate(120%) hue-rotate(10deg)' },
-    { name: 'Cool', value: 'brightness(90%) saturate(80%) hue-rotate(-10deg)' },
-    { name: 'Soft Light', value: 'brightness(105%) contrast(90%) saturate(110%)' },
-    { name: 'Dramatic', value: 'contrast(120%) saturate(110%)' },
-    { name: 'Dark Vignette', value: 'brightness(90%) contrast(110%) saturate(100%)' },
-    { name: 'Faded', value: 'brightness(110%) contrast(85%) saturate(75%)' },
-    { name: 'Matte', value: 'contrast(90%) saturate(90%) brightness(105%)' },
-    { name: 'Pastel', value: 'brightness(115%) contrast(80%) saturate(80%)' },
+    { name: 'Sepia', value: 'sepia(80%)' },
+    { name: 'Vintage', value: 'sepia(60%) contrast(110%) brightness(90%)' },
+    { name: 'Warm', value: 'brightness(115%) saturate(130%) hue-rotate(10deg)' },
+    { name: 'Cool', value: 'brightness(95%) saturate(90%) hue-rotate(-15deg)' },
+    { name: 'Soft Light', value: 'brightness(110%) contrast(95%) saturate(120%)' },
+    { name: 'Dramatic', value: 'contrast(130%) saturate(120%)' },
+    { name: 'Dark Vignette', value: 'brightness(90%) contrast(120%) saturate(110%)' },
+    { name: 'Faded', value: 'brightness(115%) contrast(90%) saturate(85%)' },
+    { name: 'Matte', value: 'contrast(95%) saturate(95%) brightness(110%)' },
+    { name: 'Pastel', value: 'brightness(120%) contrast(85%) saturate(85%)' },
   ];
   
   const handleFilterSelect = (filter: string) => {
@@ -66,7 +67,7 @@ export function ImageFilterSelector({ onFilterChange, currentFilter = 'none' }: 
               }`}
             >
               <div 
-                className="h-16 w-full rounded overflow-hidden mb-1 bg-gradient-to-br from-primary/20 to-primary/60"
+                className="h-16 w-full rounded overflow-hidden mb-1 bg-gradient-to-br from-primary/30 to-primary/70"
                 style={{ filter: filter.value !== 'none' ? filter.value : undefined }}
               />
               <span>{filter.name}</span>

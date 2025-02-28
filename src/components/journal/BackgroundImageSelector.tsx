@@ -14,17 +14,17 @@ interface BackgroundImageSelectorProps {
 export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageSelectorProps) {
   const [activeTab, setActiveTab] = useState("papers");
   
-  // Paper backgrounds with actual paper textures
+  // Paper backgrounds with actual paper textures - improved with higher contrast options
   const paperBackgrounds = [
-    { name: "Plain White Paper", url: "https://www.transparenttextures.com/patterns/white-paper.png" },
-    { name: "Lined Paper", url: "https://www.transparenttextures.com/patterns/lined-paper.png" },
-    { name: "Handmade Paper", url: "https://www.transparenttextures.com/patterns/handmade-paper.png" },
-    { name: "Old Paper", url: "https://www.transparenttextures.com/patterns/old-paper.png" },
-    { name: "Textured Paper", url: "https://www.transparenttextures.com/patterns/textured-paper.png" },
-    { name: "Notebook Paper", url: "https://www.transparenttextures.com/patterns/notebook.png" },
-    { name: "Rice Paper", url: "https://www.transparenttextures.com/patterns/rice-paper.png" },
-    { name: "Cardboard", url: "https://www.transparenttextures.com/patterns/cardboard.png" },
-    { name: "Sandpaper", url: "https://www.transparenttextures.com/patterns/sandpaper.png" }
+    { name: "Plain White Paper", url: "https://www.transparenttextures.com/patterns/white-paper.png", bgColor: '#ffffff' },
+    { name: "Lined Paper", url: "https://www.transparenttextures.com/patterns/lined-paper.png", bgColor: '#f8f8f8' },
+    { name: "Handmade Paper", url: "https://www.transparenttextures.com/patterns/handmade-paper.png", bgColor: '#f5f2e9' },
+    { name: "Old Paper", url: "https://www.transparenttextures.com/patterns/old-paper.png", bgColor: '#e8e0cb' },
+    { name: "Textured Paper", url: "https://www.transparenttextures.com/patterns/textured-paper.png", bgColor: '#f7f3e9' },
+    { name: "Notebook Paper", url: "https://www.transparenttextures.com/patterns/notebook.png", bgColor: '#f0f0f0' },
+    { name: "Rice Paper", url: "https://www.transparenttextures.com/patterns/rice-paper.png", bgColor: '#f8f6ee' },
+    { name: "Cardboard", url: "https://www.transparenttextures.com/patterns/cardboard.png", bgColor: '#d9c7a0' },
+    { name: "Sandpaper", url: "https://www.transparenttextures.com/patterns/sandpaper.png", bgColor: '#e2d9c8' }
   ];
   
   // Nature background images
@@ -37,7 +37,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     { name: "Desert", url: "https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?auto=format&fit=crop&w=800&h=1000&q=80" }
   ];
   
-  // Background gradients
+  // Background gradients - Increased contrast with more vibrant colors
   const gradientBackgrounds = [
     { name: "Sunset", url: "linear-gradient(to right, #f83600 0%, #f9d423 100%)" },
     { name: "Blue-Purple", url: "linear-gradient(to right, #4facfe 0%, #00f2fe 100%)" },
@@ -53,36 +53,44 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     { name: "Light Blue", url: "linear-gradient(to top, #accbee 0%, #e7f0fd 100%)" }
   ];
 
-  // Actual repeating patterns
+  // Actual repeating patterns with improved contrast and opacity
   const patternBackgrounds = [
-    { name: "Subtle Dots", url: "https://www.transparenttextures.com/patterns/subtle-dots.png" },
-    { name: "Grid", url: "https://www.transparenttextures.com/patterns/grid.png" },
-    { name: "Checkered", url: "https://www.transparenttextures.com/patterns/checkered-pattern.png" },
-    { name: "Brick Wall", url: "https://www.transparenttextures.com/patterns/brick-wall.png" },
-    { name: "Stripes", url: "https://www.transparenttextures.com/patterns/stripes.png" },
-    { name: "Hexagons", url: "https://www.transparenttextures.com/patterns/hexellence.png" },
-    { name: "Diagonal Lines", url: "https://www.transparenttextures.com/patterns/diagonal-lines.png" },
-    { name: "Carbon Fiber", url: "https://www.transparenttextures.com/patterns/carbon-fibre.png" },
-    { name: "Cubes", url: "https://www.transparenttextures.com/patterns/3px-tile.png" },
-    { name: "Waves", url: "https://www.transparenttextures.com/patterns/asfalt.png" },
-    { name: "Diamonds", url: "https://www.transparenttextures.com/patterns/diamond-upholstery.png" },
-    { name: "Wood", url: "https://www.transparenttextures.com/patterns/wood-pattern.png" }
+    { name: "Subtle Dots", url: "https://www.transparenttextures.com/patterns/subtle-dots.png", bgColor: '#e6e6e6' },
+    { name: "Grid", url: "https://www.transparenttextures.com/patterns/grid.png", bgColor: '#e0e0e0' },
+    { name: "Checkered", url: "https://www.transparenttextures.com/patterns/checkered-pattern.png", bgColor: '#e8e8e8' },
+    { name: "Brick Wall", url: "https://www.transparenttextures.com/patterns/brick-wall.png", bgColor: '#d9d0c1' },
+    { name: "Stripes", url: "https://www.transparenttextures.com/patterns/stripes.png", bgColor: '#e0e0e0' },
+    { name: "Hexagons", url: "https://www.transparenttextures.com/patterns/hexellence.png", bgColor: '#e6e6e6' },
+    { name: "Diagonal Lines", url: "https://www.transparenttextures.com/patterns/diagonal-lines.png", bgColor: '#e0e0e0' },
+    { name: "Carbon Fiber", url: "https://www.transparenttextures.com/patterns/carbon-fibre.png", bgColor: '#282828' },
+    { name: "Cubes", url: "https://www.transparenttextures.com/patterns/3px-tile.png", bgColor: '#e0e0e0' },
+    { name: "Waves", url: "https://www.transparenttextures.com/patterns/asfalt.png", bgColor: '#d6d6d6' },
+    { name: "Diamonds", url: "https://www.transparenttextures.com/patterns/diamond-upholstery.png", bgColor: '#e0e0e0' },
+    { name: "Wood", url: "https://www.transparenttextures.com/patterns/wood-pattern.png", bgColor: '#d2bc9b' }
   ];
   
-  const handleBackgroundSelect = (url: string) => {
+  const handleBackgroundSelect = (url: string, bgColor?: string) => {
     console.log("Selected background:", url);
-    onBackgroundSelect(url);
+    // If it's a paper or pattern with a bgColor, create a combined background property
+    if (bgColor) {
+      // For paper textures, we'll create a background with both color and texture
+      const combinedBackground = `url(${url}), ${bgColor}`;
+      onBackgroundSelect(combinedBackground);
+    } else {
+      onBackgroundSelect(url);
+    }
     toast.info(`Background ${url ? 'applied' : 'cleared'}`);
   };
 
   // Helper function to generate a full CSS background for papers and patterns
-  const getPatternBackgroundStyle = (url: string) => {
-    // For paper textures and patterns, we want to tile them as patterns
+  const getPatternBackgroundStyle = (url: string, bgColor: string = '#faf9f6') => {
+    // For paper textures and patterns, we want to tile them as patterns with a visible background color
     return {
       backgroundImage: `url(${url})`,
       backgroundSize: 'auto',
       backgroundRepeat: 'repeat',
-      backgroundColor: '#faf9f6', // Slight off-white for paper
+      backgroundColor: bgColor,
+      backgroundBlendMode: 'overlay',
     };
   };
   
@@ -106,13 +114,13 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                 <button
                   key={index}
                   className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-20"
-                  onClick={() => handleBackgroundSelect(bg.url)}
+                  onClick={() => handleBackgroundSelect(bg.url, bg.bgColor)}
                   type="button"
                   title={bg.name}
                 >
                   <div 
                     className="w-full h-full"
-                    style={getPatternBackgroundStyle(bg.url)}
+                    style={getPatternBackgroundStyle(bg.url, bg.bgColor)}
                   />
                 </button>
               ))}
@@ -148,13 +156,13 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
                 <button
                   key={index}
                   className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-20"
-                  onClick={() => handleBackgroundSelect(bg.url)}
+                  onClick={() => handleBackgroundSelect(bg.url, bg.bgColor)}
                   type="button"
                   title={bg.name}
                 >
                   <div 
                     className="w-full h-full"
-                    style={getPatternBackgroundStyle(bg.url)}
+                    style={getPatternBackgroundStyle(bg.url, bg.bgColor)}
                   />
                 </button>
               ))}

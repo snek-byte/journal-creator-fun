@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { DrawingLayer } from './DrawingLayer';
@@ -296,7 +297,16 @@ export function JournalPreview({
     return styles;
   };
 
-  const isGradientBackground = backgroundImage && backgroundImage.includes('linear-gradient');
+  // Check if background is a gradient
+  const isGradientBackground = backgroundImage && 
+    typeof backgroundImage === 'string' &&
+    backgroundImage.includes('linear-gradient');
+
+  // Check if background is a combined texture+color
+  const isCombinedBackground = backgroundImage && 
+    typeof backgroundImage === 'string' &&
+    backgroundImage.includes('url') && 
+    !backgroundImage.includes('unsplash');
 
   const getCssFilter = () => {
     if (!filter || filter === 'none') return undefined;
@@ -316,7 +326,9 @@ export function JournalPreview({
     }
   };
 
-  const isPatternBackground = backgroundImage && backgroundImage.includes('transparenttextures.com');
+  const isPatternBackground = backgroundImage && 
+    typeof backgroundImage === 'string' &&
+    backgroundImage.includes('transparenttextures.com');
 
   const getBackgroundStyle = () => {
     if (!backgroundImage) return {};
@@ -332,11 +344,22 @@ export function JournalPreview({
       };
     }
     
+    if (isCombinedBackground) {
+      // Parse the combined background string to get both the texture and color
+      return {
+        background: backgroundImage, 
+        backgroundSize: 'auto',
+        backgroundRepeat: 'repeat',
+        backgroundBlendMode: 'overlay',
+        filter: filterValue,
+      };
+    }
+    
     if (isPatternBackground) {
       console.log("Pattern background detected:", backgroundImage);
       return {
         backgroundImage: `url(${backgroundImage})`,
-        backgroundColor: '#faf9f6',
+        backgroundColor: '#e0e0e0', // Darker background for better contrast
         backgroundSize: 'auto',
         backgroundRepeat: 'repeat',
         filter: filterValue,
