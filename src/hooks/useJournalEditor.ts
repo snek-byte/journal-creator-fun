@@ -110,6 +110,7 @@ export function useJournalEditor() {
   const handleTextMove = (position: { x: number, y: number }) => {
     try {
       setTextPosition(position);
+      console.log("Text moved to:", position);
     } catch (error) {
       console.error("Error moving text:", error);
     }
@@ -161,6 +162,28 @@ export function useJournalEditor() {
     } catch (error) {
       console.error("Error selecting emoji:", error);
     }
+  };
+
+  const handleImageUpload = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      if (!file.type.startsWith('image/')) {
+        reject(new Error('Please upload an image file'));
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (typeof e.target?.result === 'string') {
+          resolve(e.target.result);
+        } else {
+          reject(new Error('Failed to read image'));
+        }
+      };
+      reader.onerror = () => {
+        reject(new Error('Failed to read image'));
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleSendEmail = async () => {
@@ -225,6 +248,7 @@ export function useJournalEditor() {
     handleFilterChange,
     handleEmojiSelect,
     handleSendEmail,
+    handleImageUpload,
     setShowEmailDialog,
     setEmailAddress,
     setMood,

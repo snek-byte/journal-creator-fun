@@ -1,9 +1,10 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Paintbrush, Search, RotateCw, Upload } from "lucide-react";
+import { Paintbrush, Search, RotateCw, Upload, ImagePlus } from "lucide-react";
 import { useJournalStore } from '@/store/journalStore';
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -153,7 +154,7 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
           size="icon" 
           className="hover:bg-accent hover:text-accent-foreground"
         >
-          <Paintbrush className="w-4 h-4" />
+          <ImagePlus className="w-4 h-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
@@ -165,9 +166,10 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
         </DialogHeader>
 
         <Tabs defaultValue="gradient" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="gradient">Gradients</TabsTrigger>
             <TabsTrigger value="image">Images</TabsTrigger>
+            <TabsTrigger value="upload">Upload</TabsTrigger>
           </TabsList>
           
           <TabsContent value="gradient">
@@ -243,22 +245,30 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
                   </div>
                 )}
               </ScrollArea>
-
-              <div className="flex items-center gap-2">
-                <label htmlFor="upload-bg" className="flex-1">
-                  <div className="flex items-center justify-center h-10 px-4 py-2 border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground cursor-pointer">
-                    <Upload className="w-4 h-4 mr-2" />
-                    <span>Upload image</span>
-                  </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="upload" className="space-y-4">
+            <div className="flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/20 rounded-lg p-8">
+              <Upload className="w-10 h-10 text-muted-foreground mb-4" />
+              <p className="text-center text-muted-foreground mb-4">
+                Drag and drop your image here, or click to browse
+              </p>
+              <Button variant="outline" asChild>
+                <label htmlFor="image-upload" className="cursor-pointer">
+                  Choose image
                   <input
-                    id="upload-bg"
+                    id="image-upload"
                     type="file"
                     accept="image/*"
                     onChange={handleImageUpload}
                     className="sr-only"
                   />
                 </label>
-              </div>
+              </Button>
+              <p className="text-xs text-muted-foreground/70 mt-4">
+                Supports JPG, PNG, WebP, and GIF formats
+              </p>
             </div>
           </TabsContent>
         </Tabs>

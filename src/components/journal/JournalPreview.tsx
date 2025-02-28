@@ -1,7 +1,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Pencil, ImagePlus, Palette, Sticker, Bookmark } from 'lucide-react';
+import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Pencil, ImagePlus, Palette, FileImage } from 'lucide-react';
 import { moodOptions } from './config/editorConfig';
 import type { Mood, Sticker as StickerType, Icon } from '@/types/journal';
 import { applyTextStyle } from '@/utils/unicodeTextStyles';
@@ -285,12 +285,25 @@ export function JournalPreview({
     onDrawingChange(dataUrl);
   };
 
+  const IconWithButton = ({ component: Component }: { component: React.ReactNode }) => (
+    <>{Component}</>
+  );
+
   return (
     <div className="w-full lg:w-3/4 p-6 relative print:w-full print:p-0 min-h-[800px]">
       <div className="absolute top-4 right-4 z-10 flex gap-2 print:hidden">
         <StickerSelector onStickerSelect={handleStickerAdd} />
         
-        <IconSelector onIconSelect={handleIconAdd} />
+        <IconSelector onIconSelect={handleIconAdd}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="hover:bg-accent hover:text-accent-foreground"
+            title="Add icons"
+          >
+            <FileImage className="w-4 h-4" />
+          </Button>
+        </IconSelector>
         
         <BackgroundImageSelector onImageSelect={onBackgroundSelect} />
         
