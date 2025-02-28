@@ -196,20 +196,29 @@ export function useJournalEditor() {
     }
   };
 
-  // Custom handlers for font size that check if an icon is selected
+  // Handler for font size that adjusts icon size when needed
   const handleFontSizeChange = (size: string) => {
+    console.log("Font size change called with:", size, "selectedIconId:", selectedIconId);
+    
     if (selectedIconId) {
-      // If an icon is selected, update its size based on the font size
-      // Convert font size (e.g., "16px") to a number
+      // Get the numeric value from the font size
       const sizeValue = parseInt(size);
       if (!isNaN(sizeValue)) {
-        const sizeMultiplier = 3; // Make icons bigger than text
-        const newSize = sizeValue * sizeMultiplier;
-        console.log(`Updating icon ${selectedIconId} size to ${newSize}px`, selectedIconId);
-        handleIconUpdate(selectedIconId, { size: newSize });
+        // Make icon size directly proportional to the font size
+        const iconSize = sizeValue * 3; // Make icon 3x the font size
+        console.log(`Setting icon ${selectedIconId} size to:`, iconSize);
+        
+        // Find the icon to make sure it exists
+        const selectedIcon = currentEntry.icons.find(icon => icon.id === selectedIconId);
+        if (selectedIcon) {
+          console.log("Found icon to resize:", selectedIcon);
+          updateIcon(selectedIconId, { size: iconSize });
+        } else {
+          console.error("Could not find icon with ID:", selectedIconId);
+        }
       }
     } else {
-      // Normal text size change
+      // If no icon is selected, set font size as usual
       setFontSize(size);
     }
   };

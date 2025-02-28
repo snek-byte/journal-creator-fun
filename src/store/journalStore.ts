@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { JournalEntry, Challenge, Badge, UserProgress, Mood, Sticker, Icon } from '@/types/journal';
@@ -190,14 +191,28 @@ export const useJournalStore = create<JournalState>()(
           icons: (state.currentEntry.icons || []).filter(i => i.id !== iconId)
         }
       })),
-      updateIcon: (iconId, updates) => set((state) => ({
-        currentEntry: {
-          ...state.currentEntry,
-          icons: (state.currentEntry.icons || []).map(icon => 
-            icon.id === iconId ? { ...icon, ...updates } : icon
-          )
-        }
-      })),
+      updateIcon: (iconId, updates) => {
+        console.log(`Actually updating icon ${iconId} with:`, updates);
+        set((state) => {
+          const updatedIcons = state.currentEntry.icons.map(icon => {
+            if (icon.id === iconId) {
+              console.log("Found icon to update:", icon);
+              console.log("Updated icon will be:", { ...icon, ...updates });
+              return { ...icon, ...updates };
+            }
+            return icon;
+          });
+          
+          console.log("All updated icons:", updatedIcons);
+          
+          return {
+            currentEntry: {
+              ...state.currentEntry,
+              icons: updatedIcons
+            }
+          };
+        });
+      },
       togglePreview: () => set((state) => ({ 
         showPreview: !state.showPreview 
       })),

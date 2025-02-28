@@ -19,16 +19,16 @@ export function IconContainer({
 }: IconContainerProps) {
   const iconRef = useRef<HTMLDivElement>(null);
 
-  // Add keyboard event listener for delete key when selected
+  // Global keyboard event listener for delete key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (selected && (e.key === 'Delete' || e.key === 'Backspace')) {
-        console.log("Deleting icon via keyboard:", icon.id);
-        // Move the icon off-screen to indicate deletion
+        console.log("Delete key pressed for icon:", icon.id);
         onMove(icon.id, { x: -999, y: -999 });
       }
     };
 
+    // Only add the listener when this icon is selected
     if (selected) {
       window.addEventListener('keydown', handleKeyDown);
     }
