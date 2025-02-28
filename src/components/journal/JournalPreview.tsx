@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { DrawingLayer } from './DrawingLayer';
@@ -168,6 +167,22 @@ export function JournalPreview({
     window.addEventListener('resize', handleResize);
 
     const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const isJournalPageClick = target.classList.contains('journal-page') || 
+                                target.classList.contains('journal-page-background') ||
+                                target === previewRef.current;
+      
+      if (isJournalPageClick) {
+        console.log("Clearing all selections from global click handler");
+        setSelectedIconId(null);
+        setSelectedStickerId(null);
+        setSelectedTextBoxId(null);
+        setIsTextSelected(false);
+        onIconSelect('');
+        onStickerSelect(null);
+        onTextBoxSelect(null);
+      }
+      
       if (textRef.current && !textRef.current.contains(e.target as Node) && isTextSelected) {
         setIsTextSelected(false);
       }
@@ -179,7 +194,7 @@ export function JournalPreview({
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('click', handleGlobalClick);
     };
-  }, [isTextSelected]);
+  }, [isTextSelected, onIconSelect, onStickerSelect, onTextBoxSelect]);
 
   useEffect(() => {
     console.log("JournalPreview: Drawing mode changed to:", isDrawingMode);
@@ -221,8 +236,13 @@ export function JournalPreview({
 
   const handlePageClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    if (e.target === e.currentTarget || 
-        (target.classList && target.classList.contains('journal-page'))) {
+    
+    if (target.classList.contains('journal-page') || 
+        target.classList.contains('journal-page-background') || 
+        target === e.currentTarget || 
+        target === previewRef.current) {
+      
+      console.log("Clearing all selections from page click");
       setSelectedStickerId(null);
       setSelectedIconId(null);
       setSelectedTextBoxId(null);
@@ -305,7 +325,6 @@ export function JournalPreview({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-  // Touch event handler for dragging text
   const handleTextTouchStart = (e: React.TouchEvent) => {
     if (isDrawingMode) return;
     
@@ -401,12 +420,10 @@ export function JournalPreview({
     return styles;
   };
 
-  // Check if background is a gradient
   const isGradientBackground = backgroundImage && 
     typeof backgroundImage === 'string' &&
     backgroundImage.includes('linear-gradient');
 
-  // Check if background is a combined texture+color
   const isCombinedBackground = backgroundImage && 
     typeof backgroundImage === 'string' &&
     backgroundImage.includes('url') && 
@@ -449,7 +466,6 @@ export function JournalPreview({
     }
     
     if (isCombinedBackground) {
-      // Parse the combined background string to get both the texture and color
       return {
         background: backgroundImage, 
         backgroundSize: 'auto',
@@ -463,7 +479,7 @@ export function JournalPreview({
       console.log("Pattern background detected:", backgroundImage);
       return {
         backgroundImage: `url(${backgroundImage})`,
-        backgroundColor: '#e0e0e0', // Darker background for better contrast
+        backgroundColor: '#e0e0e0',
         backgroundSize: 'auto',
         backgroundRepeat: 'repeat',
         filter: filterValue,
@@ -493,15 +509,14 @@ export function JournalPreview({
   };
   
   const handleAddTextBox = () => {
-    // Only allow adding text boxes when not in drawing mode
     if (isDrawingMode) return;
     
     const newTextBox: TextBox = {
       id: uuidv4(),
       text: 'Double-click to edit this text box',
-      position: { x: 50, y: 15 }, // Center top of the page
-      width: 160, // Smaller width
-      height: 80, // Smaller height
+      position: { x: 50, y: 15 },
+      width: 160,
+      height: 80,
       font: font,
       fontSize: fontSize,
       fontWeight: fontWeight,
@@ -534,7 +549,7 @@ export function JournalPreview({
       <style>{printStyles}</style>
       <ScrollArea className="h-full w-full">
         <div className="flex items-center justify-center p-4 min-h-screen" onClick={handlePageClick}>
-          <div style={journalPageStyle} className="journal-page w-full max-w-4xl">
+          <div style={journalPageStyle} className="journal-page w-full max-w-4xl" onClick={handlePageClick}>
             {backgroundImage && (
               <div 
                 style={{
@@ -547,6 +562,7 @@ export function JournalPreview({
                   zIndex: 1
                 }}
                 className="journal-page-background"
+                onClick={handlePageClick}
               />
             )}
 
@@ -680,7 +696,6 @@ export function JournalPreview({
                 />
               ))}
               
-              {/* Add Text Box Button - hidden during printing */}
               {!isDrawingMode && !isPrinting && (
                 <button
                   className="absolute bottom-4 right-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full p-2 shadow-lg z-50 no-print"
