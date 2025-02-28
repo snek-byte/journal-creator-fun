@@ -422,7 +422,7 @@ export function JournalPreview({
             )}
             
             {selectedIconId && showIconControls && !isDialog && (
-              <div className="absolute z-10 right-4 bottom-4 flex gap-1">
+              <div className="absolute z-10 right-4 bottom-4 flex gap-0">
                 <Button
                   variant="outline"
                   size="sm"
@@ -466,7 +466,7 @@ export function JournalPreview({
 
   return (
     <div className="w-full lg:w-3/4 p-6 relative print:w-full print:p-0 min-h-[800px]">
-      <div className="absolute top-4 right-4 z-10 flex gap-2 print:hidden">
+      <div className="absolute top-4 right-4 z-10 flex gap-0.5 print:hidden">
         <StickerSelector onStickerSelect={handleStickerAdd} />
         
         {/* Use the IconSelector without children */}
