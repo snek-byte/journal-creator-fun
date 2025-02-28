@@ -13,9 +13,10 @@ interface Point {
 
 interface DrawingLayerProps {
   className?: string;
-  width: number;
-  height: number;
+  width?: number;
+  height?: number;
   onDrawingChange?: (dataUrl: string) => void;
+  initialDrawing?: string;
 }
 
 // Organized color palette - Primary colors
@@ -40,7 +41,7 @@ const brushTypes = [
   { name: 'Eraser', value: 'eraser', icon: <Eraser className="h-2.5 w-2.5" /> },
 ];
 
-export function DrawingLayer({ className, width, height, onDrawingChange }: DrawingLayerProps) {
+export function DrawingLayer({ className, width = 800, height = 600, onDrawingChange, initialDrawing }: DrawingLayerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -78,6 +79,15 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
     ctx.lineJoin = 'round';
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
+    // Load initial drawing if provided
+    if (initialDrawing) {
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0);
+      };
+      img.src = initialDrawing;
+    }
+    
     const emptyState = canvas.toDataURL();
     setUndoStack([emptyState]);
     
@@ -88,7 +98,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
         window.clearInterval(sprayInterval.current);
       }
     };
-  }, []);
+  }, [initialDrawing]);
 
   // Update brush settings when they change
   useEffect(() => {
@@ -142,6 +152,13 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
 
   const handleDragEnd = () => {
     setIsDragging(false);
+  };
+
+  const handleCloseDrawTool = () => {
+    setIsActive(false);
+    if (onDrawingChange) {
+      onDrawingChange('');
+    }
   };
 
   useEffect(() => {
@@ -509,10 +526,7 @@ export function DrawingLayer({ className, width, height, onDrawingChange }: Draw
               variant="ghost"
               size="icon"
               className="h-4 w-4 p-0 text-gray-400 hover:text-gray-600"
-              onClick={() => {
-                setIsActive(false);
-                onDrawingChange && onDrawingChange('');
-              }}
+              onClick={handleCloseDrawTool}
               type="button"
             >
               <X className="h-2.5 w-2.5" />

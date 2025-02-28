@@ -43,13 +43,13 @@ export function JournalStylingControls({
   const currentSize = parseInt(fontSize.replace('px', '')) || 16;
   
   return (
-    <div className="space-y-4 pt-0">
+    <div className="space-y-2 pt-0">
       {/* Text Styling Controls Section - Only visible when no emoji or icon is selected */}
       {!selectedIconId && !selectedEmojiId && (
-        <div className="space-y-3">
+        <div className="space-y-2">
           <h3 className="text-xs font-semibold tracking-tight">Text Styling</h3>
           
-          <div className="space-y-2">
+          <div className="space-y-1">
             <div className="space-y-0.5">
               <label className="text-[10px] font-medium">Text Style</label>
               <Select 
@@ -132,7 +132,7 @@ export function JournalStylingControls({
 
       {/* Icon Styling Section - Only visible when icon is selected */}
       {selectedIconId && (
-        <div className="space-y-3">
+        <div className="space-y-2">
           <h3 className="text-xs font-semibold tracking-tight">Icon Styling</h3>
           <div className="space-y-2 border-2 border-primary/10 bg-primary/5 p-3 rounded-md">
             <p className="text-[10px] text-primary/70 font-medium">
@@ -170,7 +170,7 @@ export function JournalStylingControls({
 
       {/* Emoji Styling Section - Only visible when emoji is selected */}
       {selectedEmojiId && onEmojiRotate && (
-        <div className="space-y-3">
+        <div className="space-y-2">
           <h3 className="text-xs font-semibold tracking-tight">Emoji Styling</h3>
           <div className="space-y-2 border-2 border-primary/10 bg-primary/5 p-3 rounded-md">
             <p className="text-[10px] text-primary/70 font-medium">
@@ -179,7 +179,7 @@ export function JournalStylingControls({
             
             <div className="space-y-0.5">
               <label className="text-[10px] font-medium">Emoji Size</label>
-              <div className="py-3">
+              <div className="py-2">
                 <Slider
                   defaultValue={[currentSize]}
                   min={12}
@@ -192,7 +192,7 @@ export function JournalStylingControls({
 
             <div className="space-y-0.5">
               <label className="text-[10px] font-medium">Rotation</label>
-              <div className="flex justify-between gap-2 mt-2">
+              <div className="flex justify-between gap-2 mt-1">
                 <Button 
                   size="sm" 
                   variant="outline" 

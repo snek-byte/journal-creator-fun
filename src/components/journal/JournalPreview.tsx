@@ -190,11 +190,26 @@ export function JournalPreview({
 
         {selectedSidebarItem && (
           <div className="bg-white border-r h-full w-64 overflow-y-auto shadow-md">
-            {selectedSidebarItem === 'stickers' && <StickerSelector onSelect={onStickerAdd} />}
-            {selectedSidebarItem === 'icons' && <IconSelector onSelect={onIconAdd} />}
-            {selectedSidebarItem === 'backgrounds' && <BackgroundImageSelector onSelect={onBackgroundSelect} />}
-            {selectedSidebarItem === 'drawing' && <DrawingLayer onDrawingChange={onDrawingChange} initialDrawing={drawing} />}
-            {selectedSidebarItem === 'filters' && <ImageFilterSelector onSelect={onFilterChange} />}
+            {selectedSidebarItem === 'stickers' && (
+              <StickerSelector onStickerSelect={onStickerAdd} />
+            )}
+            {selectedSidebarItem === 'icons' && (
+              <IconSelector onIconSelect={onIconAdd} />
+            )}
+            {selectedSidebarItem === 'backgrounds' && (
+              <BackgroundImageSelector onBackgroundSelect={onBackgroundSelect} />
+            )}
+            {selectedSidebarItem === 'drawing' && (
+              <DrawingLayer 
+                width={800} 
+                height={600} 
+                onDrawingChange={onDrawingChange} 
+                initialDrawing={drawing}
+              />
+            )}
+            {selectedSidebarItem === 'filters' && (
+              <ImageFilterSelector onFilterSelect={onFilterChange} />
+            )}
           </div>
         )}
       </div>
