@@ -160,7 +160,9 @@ export function JournalPreview({
   // This stops the general page click from affecting text position
   const handlePageClick = (e: React.MouseEvent) => {
     // Only deselect items if clicking on the background, not on any specific element
-    if (e.target === e.currentTarget || (e.target as HTMLElement).className.includes('journal-page')) {
+    if (e.target === e.currentTarget || 
+        ((e.target as HTMLElement).classList && 
+        (e.target as HTMLElement).classList.contains('journal-page'))) {
       setSelectedStickerId(null);
       setSelectedIconId(null);
       setIsTextSelected(false);
@@ -343,8 +345,7 @@ export function JournalPreview({
     // Regular image background
     console.log("Regular image background:", backgroundImage);
     return {
-      backgroundImage: backgroundImage.includes('http') ? `url(${backgroundImage})` : backgroundImage,
-      backgroundColor: backgroundImage.includes('placehold.co') ? backgroundImage.split('/')[3] : undefined,
+      backgroundImage: `url(${backgroundImage})`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       filter: filterValue,
