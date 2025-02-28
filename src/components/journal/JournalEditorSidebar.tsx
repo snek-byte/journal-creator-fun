@@ -241,7 +241,7 @@ export function JournalEditorSidebar({
               </div>
             </TabsContent>
 
-            <TabsContent value="style" className="mt-0 h-full">
+            <TabsContent value="style" className="mt-0 p-0">
               <JournalStylingControls
                 font={currentEntry.font}
                 fontSize={currentEntry.fontSize}

@@ -43,7 +43,7 @@ export function JournalStylingControls({
   const currentSize = parseInt(fontSize.replace('px', '')) || 16;
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 pt-0">
       {/* Text Styling Controls Section - Only visible when no emoji or icon is selected */}
       {!selectedIconId && !selectedEmojiId && (
         <div className="space-y-3">
