@@ -12,6 +12,7 @@ import { applyTextStyle, TextStyle } from '@/utils/unicodeTextStyles';
 import { toast } from "sonner";
 import { Plus } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface JournalPreviewProps {
   className?: string;
@@ -125,13 +126,10 @@ export function JournalPreview({
     boxShadow: '0 0 20px rgba(0, 0, 0, 0.1)',
     borderRadius: '8px', 
     width: '100%',
-    height: '100%',
-    position: 'absolute' as 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    minHeight: '600px', // Provide a minimum height
+    position: 'relative' as 'relative',
     overflow: 'hidden',
+    margin: '20px 0',
   };
 
   useEffect(() => {
@@ -445,161 +443,163 @@ export function JournalPreview({
   };
 
   return (
-    <div className={cn("relative flex-1 overflow-hidden bg-gray-50", className)}>
-      <div className="absolute inset-0 flex items-center justify-center p-4" onClick={handlePageClick}>
-        <div style={journalPageStyle} className="journal-page">
-          {backgroundImage && (
-            <div 
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                ...getBackgroundStyle(),
-                zIndex: 1
-              }}
-              className="journal-page-background"
-            />
-          )}
-
-          {!backgroundImage && filter && filter !== 'none' && (
-            <div 
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                filter: getCssFilter(),
-                zIndex: 1,
-                pointerEvents: 'none'
-              }}
-              className="journal-page-filter"
-            />
-          )}
-
-          <div className="relative h-full w-full" ref={previewRef}>
-            {localDrawing && !isDrawingMode && (
-              <img
-                src={localDrawing}
-                alt="Drawing"
-                className="absolute inset-0 z-20 pointer-events-none"
+    <div className={cn("relative flex-1 overflow-auto bg-gray-50", className)}>
+      <ScrollArea className="h-full w-full">
+        <div className="flex items-center justify-center p-4 min-h-screen" onClick={handlePageClick}>
+          <div style={journalPageStyle} className="journal-page w-full max-w-4xl">
+            {backgroundImage && (
+              <div 
                 style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
                   width: '100%',
                   height: '100%',
-                  objectFit: 'contain',
-                  filter: !backgroundImage ? getCssFilter() : undefined
+                  ...getBackgroundStyle(),
+                  zIndex: 1
                 }}
+                className="journal-page-background"
               />
             )}
 
-            {isDrawingMode && (
-              <div className="absolute inset-0 z-40">
-                <DrawingLayer
-                  width={previewWidth}
-                  height={previewHeight}
-                  onDrawingChange={handleDrawingChange}
-                  tool={drawingTool}
-                  color={drawingColor}
-                  brushSize={brushSize}
-                  initialDrawing={localDrawing}
-                  onClear={() => handleDrawingChange('')}
+            {!backgroundImage && filter && filter !== 'none' && (
+              <div 
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  filter: getCssFilter(),
+                  zIndex: 1,
+                  pointerEvents: 'none'
+                }}
+                className="journal-page-filter"
+              />
+            )}
+
+            <div className="relative h-full w-full min-h-[600px]" ref={previewRef}>
+              {localDrawing && !isDrawingMode && (
+                <img
+                  src={localDrawing}
+                  alt="Drawing"
+                  className="absolute inset-0 z-20 pointer-events-none"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    filter: !backgroundImage ? getCssFilter() : undefined
+                  }}
                 />
-              </div>
-            )}
+              )}
 
-            <div
-              ref={textRef}
-              className="absolute z-30 cursor-move whitespace-pre-wrap"
-              style={{
-                ...getTextStyles(),
-                left: `${textPosition.x}%`,
-                top: `${textPosition.y}%`,
-                transform: 'translate(-50%, -50%)',
-                filter: !backgroundImage ? getCssFilter() : undefined,
-                pointerEvents: isDrawingMode ? 'none' : 'auto'
-              }}
-              onMouseDown={handleTextElementDrag}
-              onClick={(e) => {
-                if (isDrawingMode) return;
-                e.stopPropagation();
-                setSelectedStickerId(null);
-                setSelectedIconId(null);
-                setSelectedTextBoxId(null);
-                setIsTextSelected(true);
-                onIconSelect('');
-                onStickerSelect(null);
-                onTextBoxSelect(null);
-              }}
-            >
-              {processText(text) || 'Start typing to add text...'}
-            </div>
+              {isDrawingMode && (
+                <div className="absolute inset-0 z-40">
+                  <DrawingLayer
+                    width={previewWidth}
+                    height={previewHeight}
+                    onDrawingChange={handleDrawingChange}
+                    tool={drawingTool}
+                    color={drawingColor}
+                    brushSize={brushSize}
+                    initialDrawing={localDrawing}
+                    onClear={() => handleDrawingChange('')}
+                  />
+                </div>
+              )}
 
-            {textBoxes.map((textBox) => (
-              <TextBoxComponent
-                key={textBox.id}
-                textBox={textBox}
-                selected={selectedTextBoxId === textBox.id}
-                containerRef={previewRef}
-                onSelect={handleTextBoxSelect}
-                onUpdate={onTextBoxUpdate}
-                onRemove={onTextBoxRemove}
-                isDrawingMode={isDrawingMode}
-                style={{ 
+              <div
+                ref={textRef}
+                className="absolute z-30 cursor-move whitespace-pre-wrap"
+                style={{
+                  ...getTextStyles(),
+                  left: `${textPosition.x}%`,
+                  top: `${textPosition.y}%`,
+                  transform: 'translate(-50%, -50%)',
                   filter: !backgroundImage ? getCssFilter() : undefined,
-                  zIndex: 35,
+                  pointerEvents: isDrawingMode ? 'none' : 'auto'
                 }}
-              />
-            ))}
-
-            {stickers && stickers.map((sticker) => (
-              <StickerContainer
-                key={sticker.id}
-                sticker={sticker}
-                selected={selectedStickerId === sticker.id}
-                onSelect={handleStickerSelect}
-                onMove={onStickerMove}
-                onResize={handleStickerResize}
-                containerRef={previewRef}
-                style={{ 
-                  filter: !backgroundImage ? getCssFilter() : undefined,
-                  pointerEvents: isDrawingMode ? 'none' : 'auto',
-                  zIndex: 30 
+                onMouseDown={handleTextElementDrag}
+                onClick={(e) => {
+                  if (isDrawingMode) return;
+                  e.stopPropagation();
+                  setSelectedStickerId(null);
+                  setSelectedIconId(null);
+                  setSelectedTextBoxId(null);
+                  setIsTextSelected(true);
+                  onIconSelect('');
+                  onStickerSelect(null);
+                  onTextBoxSelect(null);
                 }}
-              />
-            ))}
-
-            {icons && icons.map((icon) => (
-              <IconContainer
-                key={icon.id}
-                icon={icon}
-                selected={selectedIconId === icon.id}
-                onSelect={handleIconSelect}
-                onMove={onIconMove}
-                onUpdate={onIconUpdate}
-                containerRef={previewRef}
-                style={{ 
-                  filter: !backgroundImage ? getCssFilter() : undefined,
-                  pointerEvents: isDrawingMode ? 'none' : 'auto',
-                  zIndex: 30 
-                }}
-              />
-            ))}
-            
-            {/* Add Text Box Button */}
-            {!isDrawingMode && (
-              <button
-                className="absolute bottom-4 right-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full p-2 shadow-lg z-50"
-                onClick={handleAddTextBox}
-                title="Add Text Box"
               >
-                <Plus size={20} />
-              </button>
-            )}
+                {processText(text) || 'Start typing to add text...'}
+              </div>
+
+              {textBoxes.map((textBox) => (
+                <TextBoxComponent
+                  key={textBox.id}
+                  textBox={textBox}
+                  selected={selectedTextBoxId === textBox.id}
+                  containerRef={previewRef}
+                  onSelect={handleTextBoxSelect}
+                  onUpdate={onTextBoxUpdate}
+                  onRemove={onTextBoxRemove}
+                  isDrawingMode={isDrawingMode}
+                  style={{ 
+                    filter: !backgroundImage ? getCssFilter() : undefined,
+                    zIndex: 35,
+                  }}
+                />
+              ))}
+
+              {stickers && stickers.map((sticker) => (
+                <StickerContainer
+                  key={sticker.id}
+                  sticker={sticker}
+                  selected={selectedStickerId === sticker.id}
+                  onSelect={handleStickerSelect}
+                  onMove={onStickerMove}
+                  onResize={handleStickerResize}
+                  containerRef={previewRef}
+                  style={{ 
+                    filter: !backgroundImage ? getCssFilter() : undefined,
+                    pointerEvents: isDrawingMode ? 'none' : 'auto',
+                    zIndex: 30 
+                  }}
+                />
+              ))}
+
+              {icons && icons.map((icon) => (
+                <IconContainer
+                  key={icon.id}
+                  icon={icon}
+                  selected={selectedIconId === icon.id}
+                  onSelect={handleIconSelect}
+                  onMove={onIconMove}
+                  onUpdate={onIconUpdate}
+                  containerRef={previewRef}
+                  style={{ 
+                    filter: !backgroundImage ? getCssFilter() : undefined,
+                    pointerEvents: isDrawingMode ? 'none' : 'auto',
+                    zIndex: 30 
+                  }}
+                />
+              ))}
+              
+              {/* Add Text Box Button */}
+              {!isDrawingMode && (
+                <button
+                  className="absolute bottom-4 right-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full p-2 shadow-lg z-50"
+                  onClick={handleAddTextBox}
+                  title="Add Text Box"
+                >
+                  <Plus size={20} />
+                </button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </ScrollArea>
     </div>
   );
 }

@@ -198,7 +198,7 @@ export function JournalEditor() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50 overflow-auto">
       <JournalEditorSidebar 
         textareaRef={textareaRef}
         currentEntry={fullEntry}
