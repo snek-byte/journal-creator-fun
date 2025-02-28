@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Paintbrush, Search, RotateCw, Upload, ImagePlus } from "lucide-react";
+import { useJournalStore } from '@/store/journalStore';
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { gradients } from './config/editorConfig';
@@ -15,6 +16,7 @@ interface BackgroundImageSelectorProps {
 
 export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelectorProps) {
   const [activeTab, setActiveTab] = useState('gradient');
+  const { setBackgroundImage, setGradient } = useJournalStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
@@ -56,13 +58,14 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
   const [backgroundImages, setBackgroundImages] = useState(imageSets.nature);
 
   const handleGradientSelect = (gradient: string) => {
-    // Pass empty string as image URL to clear any background image
+    setGradient(gradient);
+    setBackgroundImage('');
     onImageSelect('');
-    // Pass the gradient as a class or style value that will be applied
     toast.success('Gradient background applied');
   };
 
   const handleBackgroundSelect = (imageUrl: string) => {
+    setBackgroundImage(imageUrl);
     onImageSelect(imageUrl);
     toast.success('Image background applied');
   };
@@ -179,7 +182,6 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
                     className="h-24 rounded-md overflow-hidden border hover:ring-2 hover:ring-primary transition-all"
                     style={{ background: gradient.value }}
                     aria-label={gradient.label}
-                    type="button"
                   />
                 ))}
               </div>
