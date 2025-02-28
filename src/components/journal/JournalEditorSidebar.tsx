@@ -13,7 +13,8 @@ import { BackgroundImageSelector } from './BackgroundImageSelector';
 import { ImageFilterSelector } from './ImageFilterSelector';
 import { DrawingLayer } from './DrawingLayer';
 import { Save, Printer, Mail, Undo, Redo, RotateCcw, Camera, Palette, ImageIcon, Pencil, Filter } from 'lucide-react';
-import { data as emojiData } from '@emoji-mart/data';
+// Fix for emoji-mart import
+import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import type { Mood, Sticker, Icon } from '@/types/journal';
 import { PopoverTrigger, Popover, PopoverContent } from '@/components/ui/popover';
@@ -218,7 +219,7 @@ export function JournalEditorSidebar({
                   </PopoverTrigger>
                   <PopoverContent className="w-full p-0" align="start">
                     <Picker 
-                      data={emojiData} 
+                      data={data} 
                       onEmojiSelect={handleEmojiPickerSelect}
                       theme="light"
                       previewPosition="none"
