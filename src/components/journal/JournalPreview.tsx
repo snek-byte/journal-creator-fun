@@ -246,6 +246,11 @@ export function JournalPreview({
     return text;
   };
 
+  // Log stickers for debugging
+  useEffect(() => {
+    console.log("Stickers in preview:", stickers);
+  }, [stickers]);
+
   return (
     <div className={cn("relative flex-1 overflow-hidden bg-white", className)}>
       <div
@@ -332,6 +337,10 @@ export function JournalPreview({
               alt="Sticker"
               className="w-full h-full object-contain"
               draggable={false}
+              onError={(e) => {
+                console.error(`Failed to load sticker image: ${sticker.url}`);
+                e.currentTarget.src = '/stickers/star.svg';
+              }}
             />
             
             {/* Resize handle - only shown when sticker is selected */}
