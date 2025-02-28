@@ -25,10 +25,30 @@ export function StickerContainer({
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isTouching, setIsTouching] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
   const stickerRef = useRef<HTMLDivElement>(null);
   
   const width = sticker.width || 100;
   const height = sticker.height || 100;
+  
+  // Detect when the page is being printed
+  useEffect(() => {
+    const handleBeforePrint = () => {
+      setIsPrinting(true);
+    };
+    
+    const handleAfterPrint = () => {
+      setIsPrinting(false);
+    };
+    
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+    
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+  }, []);
   
   // Handle keyboard navigation when sticker is selected
   useEffect(() => {
@@ -252,77 +272,90 @@ export function StickerContainer({
     onMove(sticker.id, { x: -1000, y: -1000 });
   };
   
+  // CSS for print mode
+  const printStyles = `
+    @media print {
+      .sticker-control {
+        display: none !important;
+      }
+    }
+  `;
+  
   return (
-    <div
-      ref={stickerRef}
-      className="absolute cursor-move select-none touch-none"
-      style={{
-        left: `${sticker.position.x}%`,
-        top: `${sticker.position.y}%`,
-        transform: 'translate(-50%, -50%)',
-        width: `${width}px`,
-        height: `${height}px`,
-        border: 'none',
-        zIndex: selected ? 30 : 20,
-        ...style
-      }}
-      onMouseDown={handleDragStart}
-      onTouchStart={handleTouchStart}
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect(sticker.id);
-      }}
-      role="button"
-      aria-label={`Sticker (use arrow keys to move, Delete to remove${onResize ? ', plus/minus to resize' : ''})`}
-      tabIndex={selected ? 0 : -1}
-    >
-      <img
-        src={sticker.url}
-        alt="Sticker"
-        className="w-full h-full object-contain"
-        draggable={false}
-        style={{ pointerEvents: 'none' }}
-      />
-      
-      {/* Delete button - shown when selected */}
-      {selected && (
-        <button
-          className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg"
-          onClick={handleDelete}
-          onTouchEnd={(e) => {
-            e.stopPropagation();
-            onMove(sticker.id, { x: -1000, y: -1000 });
-          }}
-          aria-label="Delete sticker"
-        >
-          <X size={14} />
-        </button>
-      )}
-      
-      {/* Resize handle */}
-      {selected && onResize && !isDragging && !isResizing && (
-        <div
-          className="absolute bottom-0 right-0 w-5 h-5 bg-white border border-gray-300 rounded-full cursor-se-resize transform translate-x-1/3 translate-y-1/3 flex items-center justify-center"
-          onMouseDown={handleResizeStart}
-          aria-label="Resize handle"
-          role="button"
-          tabIndex={-1}
-        >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="10" 
-            height="10" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
+    <>
+      <style>{printStyles}</style>
+      <div
+        ref={stickerRef}
+        className="absolute cursor-move select-none touch-none"
+        style={{
+          left: `${sticker.position.x}%`,
+          top: `${sticker.position.y}%`,
+          transform: 'translate(-50%, -50%)',
+          width: `${width}px`,
+          height: `${height}px`,
+          border: 'none',
+          zIndex: selected ? 30 : 20,
+          ...style
+        }}
+        onMouseDown={!isPrinting ? handleDragStart : undefined}
+        onTouchStart={!isPrinting ? handleTouchStart : undefined}
+        onClick={(e) => {
+          if (isPrinting) return;
+          e.stopPropagation();
+          onSelect(sticker.id);
+        }}
+        role="button"
+        aria-label={`Sticker (use arrow keys to move, Delete to remove${onResize ? ', plus/minus to resize' : ''})`}
+        tabIndex={selected && !isPrinting ? 0 : -1}
+      >
+        <img
+          src={sticker.url}
+          alt="Sticker"
+          className="w-full h-full object-contain"
+          draggable={false}
+          style={{ pointerEvents: 'none' }}
+        />
+        
+        {/* Delete button - shown when selected but not when printing */}
+        {selected && !isPrinting && (
+          <button
+            className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg sticker-control"
+            onClick={handleDelete}
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              onMove(sticker.id, { x: -1000, y: -1000 });
+            }}
+            aria-label="Delete sticker"
           >
-            <polygon points="16 3 21 8 8 21 3 21 3 16 16 3"></polygon>
-          </svg>
-        </div>
-      )}
-    </div>
+            <X size={14} />
+          </button>
+        )}
+        
+        {/* Resize handle - not shown when printing */}
+        {selected && onResize && !isDragging && !isResizing && !isPrinting && (
+          <div
+            className="absolute bottom-0 right-0 w-5 h-5 bg-white border border-gray-300 rounded-full cursor-se-resize transform translate-x-1/3 translate-y-1/3 flex items-center justify-center sticker-control"
+            onMouseDown={handleResizeStart}
+            aria-label="Resize handle"
+            role="button"
+            tabIndex={-1}
+          >
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="10" 
+              height="10" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <polygon points="16 3 21 8 8 21 3 21 3 16 16 3"></polygon>
+            </svg>
+          </div>
+        )}
+      </div>
+    </>
   );
 }

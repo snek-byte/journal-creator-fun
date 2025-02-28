@@ -111,6 +111,7 @@ export function JournalPreview({
   });
   
   const [isTextDragging, setIsTextDragging] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
   
   const [localDrawing, setLocalDrawing] = useState<string>(drawing || '');
   
@@ -120,6 +121,25 @@ export function JournalPreview({
       setLocalDrawing(drawing);
     }
   }, [drawing]);
+
+  // Detect print mode
+  useEffect(() => {
+    const handleBeforePrint = () => {
+      setIsPrinting(true);
+    };
+    
+    const handleAfterPrint = () => {
+      setIsPrinting(false);
+    };
+    
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+    
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+  }, []);
 
   const journalPageStyle = {
     backgroundColor: '#fff',
@@ -354,7 +374,7 @@ export function JournalPreview({
       minWidth: '100px',
       userSelect: 'none',
       touchAction: 'none',
-      border: isTextSelected && !isTextDragging ? '2px dashed rgba(59, 130, 246, 0.7)' : 'none',
+      border: isTextSelected && !isTextDragging && !isPrinting ? '2px dashed rgba(59, 130, 246, 0.7)' : 'none',
       borderRadius: '4px',
     };
     
@@ -497,8 +517,21 @@ export function JournalPreview({
     toast.success("New text box added");
   };
 
+  const printStyles = `
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      .journal-page {
+        box-shadow: none !important;
+        border: none !important;
+      }
+    }
+  `;
+
   return (
     <div className={cn("relative flex-1 overflow-auto bg-gray-50", className)}>
+      <style>{printStyles}</style>
       <ScrollArea className="h-full w-full">
         <div className="flex items-center justify-center p-4 min-h-screen" onClick={handlePageClick}>
           <div style={journalPageStyle} className="journal-page w-full max-w-4xl">
@@ -589,8 +622,8 @@ export function JournalPreview({
                 }}
               >
                 {processText(text) || 'Start typing to add text...'}
-                {isTextSelected && !isTextDragging && (
-                  <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-primary/70 text-primary-foreground px-2 py-1 rounded text-xs whitespace-nowrap">
+                {isTextSelected && !isTextDragging && !isPrinting && (
+                  <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-primary/70 text-primary-foreground px-2 py-1 rounded text-xs whitespace-nowrap no-print">
                     Touch and drag to move
                   </div>
                 )}
@@ -647,10 +680,10 @@ export function JournalPreview({
                 />
               ))}
               
-              {/* Add Text Box Button */}
-              {!isDrawingMode && (
+              {/* Add Text Box Button - hidden during printing */}
+              {!isDrawingMode && !isPrinting && (
                 <button
-                  className="absolute bottom-4 right-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full p-2 shadow-lg z-50"
+                  className="absolute bottom-4 right-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full p-2 shadow-lg z-50 no-print"
                   onClick={handleAddTextBox}
                   title="Add Text Box"
                 >

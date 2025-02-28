@@ -35,6 +35,26 @@ export function TextBoxComponent({
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
   const [isTouching, setIsTouching] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
+  
+  // Detect when the page is being printed
+  useEffect(() => {
+    const handleBeforePrint = () => {
+      setIsPrinting(true);
+    };
+    
+    const handleAfterPrint = () => {
+      setIsPrinting(false);
+    };
+    
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+    
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+  }, []);
   
   // Update container dimensions when the container resizes
   useEffect(() => {
@@ -195,87 +215,109 @@ export function TextBoxComponent({
     onRemove(id);
   };
   
+  // Create a CSS class for printing that hides UI elements
+  const printStyles = `
+    @media print {
+      .text-box-controls {
+        display: none !important;
+      }
+      .text-box-border {
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        ring: none !important;
+      }
+    }
+  `;
+  
   return (
-    <Rnd
-      style={{
-        ...style,
-        zIndex: selected ? zIndex + 10 : zIndex,
-        pointerEvents: isDrawingMode ? 'none' : 'auto',
-      }}
-      size={{ width: size.width, height: size.height }}
-      position={calculatePosition()}
-      onDragStop={handleDragStop}
-      onResizeStop={handleStopResize}
-      dragHandleClassName="textbox-drag-handle"
-      bounds="parent"
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect(id);
-      }}
-      enableResizing={selected && !isEditing}
-      disableDragging={isEditing}
-    >
-      <div 
-        className={cn(
-          "relative h-full w-full",
-          selected ? "ring-2 ring-primary ring-inset" : "ring-1 ring-transparent hover:ring-gray-300"
-        )}
-        onDoubleClick={handleDoubleClick}
+    <>
+      <style>{printStyles}</style>
+      <Rnd
+        style={{
+          ...style,
+          zIndex: selected ? zIndex + 10 : zIndex,
+          pointerEvents: isDrawingMode ? 'none' : 'auto',
+        }}
+        size={{ width: size.width, height: size.height }}
+        position={calculatePosition()}
+        onDragStop={handleDragStop}
+        onResizeStop={handleStopResize}
+        dragHandleClassName="textbox-drag-handle"
+        bounds="parent"
+        onClick={(e) => {
+          e.stopPropagation();
+          onSelect(id);
+        }}
+        enableResizing={selected && !isEditing && !isPrinting}
+        disableDragging={isEditing || isPrinting}
       >
-        {/* Delete button - always visible when selected */}
-        {selected && (
-          <button
-            className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg z-10"
-            onClick={handleDelete}
-            onTouchEnd={(e) => {
-              e.stopPropagation();
-              onRemove(id);
-            }}
-            aria-label="Delete text box"
-          >
-            <X size={14} />
-          </button>
-        )}
-        
-        {selected && !isEditing && (
-          <div className="absolute -top-2 -left-2 flex gap-1">
+        <div 
+          className={cn(
+            "relative h-full w-full text-box-border",
+            // Only show border when selected and not printing
+            selected && !isPrinting ? "ring-2 ring-primary ring-inset" : "ring-0 ring-transparent",
+            // When not selected but hovered and not printing
+            !selected && !isPrinting ? "hover:ring-1 hover:ring-gray-300" : ""
+          )}
+          onDoubleClick={handleDoubleClick}
+        >
+          {/* Delete button - only visible when selected and not printing */}
+          {selected && !isPrinting && (
             <button
-              className="bg-primary text-primary-foreground hover:bg-primary/90 p-1 rounded-full"
-              onClick={handleRotate}
-              title="Rotate"
+              className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg z-10 text-box-controls"
+              onClick={handleDelete}
+              onTouchEnd={(e) => {
+                e.stopPropagation();
+                onRemove(id);
+              }}
+              aria-label="Delete text box"
             >
-              <RotateCw size={12} />
+              <X size={14} />
             </button>
-          </div>
-        )}
-        
-        {/* Enhanced drag handle - larger for touch devices */}
-        {selected && !isEditing && (
-          <div className="textbox-drag-handle absolute top-1/2 left-0 -translate-x-full -translate-y-1/2 p-2 bg-primary/70 text-primary-foreground rounded-l-sm cursor-move">
-            <GripVertical size={16} />
-          </div>
-        )}
-        
-        {isEditing ? (
-          <Textarea
-            ref={textAreaRef}
-            value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
-            className="w-full h-full resize-none border-none focus-visible:ring-0 focus-visible:outline-none p-2"
-            style={{ ...getTextStyles(), border: 'none' }}
-            autoFocus
-          />
-        ) : (
-          <div
-            className="w-full h-full whitespace-pre-wrap overflow-hidden"
-            style={getTextStyles()}
-          >
-            {processText(text) || 'Double-click to edit'}
-          </div>
-        )}
-      </div>
-    </Rnd>
+          )}
+          
+          {/* Rotate button - only visible when selected and not printing */}
+          {selected && !isEditing && !isPrinting && (
+            <div className="absolute -top-2 -left-2 flex gap-1 text-box-controls">
+              <button
+                className="bg-primary text-primary-foreground hover:bg-primary/90 p-1 rounded-full"
+                onClick={handleRotate}
+                title="Rotate"
+              >
+                <RotateCw size={12} />
+              </button>
+            </div>
+          )}
+          
+          {/* Drag handle - only visible when selected, not editing, and not printing */}
+          {selected && !isEditing && !isPrinting && (
+            <div className="textbox-drag-handle absolute top-1/2 left-0 -translate-x-full -translate-y-1/2 p-2 bg-primary/70 text-primary-foreground rounded-l-sm cursor-move text-box-controls">
+              <GripVertical size={16} />
+            </div>
+          )}
+          
+          {isEditing ? (
+            <Textarea
+              ref={textAreaRef}
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
+              className="w-full h-full resize-none border-none focus-visible:ring-0 focus-visible:outline-none p-2"
+              style={{ ...getTextStyles(), border: 'none' }}
+              autoFocus
+            />
+          ) : (
+            <div
+              className="w-full h-full whitespace-pre-wrap overflow-hidden"
+              style={getTextStyles()}
+            >
+              {processText(text) || 'Double-click to edit'}
+            </div>
+          )}
+        </div>
+      </Rnd>
+    </>
   );
 }
