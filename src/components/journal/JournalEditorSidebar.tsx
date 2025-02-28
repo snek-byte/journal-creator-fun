@@ -39,12 +39,12 @@ import {
   Wand2
 } from "lucide-react";
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
-import type { Mood, DailyChallengeData, JournalEntry } from '@/types/journal';
+import type { Mood, Challenge } from '@/types/journal';
 
 interface JournalEditorSidebarProps {
   textareaRef?: React.RefObject<HTMLTextAreaElement>;
-  currentEntry: JournalEntry;
-  dailyChallenge?: DailyChallengeData;
+  currentEntry: any;
+  dailyChallenge?: Challenge | null;
   selectedIconId?: string | null;
   selectedStickerId?: string | null;
   handlePrint: () => void;
@@ -212,9 +212,9 @@ export function JournalEditorSidebar({
         <TabsContent value="write" className="space-y-4">
           {dailyChallenge && (
             <DailyChallenge 
-              challenge={dailyChallenge} 
-              onApply={applyChallenge}
+              dailyChallenge={dailyChallenge} 
               onRefresh={loadChallenge}
+              onApply={applyChallenge}
             />
           )}
           
@@ -232,8 +232,10 @@ export function JournalEditorSidebar({
             </div>
             
             <MoodSelector 
-              selectedMood={currentEntry.mood} 
-              onMoodSelect={setMood} 
+              mood={currentEntry.mood} 
+              isPublic={currentEntry.isPublic}
+              onMoodChange={setMood}
+              onIsPublicChange={setIsPublic} 
             />
           </div>
           
@@ -334,7 +336,6 @@ export function JournalEditorSidebar({
           <div className="space-y-4 pt-4">
             <ImageFilterSelector
               onFilterChange={onFilterChange}
-              currentFilter={currentEntry.filter || 'none'}
             />
           </div>
         </TabsContent>
