@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Maximize2, Trash2, Pencil, Filter, FileImage, X } from 'lucide-react';
@@ -528,16 +529,30 @@ export function JournalPreview({
                 tabIndex={0}
               >
                 {icon.style === 'outline' ? (
-                  <img
-                    src={icon.url}
-                    alt="Icon"
-                    style={{
-                      width: `${icon.size || 48}px`,
-                      height: `${icon.size || 48}px`,
-                      filter: icon.color ? `invert(1) sepia(1) saturate(5) hue-rotate(calc(${getHueRotate(icon.color)}deg))` : undefined,
-                    }}
-                    draggable={false}
-                  />
+                  <div style={{
+                    width: `${icon.size || 48}px`,
+                    height: `${icon.size || 48}px`,
+                    position: 'relative', 
+                    isolation: 'isolate',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      backgroundColor: icon.color || 'currentColor',
+                      WebkitMaskImage: `url(${icon.url})`,
+                      maskImage: `url(${icon.url})`,
+                      WebkitMaskSize: 'contain',
+                      maskSize: 'contain',
+                      WebkitMaskRepeat: 'no-repeat',
+                      maskRepeat: 'no-repeat',
+                      WebkitMaskPosition: 'center',
+                      maskPosition: 'center',
+                    }} />
+                  </div>
                 ) : (
                   <img
                     src={icon.url}
