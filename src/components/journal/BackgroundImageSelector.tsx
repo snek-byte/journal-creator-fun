@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Paintbrush, Search, RotateCw, Upload, ImagePlus } from "lucide-react";
+import { Paintbrush, Search, RotateCw, Upload, ImagePlus } from 'lucide-react';
 import { useJournalStore } from '@/store/journalStore';
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -134,9 +134,11 @@ export function BackgroundImageSelector({ onImageSelect }: BackgroundImageSelect
       return;
     }
 
+    // Read the file as a data URL
     const reader = new FileReader();
     reader.onload = (e) => {
       if (typeof e.target?.result === 'string') {
+        // Apply the data URL as the background image
         handleBackgroundSelect(e.target.result);
       }
     };
