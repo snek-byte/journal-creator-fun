@@ -102,7 +102,7 @@ export function JournalEditorSidebar({
 
   return (
     <div className="w-full lg:w-1/4 p-6 flex flex-col max-h-screen overflow-hidden">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-2">
         <h1 className="text-2xl font-bold">Journal</h1>
         <div className="flex gap-2">
           {handleUndo && (
@@ -149,7 +149,7 @@ export function JournalEditorSidebar({
           onValueChange={setActiveTab}
           className="h-full flex flex-col"
         >
-          <TabsList className="grid grid-cols-2 mb-2">
+          <TabsList className="grid grid-cols-2 mb-0">
             <TabsTrigger value="write">
               <Text className="h-4 w-4 mr-2" />
               Write
@@ -241,7 +241,7 @@ export function JournalEditorSidebar({
               </div>
             </TabsContent>
 
-            <TabsContent value="style" className="m-0 p-0 pt-2">
+            <TabsContent value="style" className="m-0 p-0">
               <JournalStylingControls
                 font={currentEntry.font}
                 fontSize={currentEntry.fontSize}

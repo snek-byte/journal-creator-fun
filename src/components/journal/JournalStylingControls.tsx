@@ -43,17 +43,17 @@ export function JournalStylingControls({
   const currentSize = parseInt(fontSize.replace('px', '')) || 16;
   
   return (
-    <div className="mt-0 pt-0">
+    <div className="mt-0 pt-0 -mx-4 -mt-2">
       {/* Text Styling Controls Section - Only visible when no emoji or icon is selected */}
       {!selectedIconId && !selectedEmojiId && (
-        <div className="space-y-1 mt-0 pt-0">
-          <div className="mt-0 pt-0">
+        <div className="space-y-1">
+          <div>
             <label className="text-[10px] font-medium">Text Style</label>
             <Select 
               onValueChange={onTextStyleChange} 
               defaultValue="normal"
             >
-              <SelectTrigger className="h-7 text-[10px] mt-0.5">
+              <SelectTrigger className="h-7 text-[10px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -69,7 +69,7 @@ export function JournalStylingControls({
           <div>
             <label className="text-[10px] font-medium">Font Family</label>
             <Select value={font} onValueChange={onFontChange}>
-              <SelectTrigger className="h-7 text-[10px] mt-0.5">
+              <SelectTrigger className="h-7 text-[10px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -85,7 +85,7 @@ export function JournalStylingControls({
           <div>
             <label className="text-[10px] font-medium">Font Size</label>
             <Select value={fontSize} onValueChange={onFontSizeChange}>
-              <SelectTrigger className="h-7 text-[10px] mt-0.5">
+              <SelectTrigger className="h-7 text-[10px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -101,7 +101,7 @@ export function JournalStylingControls({
           <div>
             <label className="text-[10px] font-medium">Font Weight</label>
             <Select value={fontWeight} onValueChange={onFontWeightChange}>
-              <SelectTrigger className="h-7 text-[10px] mt-0.5">
+              <SelectTrigger className="h-7 text-[10px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -120,7 +120,7 @@ export function JournalStylingControls({
               type="color"
               value={fontColor}
               onChange={(e) => onFontColorChange(e.target.value)}
-              className="w-full h-7 rounded-md cursor-pointer mt-0.5"
+              className="w-full h-7 rounded-md cursor-pointer"
             />
           </div>
         </div>
@@ -128,7 +128,7 @@ export function JournalStylingControls({
 
       {/* Icon Styling Section - Only visible when icon is selected */}
       {selectedIconId && (
-        <div className="border-2 border-primary/10 bg-primary/5 p-2 rounded-md mt-0">
+        <div className="border-2 border-primary/10 bg-primary/5 p-2 rounded-md">
           <p className="text-[10px] text-primary/70 font-medium mb-1">
             Editing Icon
           </p>
@@ -136,7 +136,7 @@ export function JournalStylingControls({
           <div>
             <label className="text-[10px] font-medium">Icon Size</label>
             <Select value={fontSize} onValueChange={onFontSizeChange}>
-              <SelectTrigger className="h-7 text-[10px] mt-0.5">
+              <SelectTrigger className="h-7 text-[10px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -155,7 +155,7 @@ export function JournalStylingControls({
               type="color"
               value={fontColor}
               onChange={(e) => onFontColorChange(e.target.value)}
-              className="w-full h-7 rounded-md cursor-pointer mt-0.5"
+              className="w-full h-7 rounded-md cursor-pointer"
             />
           </div>
         </div>
@@ -163,14 +163,14 @@ export function JournalStylingControls({
 
       {/* Emoji Styling Section - Only visible when emoji is selected */}
       {selectedEmojiId && onEmojiRotate && (
-        <div className="border-2 border-primary/10 bg-primary/5 p-2 rounded-md mt-0">
+        <div className="border-2 border-primary/10 bg-primary/5 p-2 rounded-md">
           <p className="text-[10px] text-primary/70 font-medium mb-1">
             Editing Emoji
           </p>
           
           <div>
             <label className="text-[10px] font-medium">Emoji Size</label>
-            <div className="py-1 mt-0.5">
+            <div className="py-1">
               <Slider
                 defaultValue={[currentSize]}
                 min={12}
@@ -183,7 +183,7 @@ export function JournalStylingControls({
 
           <div className="mt-1">
             <label className="text-[10px] font-medium">Rotation</label>
-            <div className="flex justify-between gap-2 mt-0.5">
+            <div className="flex justify-between gap-2">
               <Button 
                 size="sm" 
                 variant="outline" 
