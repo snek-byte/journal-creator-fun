@@ -1,51 +1,50 @@
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import React from 'react';
+import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { moodOptions } from "./config/editorConfig";
+import { moodOptions } from './config/editorConfig';
 import type { Mood } from '@/types/journal';
 
 interface MoodSelectorProps {
   mood?: Mood;
   isPublic: boolean;
-  onMoodChange: (value: Mood) => void;
-  onIsPublicChange: (value: boolean) => void;
+  onMoodChange: (mood: Mood) => void;
+  onIsPublicChange: (isPublic: boolean) => void;
 }
 
 export function MoodSelector({
   mood,
   isPublic,
   onMoodChange,
-  onIsPublicChange,
+  onIsPublicChange
 }: MoodSelectorProps) {
   return (
-    <div className="space-y-2">
-      <div className="space-y-0.5">
-        <label className="text-[10px] font-medium">How are you feeling?</label>
-        <Select 
-          value={mood} 
-          onValueChange={onMoodChange}
-        >
-          <SelectTrigger className="h-7 text-[10px]">
-            <SelectValue placeholder="Select your mood" />
-          </SelectTrigger>
-          <SelectContent>
-            {moodOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value} className="text-[10px]">
-                <span className="flex items-center gap-1">
-                  {option.icon} {option.label}
-                </span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-sm font-medium mb-2">Today's Mood</h3>
+        <div className="grid grid-cols-5 gap-1">
+          {moodOptions.map((option) => (
+            <Button
+              key={option.value}
+              variant={mood === option.value ? "default" : "outline"}
+              className="h-10 px-0"
+              onClick={() => onMoodChange(option.value as Mood)}
+              title={option.label}
+            >
+              <span className="emoji" role="img" aria-label={option.label}>
+                {option.icon}
+              </span>
+            </Button>
+          ))}
+        </div>
       </div>
 
       <div className="flex items-center justify-between">
-        <label className="text-[10px] font-medium">Make Entry Public</label>
+        <span className="text-sm font-medium">Make Public</span>
         <Switch
           checked={isPublic}
           onCheckedChange={onIsPublicChange}
-          className="scale-[0.65] data-[state=checked]:bg-violet-500"
+          aria-label="Toggle public sharing"
         />
       </div>
     </div>
