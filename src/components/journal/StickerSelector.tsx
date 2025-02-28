@@ -49,7 +49,7 @@ interface StoreSticker {
   title: string;
   category: string;
   keywords: string[];
-  source: 'local' | 'giphy' | 'pixabay';
+  source: 'local' | 'giphy' | 'pixabay' | 'unsplash' | 'flaticon';
   isTransparent?: boolean;
 }
 
@@ -71,6 +71,7 @@ export function StickerSelector({
   // API Keys (these are public API keys - free tier)
   const GIPHY_API_KEY = 'GlVGYHkr3WSBnllca54iNt0yFbjz7L65';
   const PIXABAY_API_KEY = '36933588-c28bbd3088d23da8dad6740f4';
+  const PEXELS_API_KEY = '2VQ6S6tGK8fQS0WKF2UpXWjPCKoAp1GcjIoJCtdUDfwX5jqCPiUiLaZh';
   
   // Update local size when prop changes
   useEffect(() => {
@@ -91,22 +92,90 @@ export function StickerSelector({
       { id: 'cake', url: '/stickers/cake.svg', title: 'Cake', category: 'celebration', keywords: ['cake', 'birthday', 'celebration', 'dessert'], source: 'local', isTransparent: true },
       { id: 'camera', url: '/stickers/camera.svg', title: 'Camera', category: 'objects', keywords: ['camera', 'photo', 'picture'], source: 'local', isTransparent: true },
       
-      // Flaticon transparent stickers with attribution
-      { id: 'cat1', url: 'https://cdn-icons-png.flaticon.com/512/1864/1864514.png', title: 'Cat', category: 'animals', keywords: ['cat', 'pet', 'animal'], source: 'local', isTransparent: true },
-      { id: 'dog1', url: 'https://cdn-icons-png.flaticon.com/512/1864/1864593.png', title: 'Dog', category: 'animals', keywords: ['dog', 'pet', 'animal'], source: 'local', isTransparent: true },
-      { id: 'flower1', url: 'https://cdn-icons-png.flaticon.com/512/826/826957.png', title: 'Flower', category: 'nature', keywords: ['flower', 'plant', 'nature'], source: 'local', isTransparent: true },
-      { id: 'tree1', url: 'https://cdn-icons-png.flaticon.com/512/489/489969.png', title: 'Tree', category: 'nature', keywords: ['tree', 'plant', 'nature'], source: 'local', isTransparent: true },
-      { id: 'sun1', url: 'https://cdn-icons-png.flaticon.com/512/869/869869.png', title: 'Sun', category: 'weather', keywords: ['sun', 'weather', 'sunny'], source: 'local', isTransparent: true },
-      { id: 'cloud1', url: 'https://cdn-icons-png.flaticon.com/512/414/414927.png', title: 'Cloud', category: 'weather', keywords: ['cloud', 'weather', 'cloudy'], source: 'local', isTransparent: true },
-      { id: 'rainbow1', url: 'https://cdn-icons-png.flaticon.com/512/4838/4838145.png', title: 'Rainbow', category: 'weather', keywords: ['rainbow', 'weather', 'colorful'], source: 'local', isTransparent: true },
-      { id: 'pizza1', url: 'https://cdn-icons-png.flaticon.com/512/3595/3595455.png', title: 'Pizza', category: 'food', keywords: ['pizza', 'food', 'meal'], source: 'local', isTransparent: true },
-      { id: 'icecream1', url: 'https://cdn-icons-png.flaticon.com/512/938/938063.png', title: 'Ice Cream', category: 'food', keywords: ['ice cream', 'dessert', 'cold'], source: 'local', isTransparent: true },
-      { id: 'coffee1', url: 'https://cdn-icons-png.flaticon.com/512/924/924514.png', title: 'Coffee', category: 'food', keywords: ['coffee', 'drink', 'hot'], source: 'local', isTransparent: true },
-      { id: 'plane1', url: 'https://cdn-icons-png.flaticon.com/512/3126/3126609.png', title: 'Plane', category: 'travel', keywords: ['plane', 'travel', 'airplane', 'flight'], source: 'local', isTransparent: true },
-      { id: 'suitcase1', url: 'https://cdn-icons-png.flaticon.com/512/2553/2553627.png', title: 'Suitcase', category: 'travel', keywords: ['suitcase', 'travel', 'luggage'], source: 'local', isTransparent: true },
-      { id: 'map1', url: 'https://cdn-icons-png.flaticon.com/512/854/854878.png', title: 'Map', category: 'travel', keywords: ['map', 'travel', 'location', 'direction'], source: 'local', isTransparent: true },
-      { id: 'book1', url: 'https://cdn-icons-png.flaticon.com/512/3616/3616986.png', title: 'Book', category: 'school', keywords: ['book', 'study', 'reading', 'education'], source: 'local', isTransparent: true },
-      { id: 'pencil1', url: 'https://cdn-icons-png.flaticon.com/512/2919/2919592.png', title: 'Pencil', category: 'school', keywords: ['pencil', 'write', 'drawing', 'education'], source: 'local', isTransparent: true },
+      // Flaticon transparent stickers with attribution - Animals
+      { id: 'cat1', url: 'https://cdn-icons-png.flaticon.com/512/1864/1864514.png', title: 'Cat', category: 'animals', keywords: ['cat', 'pet', 'animal'], source: 'flaticon', isTransparent: true },
+      { id: 'dog1', url: 'https://cdn-icons-png.flaticon.com/512/1864/1864593.png', title: 'Dog', category: 'animals', keywords: ['dog', 'pet', 'animal'], source: 'flaticon', isTransparent: true },
+      { id: 'rabbit1', url: 'https://cdn-icons-png.flaticon.com/512/3069/3069172.png', title: 'Rabbit', category: 'animals', keywords: ['rabbit', 'bunny', 'pet', 'animal'], source: 'flaticon', isTransparent: true },
+      { id: 'elephant1', url: 'https://cdn-icons-png.flaticon.com/512/2395/2395796.png', title: 'Elephant', category: 'animals', keywords: ['elephant', 'animal', 'wildlife'], source: 'flaticon', isTransparent: true },
+      { id: 'lion1', url: 'https://cdn-icons-png.flaticon.com/512/616/616412.png', title: 'Lion', category: 'animals', keywords: ['lion', 'animal', 'wildlife'], source: 'flaticon', isTransparent: true },
+      { id: 'giraffe1', url: 'https://cdn-icons-png.flaticon.com/512/2395/2395752.png', title: 'Giraffe', category: 'animals', keywords: ['giraffe', 'animal', 'wildlife'], source: 'flaticon', isTransparent: true },
+      { id: 'monkey1', url: 'https://cdn-icons-png.flaticon.com/512/1998/1998610.png', title: 'Monkey', category: 'animals', keywords: ['monkey', 'animal', 'wildlife'], source: 'flaticon', isTransparent: true },
+      { id: 'penguin1', url: 'https://cdn-icons-png.flaticon.com/512/2395/2395766.png', title: 'Penguin', category: 'animals', keywords: ['penguin', 'animal', 'bird'], source: 'flaticon', isTransparent: true },
+      { id: 'fish1', url: 'https://cdn-icons-png.flaticon.com/512/1728/1728939.png', title: 'Fish', category: 'animals', keywords: ['fish', 'animal', 'sea'], source: 'flaticon', isTransparent: true },
+      { id: 'turtle1', url: 'https://cdn-icons-png.flaticon.com/512/5964/5964985.png', title: 'Turtle', category: 'animals', keywords: ['turtle', 'animal', 'reptile'], source: 'flaticon', isTransparent: true },
+      { id: 'fox1', url: 'https://cdn-icons-png.flaticon.com/512/4663/4663450.png', title: 'Fox', category: 'animals', keywords: ['fox', 'animal', 'wildlife'], source: 'flaticon', isTransparent: true },
+      { id: 'owl1', url: 'https://cdn-icons-png.flaticon.com/512/3069/3069167.png', title: 'Owl', category: 'animals', keywords: ['owl', 'animal', 'bird'], source: 'flaticon', isTransparent: true },
+      
+      // Nature
+      { id: 'flower1', url: 'https://cdn-icons-png.flaticon.com/512/826/826957.png', title: 'Flower', category: 'nature', keywords: ['flower', 'plant', 'nature'], source: 'flaticon', isTransparent: true },
+      { id: 'tree1', url: 'https://cdn-icons-png.flaticon.com/512/489/489969.png', title: 'Tree', category: 'nature', keywords: ['tree', 'plant', 'nature'], source: 'flaticon', isTransparent: true },
+      { id: 'sun1', url: 'https://cdn-icons-png.flaticon.com/512/869/869869.png', title: 'Sun', category: 'nature', keywords: ['sun', 'weather', 'sunny'], source: 'flaticon', isTransparent: true },
+      { id: 'cloud1', url: 'https://cdn-icons-png.flaticon.com/512/414/414927.png', title: 'Cloud', category: 'nature', keywords: ['cloud', 'weather', 'cloudy'], source: 'flaticon', isTransparent: true },
+      { id: 'rainbow1', url: 'https://cdn-icons-png.flaticon.com/512/4838/4838145.png', title: 'Rainbow', category: 'nature', keywords: ['rainbow', 'weather', 'colorful'], source: 'flaticon', isTransparent: true },
+      { id: 'leaf1', url: 'https://cdn-icons-png.flaticon.com/512/2925/2925577.png', title: 'Leaf', category: 'nature', keywords: ['leaf', 'plant', 'nature'], source: 'flaticon', isTransparent: true },
+      { id: 'cactus1', url: 'https://cdn-icons-png.flaticon.com/512/2933/2933707.png', title: 'Cactus', category: 'nature', keywords: ['cactus', 'plant', 'nature'], source: 'flaticon', isTransparent: true },
+      { id: 'moon1', url: 'https://cdn-icons-png.flaticon.com/512/1812/1812654.png', title: 'Moon', category: 'nature', keywords: ['moon', 'night', 'sky'], source: 'flaticon', isTransparent: true },
+      { id: 'raindrop1', url: 'https://cdn-icons-png.flaticon.com/512/427/427112.png', title: 'Raindrop', category: 'nature', keywords: ['raindrop', 'rain', 'water'], source: 'flaticon', isTransparent: true },
+      { id: 'snowflake1', url: 'https://cdn-icons-png.flaticon.com/512/2942/2942441.png', title: 'Snowflake', category: 'nature', keywords: ['snowflake', 'snow', 'winter'], source: 'flaticon', isTransparent: true },
+      { id: 'mountain1', url: 'https://cdn-icons-png.flaticon.com/512/1497/1497000.png', title: 'Mountain', category: 'nature', keywords: ['mountain', 'nature', 'landscape'], source: 'flaticon', isTransparent: true },
+      { id: 'planet1', url: 'https://cdn-icons-png.flaticon.com/512/3594/3594414.png', title: 'Planet', category: 'nature', keywords: ['planet', 'space', 'astronomy'], source: 'flaticon', isTransparent: true },
+      
+      // Food
+      { id: 'pizza1', url: 'https://cdn-icons-png.flaticon.com/512/3595/3595455.png', title: 'Pizza', category: 'food', keywords: ['pizza', 'food', 'meal'], source: 'flaticon', isTransparent: true },
+      { id: 'icecream1', url: 'https://cdn-icons-png.flaticon.com/512/938/938063.png', title: 'Ice Cream', category: 'food', keywords: ['ice cream', 'dessert', 'cold'], source: 'flaticon', isTransparent: true },
+      { id: 'coffee1', url: 'https://cdn-icons-png.flaticon.com/512/924/924514.png', title: 'Coffee', category: 'food', keywords: ['coffee', 'drink', 'hot'], source: 'flaticon', isTransparent: true },
+      { id: 'burger1', url: 'https://cdn-icons-png.flaticon.com/512/3075/3075977.png', title: 'Burger', category: 'food', keywords: ['burger', 'food', 'fast food'], source: 'flaticon', isTransparent: true },
+      { id: 'fruit1', url: 'https://cdn-icons-png.flaticon.com/512/415/415682.png', title: 'Apple', category: 'food', keywords: ['apple', 'fruit', 'food'], source: 'flaticon', isTransparent: true },
+      { id: 'donut1', url: 'https://cdn-icons-png.flaticon.com/512/541/541732.png', title: 'Donut', category: 'food', keywords: ['donut', 'dessert', 'sweet'], source: 'flaticon', isTransparent: true },
+      { id: 'cake2', url: 'https://cdn-icons-png.flaticon.com/512/3637/3637252.png', title: 'Birthday Cake', category: 'food', keywords: ['cake', 'birthday', 'dessert'], source: 'flaticon', isTransparent: true },
+      { id: 'sushi1', url: 'https://cdn-icons-png.flaticon.com/512/2252/2252075.png', title: 'Sushi', category: 'food', keywords: ['sushi', 'japanese', 'food'], source: 'flaticon', isTransparent: true },
+      { id: 'taco1', url: 'https://cdn-icons-png.flaticon.com/512/189/189046.png', title: 'Taco', category: 'food', keywords: ['taco', 'mexican', 'food'], source: 'flaticon', isTransparent: true },
+      { id: 'cupcake1', url: 'https://cdn-icons-png.flaticon.com/512/992/992763.png', title: 'Cupcake', category: 'food', keywords: ['cupcake', 'dessert', 'sweet'], source: 'flaticon', isTransparent: true },
+      { id: 'cookie1', url: 'https://cdn-icons-png.flaticon.com/512/1047/1047711.png', title: 'Cookie', category: 'food', keywords: ['cookie', 'dessert', 'sweet'], source: 'flaticon', isTransparent: true },
+      { id: 'watermelon1', url: 'https://cdn-icons-png.flaticon.com/512/874/874997.png', title: 'Watermelon', category: 'food', keywords: ['watermelon', 'fruit', 'food'], source: 'flaticon', isTransparent: true },
+      
+      // Travel
+      { id: 'plane1', url: 'https://cdn-icons-png.flaticon.com/512/3126/3126609.png', title: 'Plane', category: 'travel', keywords: ['plane', 'travel', 'airplane', 'flight'], source: 'flaticon', isTransparent: true },
+      { id: 'suitcase1', url: 'https://cdn-icons-png.flaticon.com/512/2553/2553627.png', title: 'Suitcase', category: 'travel', keywords: ['suitcase', 'travel', 'luggage'], source: 'flaticon', isTransparent: true },
+      { id: 'map1', url: 'https://cdn-icons-png.flaticon.com/512/854/854878.png', title: 'Map', category: 'travel', keywords: ['map', 'travel', 'location', 'direction'], source: 'flaticon', isTransparent: true },
+      { id: 'car1', url: 'https://cdn-icons-png.flaticon.com/512/3097/3097144.png', title: 'Car', category: 'travel', keywords: ['car', 'travel', 'vehicle'], source: 'flaticon', isTransparent: true },
+      { id: 'bus1', url: 'https://cdn-icons-png.flaticon.com/512/1023/1023435.png', title: 'Bus', category: 'travel', keywords: ['bus', 'travel', 'transport'], source: 'flaticon', isTransparent: true },
+      { id: 'train1', url: 'https://cdn-icons-png.flaticon.com/512/3066/3066994.png', title: 'Train', category: 'travel', keywords: ['train', 'travel', 'transport'], source: 'flaticon', isTransparent: true },
+      { id: 'boat1', url: 'https://cdn-icons-png.flaticon.com/512/2055/2055058.png', title: 'Boat', category: 'travel', keywords: ['boat', 'travel', 'ship'], source: 'flaticon', isTransparent: true },
+      { id: 'passport1', url: 'https://cdn-icons-png.flaticon.com/512/1147/1147129.png', title: 'Passport', category: 'travel', keywords: ['passport', 'travel', 'document'], source: 'flaticon', isTransparent: true },
+      { id: 'compass1', url: 'https://cdn-icons-png.flaticon.com/512/3106/3106703.png', title: 'Compass', category: 'travel', keywords: ['compass', 'travel', 'navigation'], source: 'flaticon', isTransparent: true },
+      { id: 'hotel1', url: 'https://cdn-icons-png.flaticon.com/512/1285/1285089.png', title: 'Hotel', category: 'travel', keywords: ['hotel', 'travel', 'accommodation'], source: 'flaticon', isTransparent: true },
+      { id: 'beach1', url: 'https://cdn-icons-png.flaticon.com/512/7794/7794575.png', title: 'Beach', category: 'travel', keywords: ['beach', 'travel', 'vacation'], source: 'flaticon', isTransparent: true },
+      { id: 'mountains1', url: 'https://cdn-icons-png.flaticon.com/512/2939/2939889.png', title: 'Mountains', category: 'travel', keywords: ['mountains', 'travel', 'hiking'], source: 'flaticon', isTransparent: true },
+      
+      // School
+      { id: 'book1', url: 'https://cdn-icons-png.flaticon.com/512/3616/3616986.png', title: 'Book', category: 'school', keywords: ['book', 'study', 'reading', 'education'], source: 'flaticon', isTransparent: true },
+      { id: 'pencil1', url: 'https://cdn-icons-png.flaticon.com/512/2919/2919592.png', title: 'Pencil', category: 'school', keywords: ['pencil', 'write', 'drawing', 'education'], source: 'flaticon', isTransparent: true },
+      { id: 'backpack1', url: 'https://cdn-icons-png.flaticon.com/512/2553/2553685.png', title: 'Backpack', category: 'school', keywords: ['backpack', 'bag', 'school'], source: 'flaticon', isTransparent: true },
+      { id: 'notebook1', url: 'https://cdn-icons-png.flaticon.com/512/3209/3209265.png', title: 'Notebook', category: 'school', keywords: ['notebook', 'notes', 'school'], source: 'flaticon', isTransparent: true },
+      { id: 'calculator1', url: 'https://cdn-icons-png.flaticon.com/512/943/943252.png', title: 'Calculator', category: 'school', keywords: ['calculator', 'math', 'school'], source: 'flaticon', isTransparent: true },
+      { id: 'ruler1', url: 'https://cdn-icons-png.flaticon.com/512/625/625632.png', title: 'Ruler', category: 'school', keywords: ['ruler', 'measure', 'school'], source: 'flaticon', isTransparent: true },
+      { id: 'globe1', url: 'https://cdn-icons-png.flaticon.com/512/44/44386.png', title: 'Globe', category: 'school', keywords: ['globe', 'world', 'geography'], source: 'flaticon', isTransparent: true },
+      { id: 'schoolbus1', url: 'https://cdn-icons-png.flaticon.com/512/3097/3097166.png', title: 'School Bus', category: 'school', keywords: ['school bus', 'bus', 'school'], source: 'flaticon', isTransparent: true },
+      
+      // Emotions
+      { id: 'smileFace1', url: 'https://cdn-icons-png.flaticon.com/512/3129/3129282.png', title: 'Smile', category: 'emotions', keywords: ['smile', 'happy', 'emotion'], source: 'flaticon', isTransparent: true },
+      { id: 'sadFace1', url: 'https://cdn-icons-png.flaticon.com/512/3129/3129212.png', title: 'Sad', category: 'emotions', keywords: ['sad', 'unhappy', 'emotion'], source: 'flaticon', isTransparent: true },
+      { id: 'loveFace1', url: 'https://cdn-icons-png.flaticon.com/512/3129/3129285.png', title: 'Love', category: 'emotions', keywords: ['love', 'heart', 'emotion'], source: 'flaticon', isTransparent: true },
+      { id: 'coolFace1', url: 'https://cdn-icons-png.flaticon.com/512/3129/3129283.png', title: 'Cool', category: 'emotions', keywords: ['cool', 'sunglasses', 'emotion'], source: 'flaticon', isTransparent: true },
+      { id: 'angryFace1', url: 'https://cdn-icons-png.flaticon.com/512/3129/3129272.png', title: 'Angry', category: 'emotions', keywords: ['angry', 'mad', 'emotion'], source: 'flaticon', isTransparent: true },
+      { id: 'surprisedFace1', url: 'https://cdn-icons-png.flaticon.com/512/3129/3129271.png', title: 'Surprised', category: 'emotions', keywords: ['surprised', 'shocked', 'emotion'], source: 'flaticon', isTransparent: true },
+      { id: 'laughFace1', url: 'https://cdn-icons-png.flaticon.com/512/3129/3129276.png', title: 'Laugh', category: 'emotions', keywords: ['laugh', 'haha', 'emotion'], source: 'flaticon', isTransparent: true },
+      { id: 'tiredFace1', url: 'https://cdn-icons-png.flaticon.com/512/3129/3129286.png', title: 'Tired', category: 'emotions', keywords: ['tired', 'sleepy', 'emotion'], source: 'flaticon', isTransparent: true },
+      
+      // Sports
+      { id: 'soccer1', url: 'https://cdn-icons-png.flaticon.com/512/53/53283.png', title: 'Soccer Ball', category: 'sports', keywords: ['soccer', 'football', 'sport'], source: 'flaticon', isTransparent: true },
+      { id: 'basketball1', url: 'https://cdn-icons-png.flaticon.com/512/889/889455.png', title: 'Basketball', category: 'sports', keywords: ['basketball', 'ball', 'sport'], source: 'flaticon', isTransparent: true },
+      { id: 'tennis1', url: 'https://cdn-icons-png.flaticon.com/512/2151/2151199.png', title: 'Tennis', category: 'sports', keywords: ['tennis', 'racket', 'sport'], source: 'flaticon', isTransparent: true },
+      { id: 'baseball1', url: 'https://cdn-icons-png.flaticon.com/512/3790/3790217.png', title: 'Baseball', category: 'sports', keywords: ['baseball', 'ball', 'sport'], source: 'flaticon', isTransparent: true },
+      { id: 'volleyball1', url: 'https://cdn-icons-png.flaticon.com/512/2834/2834395.png', title: 'Volleyball', category: 'sports', keywords: ['volleyball', 'ball', 'sport'], source: 'flaticon', isTransparent: true },
+      { id: 'trophy1', url: 'https://cdn-icons-png.flaticon.com/512/3113/3113169.png', title: 'Trophy', category: 'sports', keywords: ['trophy', 'award', 'winner'], source: 'flaticon', isTransparent: true },
+      { id: 'medal1', url: 'https://cdn-icons-png.flaticon.com/512/3250/3250256.png', title: 'Medal', category: 'sports', keywords: ['medal', 'award', 'winner'], source: 'flaticon', isTransparent: true },
     ];
     
     setAllStickers(prevStickers => {
@@ -133,8 +202,8 @@ export function StickerSelector({
     setIsLoading(true);
     try {
       const endpoint = searchTerm === 'trending' 
-        ? `https://api.giphy.com/v1/stickers/trending?api_key=${GIPHY_API_KEY}&limit=25`
-        : `https://api.giphy.com/v1/stickers/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(searchTerm)}&limit=25`;
+        ? `https://api.giphy.com/v1/stickers/trending?api_key=${GIPHY_API_KEY}&limit=50`
+        : `https://api.giphy.com/v1/stickers/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(searchTerm)}&limit=50`;
       
       const response = await fetch(endpoint);
       const data = await response.json();
@@ -177,7 +246,7 @@ export function StickerSelector({
   const fetchPixabayImages = async (searchTerm: string) => {
     setIsLoading(true);
     try {
-      const endpoint = `https://pixabay.com/api/?key=${PIXABAY_API_KEY}&q=${encodeURIComponent(searchTerm)}&image_type=photo&per_page=25&safesearch=true`;
+      const endpoint = `https://pixabay.com/api/?key=${PIXABAY_API_KEY}&q=${encodeURIComponent(searchTerm)}&image_type=photo&per_page=50&safesearch=true`;
       
       const response = await fetch(endpoint);
       const data = await response.json();
@@ -233,7 +302,7 @@ export function StickerSelector({
     }
     
     // Filter by search query (if not empty and we're not already searching via API)
-    if (searchQuery && sticker.source === 'local') {
+    if (searchQuery && sticker.source === 'local' || sticker.source === 'flaticon') {
       return sticker.keywords.some(keyword => 
         keyword.toLowerCase().includes(searchQuery.toLowerCase())
       ) || sticker.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -262,13 +331,20 @@ export function StickerSelector({
     }
   };
   
+  const loadMoreGiphyStickers = () => {
+    const categories = ['cute', 'funny', 'love', 'animals', 'food', 'travel', 'happy', 'celebration', 'nature'];
+    const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+    fetchGiphyStickers(randomCategory);
+  };
+  
   console.log("Current sticker size:", stickerSize);
   console.log("Selected sticker ID:", selectedStickerId);
+  console.log("Total stickers available:", allStickers.length);
   
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-xs font-semibold tracking-tight">Stickers</h3>
+        <h3 className="text-xs font-semibold tracking-tight">Stickers ({allStickers.length})</h3>
       </div>
       
       <div className="flex gap-2">
@@ -320,16 +396,16 @@ export function StickerSelector({
       <Tabs defaultValue="all" value={selectedCategory} onValueChange={setSelectedCategory}>
         <TabsList className="grid grid-cols-4 mb-2">
           <TabsTrigger value="all" className="text-[10px]">All</TabsTrigger>
-          <TabsTrigger value="local" className="text-[10px]">Basic</TabsTrigger>
-          <TabsTrigger value="giphy" className="text-[10px]">Giphy</TabsTrigger>
-          <TabsTrigger value="pixabay" className="text-[10px]">Pixabay</TabsTrigger>
+          <TabsTrigger value="emotions" className="text-[10px]">Emotions</TabsTrigger>
+          <TabsTrigger value="animals" className="text-[10px]">Animals</TabsTrigger>
+          <TabsTrigger value="nature" className="text-[10px]">Nature</TabsTrigger>
         </TabsList>
         
         <TabsList className="grid grid-cols-4 mb-2">
-          <TabsTrigger value="animals" className="text-[10px]">Animals</TabsTrigger>
-          <TabsTrigger value="nature" className="text-[10px]">Nature</TabsTrigger>
           <TabsTrigger value="food" className="text-[10px]">Food</TabsTrigger>
-          <TabsTrigger value="celebration" className="text-[10px]">Celebration</TabsTrigger>
+          <TabsTrigger value="travel" className="text-[10px]">Travel</TabsTrigger>
+          <TabsTrigger value="sports" className="text-[10px]">Sports</TabsTrigger>
+          <TabsTrigger value="giphy" className="text-[10px]">Giphy</TabsTrigger>
         </TabsList>
         
         <ScrollArea className="h-[300px] pr-2">
@@ -339,21 +415,39 @@ export function StickerSelector({
               <p className="text-sm text-muted-foreground">Searching for stickers...</p>
             </div>
           ) : filteredStickers.length > 0 ? (
-            <div className="grid grid-cols-3 gap-2 mt-2">
-              {filteredStickers.map((sticker) => (
-                <button
-                  key={sticker.id}
-                  className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-24 flex items-center justify-center p-2"
-                  onClick={() => handleStickerSelect(sticker.url)}
-                >
-                  <img 
-                    src={sticker.thumbnailUrl || sticker.url} 
-                    alt={sticker.title} 
-                    className="max-h-full object-contain" 
-                    loading="lazy"
-                  />
-                </button>
-              ))}
+            <div>
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                {filteredStickers.map((sticker) => (
+                  <button
+                    key={sticker.id}
+                    className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-24 flex items-center justify-center p-2"
+                    onClick={() => handleStickerSelect(sticker.url)}
+                  >
+                    <img 
+                      src={sticker.thumbnailUrl || sticker.url} 
+                      alt={sticker.title} 
+                      className="max-h-full object-contain" 
+                      loading="lazy"
+                    />
+                  </button>
+                ))}
+              </div>
+              
+              {/* Load more button */}
+              {selectedCategory === 'all' || selectedCategory === 'giphy' ? (
+                <div className="flex justify-center mt-4">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={loadMoreGiphyStickers}
+                    disabled={isLoading}
+                    className="text-xs"
+                  >
+                    {isLoading ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                    Load more stickers
+                  </Button>
+                </div>
+              ) : null}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-32 text-sm text-muted-foreground">

@@ -162,6 +162,7 @@ export function JournalPreview({
     onStickerSelect(id);
     setSelectedIconId(null);
     onIconSelect(''); // Deselect any icon
+    console.log(`Selected sticker: ${id}`);
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -209,12 +210,45 @@ export function JournalPreview({
     return text;
   };
 
-  // Log key properties for debugging
-  useEffect(() => {
-    console.log("Background image:", backgroundImage);
-    console.log("Filter:", filter);
-    console.log("Gradient:", gradient);
-  }, [backgroundImage, filter, gradient]);
+  // Function to handle sticker dragging
+  const handleStickerDrag = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    const sticker = stickers.find(s => s.id === id);
+    if (!sticker || !previewRef.current) return;
+    
+    // Calculate the offsets relative to the sticker's position
+    const containerRect = previewRef.current.getBoundingClientRect();
+    const stickerLeftPos = (sticker.position.x / 100) * containerRect.width;
+    const stickerTopPos = (sticker.position.y / 100) * containerRect.height;
+    
+    const offsetX = e.clientX - containerRect.left - stickerLeftPos;
+    const offsetY = e.clientY - containerRect.top - stickerTopPos;
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!previewRef.current) return;
+      
+      const containerRect = previewRef.current.getBoundingClientRect();
+      
+      // Calculate new position as a percentage of the container
+      const x = ((e.clientX - containerRect.left - offsetX) / containerRect.width) * 100;
+      const y = ((e.clientY - containerRect.top - offsetY) / containerRect.height) * 100;
+      
+      // Ensure position stays within bounds (0-100%)
+      const boundedX = Math.max(0, Math.min(100, x));
+      const boundedY = Math.max(0, Math.min(100, y));
+      
+      onStickerMove(id, { x: boundedX, y: boundedY });
+    };
+    
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
 
   return (
     <div className={cn("relative flex-1 overflow-hidden bg-gray-50", className)}>
@@ -291,34 +325,11 @@ export function JournalPreview({
                   handleStickerSelect(sticker.id);
                 }}
                 onMouseDown={(e) => {
-                  if (selectedStickerId === sticker.id) {
-                    e.stopPropagation();
-                    let offsetX = e.clientX - (sticker.position.x / 100) * previewRef.current!.offsetWidth;
-                    let offsetY = e.clientY - (sticker.position.y / 100) * previewRef.current!.offsetHeight;
-
-                    const handleMouseMove = (e: MouseEvent) => {
-                      if (!previewRef.current) return;
-                      const containerRect = previewRef.current.getBoundingClientRect();
-                      const x = ((e.clientX - offsetX - containerRect.left) / containerRect.width) * 100;
-                      const y = ((e.clientY - offsetY - containerRect.top) / containerRect.height) * 100;
-
-                      // Ensure position stays within bounds (0-100%)
-                      const boundedX = Math.max(0, Math.min(100, x));
-                      const boundedY = Math.max(0, Math.min(100, y));
-
-                      onStickerMove(sticker.id, { x: boundedX, y: boundedY });
-                    };
-
-                    const handleMouseUp = () => {
-                      document.removeEventListener('mousemove', handleMouseMove);
-                      document.removeEventListener('mouseup', handleMouseUp);
-                    };
-
-                    document.addEventListener('mousemove', handleMouseMove);
-                    document.addEventListener('mouseup', handleMouseUp);
-                  }
+                  handleStickerSelect(sticker.id);
+                  handleStickerDrag(sticker.id, e);
                 }}
                 tabIndex={0} // Make focusable for keyboard events
+                title={`Sticker (ID: ${sticker.id})`}
               >
                 <img
                   src={sticker.url}
