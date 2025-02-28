@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Pencil } from 'lucide-react';
@@ -10,6 +9,8 @@ import { StickerSelector } from './StickerSelector';
 import { IconSelector } from './IconSelector';
 import { BackgroundImageSelector } from './BackgroundImageSelector';
 import { ImageFilterSelector } from './ImageFilterSelector';
+import { ImageUploader } from './ImageUploader';
+import { IconContainer } from './IconContainer';
 import { DrawingLayer } from './DrawingLayer';
 
 interface JournalPreviewProps {
@@ -40,6 +41,12 @@ interface JournalPreviewProps {
   onTogglePreview: () => void;
 }
 
+interface IconGroup {
+  id: string;
+  position: { x: number, y: number };
+  icons: Icon[];
+}
+
 export function JournalPreview({
   showPreview,
   text,
@@ -58,9 +65,9 @@ export function JournalPreview({
   filter = 'none',
   onStickerAdd,
   onIconAdd,
-  onStickerMove,
   onIconMove,
   onIconUpdate,
+  onStickerMove,
   onTextMove,
   onBackgroundSelect,
   onDrawingChange,
@@ -77,6 +84,13 @@ export function JournalPreview({
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const [showIconControls, setShowIconControls] = useState(false);
   const [iconSize, setIconSize] = useState<number>(48);
+  
+  const [iconGroups, setIconGroups] = useState<IconGroup[]>([]);
+  const [ungroupedIcons, setUngroupedIcons] = useState<Icon[]>([]);
+
+  useEffect(() => {
+    setUngroupedIcons(icons);
+  }, [icons]);
 
   useEffect(() => {
     if (selectedIconId) {
@@ -113,14 +127,12 @@ export function JournalPreview({
       case 'vintage':
         return 'sepia(50%) contrast(110%) brightness(90%)';
       case 'duotone':
-        // Simulating duotone with a semi-transparent gradient overlay
         return 'contrast(120%) brightness(90%)';
       case 'invert':
         return 'invert(100%)';
       case 'blur':
         return 'blur(1px) brightness(105%)';
       case 'pixelate':
-        // Can't do real pixelation with CSS filters, but we can approximate the look
         return 'contrast(130%) brightness(110%) saturate(130%)';
       default:
         return '';
@@ -271,6 +283,11 @@ export function JournalPreview({
     window.addEventListener('mouseup', handleMouseUp);
   };
 
+  const handleIconClick = (iconId: string) => {
+    setSelectedIconId(iconId);
+    setShowIconControls(true);
+  };
+
   const handleIconSizeChange = (increase: boolean) => {
     if (!selectedIconId) return;
     
@@ -284,7 +301,7 @@ export function JournalPreview({
     if (!selectedStickerId) return;
     
     const newStickers = stickers.filter(s => s.id !== selectedStickerId);
-    onStickerMove(selectedStickerId, { x: -999, y: -999 }); // Move off-screen
+    onStickerMove(selectedStickerId, { x: -999, y: -999 });
     
     setSelectedStickerId(null);
     setShowDeleteButton(false);
@@ -294,7 +311,7 @@ export function JournalPreview({
     if (!selectedIconId) return;
     
     const newIcons = icons.filter(i => i.id !== selectedIconId);
-    onIconMove(selectedIconId, { x: -999, y: -999 }); // Move off-screen
+    onIconMove(selectedIconId, { x: -999, y: -999 });
     
     setSelectedIconId(null);
     setShowIconControls(false);
@@ -318,15 +335,59 @@ export function JournalPreview({
     onDrawingChange(dataUrl);
   };
 
+  useEffect(() => {
+    if (ungroupedIcons.length >= 3) {
+      const avgX = ungroupedIcons.reduce((sum, icon) => sum + icon.position.x, 0) / ungroupedIcons.length;
+      const avgY = ungroupedIcons.reduce((sum, icon) => sum + icon.position.y, 0) / ungroupedIcons.length;
+      
+      const newGroup: IconGroup = {
+        id: `group-${Date.now()}`,
+        position: { x: avgX, y: avgY },
+        icons: [...ungroupedIcons]
+      };
+      
+      setIconGroups(prev => [...prev, newGroup]);
+      setUngroupedIcons([]);
+      
+      ungroupedIcons.forEach(icon => {
+        onIconMove(icon.id, { x: -999, y: -999 });
+      });
+    }
+  }, [ungroupedIcons]);
+
+  const handleContainerMove = (groupId: string, position: { x: number, y: number }) => {
+    setIconGroups(prev => 
+      prev.map(group => group.id === groupId ? { ...group, position } : group)
+    );
+  };
+
+  const handleRemoveContainer = (groupId: string) => {
+    const group = iconGroups.find(g => g.id === groupId);
+    if (!group) return;
+    
+    group.icons.forEach((icon, index) => {
+      const position = {
+        x: group.position.x + (index * 5),
+        y: group.position.y + (index * 5)
+      };
+      onIconMove(icon.id, position);
+    });
+    
+    setIconGroups(prev => prev.filter(g => g.id !== groupId));
+    
+    setUngroupedIcons(prev => [...prev, ...group.icons]);
+  };
+
   return (
     <div className="w-full lg:w-3/4 p-6 relative print:w-full print:p-0 min-h-[800px]">
       <div className="absolute top-4 right-4 z-10 flex gap-2 print:hidden">
         <StickerSelector onStickerSelect={handleStickerAdd} />
         <IconSelector onIconSelect={handleIconAdd} />
         <BackgroundImageSelector onImageSelect={onBackgroundSelect} />
+        <ImageUploader onImageSelect={onBackgroundSelect} />
         <ImageFilterSelector 
           onFilterSelect={onFilterChange}
-          currentFilter={filter}
+          currentFilter={filter || 'none'}
         />
         <Button
           onClick={toggleDrawingMode}
@@ -445,7 +506,18 @@ export function JournalPreview({
                 />
               ))}
 
-              {icons.map((icon) => (
+              {iconGroups.map((group) => (
+                <IconContainer
+                  key={group.id}
+                  icons={group.icons}
+                  containerPosition={group.position}
+                  onIconClick={handleIconClick}
+                  onRemoveContainer={() => handleRemoveContainer(group.id)}
+                  onContainerMove={(position) => handleContainerMove(group.id, position)}
+                />
+              ))}
+
+              {ungroupedIcons.map((icon) => (
                 <img
                   key={icon.id}
                   src={icon.url}
