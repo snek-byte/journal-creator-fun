@@ -12,23 +12,23 @@ interface BackgroundImageSelectorProps {
 export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageSelectorProps) {
   const [activeTab, setActiveTab] = useState("papers");
   
-  // Paper backgrounds with reliable URLs
+  // Paper backgrounds with updated reliable URLs
   const paperBackgrounds = [
-    { name: "White Paper", url: "https://images.unsplash.com/photo-1528459105426-b9548367069b?auto=format&fit=crop&w=800&h=1000&q=80" },
-    { name: "Kraft Paper", url: "https://images.unsplash.com/photo-1517016006573-2eef11b85cc4?auto=format&fit=crop&w=800&h=1000&q=80" },
-    { name: "Textured Paper", url: "https://images.unsplash.com/photo-1523529364348-e930dcb39642?auto=format&fit=crop&w=800&h=1000&q=80" },
-    { name: "Lined Paper", url: "https://images.unsplash.com/photo-1544114017-b6389c8c570b?auto=format&fit=crop&w=800&h=1000&q=80" },
-    { name: "Grid Paper", url: "https://images.unsplash.com/photo-1600456899121-68eda5705257?auto=format&fit=crop&w=800&h=1000&q=80" },
-    { name: "Vintage Paper", url: "https://images.unsplash.com/photo-1543857778-c4a1a3e0b2eb?auto=format&fit=crop&w=800&h=1000&q=80" }
+    { name: "White Paper", url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Kraft Paper", url: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Textured Paper", url: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Lined Paper", url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Grid Paper", url: "https://images.unsplash.com/photo-1426604966848-d7adac402bff?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Vintage Paper", url: "https://images.unsplash.com/photo-1641154748135-8032a61a3f80?auto=format&fit=crop&w=800&h=1000&q=80" }
   ];
   
   // Nature background images
   const natureBackgrounds = [
-    { name: "Mountains", url: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Mountains", url: "https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=800&h=1000&q=80" },
     { name: "Beach", url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&h=1000&q=80" },
     { name: "Forest", url: "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=800&h=1000&q=80" },
-    { name: "Sunset", url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&h=1000&q=80" },
-    { name: "Waterfall", url: "https://images.unsplash.com/photo-1467890947394-8171244e5410?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Sunset", url: "https://images.unsplash.com/photo-1495344517868-8ebaf0a2044a?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Waterfall", url: "https://images.unsplash.com/photo-1520962880247-cfaf541c8724?auto=format&fit=crop&w=800&h=1000&q=80" },
     { name: "Desert", url: "https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?auto=format&fit=crop&w=800&h=1000&q=80" }
   ];
   
@@ -48,10 +48,10 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     { name: "Light Blue", url: "linear-gradient(to top, #accbee 0%, #e7f0fd 100%)" },
   ];
 
-  // Patterns and textures with reliable URLs
+  // Patterns and textures with updated reliable URLs
   const patternBackgrounds = [
-    { name: "Abstract", url: "https://images.unsplash.com/photo-1550537687-c91072c4792d?auto=format&fit=crop&w=800&h=1000&q=80" },
-    { name: "Geometric", url: "https://images.unsplash.com/photo-1528459105426-b9548367069b?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Abstract", url: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Geometric", url: "https://images.unsplash.com/photo-1520121378167-173c83c2a8cb?auto=format&fit=crop&w=800&h=1000&q=80" },
     { name: "Marble", url: "https://images.unsplash.com/photo-1517479149777-5f3b1511d5ad?auto=format&fit=crop&w=800&h=1000&q=80" },
     { name: "Wood", url: "https://images.unsplash.com/photo-1566041510639-8d95a2490bfb?auto=format&fit=crop&w=800&h=1000&q=80" },
     { name: "Clouds", url: "https://images.unsplash.com/photo-1513002749550-c59d786b8e6c?auto=format&fit=crop&w=800&h=1000&q=80" },
