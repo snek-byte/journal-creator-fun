@@ -198,7 +198,7 @@ export function StickerContainer({
         transform: 'translate(-50%, -50%)',
         width: `${width}px`,
         height: `${height}px`,
-        border: selected ? '2px dashed rgba(59, 130, 246, 0.7)' : 'none',
+        border: selected && !isDragging && !isResizing ? '2px dashed rgba(59, 130, 246, 0.7)' : 'none',
         zIndex: selected ? 30 : 20,
         ...style
       }}

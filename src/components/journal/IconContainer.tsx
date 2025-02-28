@@ -22,15 +22,7 @@ export function IconContainer({
   style = {}
 }: IconContainerProps) {
   const [isDragging, setIsDragging] = useState(false);
-  const [wasDragged, setWasDragged] = useState(false);
   const iconRef = useRef<HTMLDivElement>(null);
-  
-  // Reset wasDragged when selected state changes
-  useEffect(() => {
-    if (!selected) {
-      setWasDragged(false);
-    }
-  }, [selected]);
   
   // Handle keyboard navigation
   useEffect(() => {
@@ -100,7 +92,6 @@ export function IconContainer({
     e.stopPropagation();
     
     setIsDragging(true);
-    setWasDragged(false);
     onSelect(icon.id);
     
     // Get container dimensions for percentage calculations
@@ -118,9 +109,6 @@ export function IconContainer({
     
     const handleMouseMove = (e: MouseEvent) => {
       e.preventDefault();
-      
-      // Mark as dragged once movement begins
-      setWasDragged(true);
       
       // Calculate the move delta in pixels
       const deltaX = e.clientX - startX;
@@ -160,9 +148,9 @@ export function IconContainer({
         left: `${icon.position.x}%`,
         top: `${icon.position.y}%`,
         transform: 'translate(-50%, -50%)',
-        border: selected && !wasDragged ? '2px dashed rgba(59, 130, 246, 0.7)' : 'none',
+        border: selected && !isDragging ? '2px dashed rgba(59, 130, 246, 0.7)' : 'none',
         borderRadius: '4px',
-        padding: selected && !wasDragged ? '2px' : '0',
+        padding: selected && !isDragging ? '2px' : '0',
         zIndex: selected ? 30 : 20,
         ...style
       }}
