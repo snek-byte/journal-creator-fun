@@ -4,6 +4,7 @@ import { useJournalStore } from '@/store/journalStore';
 import { supabase } from "@/integrations/supabase/client";
 import type { Mood, Sticker, Icon, HistoryEntry } from '@/types/journal';
 import { EmojiClickData } from 'emoji-picker-react';
+import { toast } from "sonner";
 
 export function useJournalEditor() {
   const {
@@ -54,6 +55,12 @@ export function useJournalEditor() {
   // Skip history tracking during initial loading
   const skipHistoryTracking = useRef(true);
 
+  // Function to create a history snapshot
+  const createHistorySnapshot = (entry: typeof currentEntry): HistoryEntry => {
+    return JSON.parse(JSON.stringify(entry));
+  };
+
+  // Initialize history on component mount
   useEffect(() => {
     try {
       loadChallenge();
@@ -78,11 +85,6 @@ export function useJournalEditor() {
     }
   }, []);
 
-  // Function to create a history snapshot
-  const createHistorySnapshot = (entry: typeof currentEntry): HistoryEntry => {
-    return JSON.parse(JSON.stringify(entry));
-  };
-
   // Add current state to history when it changes
   useEffect(() => {
     // Skip history tracking during initial load or undo/redo operations
@@ -105,7 +107,7 @@ export function useJournalEditor() {
     setHistory(prev => {
       // Check if the new state is deeply equal to the previous state
       const lastSnapshot = prev[prev.length - 1];
-      if (JSON.stringify(lastSnapshot) === JSON.stringify(snapshot)) {
+      if (lastSnapshot && JSON.stringify(lastSnapshot) === JSON.stringify(snapshot)) {
         console.log("Skipping identical state in history");
         return prev; // Skip adding identical states
       }
@@ -357,13 +359,13 @@ export function useJournalEditor() {
       console.log("Setting gradient to:", gradient);
       setGradient(gradient);
     }
-  }
+  };
 
   const handleTextStyleChange = (style: string) => {
     if (!selectedIconId) {
       setTextStyle(style);
     }
-  }
+  };
 
   const handleImageUpload = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -424,6 +426,32 @@ export function useJournalEditor() {
     }
   };
 
+  // Apply a history state to the current entry
+  const applyHistoryState = (state: HistoryEntry) => {
+    if (!state) {
+      console.error("Cannot apply undefined state to journal");
+      return;
+    }
+    
+    console.log("Applying history state:", state);
+    
+    setText(state.text || '');
+    setFont(state.font || 'sans-serif');
+    setFontSize(state.fontSize || '16px');
+    setFontWeight(state.fontWeight || 'normal');
+    setFontColor(state.fontColor || '#000000');
+    setGradient(state.gradient || '');
+    setMood(state.mood);
+    setIsPublic(state.isPublic || false);
+    setTextStyle(state.textStyle || '');
+    setStickers(state.stickers || []);
+    setIcons(state.icons || []);
+    setTextPosition(state.textPosition || { x: 50, y: 50 });
+    setBackgroundImage(state.backgroundImage || '');
+    setDrawing(state.drawing || '');
+    setFilter(state.filter || 'none');
+  };
+
   // Create a resetEntry function since it doesn't exist in the store
   const handleResetToDefault = () => {
     // Reset all values to defaults
@@ -447,75 +475,76 @@ export function useJournalEditor() {
     const defaultState = createHistorySnapshot(currentEntry);
     setHistory([defaultState]);
     setCurrentHistoryIndex(0);
+    
+    toast.success("Journal reset to default");
   };
 
-  // Apply a history state to the current entry
-  const applyHistoryState = (state: HistoryEntry) => {
-    setText(state.text || '');
-    setFont(state.font || 'sans-serif');
-    setFontSize(state.fontSize || '16px');
-    setFontWeight(state.fontWeight || 'normal');
-    setFontColor(state.fontColor || '#000000');
-    setGradient(state.gradient || '');
-    setMood(state.mood);
-    setIsPublic(state.isPublic || false);
-    setTextStyle(state.textStyle || '');
-    setStickers(state.stickers || []);
-    setIcons(state.icons || []);
-    setTextPosition(state.textPosition || { x: 50, y: 50 });
-    setBackgroundImage(state.backgroundImage || '');
-    setDrawing(state.drawing || '');
-    setFilter(state.filter || 'none');
-  };
-
-  // Improved undo function with error handling
+  // Completely rewritten undo function for simplicity and reliability
   const handleUndo = () => {
-    if (currentHistoryIndex > 0) {
+    if (currentHistoryIndex > 0 && history.length > 1) {
       try {
         console.log(`Undoing action - going from ${currentHistoryIndex} to ${currentHistoryIndex - 1}`);
-        setIsUndoRedoAction(true);
+        
+        // Get previous state
         const previousState = history[currentHistoryIndex - 1];
         
         if (!previousState) {
-          console.error("Undo error: Previous state not found");
+          console.error("Previous state not found in history");
+          toast.error("Could not undo - history state not found");
           return;
         }
         
+        // Set flag to prevent recording this change as a new history entry
+        setIsUndoRedoAction(true);
+        
+        // Apply the previous state
         applyHistoryState(previousState);
+        
+        // Update the history index
         setCurrentHistoryIndex(currentHistoryIndex - 1);
-        toast.info("Undo successful");
+        
+        toast.success("Action undone");
       } catch (error) {
-        console.error("Error during undo:", error);
-        toast.error("Undo failed");
+        console.error("Error during undo operation:", error);
+        toast.error("Failed to undo");
       }
     } else {
-      console.log("Nothing to undo");
+      console.log("Nothing to undo - at beginning of history");
       toast.info("Nothing to undo");
     }
   };
 
-  // Improved redo function with error handling
+  // Completely rewritten redo function for simplicity and reliability
   const handleRedo = () => {
     if (currentHistoryIndex < history.length - 1) {
       try {
         console.log(`Redoing action - going from ${currentHistoryIndex} to ${currentHistoryIndex + 1}`);
-        setIsUndoRedoAction(true);
+        
+        // Get next state
         const nextState = history[currentHistoryIndex + 1];
         
         if (!nextState) {
-          console.error("Redo error: Next state not found");
+          console.error("Next state not found in history");
+          toast.error("Could not redo - history state not found");
           return;
         }
         
+        // Set flag to prevent recording this change as a new history entry
+        setIsUndoRedoAction(true);
+        
+        // Apply the next state
         applyHistoryState(nextState);
+        
+        // Update the history index
         setCurrentHistoryIndex(currentHistoryIndex + 1);
-        toast.info("Redo successful");
+        
+        toast.success("Action redone");
       } catch (error) {
-        console.error("Error during redo:", error);
-        toast.error("Redo failed");
+        console.error("Error during redo operation:", error);
+        toast.error("Failed to redo");
       }
     } else {
-      console.log("Nothing to redo");
+      console.log("Nothing to redo - at end of history");
       toast.info("Nothing to redo");
     }
   };
@@ -523,6 +552,7 @@ export function useJournalEditor() {
   // Debug history in development
   useEffect(() => {
     console.log(`Current history index: ${currentHistoryIndex} of ${history.length - 1}`);
+    console.log(`History entries: ${history.length}`);
   }, [currentHistoryIndex, history.length]);
 
   return {
@@ -575,6 +605,3 @@ export function useJournalEditor() {
     canRedo: currentHistoryIndex < history.length - 1,
   };
 }
-
-// Add toast import at the top
-import { toast } from "sonner";
