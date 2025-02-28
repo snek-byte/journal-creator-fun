@@ -106,9 +106,9 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     { id: 'darkmode', color: '#1c1c1c', name: 'Dark Mode' },
   ];
 
-  // Handle image upload completion
-  const handleUploadComplete = (imageUrl: string) => {
-    onBackgroundSelect(imageUrl);
+  // Handle image selection from the ImageUploader
+  const handleImageSelect = (url: string) => {
+    onBackgroundSelect(url);
     toast.success('Background image uploaded!');
   };
 
@@ -189,7 +189,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
         <TabsContent value="upload" className="mt-0">
           <Card className="border-dashed">
             <CardContent className="pt-6">
-              <ImageUploader onUploadComplete={handleUploadComplete} />
+              <ImageUploader onImageSelect={handleImageSelect} />
             </CardContent>
           </Card>
         </TabsContent>
