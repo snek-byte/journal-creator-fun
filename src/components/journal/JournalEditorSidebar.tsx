@@ -8,11 +8,10 @@ import { Switch } from "@/components/ui/switch";
 import { JournalStylingControls } from './JournalStylingControls';
 import { MoodSelector } from './MoodSelector';
 import { DailyChallenge } from './DailyChallenge';
-import { Save, Printer, Mail, RefreshCw } from 'lucide-react';
+import { Save, Printer, Mail } from 'lucide-react';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import type { Mood } from '@/types/journal';
 import { PopoverTrigger, Popover, PopoverContent } from '@/components/ui/popover';
-import { useMedia } from '@/hooks/use-mobile';
 import { gradients } from './config/editorConfig';
 
 interface JournalEditorSidebarProps {
@@ -68,7 +67,6 @@ export function JournalEditorSidebar({
   applyChallenge,
 }: JournalEditorSidebarProps) {
   const [activeTab, setActiveTab] = useState('write');
-  const isMobile = useMedia('(max-width: 1024px)');
   const [charCount, setCharCount] = useState(0);
   const [wordCount, setWordCount] = useState(0);
 
@@ -103,8 +101,10 @@ export function JournalEditorSidebar({
           <TabsContent value="write" className="mt-0 h-full flex flex-col gap-4">
             <div className="space-y-4">
               <MoodSelector 
-                value={currentEntry.mood} 
-                onChange={setMood} 
+                mood={currentEntry.mood} 
+                isPublic={currentEntry.isPublic}
+                onMoodChange={setMood}
+                onIsPublicChange={setIsPublic}
               />
               
               <Textarea
@@ -130,7 +130,7 @@ export function JournalEditorSidebar({
                   <PopoverContent className="w-full p-0" align="start">
                     <EmojiPicker 
                       onEmojiClick={handleEmojiSelect}
-                      width={isMobile ? 280 : 320}
+                      width={300}
                       height={320}
                     />
                   </PopoverContent>
@@ -138,7 +138,7 @@ export function JournalEditorSidebar({
               </div>
               
               <DailyChallenge
-                challenge={dailyChallenge}
+                dailyChallenge={dailyChallenge}
                 onRefresh={loadChallenge}
                 onApply={applyChallenge}
               />
@@ -160,21 +160,6 @@ export function JournalEditorSidebar({
               onTextStyleChange={setTextStyle}
               selectedIconId={selectedIconId}
             />
-            
-            <div className="mt-4 space-y-2">
-              <label className="text-[10px] font-medium">Background Gradient</label>
-              <div className="grid grid-cols-2 gap-2">
-                {gradients.slice(0, 6).map((gradient, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setGradient(gradient.value)}
-                    className="h-12 rounded-md overflow-hidden border hover:ring-2 hover:ring-primary transition-all"
-                    style={{ background: gradient.value }}
-                    aria-label={gradient.label}
-                  />
-                ))}
-              </div>
-            </div>
           </TabsContent>
 
           <TabsContent value="publish" className="mt-0 space-y-4">
