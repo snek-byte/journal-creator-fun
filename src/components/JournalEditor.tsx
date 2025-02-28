@@ -149,10 +149,6 @@ export function JournalEditor() {
     }
   };
 
-  console.log("Current stickers in entry:", currentEntry.stickers);
-  console.log("Selected sticker ID:", selectedStickerId);
-  console.log("Current sticker size:", stickerSize);
-
   // For TypeScript to accept currentEntry as JournalEntry
   const fullEntry = {
     ...currentEntry,

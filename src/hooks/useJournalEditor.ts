@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useJournalStore } from '@/store/journalStore';
 import { supabase } from "@/integrations/supabase/client";
-import type { Mood, Sticker, Icon } from '@/types/journal';
+import type { Mood, Sticker, Icon, HistoryEntry } from '@/types/journal';
 import { EmojiClickData } from 'emoji-picker-react';
 
 export function useJournalEditor() {
@@ -45,10 +45,11 @@ export function useJournalEditor() {
   const [isDraggingText, setIsDraggingText] = useState(false);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
   
-  // History management
-  const [history, setHistory] = useState<Array<any>>([]);
+  // Enhanced history management with more capacity
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
   const [isUndoRedoAction, setIsUndoRedoAction] = useState(false);
+  const maxHistorySize = 20; // Store 20 history entries (more than 10 for undo/redo)
 
   useEffect(() => {
     try {
@@ -58,10 +59,20 @@ export function useJournalEditor() {
           setEmailAddress(user.email);
         }
       });
+      
+      // Initialize history with current state
+      const initialState = createHistorySnapshot(currentEntry);
+      setHistory([initialState]);
+      setCurrentHistoryIndex(0);
     } catch (error) {
       console.error("Error loading initial data:", error);
     }
   }, []);
+
+  // Function to create a history snapshot
+  const createHistorySnapshot = (entry: typeof currentEntry): HistoryEntry => {
+    return JSON.parse(JSON.stringify(entry));
+  };
 
   // Add current state to history when it changes
   useEffect(() => {
@@ -71,7 +82,7 @@ export function useJournalEditor() {
     }
     
     // Create a snapshot of the current entry state
-    const snapshot = JSON.parse(JSON.stringify(currentEntry));
+    const snapshot = createHistorySnapshot(currentEntry);
     
     // If we're not at the end of the history, truncate the future states
     if (currentHistoryIndex < history.length - 1) {
@@ -79,8 +90,21 @@ export function useJournalEditor() {
     }
     
     // Add the new state to history
-    setHistory(prev => [...prev, snapshot]);
-    setCurrentHistoryIndex(prev => prev + 1);
+    setHistory(prev => {
+      const newHistory = [...prev, snapshot];
+      // Limit history size
+      if (newHistory.length > maxHistorySize) {
+        return newHistory.slice(newHistory.length - maxHistorySize);
+      }
+      return newHistory;
+    });
+    
+    setCurrentHistoryIndex(prev => {
+      if (prev + 1 >= maxHistorySize) {
+        return maxHistorySize - 1;
+      }
+      return prev + 1;
+    });
   }, [
     currentEntry.text,
     currentEntry.font,
@@ -382,63 +406,60 @@ export function useJournalEditor() {
     setFilter('none');
     
     // Reset history
-    const defaultState = JSON.parse(JSON.stringify(currentEntry));
+    const defaultState = createHistorySnapshot(currentEntry);
     setHistory([defaultState]);
     setCurrentHistoryIndex(0);
   };
 
-  // New undo, redo, and reset functions
+  // Apply a history state to the current entry
+  const applyHistoryState = (state: HistoryEntry) => {
+    setText(state.text);
+    setFont(state.font);
+    setFontSize(state.fontSize);
+    setFontWeight(state.fontWeight);
+    setFontColor(state.fontColor);
+    setGradient(state.gradient);
+    setMood(state.mood);
+    setIsPublic(state.isPublic);
+    setTextStyle(state.textStyle);
+    setStickers(state.stickers || []);
+    setIcons(state.icons || []);
+    setTextPosition(state.textPosition);
+    setBackgroundImage(state.backgroundImage || '');
+    setDrawing(state.drawing || '');
+    setFilter(state.filter || 'none');
+  };
+
+  // Enhanced undo function
   const handleUndo = () => {
     if (currentHistoryIndex > 0) {
+      console.log(`Undoing action - going from ${currentHistoryIndex} to ${currentHistoryIndex - 1}`);
       setIsUndoRedoAction(true);
       const previousState = history[currentHistoryIndex - 1];
-      
-      // Set each property individually to ensure proper state update
-      setText(previousState.text);
-      setFont(previousState.font);
-      setFontSize(previousState.fontSize);
-      setFontWeight(previousState.fontWeight);
-      setFontColor(previousState.fontColor);
-      setGradient(previousState.gradient);
-      setMood(previousState.mood);
-      setIsPublic(previousState.isPublic);
-      setTextStyle(previousState.textStyle);
-      setStickers(previousState.stickers || []);
-      setIcons(previousState.icons || []);
-      setTextPosition(previousState.textPosition);
-      setBackgroundImage(previousState.backgroundImage || '');
-      setDrawing(previousState.drawing || '');
-      setFilter(previousState.filter || 'none');
-      
+      applyHistoryState(previousState);
       setCurrentHistoryIndex(currentHistoryIndex - 1);
+    } else {
+      console.log("Nothing to undo");
     }
   };
 
+  // Enhanced redo function
   const handleRedo = () => {
     if (currentHistoryIndex < history.length - 1) {
+      console.log(`Redoing action - going from ${currentHistoryIndex} to ${currentHistoryIndex + 1}`);
       setIsUndoRedoAction(true);
       const nextState = history[currentHistoryIndex + 1];
-      
-      // Set each property individually to ensure proper state update
-      setText(nextState.text);
-      setFont(nextState.font);
-      setFontSize(nextState.fontSize);
-      setFontWeight(nextState.fontWeight);
-      setFontColor(nextState.fontColor);
-      setGradient(nextState.gradient);
-      setMood(nextState.mood);
-      setIsPublic(nextState.isPublic);
-      setTextStyle(nextState.textStyle);
-      setStickers(nextState.stickers || []);
-      setIcons(nextState.icons || []);
-      setTextPosition(nextState.textPosition);
-      setBackgroundImage(nextState.backgroundImage || '');
-      setDrawing(nextState.drawing || '');
-      setFilter(nextState.filter || 'none');
-      
+      applyHistoryState(nextState);
       setCurrentHistoryIndex(currentHistoryIndex + 1);
+    } else {
+      console.log("Nothing to redo");
     }
   };
+
+  // Debug history in development
+  useEffect(() => {
+    console.log(`Current history index: ${currentHistoryIndex} of ${history.length - 1}`);
+  }, [currentHistoryIndex, history.length]);
 
   return {
     currentEntry,
@@ -481,7 +502,7 @@ export function useJournalEditor() {
     saveEntry,
     applyChallenge,
     loadChallenge,
-    // New undo/redo functions
+    // Enhanced undo/redo functions
     handleUndo,
     handleRedo,
     handleResetToDefault,

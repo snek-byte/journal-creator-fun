@@ -86,5 +86,25 @@ export interface UserProgress {
   earnedBadges: string[];
 }
 
-// Add artistic to the allowed sticker sources
-export type StickerSource = 'local' | 'giphy' | 'flaticon' | 'icons8' | 'artistic';
+// Updated sticker sources
+export type StickerSource = 'decorative' | 'nature' | 'food';
+
+// History entry for undo/redo
+export interface HistoryEntry {
+  text: string;
+  font: string;
+  fontSize: string;
+  fontWeight: string;
+  fontColor: string;
+  gradient: string;
+  mood?: Mood;
+  moodNote?: string;
+  isPublic: boolean;
+  textStyle: string;
+  stickers: Sticker[];
+  icons: Icon[];
+  textPosition: { x: number, y: number };
+  backgroundImage?: string;
+  drawing?: string;
+  filter?: string;
+}

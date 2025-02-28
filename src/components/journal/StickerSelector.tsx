@@ -19,75 +19,55 @@ export function StickerSelector({
   currentStickerSize = 100, 
   selectedStickerId 
 }: StickerSelectorProps) {
-  const [activeTab, setActiveTab] = useState<StickerSource>("local");
+  const [activeTab, setActiveTab] = useState<StickerSource>("decorative");
   const [size, setSize] = useState(currentStickerSize);
   
-  // Local stickers (available in the public folder)
-  const localStickers = [
-    "/stickers/cake.svg",
-    "/stickers/camera.svg",
-    "/stickers/gift.svg",
-    "/stickers/happy.svg",
-    "/stickers/heart.svg",
-    "/stickers/sad.svg",
-    "/stickers/star.svg",
-    "/stickers/thumbsup.svg",
+  // Decorative stickers - actual sticker designs
+  const decorativeStickers = [
+    "https://cdn-icons-png.flaticon.com/512/5449/5449904.png", // Star sparkle
+    "https://cdn-icons-png.flaticon.com/512/5449/5449970.png", // Cute heart
+    "https://cdn-icons-png.flaticon.com/512/5449/5449955.png", // Heart ribbon
+    "https://cdn-icons-png.flaticon.com/512/5449/5449995.png", // Love sticker
+    "https://cdn-icons-png.flaticon.com/512/5449/5449927.png", // Cloud text bubble
+    "https://cdn-icons-png.flaticon.com/512/5449/5449899.png", // Star flash
+    "https://cdn-icons-png.flaticon.com/512/5449/5449922.png", // Lips kiss
+    "https://cdn-icons-png.flaticon.com/512/5449/5449984.png", // 100% sticker
+    "https://cdn-icons-png.flaticon.com/512/5449/5449938.png", // Fire flame
+    "https://cdn-icons-png.flaticon.com/512/5449/5449932.png", // Boom explosion
+    "https://cdn-icons-png.flaticon.com/512/5449/5449939.png", // Diamond gem
+    "https://cdn-icons-png.flaticon.com/512/5449/5449913.png", // Crown royal
   ];
   
-  // Flat stickers - proper sticker designs
-  const flatStickers = [
-    "https://www.svgrepo.com/download/402818/birthday-cake.svg", // Birthday cake
-    "https://www.svgrepo.com/download/402800/balloon.svg", // Balloon
-    "https://www.svgrepo.com/download/508839/crown.svg", // Crown
-    "https://www.svgrepo.com/download/477974/medal-color.svg", // Medal
-    "https://www.svgrepo.com/download/533312/trophy.svg", // Trophy
-    "https://www.svgrepo.com/download/532994/diamond.svg", // Diamond
-    "https://www.svgrepo.com/download/535669/gift.svg", // Gift
-    "https://www.svgrepo.com/download/376306/envelope-heart.svg", // Love letter
-    "https://www.svgrepo.com/download/376771/heart-2.svg", // Heart
-    "https://www.svgrepo.com/download/483325/firework.svg", // Firework
-    "https://www.svgrepo.com/download/320637/confetti.svg", // Confetti
-    "https://www.svgrepo.com/download/326611/skateboard.svg", // Skateboard
-    "https://www.svgrepo.com/download/510187/camera.svg", // Camera
-    "https://www.svgrepo.com/download/453629/music-note.svg", // Music note
-    "https://www.svgrepo.com/download/522009/soccer-ball.svg", // Soccer ball
-    "https://www.svgrepo.com/download/453634/palette.svg", // Art palette
-    "https://www.svgrepo.com/download/376318/flowers.svg", // Flowers
-    "https://www.svgrepo.com/download/513350/sun.svg", // Sun
-    "https://www.svgrepo.com/download/511141/moon.svg", // Moon
-    "https://www.svgrepo.com/download/376309/bug.svg", // Bug
-    "https://www.svgrepo.com/download/511126/dinosaur.svg", // Dinosaur
-    "https://www.svgrepo.com/download/511123/airplane.svg", // Airplane
-    "https://www.svgrepo.com/download/521827/rocket.svg", // Rocket
-    "https://www.svgrepo.com/download/511142/car.svg", // Car
+  // Nature stickers
+  const natureStickers = [
+    "https://cdn-icons-png.flaticon.com/512/6485/6485127.png", // Sun
+    "https://cdn-icons-png.flaticon.com/512/6485/6485130.png", // Cloud
+    "https://cdn-icons-png.flaticon.com/512/6485/6485135.png", // Moon
+    "https://cdn-icons-png.flaticon.com/512/6485/6485136.png", // Rainbow
+    "https://cdn-icons-png.flaticon.com/512/6485/6485149.png", // Flower
+    "https://cdn-icons-png.flaticon.com/512/6485/6485178.png", // Cactus
+    "https://cdn-icons-png.flaticon.com/512/6485/6485165.png", // Plant
+    "https://cdn-icons-png.flaticon.com/512/6485/6485172.png", // Tree
+    "https://cdn-icons-png.flaticon.com/512/6485/6485153.png", // Mountain
+    "https://cdn-icons-png.flaticon.com/512/6485/6485158.png", // Wave
+    "https://cdn-icons-png.flaticon.com/512/6485/6485168.png", // Planet
+    "https://cdn-icons-png.flaticon.com/512/6485/6485189.png", // Leaf
   ];
   
-  // Artistic stickers - decorative and artsy
-  const artStickers = [
-    "https://www.svgrepo.com/download/459921/flower-1.svg", // Flower
-    "https://www.svgrepo.com/download/459928/flower-8.svg", // Flower variant
-    "https://www.svgrepo.com/download/459901/butterfly-1.svg", // Butterfly
-    "https://www.svgrepo.com/download/459903/butterfly-3.svg", // Butterfly variant
-    "https://www.svgrepo.com/download/459885/bird-2.svg", // Bird
-    "https://www.svgrepo.com/download/459887/bird-4.svg", // Bird variant
-    "https://www.svgrepo.com/download/459953/leaf-3.svg", // Leaf
-    "https://www.svgrepo.com/download/459955/leaf-5.svg", // Leaf variant
-    "https://www.svgrepo.com/download/459944/insect-2.svg", // Insect
-    "https://www.svgrepo.com/download/459937/heart-1.svg", // Heart art
-    "https://www.svgrepo.com/download/460015/star-3.svg", // Star art
-    "https://www.svgrepo.com/download/460027/tree-6.svg", // Tree
-    "https://www.svgrepo.com/download/460026/tree-5.svg", // Tree variant
-    "https://www.svgrepo.com/download/459967/mountain-3.svg", // Mountain
-    "https://www.svgrepo.com/download/459961/moon-3.svg", // Moon
-    "https://www.svgrepo.com/download/460022/sun-4.svg", // Sun
-    "https://www.svgrepo.com/download/459957/leaf-7.svg", // Leaf ornament
-    "https://www.svgrepo.com/download/459985/plant-3.svg", // Plant
-    "https://www.svgrepo.com/download/459894/branch-5.svg", // Branch
-    "https://www.svgrepo.com/download/459990/rainbow-1.svg", // Rainbow
-    "https://www.svgrepo.com/download/459992/rainbow-3.svg", // Rainbow variant
-    "https://www.svgrepo.com/download/459999/snowflake-5.svg", // Snowflake
-    "https://www.svgrepo.com/download/459911/cloud-5.svg", // Cloud
-    "https://www.svgrepo.com/download/459994/raindrop-4.svg" // Raindrop
+  // Food stickers
+  const foodStickers = [
+    "https://cdn-icons-png.flaticon.com/512/6268/6268389.png", // Pizza
+    "https://cdn-icons-png.flaticon.com/512/6268/6268478.png", // Burger
+    "https://cdn-icons-png.flaticon.com/512/6268/6268419.png", // Donut
+    "https://cdn-icons-png.flaticon.com/512/6268/6268385.png", // Ice cream
+    "https://cdn-icons-png.flaticon.com/512/6268/6268401.png", // Cake
+    "https://cdn-icons-png.flaticon.com/512/6268/6268370.png", // Coffee
+    "https://cdn-icons-png.flaticon.com/512/6268/6268426.png", // Drink
+    "https://cdn-icons-png.flaticon.com/512/6268/6268395.png", // Sushi
+    "https://cdn-icons-png.flaticon.com/512/6268/6268404.png", // Taco
+    "https://cdn-icons-png.flaticon.com/512/6268/6268330.png", // Salad
+    "https://cdn-icons-png.flaticon.com/512/6268/6268495.png", // Pasta
+    "https://cdn-icons-png.flaticon.com/512/6268/6268486.png", // Strawberry
   ];
   
   // Ensure sticker size updates when parent size changes
@@ -134,17 +114,17 @@ export function StickerSelector({
         </div>
       </div>
       
-      <Tabs defaultValue="local" value={activeTab} onValueChange={(value) => setActiveTab(value as StickerSource)}>
+      <Tabs defaultValue="decorative" value={activeTab} onValueChange={(value) => setActiveTab(value as StickerSource)}>
         <TabsList className="grid grid-cols-3 mb-2">
-          <TabsTrigger value="local" className="text-[10px]">Basic</TabsTrigger>
-          <TabsTrigger value="flaticon" className="text-[10px]">Colorful</TabsTrigger>
-          <TabsTrigger value="artistic" className="text-[10px]">Art</TabsTrigger>
+          <TabsTrigger value="decorative" className="text-[10px]">Decorative</TabsTrigger>
+          <TabsTrigger value="nature" className="text-[10px]">Nature</TabsTrigger>
+          <TabsTrigger value="food" className="text-[10px]">Food</TabsTrigger>
         </TabsList>
         
         <ScrollArea className="h-[150px]">
-          <TabsContent value="local" className="mt-0 space-y-4">
+          <TabsContent value="decorative" className="mt-0 space-y-4">
             <div className="grid grid-cols-4 gap-2">
-              {localStickers.map((sticker, index) => (
+              {decorativeStickers.map((sticker, index) => (
                 <button
                   key={index}
                   className="bg-white rounded-md p-2 hover:bg-gray-50 border border-gray-200"
@@ -157,9 +137,9 @@ export function StickerSelector({
             </div>
           </TabsContent>
           
-          <TabsContent value="flaticon" className="mt-0 space-y-4">
+          <TabsContent value="nature" className="mt-0 space-y-4">
             <div className="grid grid-cols-4 gap-2">
-              {flatStickers.map((sticker, index) => (
+              {natureStickers.map((sticker, index) => (
                 <button
                   key={index}
                   className="bg-white rounded-md p-2 hover:bg-gray-50 border border-gray-200"
@@ -168,11 +148,11 @@ export function StickerSelector({
                 >
                   <img 
                     src={sticker} 
-                    alt="Colorful Sticker" 
+                    alt="Nature Sticker" 
                     className="w-full h-10 object-contain"
                     onError={(e) => {
                       console.error(`Failed to load sticker: ${sticker}`);
-                      e.currentTarget.src = '/stickers/star.svg';
+                      e.currentTarget.src = 'https://cdn-icons-png.flaticon.com/512/5449/5449904.png';
                     }}
                   />
                 </button>
@@ -180,9 +160,9 @@ export function StickerSelector({
             </div>
           </TabsContent>
           
-          <TabsContent value="artistic" className="mt-0 space-y-4">
+          <TabsContent value="food" className="mt-0 space-y-4">
             <div className="grid grid-cols-4 gap-2">
-              {artStickers.map((sticker, index) => (
+              {foodStickers.map((sticker, index) => (
                 <button
                   key={index}
                   className="bg-white rounded-md p-2 hover:bg-gray-50 border border-gray-200"
@@ -191,11 +171,11 @@ export function StickerSelector({
                 >
                   <img 
                     src={sticker}
-                    alt="Art Sticker" 
+                    alt="Food Sticker" 
                     className="w-full h-10 object-contain"
                     onError={(e) => {
                       console.error(`Failed to load sticker: ${sticker}`);
-                      e.currentTarget.src = '/stickers/star.svg';
+                      e.currentTarget.src = 'https://cdn-icons-png.flaticon.com/512/5449/5449904.png';
                     }}
                   />
                 </button>
