@@ -26,7 +26,7 @@ const App = () => {
         <TooltipProvider>
           <Routes>
             <Route path="/" element={<Write />} />
-            <Route path="/index" element={<Navigate to="/" replace />} />
+            <Route path="/index" element={<Write />} />
             <Route path="/write" element={<Write />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/auth" element={<Auth />} />
