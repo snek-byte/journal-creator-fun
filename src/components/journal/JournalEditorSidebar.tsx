@@ -1,45 +1,57 @@
 
-import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
+import React, { useState, useRef } from 'react';
+import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { JournalStylingControls } from './JournalStylingControls';
 import { MoodSelector } from './MoodSelector';
-import { DailyChallenge } from './DailyChallenge';
+import { JournalStylingControls } from './JournalStylingControls';
+import { BackgroundImageSelector } from './BackgroundImageSelector';
 import { StickerSelector } from './StickerSelector';
 import { IconSelector } from './IconSelector';
-import { BackgroundImageSelector } from './BackgroundImageSelector';
+import { DailyChallenge } from './DailyChallenge';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Switch } from '@/components/ui/switch';
 import { ImageFilterSelector } from './ImageFilterSelector';
-import { Save, Printer, Mail, Undo, Redo, RotateCcw, Paintbrush, Eraser, PaintBucket, CircleDashed, Pencil, Highlighter, Trash2 } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import {
+  Save,
+  Send,
+  Printer,
+  Eraser,
+  Undo2,
+  Redo2,
+  RotateCcw,
+  Paintbrush,
+  Edit,
+  Smile,
+  PanelRight,
+  Sparkles,
+  Check,
+  Palette,
+  Image,
+  PaintBucket,
+  Square,
+  FileImage,
+  Brush,
+  EyeIcon,
+  Wand2
+} from "lucide-react";
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
-import type { Mood, Sticker, Icon } from '@/types/journal';
-import { PopoverTrigger, Popover, PopoverContent } from '@/components/ui/popover';
-import { Separator } from '@/components/ui/separator';
-import { gradients } from './config/editorConfig';
+import type { Mood, DailyChallengeData, JournalEntry } from '@/types/journal';
 
 interface JournalEditorSidebarProps {
-  textareaRef: React.RefObject<HTMLTextAreaElement>;
-  currentEntry: {
-    text: string;
-    font: string;
-    fontSize: string;
-    fontWeight: string;
-    fontColor: string;
-    gradient: string;
-    mood?: Mood;
-    isPublic: boolean;
-  };
-  dailyChallenge: any;
-  selectedIconId: string | null;
-  selectedStickerId?: string | null; // Added missing prop
+  textareaRef?: React.RefObject<HTMLTextAreaElement>;
+  currentEntry: JournalEntry;
+  dailyChallenge?: DailyChallengeData;
+  selectedIconId?: string | null;
+  selectedStickerId?: string | null;
   handlePrint: () => void;
   handleEmojiSelect: (emojiData: EmojiClickData) => void;
   setShowEmailDialog: (show: boolean) => void;
   setText: (text: string) => void;
-  setMood: (mood: Mood) => void;
+  setMood: (mood?: Mood) => void;
   setIsPublic: (isPublic: boolean) => void;
   setFont: (font: string) => void;
   setFontSize: (size: string) => void;
@@ -47,53 +59,28 @@ interface JournalEditorSidebarProps {
   setFontColor: (color: string) => void;
   setGradient: (gradient: string) => void;
   setTextStyle: (style: string) => void;
-  saveEntry: () => void;
+  saveEntry: () => Promise<void>;
   loadChallenge: () => void;
   applyChallenge: () => void;
-  handleUndo?: () => void;
-  handleRedo?: () => void;
-  handleResetToDefault?: () => void;
-  canUndo?: boolean;
-  canRedo?: boolean;
-  onDrawingToolSelect?: (tool: string) => void;
-  currentDrawingTool?: string;
-  onDrawingColorChange?: (color: string) => void;
-  currentDrawingColor?: string;
-  onClearDrawing?: () => void;
-  onBrushSizeChange?: (size: number) => void;
-  currentBrushSize?: number;
-  onStickerAdd?: (stickerUrl: string) => void;
-  onStickerResize?: (size: number) => void; // Added missing prop
-  currentStickerSize?: number; // Added missing prop
-  onIconAdd?: (icon: { url: string, style: 'outline' | 'color' }) => void;
-  onBackgroundSelect?: (imageUrl: string) => void;
-  onFilterChange?: (filter: string) => void;
+  onDrawingToolSelect: (tool: string) => void;
+  currentDrawingTool: string;
+  onDrawingColorChange: (color: string) => void;
+  currentDrawingColor: string;
+  onClearDrawing: () => void;
+  onBrushSizeChange: (size: number) => void;
+  currentBrushSize: number;
+  onStickerAdd: (stickerUrl: string) => void;
+  onStickerResize: (size: number) => void;
+  currentStickerSize: number;
+  onIconAdd: (icon: { url: string, style: 'outline' | 'color' }) => void;
+  onBackgroundSelect: (imageUrl: string) => void;
+  onFilterChange: (filter: string) => void;
+  handleUndo: () => void;
+  handleRedo: () => void;
+  handleResetToDefault: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
-
-// Drawing tool options with colors
-const drawingTools = [
-  { name: 'Pen', value: 'pen', icon: Pencil, color: '#9b87f5' },
-  { name: 'Marker', value: 'marker', icon: Paintbrush, color: '#7E69AB' },
-  { name: 'Highlighter', value: 'highlighter', icon: Highlighter, color: '#D6BCFA' },
-  { name: 'Spray', value: 'spray', icon: CircleDashed, color: '#FEC6A1' },
-  { name: 'Fill', value: 'fill', icon: PaintBucket, color: '#FDE1D3' },
-  { name: 'Eraser', value: 'eraser', icon: Eraser, color: '#8E9196' },
-];
-
-// Drawing color palette
-const drawingColors = [
-  { value: '#000000', label: 'Black' },
-  { value: '#1e40af', label: 'Blue' },
-  { value: '#7e22ce', label: 'Purple' },
-  { value: '#dc2626', label: 'Red' },
-  { value: '#ea580c', label: 'Orange' },
-  { value: '#ca8a04', label: 'Yellow' },
-  { value: '#16a34a', label: 'Green' },
-  { value: '#0d9488', label: 'Teal' },
-];
-
-// Brush sizes
-const brushSizes = [2, 4, 6, 8];
 
 export function JournalEditorSidebar({
   textareaRef,
@@ -116,341 +103,350 @@ export function JournalEditorSidebar({
   saveEntry,
   loadChallenge,
   applyChallenge,
-  handleUndo,
-  handleRedo,
-  handleResetToDefault,
-  canUndo = false,
-  canRedo = false,
   onDrawingToolSelect,
-  currentDrawingTool = 'pen',
+  currentDrawingTool,
   onDrawingColorChange,
-  currentDrawingColor = '#000000',
+  currentDrawingColor,
   onClearDrawing,
   onBrushSizeChange,
-  currentBrushSize = 3,
+  currentBrushSize,
   onStickerAdd,
   onStickerResize,
-  currentStickerSize = 100,
+  currentStickerSize,
   onIconAdd,
   onBackgroundSelect,
   onFilterChange,
+  handleUndo,
+  handleRedo,
+  handleResetToDefault,
+  canUndo,
+  canRedo,
 }: JournalEditorSidebarProps) {
-  const [activeTab, setActiveTab] = useState('write');
-  const [charCount, setCharCount] = useState(0);
-  const [wordCount, setWordCount] = useState(0);
-
-  // Recalculate word and character counts when text changes
-  useEffect(() => {
-    const text = currentEntry.text;
-    setCharCount(text.length);
-    setWordCount(text.trim() === '' ? 0 : text.trim().split(/\s+/).length);
-  }, [currentEntry.text]);
-
-  // Switch to style tab when an icon is selected
-  useEffect(() => {
+  const [activeTab, setActiveTab] = useState("write");
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const [showedWelcome, setShowedWelcome] = useState(false);
+  
+  // Update active tab based on selection
+  React.useEffect(() => {
+    // If an icon is selected, show the decorate tab
     if (selectedIconId) {
-      setActiveTab('style');
+      setActiveTab("decorate");
     }
-  }, [selectedIconId]);
+    
+    // If a sticker is selected, show the decorate tab
+    if (selectedStickerId) {
+      setActiveTab("decorate");
+      console.log("Setting activeTab to decorate because sticker is selected:", selectedStickerId);
+    }
+  }, [selectedIconId, selectedStickerId]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
   };
 
+  const handleSave = async () => {
+    await saveEntry();
+  };
+
+  const handleEmail = () => {
+    setShowEmailDialog(true);
+  };
+
   return (
-    <aside className="w-full lg:w-96 border-r p-4 flex flex-col h-auto lg:h-screen min-h-[400px] bg-background overflow-hidden">
+    <div className="w-full lg:max-w-96 p-4 border-r bg-background min-h-[50vh] lg:min-h-screen">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Journal Editor</h2>
-        <div className="flex gap-1">
-          {handleUndo && (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleUndo}
-              disabled={!canUndo}
-              title="Undo"
-            >
-              <Undo className="h-4 w-4" />
-            </Button>
-          )}
-          
-          {handleRedo && (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleRedo}
-              disabled={!canRedo}
-              title="Redo"
-            >
-              <Redo className="h-4 w-4" />
-            </Button>
-          )}
-          
-          {handleResetToDefault && (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleResetToDefault}
-              title="Reset to Default"
-            >
-              <RotateCcw className="h-4 w-4" />
-            </Button>
-          )}
+        <h1 className="text-xl font-bold">My Journal</h1>
+        <div className="flex space-x-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={handleUndo}
+            disabled={!canUndo}
+            title="Undo"
+          >
+            <Undo2 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={handleRedo}
+            disabled={!canRedo}
+            title="Redo"
+          >
+            <Redo2 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={handleResetToDefault}
+            title="Reset to Default"
+          >
+            <RotateCcw className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
-        <TabsList className="w-full mb-4">
-          <TabsTrigger value="write" className="flex-1">Write</TabsTrigger>
-          <TabsTrigger value="decorate" className="flex-1">Decorate</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="mb-4 w-full">
+          <TabsTrigger value="write" className="flex-1">
+            <Edit className="h-4 w-4 mr-1" />
+            Write
+          </TabsTrigger>
+          <TabsTrigger value="style" className="flex-1">
+            <Palette className="h-4 w-4 mr-1" />
+            Style
+          </TabsTrigger>
+          <TabsTrigger value="decorate" className="flex-1">
+            <Sparkles className="h-4 w-4 mr-1" />
+            Decorate
+          </TabsTrigger>
+          <TabsTrigger value="draw" className="flex-1">
+            <Brush className="h-4 w-4 mr-1" />
+            Draw
+          </TabsTrigger>
         </TabsList>
 
-        <ScrollArea className="flex-1 w-full pr-2">
-          {/* WRITING TAB - For text entry, mood selection, and now text styling */}
-          <TabsContent value="write" className="mt-0 h-full flex flex-col gap-4">
-            <div className="space-y-4">
-              <MoodSelector 
-                mood={currentEntry.mood} 
-                isPublic={currentEntry.isPublic}
-                onMoodChange={setMood}
-                onIsPublicChange={setIsPublic}
-              />
+        <TabsContent value="write" className="space-y-4">
+          {dailyChallenge && (
+            <DailyChallenge 
+              challenge={dailyChallenge} 
+              onApply={applyChallenge}
+              onRefresh={loadChallenge}
+            />
+          )}
+          
+          <div className="space-y-2">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-xs font-semibold tracking-tight">How are you feeling today?</span>
               
-              <div className="relative">
-                <Textarea
-                  ref={textareaRef}
-                  placeholder="What's on your mind today?"
-                  value={currentEntry.text}
-                  onChange={handleTextChange}
-                  className="min-h-[200px] resize-none font-normal text-base"
+              <div className="flex items-center space-x-2">
+                <span className="text-xs text-muted-foreground">Public</span>
+                <Switch 
+                  checked={currentEntry.isPublic} 
+                  onCheckedChange={setIsPublic} 
+                />
+              </div>
+            </div>
+            
+            <MoodSelector 
+              selectedMood={currentEntry.mood} 
+              onMoodSelect={setMood} 
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex justify-between items-center mb-1">
+              <Label htmlFor="journal-text" className="text-xs font-semibold tracking-tight">
+                Your thoughts
+              </Label>
+              
+              <Popover open={emojiPickerOpen} onOpenChange={setEmojiPickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8"
+                  >
+                    <Smile className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="end">
+                  <EmojiPicker 
+                    onEmojiClick={(emojiData) => {
+                      handleEmojiSelect(emojiData);
+                      setEmojiPickerOpen(false);
+                    }}
+                    width="100%"
+                    height={350}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            
+            <Textarea 
+              id="journal-text"
+              ref={textareaRef}
+              placeholder="Today I..."
+              value={currentEntry.text}
+              onChange={handleTextChange}
+              className="resize-none h-48 focus-visible:ring-1"
+            />
+          </div>
+          
+          <div className="flex justify-between pt-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="w-20"
+              onClick={handleEmail}
+            >
+              <Send className="h-4 w-4 mr-1" />
+              Email
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="w-20"
+              onClick={handlePrint}
+            >
+              <Printer className="h-4 w-4 mr-1" />
+              Print
+            </Button>
+            
+            <Button 
+              variant="default" 
+              size="sm"
+              className="w-20"
+              onClick={handleSave}
+            >
+              <Save className="h-4 w-4 mr-1" />
+              Save
+            </Button>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="style" className="space-y-4">
+          <JournalStylingControls 
+            font={currentEntry.font}
+            fontSize={currentEntry.fontSize}
+            fontWeight={currentEntry.fontWeight}
+            fontColor={currentEntry.fontColor}
+            gradient={currentEntry.gradient}
+            selectedIconId={selectedIconId}
+            onFontChange={setFont}
+            onFontSizeChange={setFontSize}
+            onFontWeightChange={setFontWeight}
+            onFontColorChange={setFontColor}
+            onGradientChange={setGradient}
+            onTextStyleChange={setTextStyle}
+          />
+          
+          <div className="space-y-4 pt-4">
+            <BackgroundImageSelector
+              onBackgroundSelect={onBackgroundSelect}
+            />
+          </div>
+          
+          <div className="space-y-4 pt-4">
+            <ImageFilterSelector
+              onFilterChange={onFilterChange}
+              currentFilter={currentEntry.filter || 'none'}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="decorate" className="space-y-4">
+          <div className="space-y-4">
+            <ScrollArea className="h-[60vh]">
+              <div className="space-y-8">
+                <StickerSelector 
+                  onStickerSelect={onStickerAdd}
+                  onStickerResize={onStickerResize}
+                  currentStickerSize={currentStickerSize}
+                  selectedStickerId={selectedStickerId}
                 />
                 
-                {/* Emoji button integrated directly into textarea */}
-                <div className="absolute bottom-2 right-2">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                        <span role="img" aria-label="emoji" className="text-base">😊</span>
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-0" align="end" side="top">
-                      <EmojiPicker 
-                        onEmojiClick={handleEmojiSelect}
-                        width={300}
-                        height={320}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
+                <IconSelector 
+                  onIconSelect={onIconAdd}
+                  selectedIconId={selectedIconId}
+                  iconOptions={
+                    selectedIconId && currentEntry.icons 
+                      ? {
+                          color: currentEntry.icons.find(i => i.id === selectedIconId)?.color || '#000000',
+                          size: currentEntry.icons.find(i => i.id === selectedIconId)?.size || 48
+                        }
+                      : undefined
+                  }
+                  onIconUpdate={
+                    selectedIconId 
+                      ? (updates) => {
+                          const { color, size } = updates;
+                          if (color) setFontColor(color); // Use fontColor setter for icon color
+                          if (size) setFontSize(`${size}px`); // Use fontSize setter for icon size
+                        }
+                      : undefined
+                  }
+                />
               </div>
-              
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{charCount} characters</span>
-                <span>{wordCount} words</span>
+            </ScrollArea>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="draw" className="space-y-4">
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-xs font-semibold tracking-tight mb-2">Drawing Tools</h3>
+              <div className="grid grid-cols-4 gap-2">
+                <Button
+                  variant={currentDrawingTool === 'pen' ? "default" : "outline"}
+                  className="h-10 p-0"
+                  onClick={() => onDrawingToolSelect('pen')}
+                >
+                  <Paintbrush className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={currentDrawingTool === 'line' ? "default" : "outline"}
+                  className="h-10 p-0"
+                  onClick={() => onDrawingToolSelect('line')}
+                >
+                  <PanelRight className="h-4 w-4 -rotate-45" />
+                </Button>
+                <Button
+                  variant={currentDrawingTool === 'rectangle' ? "default" : "outline"}
+                  className="h-10 p-0"
+                  onClick={() => onDrawingToolSelect('rectangle')}
+                >
+                  <Square className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-10 p-0"
+                  onClick={onClearDrawing}
+                >
+                  <Eraser className="h-4 w-4" />
+                </Button>
               </div>
-              
-              {/* Text Styling Controls moved here */}
-              <JournalStylingControls
-                font={currentEntry.font}
-                fontSize={currentEntry.fontSize}
-                fontWeight={currentEntry.fontWeight}
-                fontColor={currentEntry.fontColor}
-                gradient={currentEntry.gradient}
-                onFontChange={setFont}
-                onFontSizeChange={setFontSize}
-                onFontWeightChange={setFontWeight}
-                onFontColorChange={setFontColor}
-                onGradientChange={setGradient}
-                onTextStyleChange={setTextStyle}
-                selectedIconId={selectedIconId}
-              />
-              
-              <DailyChallenge
-                dailyChallenge={dailyChallenge}
-                onRefresh={loadChallenge}
-                onApply={applyChallenge}
-              />
             </div>
-          </TabsContent>
-
-          {/* DECORATE TAB - For stickers, icons, backgrounds, etc. */}
-          <TabsContent value="decorate" className="mt-0 space-y-4">
-            <Tabs defaultValue="stickers" className="w-full">
-              <TabsList className="grid grid-cols-4 mb-4">
-                <TabsTrigger value="stickers" className="text-[10px]">Stickers</TabsTrigger>
-                <TabsTrigger value="icons" className="text-[10px]">Icons</TabsTrigger>
-                <TabsTrigger value="background" className="text-[10px]">Background</TabsTrigger>
-                <TabsTrigger value="drawing" className="text-[10px]">Drawing</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="stickers" className="mt-0">
-                {onStickerAdd && (
-                  <StickerSelector 
-                    onStickerSelect={onStickerAdd} 
-                    onStickerResize={onStickerResize}
-                    currentStickerSize={currentStickerSize}
-                    selectedStickerId={selectedStickerId}
+            
+            <div className="space-y-2">
+              <h3 className="text-xs font-semibold tracking-tight">Drawing Color</h3>
+              <div className="grid grid-cols-6 gap-2">
+                {['#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF'].map((color) => (
+                  <button
+                    key={color}
+                    className={`w-full h-8 rounded-md ${currentDrawingColor === color ? 'ring-2 ring-primary' : ''}`}
+                    style={{ backgroundColor: color }}
+                    onClick={() => onDrawingColorChange(color)}
                   />
-                )}
-              </TabsContent>
-              
-              <TabsContent value="icons" className="mt-0">
-                {onIconAdd && (
-                  <IconSelector onIconSelect={onIconAdd} />
-                )}
-              </TabsContent>
-              
-              <TabsContent value="background" className="mt-0 space-y-4">
-                {onBackgroundSelect && (
-                  <BackgroundImageSelector onBackgroundSelect={onBackgroundSelect} />
-                )}
-                
-                {onFilterChange && (
-                  <div className="pt-4">
-                    <ImageFilterSelector onFilterChange={onFilterChange} />
-                  </div>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="drawing" className="mt-0 space-y-4">
-                {/* Drawing Tools Section */}
-                {onDrawingToolSelect && (
-                  <div className="space-y-3">
-                    <h3 className="text-xs font-semibold tracking-tight">Drawing Tools</h3>
-                    
-                    {/* Tool Selection */}
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-medium">Select Tool</Label>
-                      <div className="flex flex-wrap gap-2">
-                        {drawingTools.map((tool) => (
-                          <button
-                            key={tool.value}
-                            onClick={() => onDrawingToolSelect(tool.value)}
-                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                              currentDrawingTool === tool.value 
-                                ? 'ring-2 ring-primary ring-offset-2' 
-                                : 'hover:opacity-80'
-                            }`}
-                            style={{ backgroundColor: tool.color }}
-                            title={tool.name}
-                            type="button"
-                          >
-                            <tool.icon className="h-3.5 w-3.5 text-white" />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    {/* Color Selection - Only for non-eraser tools */}
-                    {currentDrawingTool !== 'eraser' && onDrawingColorChange && (
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-medium">Select Color</Label>
-                        <div className="flex flex-wrap gap-1.5">
-                          {drawingColors.map((color) => (
-                            <button
-                              key={color.value}
-                              className={`w-6 h-6 rounded-full ${
-                                currentDrawingColor === color.value 
-                                  ? 'ring-2 ring-black ring-offset-1' 
-                                  : ''
-                              }`}
-                              style={{ backgroundColor: color.value }}
-                              onClick={() => onDrawingColorChange(color.value)}
-                              title={color.label}
-                              type="button"
-                            />
-                          ))}
-                        </div>
-                        
-                        {/* Custom color picker */}
-                        <input
-                          type="color"
-                          value={currentDrawingColor}
-                          onChange={(e) => onDrawingColorChange(e.target.value)}
-                          className="w-full h-8 rounded-md cursor-pointer mt-1"
-                        />
-                      </div>
-                    )}
-                    
-                    {/* Brush Size Selection */}
-                    {onBrushSizeChange && currentDrawingTool !== 'fill' && (
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-medium">Brush Size</Label>
-                        <div className="flex justify-between gap-1.5">
-                          {brushSizes.map((size) => (
-                            <button
-                              key={size}
-                              className={`flex-1 h-8 rounded-md flex items-center justify-center ${
-                                currentBrushSize === size 
-                                  ? 'bg-primary/20 border border-primary' 
-                                  : 'border border-gray-200'
-                              }`}
-                              onClick={() => onBrushSizeChange(size)}
-                              type="button"
-                            >
-                              <div 
-                                className="rounded-full"
-                                style={{ 
-                                  width: `${size * 2}px`, 
-                                  height: `${size * 2}px`, 
-                                  backgroundColor: currentDrawingTool === 'eraser' ? '#888' : currentDrawingColor 
-                                }}
-                              />
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Clear Drawing Button */}
-                    {onClearDrawing && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="w-full mt-2"
-                        onClick={onClearDrawing}
-                      >
-                        <Trash2 className="h-3.5 w-3.5 mr-2" />
-                        Clear Drawing
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-          </TabsContent>
-        </ScrollArea>
-
-        <div className="h-[1px] w-full bg-border my-4"></div>
-        
-        <div className="flex gap-2 justify-between">
-          <Button 
-            onClick={saveEntry} 
-            className="flex-1"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            Save
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={handlePrint}
-            title="Print"
-          >
-            <Printer className="w-4 h-4" />
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={() => setShowEmailDialog(true)}
-            title="Email Entry"
-          >
-            <Mail className="w-4 h-4" />
-          </Button>
-        </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xs font-semibold tracking-tight">Brush Size</h3>
+                <span className="text-xs">{currentBrushSize}px</span>
+              </div>
+              <div className="flex space-x-4 items-center">
+                <span className="text-xs">1px</span>
+                <input
+                  type="range"
+                  min="1"
+                  max="20"
+                  value={currentBrushSize}
+                  onChange={(e) => onBrushSizeChange(Number(e.target.value))}
+                  className="flex-1"
+                />
+                <span className="text-xs">20px</span>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
       </Tabs>
-    </aside>
+    </div>
   );
 }

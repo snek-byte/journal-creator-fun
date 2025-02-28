@@ -135,7 +135,7 @@ export function JournalEditor() {
 
   // Handler for sticker selection
   const handleStickerSelect = (id: string | null) => {
-    console.log("Sticker selected:", id);
+    console.log("Sticker selected in JournalEditor:", id);
     setSelectedStickerId(id);
     
     // If we selected a new sticker, update the size state

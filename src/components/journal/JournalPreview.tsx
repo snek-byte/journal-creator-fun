@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { DrawingLayer } from './DrawingLayer';
@@ -151,44 +150,50 @@ export function JournalPreview({
     setSelectedIconId(id);
     setSelectedStickerId(null);
     onIconSelect(id);
+    onStickerSelect(null);
   };
 
   const handleStickerSelect = (id: string) => {
+    console.log(`handleStickerSelect in JournalPreview: ${id}`);
     setSelectedStickerId(id);
     onStickerSelect(id);
     setSelectedIconId(null);
-    onIconSelect(''); // Deselect any icon
-    console.log(`Selected sticker: ${id}`);
+    onIconSelect('');
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent event from bubbling to parent elements
+    e.stopPropagation();
     setIsDraggingText(true);
     
     if (!previewRef.current) return;
     
     const rect = previewRef.current.getBoundingClientRect();
     // Calculate offset from click position to text center
-    setTextOffset({ 
-      x: e.clientX - rect.left - (textPosition.x / 100) * rect.width, 
-      y: e.clientY - rect.top - (textPosition.y / 100) * rect.height 
+    const centerX = (textPosition.x / 100) * rect.width;
+    const centerY = (textPosition.y / 100) * rect.height;
+    
+    setTextOffset({
+      x: e.clientX - rect.left - centerX,
+      y: e.clientY - rect.top - centerY
     });
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDraggingText || !previewRef.current) return;
     e.preventDefault();
+    e.stopPropagation();
     
     const rect = previewRef.current.getBoundingClientRect();
     
     // Calculate new position based on mouse position and original offset
-    const newX = ((e.clientX - rect.left - textOffset.x) / rect.width) * 100;
-    const newY = ((e.clientY - rect.top - textOffset.y) / rect.height) * 100;
+    // Make sure we're calculating from the top-left of the container
+    const x = (e.clientX - rect.left - textOffset.x) / rect.width * 100;
+    const y = (e.clientY - rect.top - textOffset.y) / rect.height * 100;
     
-    // Ensure position stays within bounds (0-100%)
-    const boundedX = Math.max(0, Math.min(100, newX));
-    const boundedY = Math.max(0, Math.min(100, newY));
+    // Ensure position stays within bounds (5%-95% to avoid going off-screen)
+    const boundedX = Math.max(5, Math.min(95, x));
+    const boundedY = Math.max(5, Math.min(95, y));
     
     onTextMove({ x: boundedX, y: boundedY });
   };
@@ -334,6 +339,43 @@ export function JournalPreview({
               </button>
             </div>
 
+            {/* Text Area - Keep this at the top to ensure it doesn't disappear behind other elements */}
+            <div
+              className="absolute z-30 break-words w-[80%] font-normal cursor-move p-4 rounded hover:bg-gray-50/10"
+              style={{
+                left: `${textPosition.x}%`,
+                top: `${textPosition.y}%`,
+                transform: 'translate(-50%, -50%)',
+                fontFamily: font || 'inherit',
+                fontSize: fontSize || 'inherit',
+                fontWeight: fontWeight || 'inherit',
+                color: isTextGradient ? 'transparent' : (fontColor || 'inherit'),
+                background: isTextGradient ? gradient.replace(' text', '') : 'none',
+                WebkitBackgroundClip: isTextGradient ? 'text' : 'unset',
+                WebkitTextFillColor: isTextGradient ? 'transparent' : 'unset',
+                fontStyle: textStyle?.includes('italic') ? 'italic' : 'normal',
+                textDecoration: textStyle?.includes('underline') ? 'underline' : 'none',
+                textAlign: textStyle?.includes('center') ? 'center' : 'left',
+                minHeight: '2em', // Ensure text area is always visible
+                maxHeight: '80%', // Prevent text from extending too far
+                overflow: 'visible', // Allow text to flow outside if needed
+              }}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
+              onClick={(e) => {
+                e.stopPropagation();
+                // Deselect any selected sticker or icon when clicking on text
+                setSelectedStickerId(null);
+                setSelectedIconId(null);
+                onIconSelect('');
+                onStickerSelect(null);
+              }}
+            >
+              {processText(text) || 'Start typing to add text...'}
+            </div>
+
             {/* Stickers */}
             {stickers && stickers.map((sticker) => (
               <div
@@ -384,40 +426,6 @@ export function JournalPreview({
                 containerRef={previewRef}
               />
             ))}
-
-            {/* Text Area */}
-            <div
-              className="absolute z-20 break-words w-[80%] font-normal cursor-move p-4 rounded hover:bg-gray-50/10"
-              style={{
-                left: `${textPosition.x}%`,
-                top: `${textPosition.y}%`,
-                transform: 'translate(-50%, -50%)',
-                fontFamily: font || 'inherit',
-                fontSize: fontSize || 'inherit',
-                fontWeight: fontWeight || 'inherit',
-                color: isTextGradient ? 'transparent' : (fontColor || 'inherit'),
-                background: isTextGradient ? gradient.replace(' text', '') : 'none',
-                WebkitBackgroundClip: isTextGradient ? 'text' : 'unset',
-                WebkitTextFillColor: isTextGradient ? 'transparent' : 'unset',
-                fontStyle: textStyle?.includes('italic') ? 'italic' : 'normal',
-                textDecoration: textStyle?.includes('underline') ? 'underline' : 'none',
-                textAlign: textStyle?.includes('center') ? 'center' : 'left',
-              }}
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseLeave}
-              onClick={(e) => {
-                e.stopPropagation();
-                // Deselect any selected sticker or icon when clicking on text
-                setSelectedStickerId(null);
-                setSelectedIconId(null);
-                onIconSelect('');
-                onStickerSelect(null);
-              }}
-            >
-              {processText(text) || 'Start typing to add text...'}
-            </div>
           
             {/* Drawing Layer */}
             {isDrawingMode && (
