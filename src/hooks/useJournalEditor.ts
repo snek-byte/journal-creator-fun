@@ -111,6 +111,7 @@ export function useJournalEditor() {
 
   const handleIconSelect = (iconId: string | null) => {
     setSelectedIconId(iconId);
+    console.log("Selected icon ID:", iconId);
   };
 
   const handleTextDragStart = () => {
@@ -186,7 +187,9 @@ export function useJournalEditor() {
       const sizeValue = parseInt(size);
       if (!isNaN(sizeValue)) {
         const sizeMultiplier = 3; // Make icons bigger than text
-        handleIconUpdate(selectedIconId, { size: sizeValue * sizeMultiplier });
+        const newSize = sizeValue * sizeMultiplier;
+        console.log(`Updating icon ${selectedIconId} size to ${newSize}px`);
+        handleIconUpdate(selectedIconId, { size: newSize });
       }
     } else {
       // Normal text size change
@@ -210,8 +213,8 @@ export function useJournalEditor() {
 
   const handleFontColorChange = (color: string) => {
     if (selectedIconId) {
-      // If we want to change icon color in the future
-      // handleIconUpdate(selectedIconId, { color });
+      // If an icon is selected, update its color
+      handleIconUpdate(selectedIconId, { color });
     } else {
       setFontColor(color);
     }

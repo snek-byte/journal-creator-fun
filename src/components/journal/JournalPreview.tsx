@@ -196,6 +196,7 @@ export function JournalPreview({
     
     // Clear any selected icon when interacting with text
     setSelectedIconId(null);
+    onIconSelect(null);
     
     const previewRect = previewRef.current.getBoundingClientRect();
     const textRect = textRef.current.getBoundingClientRect();
@@ -240,6 +241,7 @@ export function JournalPreview({
     
     // Clear any selected icon when interacting with text
     setSelectedIconId(null);
+    onIconSelect(null);
     
     const touch = e.touches[0];
     const previewRect = previewRef.current.getBoundingClientRect();
@@ -296,6 +298,7 @@ export function JournalPreview({
     
     // Clear any selected icon when interacting with stickers
     setSelectedIconId(null);
+    onIconSelect(null);
     
     setSelectedStickerId(stickerId);
     setShowDeleteButton(true);
@@ -331,8 +334,10 @@ export function JournalPreview({
   const handleIconMouseDown = (e: React.MouseEvent, iconId: string) => {
     e.stopPropagation();
     
+    // Select the icon first, then handle dragging
     setSelectedIconId(iconId);
     setShowIconControls(true);
+    onIconSelect(iconId);
     
     const icon = icons.find(i => i.id === iconId);
     if (!icon || !previewRef.current) return;
@@ -362,12 +367,20 @@ export function JournalPreview({
     window.addEventListener('mouseup', handleMouseUp);
   };
 
-  const handleIconClick = (iconId: string) => {
-    setSelectedIconId(iconId);
-    setShowIconControls(true);
+  const handleIconClick = (e: React.MouseEvent, iconId: string) => {
+    e.stopPropagation();
+    e.preventDefault();
     
-    // Notify parent components about the selected icon
-    onIconSelect(iconId);
+    // Toggle icon selection
+    if (selectedIconId === iconId) {
+      setSelectedIconId(null);
+      setShowIconControls(false);
+      onIconSelect(null);
+    } else {
+      setSelectedIconId(iconId);
+      setShowIconControls(true);
+      onIconSelect(iconId);
+    }
   };
 
   const handleRemoveSticker = () => {
@@ -536,8 +549,8 @@ export function JournalPreview({
                     selectedIconId === icon.id 
                       ? 'ring-2 ring-primary' 
                       : 'hover:ring-2 hover:ring-primary/50'
-                  } cursor-move`}
-                  onClick={() => handleIconClick(icon.id)}
+                  } cursor-pointer`}
+                  onClick={(e) => handleIconClick(e, icon.id)}
                   onMouseDown={(e) => handleIconMouseDown(e, icon.id)}
                   draggable={false}
                 />
