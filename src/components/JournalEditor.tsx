@@ -4,8 +4,13 @@ import { JournalEditorSidebar } from './journal/JournalEditorSidebar';
 import { JournalPreview } from './journal/JournalPreview';
 import { EmailDialog } from './journal/EmailDialog';
 import { useJournalStore } from '@/store/journalStore';
+import { useEffect } from 'react';
 
 export function JournalEditor() {
+  // Directly access store state
+  const store = useJournalStore();
+  
+  // Use hook to get editor functionality
   const {
     currentEntry,
     showPreview,
@@ -38,8 +43,14 @@ export function JournalEditor() {
     loadChallenge
   } = useJournalEditor();
 
+  // Force load challenge on mount
+  useEffect(() => {
+    loadChallenge();
+  }, []);
+
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
+      {/* Sidebar component */}
       <JournalEditorSidebar 
         isDocked={isDocked}
         toggleDocked={toggleDocked}
@@ -63,6 +74,7 @@ export function JournalEditor() {
         applyChallenge={applyChallenge}
       />
 
+      {/* Email dialog */}
       <EmailDialog
         open={showEmailDialog}
         onOpenChange={setShowEmailDialog}
@@ -72,6 +84,7 @@ export function JournalEditor() {
         isSending={isSending}
       />
 
+      {/* Main content area with preview */}
       <div className={`flex-1 ${!isDocked ? 'ml-64' : ''}`}>
         <JournalPreview
           showPreview={showPreview}
