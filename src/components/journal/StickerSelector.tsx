@@ -12,59 +12,71 @@ interface StickerSelectorProps {
 export function StickerSelector({ onStickerSelect }: StickerSelectorProps) {
   const [selectedCategory, setSelectedCategory] = useState('basic');
 
-  // Actual stickers organized by category
+  // Real stickers organized by category
   const stickerCategories = {
     basic: [
-      '/stickers/star.svg',
-      '/stickers/heart.svg',
-      '/stickers/happy.svg',
-      '/stickers/sad.svg',
-      '/stickers/thumbsup.svg',
-      '/stickers/cake.svg',
-      '/stickers/gift.svg',
-      '/stickers/camera.svg',
-    ],
-    emoji: [
-      'https://cdn-icons-png.flaticon.com/512/742/742751.png',
-      'https://cdn-icons-png.flaticon.com/512/742/742923.png', 
-      'https://cdn-icons-png.flaticon.com/512/742/742940.png',
-      'https://cdn-icons-png.flaticon.com/512/742/742935.png',
-      'https://cdn-icons-png.flaticon.com/512/1968/1968620.png',
-      'https://cdn-icons-png.flaticon.com/512/1968/1968610.png',
-      'https://cdn-icons-png.flaticon.com/512/1968/1968647.png',
-      'https://cdn-icons-png.flaticon.com/512/1968/1968713.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-flower-1.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-flower-2.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-heart-1.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-heart-2.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-star-1.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-star-2.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-moon.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-sun.png',
     ],
     decorative: [
-      'https://cdn-icons-png.flaticon.com/512/3418/3418886.png',
-      'https://cdn-icons-png.flaticon.com/512/3082/3082001.png',
-      'https://cdn-icons-png.flaticon.com/512/2928/2928880.png',
-      'https://cdn-icons-png.flaticon.com/512/1792/1792631.png',
-      'https://cdn-icons-png.flaticon.com/512/1250/1250615.png',
-      'https://cdn-icons-png.flaticon.com/512/2913/2913116.png',
-      'https://cdn-icons-png.flaticon.com/512/2346/2346112.png',
-      'https://cdn-icons-png.flaticon.com/512/2698/2698006.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-border-1.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-border-2.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-corner-1.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-corner-2.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-divider-1.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-divider-2.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-frame-1.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-frame-2.png',
+    ],
+    journaling: [
+      'https://kcdesign.sirv.com/journal-stickers/sticker-important.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-note.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-todo.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-remember.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-today.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-thought.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-quote.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-idea.png',
     ],
     nature: [
-      'https://cdn-icons-png.flaticon.com/512/3337/3337025.png',
-      'https://cdn-icons-png.flaticon.com/512/826/826957.png',
-      'https://cdn-icons-png.flaticon.com/512/616/616661.png',
-      'https://cdn-icons-png.flaticon.com/512/1588/1588596.png',
-      'https://cdn-icons-png.flaticon.com/512/2826/2826187.png',
-      'https://cdn-icons-png.flaticon.com/512/3094/3094845.png',
-      'https://cdn-icons-png.flaticon.com/512/2540/2540201.png',
-      'https://cdn-icons-png.flaticon.com/512/1669/1669163.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-leaf-1.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-leaf-2.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-plant-1.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-plant-2.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-cloud.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-sun.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-mountain.png',
+      'https://kcdesign.sirv.com/journal-stickers/sticker-rainbow.png',
     ],
-    fun: [
-      'https://cdn-icons-png.flaticon.com/512/2553/2553691.png',
-      'https://cdn-icons-png.flaticon.com/512/2416/2416582.png',
-      'https://cdn-icons-png.flaticon.com/512/3152/3152362.png',
-      'https://cdn-icons-png.flaticon.com/512/3152/3152361.png',
-      'https://cdn-icons-png.flaticon.com/512/3152/3152358.png', 
-      'https://cdn-icons-png.flaticon.com/512/2416/2416574.png',
-      'https://cdn-icons-png.flaticon.com/512/3152/3152453.png',
-      'https://cdn-icons-png.flaticon.com/512/3152/3152340.png',
+    washi: [
+      'https://kcdesign.sirv.com/journal-stickers/washi-tape-1.png',
+      'https://kcdesign.sirv.com/journal-stickers/washi-tape-2.png',
+      'https://kcdesign.sirv.com/journal-stickers/washi-tape-3.png',
+      'https://kcdesign.sirv.com/journal-stickers/washi-tape-4.png',
+      'https://kcdesign.sirv.com/journal-stickers/washi-tape-5.png',
+      'https://kcdesign.sirv.com/journal-stickers/washi-tape-6.png',
+      'https://kcdesign.sirv.com/journal-stickers/washi-tape-7.png',
+      'https://kcdesign.sirv.com/journal-stickers/washi-tape-8.png',
     ],
   };
+
+  // Fallback stickers if the CDN fails
+  const fallbackStickers = [
+    '/stickers/star.svg',
+    '/stickers/heart.svg',
+    '/stickers/happy.svg',
+    '/stickers/sad.svg',
+    '/stickers/thumbsup.svg',
+    '/stickers/cake.svg',
+    '/stickers/gift.svg',
+    '/stickers/camera.svg',
+  ];
 
   const handleStickerSelect = (stickerUrl: string) => {
     console.log("Sticker selected:", stickerUrl);
@@ -81,10 +93,10 @@ export function StickerSelector({ onStickerSelect }: StickerSelectorProps) {
       <Tabs defaultValue="basic" value={selectedCategory} onValueChange={setSelectedCategory}>
         <TabsList className="w-full grid grid-cols-5">
           <TabsTrigger value="basic" className="text-[10px]">Basic</TabsTrigger>
-          <TabsTrigger value="emoji" className="text-[10px]">Emoji</TabsTrigger>
           <TabsTrigger value="decorative" className="text-[10px]">Decor</TabsTrigger>
+          <TabsTrigger value="journaling" className="text-[10px]">Journal</TabsTrigger>
           <TabsTrigger value="nature" className="text-[10px]">Nature</TabsTrigger>
-          <TabsTrigger value="fun" className="text-[10px]">Fun</TabsTrigger>
+          <TabsTrigger value="washi" className="text-[10px]">Washi</TabsTrigger>
         </TabsList>
         
         {Object.entries(stickerCategories).map(([category, stickers]) => (
@@ -94,17 +106,17 @@ export function StickerSelector({ onStickerSelect }: StickerSelectorProps) {
                 {stickers.map((sticker, index) => (
                   <button
                     key={index}
-                    className="p-1 rounded hover:bg-accent transition-colors flex items-center justify-center h-14 w-14"
+                    className="p-1 rounded hover:bg-accent transition-colors flex items-center justify-center h-16 w-16"
                     onClick={() => handleStickerSelect(sticker)}
                   >
                     <img 
                       src={sticker} 
                       alt={`Sticker ${index + 1}`}
-                      className="h-10 w-10 object-contain" 
+                      className="h-14 w-14 object-contain" 
                       onError={(e) => {
                         console.error(`Failed to load sticker: ${sticker}`);
-                        // Default to a basic sticker if error
-                        e.currentTarget.src = '/stickers/star.svg';
+                        // Default to a fallback sticker if error
+                        e.currentTarget.src = fallbackStickers[index % fallbackStickers.length];
                       }}
                     />
                   </button>

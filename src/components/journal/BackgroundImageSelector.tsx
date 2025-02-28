@@ -113,6 +113,18 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     },
   ];
 
+  // Paper texture backgrounds
+  const paperTextures = [
+    { id: 'paper1', url: 'https://kcdesign.sirv.com/journal-backgrounds/paper-texture-1.jpg', name: 'Classic Paper' },
+    { id: 'paper2', url: 'https://kcdesign.sirv.com/journal-backgrounds/paper-texture-2.jpg', name: 'Vintage Paper' },
+    { id: 'paper3', url: 'https://kcdesign.sirv.com/journal-backgrounds/paper-texture-3.jpg', name: 'Recycled Paper' },
+    { id: 'paper4', url: 'https://kcdesign.sirv.com/journal-backgrounds/paper-texture-4.jpg', name: 'Craft Paper' },
+    { id: 'paper5', url: 'https://kcdesign.sirv.com/journal-backgrounds/paper-texture-5.jpg', name: 'Lined Paper' },
+    { id: 'paper6', url: 'https://kcdesign.sirv.com/journal-backgrounds/paper-texture-6.jpg', name: 'Grid Paper' },
+    { id: 'paper7', url: 'https://kcdesign.sirv.com/journal-backgrounds/paper-texture-7.jpg', name: 'Dot Paper' },
+    { id: 'paper8', url: 'https://kcdesign.sirv.com/journal-backgrounds/paper-texture-8.jpg', name: 'Cream Paper' },
+  ];
+  
   // Solid colors backgrounds
   const solidColors = [
     { id: 'white', color: '#ffffff', name: 'White' },
@@ -151,12 +163,41 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     <div className="space-y-4">
       <h3 className="text-xs font-semibold tracking-tight">Background</h3>
       
-      <Tabs defaultValue="unsplash" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full grid grid-cols-3 mb-4">
-          <TabsTrigger value="unsplash" className="text-xs">Unsplash</TabsTrigger>
+      <Tabs defaultValue="paper" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="w-full grid grid-cols-4 mb-4">
+          <TabsTrigger value="paper" className="text-xs">Paper</TabsTrigger>
           <TabsTrigger value="gradients" className="text-xs">Gradients</TabsTrigger>
+          <TabsTrigger value="unsplash" className="text-xs">Photos</TabsTrigger>
           <TabsTrigger value="upload" className="text-xs">Upload</TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="paper" className="mt-0">
+          <ScrollArea className="h-[250px]">
+            <div className="grid grid-cols-2 gap-2">
+              {paperTextures.map((paper) => (
+                <button
+                  key={paper.id}
+                  className="relative overflow-hidden rounded-md border border-input hover:border-primary transition-colors"
+                  onClick={() => onBackgroundSelect(paper.url)}
+                  title={paper.name}
+                >
+                  <img 
+                    src={paper.url} 
+                    alt={paper.name}
+                    className="aspect-[4/3] object-cover w-full h-full"
+                    onError={(e) => {
+                      console.error(`Failed to load paper texture: ${paper.url}`);
+                      e.currentTarget.src = '/placeholder.svg';
+                    }}
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-1 text-center">
+                    {paper.name}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </ScrollArea>
+        </TabsContent>
         
         <TabsContent value="unsplash" className="mt-0">
           <div className="flex justify-between items-center mb-2">

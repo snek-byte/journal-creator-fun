@@ -90,6 +90,36 @@ export function JournalPreview({
     quality: 1.0
   });
 
+  // Journal page styles
+  const journalPageStyle = {
+    backgroundColor: '#fff',
+    boxShadow: '0 0 20px rgba(0, 0, 0, 0.1)',
+    borderRadius: '8px',
+    width: '95%',
+    height: '95%',
+    margin: '2.5%',
+    position: 'absolute' as 'absolute',
+    overflow: 'hidden',
+    backgroundImage: backgroundImage 
+      ? `url(${backgroundImage})` 
+      : 'none',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+  };
+
+  // Gradient overlay for the journal page
+  const gradientOverlayStyle = {
+    position: 'absolute' as 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundImage: gradient || 'none',
+    opacity: 0.8,
+    pointerEvents: 'none' as 'none',
+    filter: filter && filter !== 'none' ? filter : undefined,
+  };
+
   useEffect(() => {
     if (!previewRef.current) return;
 
@@ -252,188 +282,180 @@ export function JournalPreview({
   }, [stickers]);
 
   return (
-    <div className={cn("relative flex-1 overflow-hidden bg-white", className)}>
-      <div
-        className="absolute inset-0 z-0"
-        style={{
-          backgroundImage: backgroundImage 
-            ? `url(${backgroundImage})` 
-            : gradient 
-              ? gradient 
-              : 'none',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: filter && filter !== 'none' ? filter : undefined,
-        }}
-      />
+    <div className={cn("relative flex-1 overflow-hidden bg-gray-50", className)}>
+      {/* Journal page with proper styling */}
+      <div style={journalPageStyle}>
+        {/* Gradient overlay */}
+        {gradient && <div style={gradientOverlayStyle}></div>}
 
-      <div className="relative h-full w-full" ref={previewRef}>
-        {/* Control overlay buttons */}
-        <div className="absolute top-4 right-4 z-50 flex gap-2">
-          <button
-            onClick={toggleDrawingMode}
-            className={`p-2 rounded-full ${isDrawingMode ? 'bg-primary text-white' : 'bg-gray-100'}`}
-            title={isDrawingMode ? "Exit Drawing Mode" : "Enter Drawing Mode"}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
-              <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
-              <path d="M2 2l7.586 7.586"></path>
-              <path d="M11 11l5 5"></path>
-            </svg>
-          </button>
-        </div>
-
-        {/* Stickers */}
-        {stickers && stickers.map((sticker) => (
-          <div
-            key={sticker.id}
-            className={`absolute cursor-move ${
-              selectedStickerId === sticker.id ? 'ring-2 ring-primary z-50' : 'hover:ring-1 hover:ring-primary/30 z-30'
-            }`}
-            style={{
-              left: `${sticker.position.x}%`,
-              top: `${sticker.position.y}%`,
-              transform: 'translate(-50%, -50%)',
-              width: `${sticker.width || 100}px`,
-              height: `${sticker.height || 100}px`,
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleStickerSelect(sticker.id);
-            }}
-            onMouseDown={(e) => {
-              if (selectedStickerId === sticker.id) {
-                e.stopPropagation();
-                let offsetX = e.clientX - (sticker.position.x / 100) * previewRef.current!.offsetWidth;
-                let offsetY = e.clientY - (sticker.position.y / 100) * previewRef.current!.offsetHeight;
-
-                const handleMouseMove = (e: MouseEvent) => {
-                  if (!previewRef.current) return;
-                  const containerRect = previewRef.current.getBoundingClientRect();
-                  const x = ((e.clientX - offsetX - containerRect.left) / containerRect.width) * 100;
-                  const y = ((e.clientY - offsetY - containerRect.top) / containerRect.height) * 100;
-
-                  // Ensure position stays within bounds (0-100%)
-                  const boundedX = Math.max(0, Math.min(100, x));
-                  const boundedY = Math.max(0, Math.min(100, y));
-
-                  onStickerMove(sticker.id, { x: boundedX, y: boundedY });
-                };
-
-                const handleMouseUp = () => {
-                  document.removeEventListener('mousemove', handleMouseMove);
-                  document.removeEventListener('mouseup', handleMouseUp);
-                };
-
-                document.addEventListener('mousemove', handleMouseMove);
-                document.addEventListener('mouseup', handleMouseUp);
-              }
-            }}
-            tabIndex={0} // Make focusable for keyboard events
-          >
-            <img
-              src={sticker.url}
-              alt="Sticker"
-              className="w-full h-full object-contain"
-              draggable={false}
-              onError={(e) => {
-                console.error(`Failed to load sticker image: ${sticker.url}`);
-                e.currentTarget.src = '/stickers/star.svg';
-              }}
-            />
-            
-            {/* Resize handle - only shown when sticker is selected */}
-            {selectedStickerId === sticker.id && (
-              <div
-                className="absolute bottom-0 right-0 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center cursor-se-resize"
-                onMouseDown={(e) => handleResizeStart(e, sticker)}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M15 3h6v6"></path>
-                  <path d="M10 14L21 3"></path>
-                  <path d="M18 21h-6"></path>
-                  <path d="M3 6v6"></path>
-                  <path d="M3 3v.01"></path>
-                  <path d="M21 21v.01"></path>
-                </svg>
-              </div>
-            )}
+        <div className="relative h-full w-full" ref={previewRef}>
+          {/* Control overlay buttons */}
+          <div className="absolute top-4 right-4 z-50 flex gap-2">
+            <button
+              onClick={toggleDrawingMode}
+              className={`p-2 rounded-full ${isDrawingMode ? 'bg-primary text-white' : 'bg-gray-100'}`}
+              title={isDrawingMode ? "Exit Drawing Mode" : "Enter Drawing Mode"}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+                <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+                <path d="M2 2l7.586 7.586"></path>
+                <path d="M11 11l5 5"></path>
+              </svg>
+            </button>
           </div>
-        ))}
 
-        {/* Icons */}
-        {icons && icons.map((icon) => (
-          <IconContainer
-            key={icon.id}
-            icon={icon}
-            selected={selectedIconId === icon.id}
-            onSelect={handleIconSelect}
-            onMove={onIconMove}
-            onUpdate={onIconUpdate}
-            containerRef={previewRef}
-          />
-        ))}
+          {/* Stickers */}
+          {stickers && stickers.map((sticker) => (
+            <div
+              key={sticker.id}
+              className={`absolute cursor-move ${
+                selectedStickerId === sticker.id ? 'ring-2 ring-primary z-50' : 'hover:ring-1 hover:ring-primary/30 z-30'
+              }`}
+              style={{
+                left: `${sticker.position.x}%`,
+                top: `${sticker.position.y}%`,
+                transform: 'translate(-50%, -50%)',
+                width: `${sticker.width || 100}px`,
+                height: `${sticker.height || 100}px`,
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleStickerSelect(sticker.id);
+              }}
+              onMouseDown={(e) => {
+                if (selectedStickerId === sticker.id) {
+                  e.stopPropagation();
+                  let offsetX = e.clientX - (sticker.position.x / 100) * previewRef.current!.offsetWidth;
+                  let offsetY = e.clientY - (sticker.position.y / 100) * previewRef.current!.offsetHeight;
 
-        {/* Text Area */}
-        <div
-          className="absolute z-20 break-words w-[80%] font-normal cursor-move"
-          style={{
-            left: `${textPosition.x}%`,
-            top: `${textPosition.y}%`,
-            transform: 'translate(-50%, -50%)',
-            fontFamily: font || 'inherit',
-            fontSize: fontSize || 'inherit',
-            fontWeight: fontWeight || 'inherit',
-            color: fontColor || 'inherit',
-            backgroundImage: gradient ? gradient : 'none',
-            WebkitBackgroundClip: gradient ? 'text' : 'unset',
-            WebkitTextFillColor: gradient ? 'transparent' : 'unset',
-            fontStyle: textStyle?.includes('italic') ? 'italic' : 'normal',
-            textDecoration: textStyle?.includes('underline') ? 'underline' : 'none',
-            textAlign: textStyle?.includes('center') ? 'center' : 'left',
-          }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
-          onClick={() => {
-            // Deselect any selected sticker or icon when clicking on text
-            setSelectedStickerId(null);
-            setSelectedIconId(null);
-            onIconSelect('');
-          }}
-        >
-          {processText(text) || 'Start typing to add text...'}
+                  const handleMouseMove = (e: MouseEvent) => {
+                    if (!previewRef.current) return;
+                    const containerRect = previewRef.current.getBoundingClientRect();
+                    const x = ((e.clientX - offsetX - containerRect.left) / containerRect.width) * 100;
+                    const y = ((e.clientY - offsetY - containerRect.top) / containerRect.height) * 100;
+
+                    // Ensure position stays within bounds (0-100%)
+                    const boundedX = Math.max(0, Math.min(100, x));
+                    const boundedY = Math.max(0, Math.min(100, y));
+
+                    onStickerMove(sticker.id, { x: boundedX, y: boundedY });
+                  };
+
+                  const handleMouseUp = () => {
+                    document.removeEventListener('mousemove', handleMouseMove);
+                    document.removeEventListener('mouseup', handleMouseUp);
+                  };
+
+                  document.addEventListener('mousemove', handleMouseMove);
+                  document.addEventListener('mouseup', handleMouseUp);
+                }
+              }}
+              tabIndex={0} // Make focusable for keyboard events
+            >
+              <img
+                src={sticker.url}
+                alt="Sticker"
+                className="w-full h-full object-contain"
+                draggable={false}
+                onError={(e) => {
+                  console.error(`Failed to load sticker image: ${sticker.url}`);
+                  e.currentTarget.src = '/stickers/star.svg';
+                }}
+              />
+              
+              {/* Resize handle - only shown when sticker is selected */}
+              {selectedStickerId === sticker.id && (
+                <div
+                  className="absolute bottom-0 right-0 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center cursor-se-resize"
+                  onMouseDown={(e) => handleResizeStart(e, sticker)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M15 3h6v6"></path>
+                    <path d="M10 14L21 3"></path>
+                    <path d="M18 21h-6"></path>
+                    <path d="M3 6v6"></path>
+                    <path d="M3 3v.01"></path>
+                    <path d="M21 21v.01"></path>
+                  </svg>
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* Icons */}
+          {icons && icons.map((icon) => (
+            <IconContainer
+              key={icon.id}
+              icon={icon}
+              selected={selectedIconId === icon.id}
+              onSelect={handleIconSelect}
+              onMove={onIconMove}
+              onUpdate={onIconUpdate}
+              containerRef={previewRef}
+            />
+          ))}
+
+          {/* Text Area */}
+          <div
+            className="absolute z-20 break-words w-[80%] font-normal cursor-move"
+            style={{
+              left: `${textPosition.x}%`,
+              top: `${textPosition.y}%`,
+              transform: 'translate(-50%, -50%)',
+              fontFamily: font || 'inherit',
+              fontSize: fontSize || 'inherit',
+              fontWeight: fontWeight || 'inherit',
+              color: fontColor || 'inherit',
+              backgroundImage: gradient ? gradient : 'none',
+              WebkitBackgroundClip: gradient ? 'text' : 'unset',
+              WebkitTextFillColor: gradient ? 'transparent' : 'unset',
+              fontStyle: textStyle?.includes('italic') ? 'italic' : 'normal',
+              textDecoration: textStyle?.includes('underline') ? 'underline' : 'none',
+              textAlign: textStyle?.includes('center') ? 'center' : 'left',
+            }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+            onClick={() => {
+              // Deselect any selected sticker or icon when clicking on text
+              setSelectedStickerId(null);
+              setSelectedIconId(null);
+              onIconSelect('');
+            }}
+          >
+            {processText(text) || 'Start typing to add text...'}
+          </div>
+        
+          {/* Drawing Layer */}
+          {isDrawingMode && (
+            <DrawingLayer
+              width={previewWidth}
+              height={previewHeight}
+              onDrawingChange={onDrawingChange}
+              tool={drawingTool}
+              color={drawingColor}
+              brushSize={brushSize}
+              initialDrawing={drawing}
+            />
+          )}
         </div>
-      
-        {/* Drawing Layer */}
-        {isDrawingMode && (
-          <DrawingLayer
-            width={previewWidth}
-            height={previewHeight}
-            onDrawingChange={onDrawingChange}
-            tool={drawingTool}
-            color={drawingColor}
-            brushSize={brushSize}
-            initialDrawing={drawing}
+
+        {/* Display existing drawing */}
+        {drawing && !isDrawingMode && (
+          <img
+            src={drawing}
+            alt="Drawing"
+            className="absolute inset-0 z-10 pointer-events-none"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+            }}
           />
         )}
       </div>
-
-      {/* Display existing drawing */}
-      {drawing && !isDrawingMode && (
-        <img
-          src={drawing}
-          alt="Drawing"
-          className="absolute inset-0 z-10 pointer-events-none"
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain',
-          }}
-        />
-      )}
     </div>
   );
 }
