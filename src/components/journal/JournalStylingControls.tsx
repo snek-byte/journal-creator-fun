@@ -18,13 +18,9 @@ import {
   Bold, 
   Italic, 
   Underline, 
-  AlignLeft, 
-  AlignCenter, 
-  AlignRight, 
   Type, 
   PaintBucket,
   ChevronDown, 
-  GripVertical,
   Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -94,11 +90,7 @@ export function JournalStylingControls({
     { name: 'Normal', value: 'normal' },
     { name: 'Italic', value: 'italic' },
     { name: 'Underline', value: 'underline' },
-    { name: 'Center Aligned', value: 'center' },
     { name: 'Italic + Underline', value: 'italic underline' },
-    { name: 'Italic + Center', value: 'italic center' },
-    { name: 'Underline + Center', value: 'underline center' },
-    { name: 'Italic + Underline + Center', value: 'italic underline center' },
   ];
   
   // Text Gradients
@@ -342,19 +334,6 @@ export function JournalStylingControls({
               >
                 <Underline className="h-3 w-3 mr-1" />
                 Underline
-              </Button>
-            </div>
-            
-            <div className="flex gap-2 mt-2">
-              <Button
-                variant={standardTextStyles.some(s => s.value !== 'normal' && s.value.includes('center')) ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleTextStyleChange('center')}
-                className="flex-1 h-8 px-2"
-                type="button"
-              >
-                <AlignCenter className="h-3 w-3 mr-1" />
-                Center
               </Button>
             </div>
           </div>

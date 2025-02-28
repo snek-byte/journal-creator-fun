@@ -201,8 +201,8 @@ export function JournalPreview({
   const processText = (text: string) => {
     if (!text) return '';
     
-    // Handle special style transformations from the utility
-    if (textStyle && textStyle !== 'normal' && !textStyle.includes(' ')) {
+    // First check if it's a special Unicode style
+    if (textStyle && textStyles.includes(textStyle)) {
       // Type assertion to ensure textStyle is treated as a valid TextStyle
       // This is safe assuming the textStyle values are controlled by our app
       return applyTextStyle(text, textStyle as TextStyle);
@@ -211,6 +211,16 @@ export function JournalPreview({
     // Return regular text if no special transformation is needed
     return text;
   };
+
+  // Check if the textStyle is one of the Unicode transformation styles
+  const textStyles = [
+    'mathematical', 'gothic', 'cursive', 'double', 'circle', 'bold', 'italic', 
+    'boldItalic', 'script', 'boldScript', 'fraktur', 'boldFraktur', 'sansSerif', 
+    'sansSerifBold', 'sansSerifItalic', 'sansSerifBoldItalic', 'monospace', 
+    'fullWidth', 'smallCaps', 'subscript', 'superscript', 'inverted', 'reversed', 
+    'strikethrough', 'underline', 'bubbles', 'squares', 'medieval', 'old-english',
+    'handwriting', 'vintage', 'cute', 'dotted', 'parenthesized', 'boxed'
+  ];
 
   // COMPLETELY REWRITTEN TEXT DRAG IMPLEMENTATION
   const handleTextElementDrag = (e: React.MouseEvent) => {
@@ -281,8 +291,6 @@ export function JournalPreview({
       fontFamily: font || 'inherit',
       fontSize: fontSize || 'inherit',
       fontWeight: fontWeight || 'inherit',
-      fontStyle: textStyle?.includes('italic') ? 'italic' : 'normal',
-      textDecoration: textStyle?.includes('underline') ? 'underline' : 'none',
       textAlign: textStyle?.includes('center') ? 'center' : 'left',
       padding: '1rem',
       maxWidth: '80%',
@@ -294,6 +302,17 @@ export function JournalPreview({
       border: isTextSelected ? '2px dashed rgba(59, 130, 246, 0.7)' : 'none',
       borderRadius: '4px',
     };
+    
+    // Standard text styles
+    if (textStyle) {
+      if (textStyle.includes('italic')) {
+        styles.fontStyle = 'italic';
+      }
+      
+      if (textStyle.includes('underline')) {
+        styles.textDecoration = 'underline';
+      }
+    }
     
     // If using gradient for text
     if (usingGradient) {
