@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Settings,
   Text,
-  Smile,
   Send,
   Printer,
   Eye,
@@ -23,7 +22,6 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { JournalStylingControls } from "./JournalStylingControls";
-import { MoodSelector } from "./MoodSelector";
 import { DailyChallenge } from "./DailyChallenge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "../ui/separator";
@@ -151,7 +149,7 @@ export function JournalEditorSidebar({
           onValueChange={setActiveTab}
           className="h-full flex flex-col"
         >
-          <TabsList className="grid grid-cols-3 mb-4">
+          <TabsList className="grid grid-cols-2 mb-4">
             <TabsTrigger value="write">
               <Text className="h-4 w-4 mr-2" />
               Write
@@ -159,10 +157,6 @@ export function JournalEditorSidebar({
             <TabsTrigger value="style">
               <Settings className="h-4 w-4 mr-2" />
               Style
-            </TabsTrigger>
-            <TabsTrigger value="mood">
-              <Smile className="h-4 w-4 mr-2" />
-              Mood
             </TabsTrigger>
           </TabsList>
 
@@ -173,7 +167,7 @@ export function JournalEditorSidebar({
             >
               <div className="flex justify-between mb-3">
                 <DailyChallenge
-                  challenge={dailyChallenge}
+                  prompt={dailyChallenge?.prompt || ""}
                   onApply={applyChallenge}
                   onRefresh={loadChallenge}
                 />
@@ -263,13 +257,6 @@ export function JournalEditorSidebar({
                 onEmojiRotate={handleRotateEmoji}
                 selectedIconId={selectedIconId}
                 selectedEmojiId={selectedEmojiId}
-              />
-            </TabsContent>
-
-            <TabsContent value="mood" className="mt-0 h-full">
-              <MoodSelector
-                selectedMood={currentEntry.mood}
-                onMoodSelect={setMood}
               />
             </TabsContent>
           </CardContent>

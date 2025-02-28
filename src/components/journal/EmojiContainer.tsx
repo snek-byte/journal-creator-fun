@@ -1,7 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Emoji } from '@/types/journal';
-import { Rotate3D } from 'lucide-react';
 
 interface EmojiContainerProps {
   emoji: Emoji;

@@ -8,7 +8,7 @@ import { ImageFilterSelector } from './ImageFilterSelector';
 import { Sticker, Icon, Emoji } from '@/types/journal';
 import { IconContainer } from './IconContainer';
 import { EmojiContainer } from './EmojiContainer';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '../ui/button';
 
 interface JournalPreviewProps {
@@ -190,11 +190,11 @@ export function JournalPreview({
 
         {selectedSidebarItem && (
           <div className="bg-white border-r h-full w-64 overflow-y-auto shadow-md">
-            {selectedSidebarItem === 'stickers' && <StickerSelector onStickerSelect={onStickerAdd} />}
-            {selectedSidebarItem === 'icons' && <IconSelector onIconSelect={onIconAdd} />}
-            {selectedSidebarItem === 'backgrounds' && <BackgroundImageSelector onBackgroundSelect={onBackgroundSelect} />}
-            {selectedSidebarItem === 'drawing' && <DrawingLayer onChange={onDrawingChange} existingDrawing={drawing} />}
-            {selectedSidebarItem === 'filters' && <ImageFilterSelector onFilterChange={onFilterChange} />}
+            {selectedSidebarItem === 'stickers' && <StickerSelector onSelect={onStickerAdd} />}
+            {selectedSidebarItem === 'icons' && <IconSelector onSelect={onIconAdd} />}
+            {selectedSidebarItem === 'backgrounds' && <BackgroundImageSelector onSelect={onBackgroundSelect} />}
+            {selectedSidebarItem === 'drawing' && <DrawingLayer onDrawingChange={onDrawingChange} initialDrawing={drawing} />}
+            {selectedSidebarItem === 'filters' && <ImageFilterSelector onSelect={onFilterChange} />}
           </div>
         )}
       </div>
@@ -285,14 +285,52 @@ export function JournalPreview({
 
         {/* Icons */}
         {icons.map((icon) => (
-          <IconContainer
+          <div
             key={icon.id}
-            icon={icon}
-            onMove={onIconMove}
-            onSelect={onIconSelect}
-            onUpdate={onIconUpdate}
-            isSelected={icon.id === selectedEmojiId}
-          />
+            className="absolute cursor-move"
+            style={{
+              left: `${icon.position.x}px`,
+              top: `${icon.position.y}px`,
+              color: icon.color || 'currentColor',
+              fontSize: `${icon.size || 24}px`,
+              zIndex: 5,
+            }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              onIconSelect(icon.id);
+              const startX = e.clientX - icon.position.x;
+              const startY = e.clientY - icon.position.y;
+              
+              const handleMouseMove = (moveEvent: MouseEvent) => {
+                const newPosition = {
+                  x: moveEvent.clientX - startX,
+                  y: moveEvent.clientY - startY
+                };
+                onIconMove(icon.id, newPosition);
+              };
+              
+              const handleMouseUp = () => {
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+              };
+              
+              document.addEventListener('mousemove', handleMouseMove);
+              document.addEventListener('mouseup', handleMouseUp);
+            }}
+          >
+            <svg 
+              width="1em" 
+              height="1em" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <path d={icon.url} />
+            </svg>
+          </div>
         ))}
 
         {/* Emojis */}
