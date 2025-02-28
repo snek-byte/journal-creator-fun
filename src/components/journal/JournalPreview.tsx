@@ -389,34 +389,30 @@ export function JournalPreview({
         {/* Render uploaded background image as a draggable element */}
         {isUploadedImage && backgroundImage && (
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="relative">
-              <img
-                ref={backgroundImageRef}
-                src={backgroundImage}
-                alt="Background"
-                className={`absolute max-w-[80%] max-h-[80%] ${isDraggingBgImage ? 'ring-2 ring-primary/50' : 'hover:ring-2 hover:ring-primary/30'} pointer-events-auto cursor-move transition-all`}
-                style={{
-                  left: `${bgImagePosition.x}%`,
-                  top: `${bgImagePosition.y}%`,
-                  transform: 'translate(-50%, -50%)',
-                  filter: getFilterStyle(),
-                }}
-                onClick={(e) => e.stopPropagation()}
-                onMouseDown={handleBgImageMouseDown}
-                draggable={false}
-              />
-              {isUploadedImage && !isDialog && (
-                <Button
-                  variant="subtle"
-                  size="xs"
-                  className="absolute z-10 top-0 right-0 opacity-40 hover:opacity-90 pointer-events-auto"
-                  onClick={handleRemoveBackgroundImage}
-                  title="Remove image"
-                >
-                  <X className="w-3 h-3" />
-                </Button>
-              )}
-            </div>
+            <img
+              ref={backgroundImageRef}
+              src={backgroundImage}
+              alt="Background"
+              className={`absolute max-w-[80%] max-h-[80%] ${isDraggingBgImage ? 'ring-2 ring-primary/50' : 'hover:ring-2 hover:ring-primary/30'} pointer-events-auto cursor-move transition-all`}
+              style={{
+                left: `${bgImagePosition.x}%`,
+                top: `${bgImagePosition.y}%`,
+                transform: 'translate(-50%, -50%)',
+                filter: getFilterStyle(),
+              }}
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={handleBgImageMouseDown}
+              draggable={false}
+            />
+            {isUploadedImage && !isDialog && (
+              <div 
+                className="absolute z-10 right-4 top-4 w-5 h-5 bg-white/40 hover:bg-white/70 rounded-full flex items-center justify-center cursor-pointer pointer-events-auto"
+                onClick={handleRemoveBackgroundImage}
+                title="Remove image"
+              >
+                <X className="w-3 h-3 text-gray-800" />
+              </div>
+            )}
           </div>
         )}
         
