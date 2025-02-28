@@ -99,6 +99,15 @@ export function JournalPreview({
     return gradient;
   };
 
+  const getBackgroundSize = () => {
+    // If it's an uploaded image (typically data URLs start with "data:") 
+    // then we use "contain" to prevent tiling
+    if (backgroundImage && backgroundImage.startsWith('data:')) {
+      return 'contain';
+    }
+    return 'cover'; // Default behavior for other images
+  };
+
   const getFilterStyle = () => {
     switch(filter) {
       case 'none':
@@ -413,7 +422,7 @@ export function JournalPreview({
             )}
             
             {selectedIconId && showIconControls && !isDialog && (
-              <div className="absolute z-10 right-4 bottom-4 flex gap-2">
+              <div className="absolute z-10 right-4 bottom-4 flex gap-1">
                 <Button
                   variant="outline"
                   size="sm"
@@ -508,11 +517,11 @@ export function JournalPreview({
                 <Maximize2 className="w-4 h-4" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="w-[100vw] h-[100vh] max-w-[100vw] max-h-[100vh] p-0 border-0 rounded-none">
+            <DialogContent className="w-[100vw] h-[100vh] max-w-[100vw] max-h-[100vh] p-6 border border-white">
               <div
                 style={{
                   background: getBackground(),
-                  backgroundSize: 'cover',
+                  backgroundSize: getBackgroundSize(),
                   backgroundPosition: 'center',
                   backgroundRepeat: 'no-repeat',
                   filter: getFilterStyle(),
@@ -520,7 +529,7 @@ export function JournalPreview({
                   width: '100%',
                   height: '100%',
                 }}
-                className="overflow-hidden"
+                className="rounded-lg overflow-hidden shadow-lg"
               >
                 {/* Render journal content for the dialog */}
                 {renderJournalContent(true)}
@@ -535,7 +544,7 @@ export function JournalPreview({
           ref={previewRef}
           style={{
             background: getBackground(),
-            backgroundSize: 'cover',
+            backgroundSize: getBackgroundSize(),
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
             WebkitPrintColorAdjust: 'exact',
