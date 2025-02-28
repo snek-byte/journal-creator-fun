@@ -1,3 +1,4 @@
+
 export interface JournalEntry {
   id: number;
   date: string;
@@ -103,3 +104,6 @@ export interface HistoryEntry {
   drawing?: string;
   filter?: string;
 }
+
+// Adding the missing StickerSource type
+export type StickerSource = 'decorative' | 'nature' | 'food';
