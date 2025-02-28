@@ -34,7 +34,6 @@ export function useJournalEditor() {
     saveEntry,
     loadChallenge,
     applyChallenge,
-    resetEntry,
   } = useJournalStore();
 
   const [showEmailDialog, setShowEmailDialog] = useState(false);
@@ -356,6 +355,32 @@ export function useJournalEditor() {
     }
   };
 
+  // Create a resetEntry function since it doesn't exist in the store
+  const handleResetToDefault = () => {
+    // Reset all values to defaults
+    setText('');
+    setFont('sans-serif');
+    setFontSize('16px');
+    setFontWeight('normal');
+    setFontColor('#000000');
+    setGradient('');
+    setMood(undefined);
+    setIsPublic(false);
+    setTextStyle('');
+    setStickers([]);
+    setIcons([]);
+    setTextPosition({ x: 50, y: 50 });
+    setBackgroundImage('');
+    setDrawing('');
+    setFilter('none');
+    
+    // Reset history
+    const defaultState = JSON.parse(JSON.stringify(currentEntry));
+    setHistory([defaultState]);
+    setCurrentHistoryIndex(0);
+    toast.success("Reset to default settings");
+  };
+
   // New undo, redo, and reset functions
   const handleUndo = () => {
     if (currentHistoryIndex > 0) {
@@ -413,15 +438,6 @@ export function useJournalEditor() {
     } else {
       toast.info("Nothing to redo");
     }
-  };
-
-  const handleResetToDefault = () => {
-    resetEntry();
-    // Reset history
-    const defaultState = JSON.parse(JSON.stringify(currentEntry));
-    setHistory([defaultState]);
-    setCurrentHistoryIndex(0);
-    toast.success("Reset to default settings");
   };
 
   return {

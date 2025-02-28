@@ -1,4 +1,3 @@
-
 export type Mood = 
   | 'happy' 
   | 'sad' 
@@ -19,6 +18,8 @@ export interface Sticker {
     x: number;
     y: number;
   };
+  width?: number;
+  height?: number;
 }
 
 export interface Icon {

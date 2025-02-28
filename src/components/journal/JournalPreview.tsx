@@ -1,10 +1,10 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { DrawingLayer } from './DrawingLayer';
 import { Sticker } from '@/types/journal';
 import { IconContainer } from './IconContainer';
 import { useScreenshot } from 'use-react-screenshot';
-import { ImageIcon } from 'lucide-react';
 import type { Icon } from '@/types/journal';
 
 interface JournalPreviewProps {
@@ -79,7 +79,7 @@ export function JournalPreview({
   const [previewHeight, setPreviewHeight] = useState(500);
   const [isDraggingText, setIsDraggingText] = useState(false);
   const [textOffset, setTextOffset] = useState({ x: 0, y: 0 });
-	const [image, takeScreenshot] = useScreenshot({
+  const [image, takeScreenshot] = useScreenshot({
     type: "image/jpeg",
     quality: 1.0
   });
@@ -168,8 +168,8 @@ export function JournalPreview({
               left: `${sticker.position.x}%`,
               top: `${sticker.position.y}%`,
               transform: 'translate(-50%, -50%)',
-              width: `${sticker.size}px`,
-              height: `${sticker.size}px`,
+              width: `${sticker.width || 48}px`,
+              height: `${sticker.height || 48}px`,
               zIndex: 30,
             }}
             draggable={false}
