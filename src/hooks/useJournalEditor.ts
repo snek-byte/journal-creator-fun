@@ -254,20 +254,23 @@ export function useJournalEditor() {
     try {
       if (!textareaRef.current) return;
 
+      // Store current cursor position
       const start = textareaRef.current.selectionStart;
       const end = textareaRef.current.selectionEnd;
       const text = currentEntry.text;
       
-      // Use the actual emoji character, not a unicode reference
+      // Insert the emoji character directly, not a unicode reference
       const newText = text.substring(0, start) + emojiData.emoji + text.substring(end);
+      
+      // Update text with the emoji
       setText(newText);
       
-      // Restore cursor position after emoji insertion
+      // Set cursor position after the inserted emoji
       setTimeout(() => {
         if (textareaRef.current) {
-          const newPosition = start + emojiData.emoji.length;
-          textareaRef.current.selectionStart = newPosition;
-          textareaRef.current.selectionEnd = newPosition;
+          const newCursorPos = start + emojiData.emoji.length;
+          textareaRef.current.selectionStart = newCursorPos;
+          textareaRef.current.selectionEnd = newCursorPos;
           textareaRef.current.focus();
         }
       }, 0);

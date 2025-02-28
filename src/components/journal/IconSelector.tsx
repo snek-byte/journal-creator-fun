@@ -40,8 +40,38 @@ export function IconSelector({
   const [currentIconSize, setCurrentIconSize] = useState(iconOptions.size);
   const [showAllIcons, setShowAllIcons] = useState(false);
 
+  // Reorganized categories in a more logical order
   // OUTLINE ICONS - Black/monochrome line-based icons
   const outlineIconCategories = [
+    {
+      name: 'Flowers',
+      icons: [
+        { name: 'Simple Flower', url: 'https://cdn-icons-png.flaticon.com/512/2990/2990007.png' },
+        { name: 'Tulip', url: 'https://cdn-icons-png.flaticon.com/512/2518/2518045.png' },
+        { name: 'Daisy', url: 'https://cdn-icons-png.flaticon.com/512/2518/2518048.png' },
+        { name: 'Rose', url: 'https://cdn-icons-png.flaticon.com/512/2497/2497650.png' },
+        { name: 'Sunflower', url: 'https://cdn-icons-png.flaticon.com/512/3784/3784842.png' },
+        { name: 'Lily', url: 'https://cdn-icons-png.flaticon.com/512/1539/1539441.png' },
+        { name: 'Lotus', url: 'https://cdn-icons-png.flaticon.com/512/5090/5090207.png' },
+        { name: 'Cherry Blossom', url: 'https://cdn-icons-png.flaticon.com/512/1599/1599898.png' },
+        { name: 'Poppy', url: 'https://cdn-icons-png.flaticon.com/512/3822/3822707.png' },
+        { name: 'Hibiscus', url: 'https://cdn-icons-png.flaticon.com/512/4781/4781767.png' },
+        { name: 'Dandelion', url: 'https://cdn-icons-png.flaticon.com/512/7794/7794814.png' },
+        { name: 'Orchid', url: 'https://cdn-icons-png.flaticon.com/512/3785/3785001.png' },
+      ]
+    },
+    {
+      name: 'Plants & Nature',
+      icons: [
+        { name: 'Tree', url: 'https://cdn-icons-png.flaticon.com/512/490/490091.png' },
+        { name: 'Leaf', url: 'https://cdn-icons-png.flaticon.com/512/2925/2925727.png' },
+        { name: 'Mountain', url: 'https://cdn-icons-png.flaticon.com/512/553/553989.png' },
+        { name: 'Beach', url: 'https://cdn-icons-png.flaticon.com/512/1969/1969029.png' },
+        { name: 'Forest', url: 'https://cdn-icons-png.flaticon.com/512/490/490105.png' },
+        { name: 'Cactus', url: 'https://cdn-icons-png.flaticon.com/512/2278/2278083.png' },
+        { name: 'Plant', url: 'https://cdn-icons-png.flaticon.com/512/628/628324.png' },
+      ]
+    },
     {
       name: 'Weather',
       icons: [
@@ -72,40 +102,6 @@ export function IconSelector({
         { name: 'Elephant', url: 'https://cdn-icons-png.flaticon.com/512/375/375051.png' },
         { name: 'Penguin', url: 'https://cdn-icons-png.flaticon.com/512/437/437457.png' },
         { name: 'Owl', url: 'https://cdn-icons-png.flaticon.com/512/826/826994.png' },
-      ]
-    },
-    {
-      name: 'Plants & Nature',
-      icons: [
-        { name: 'Tree', url: 'https://cdn-icons-png.flaticon.com/512/490/490091.png' },
-        { name: 'Flower', url: 'https://cdn-icons-png.flaticon.com/512/1191/1191571.png' },
-        { name: 'Rose', url: 'https://cdn-icons-png.flaticon.com/512/5765/5765397.png' },
-        { name: 'Tulip', url: 'https://cdn-icons-png.flaticon.com/512/1539/1539422.png' },
-        { name: 'Daisy', url: 'https://cdn-icons-png.flaticon.com/512/2518/2518048.png' },
-        { name: 'Leaf', url: 'https://cdn-icons-png.flaticon.com/512/2925/2925727.png' },
-        { name: 'Mountain', url: 'https://cdn-icons-png.flaticon.com/512/553/553989.png' },
-        { name: 'Beach', url: 'https://cdn-icons-png.flaticon.com/512/1969/1969029.png' },
-        { name: 'Forest', url: 'https://cdn-icons-png.flaticon.com/512/490/490105.png' },
-        { name: 'Cactus', url: 'https://cdn-icons-png.flaticon.com/512/2278/2278083.png' },
-        { name: 'Sunflower', url: 'https://cdn-icons-png.flaticon.com/512/1455/1455015.png' },
-        { name: 'Plant', url: 'https://cdn-icons-png.flaticon.com/512/628/628324.png' },
-      ]
-    },
-    {
-      name: 'Travel',
-      icons: [
-        { name: 'Airplane', url: 'https://cdn-icons-png.flaticon.com/512/2168/2168652.png' },
-        { name: 'Car', url: 'https://cdn-icons-png.flaticon.com/512/1048/1048315.png' },
-        { name: 'Train', url: 'https://cdn-icons-png.flaticon.com/512/257/257658.png' },
-        { name: 'Ship', url: 'https://cdn-icons-png.flaticon.com/512/105/105188.png' },
-        { name: 'Compass', url: 'https://cdn-icons-png.flaticon.com/512/3174/3174429.png' },
-        { name: 'Map', url: 'https://cdn-icons-png.flaticon.com/512/854/854878.png' },
-        { name: 'Suitcase', url: 'https://cdn-icons-png.flaticon.com/512/2285/2285561.png' },
-        { name: 'Passport', url: 'https://cdn-icons-png.flaticon.com/512/1934/1934461.png' },
-        { name: 'Camera', url: 'https://cdn-icons-png.flaticon.com/512/3178/3178209.png' },
-        { name: 'Landmark', url: 'https://cdn-icons-png.flaticon.com/512/1851/1851036.png' },
-        { name: 'Bus', url: 'https://cdn-icons-png.flaticon.com/512/2830/2830176.png' },
-        { name: 'Bike', url: 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png' },
       ]
     },
     {
@@ -143,6 +139,23 @@ export function IconSelector({
       ]
     },
     {
+      name: 'Travel',
+      icons: [
+        { name: 'Airplane', url: 'https://cdn-icons-png.flaticon.com/512/2168/2168652.png' },
+        { name: 'Car', url: 'https://cdn-icons-png.flaticon.com/512/1048/1048315.png' },
+        { name: 'Train', url: 'https://cdn-icons-png.flaticon.com/512/257/257658.png' },
+        { name: 'Ship', url: 'https://cdn-icons-png.flaticon.com/512/105/105188.png' },
+        { name: 'Compass', url: 'https://cdn-icons-png.flaticon.com/512/3174/3174429.png' },
+        { name: 'Map', url: 'https://cdn-icons-png.flaticon.com/512/854/854878.png' },
+        { name: 'Suitcase', url: 'https://cdn-icons-png.flaticon.com/512/2285/2285561.png' },
+        { name: 'Passport', url: 'https://cdn-icons-png.flaticon.com/512/1934/1934461.png' },
+        { name: 'Camera', url: 'https://cdn-icons-png.flaticon.com/512/3178/3178209.png' },
+        { name: 'Landmark', url: 'https://cdn-icons-png.flaticon.com/512/1851/1851036.png' },
+        { name: 'Bus', url: 'https://cdn-icons-png.flaticon.com/512/2830/2830176.png' },
+        { name: 'Bike', url: 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png' },
+      ]
+    },
+    {
       name: 'Symbols',
       icons: [
         { name: 'Heart', url: 'https://cdn-icons-png.flaticon.com/512/2961/2961957.png' },
@@ -159,27 +172,39 @@ export function IconSelector({
         { name: 'Clock', url: 'https://cdn-icons-png.flaticon.com/512/2088/2088617.png' },
       ]
     },
-    {
-      name: 'Flowers',
-      icons: [
-        { name: 'Simple Flower', url: 'https://cdn-icons-png.flaticon.com/512/2990/2990007.png' },
-        { name: 'Tulip', url: 'https://cdn-icons-png.flaticon.com/512/2518/2518045.png' },
-        { name: 'Daisy', url: 'https://cdn-icons-png.flaticon.com/512/2518/2518048.png' },
-        { name: 'Rose', url: 'https://cdn-icons-png.flaticon.com/512/2497/2497650.png' },
-        { name: 'Sunflower', url: 'https://cdn-icons-png.flaticon.com/512/3784/3784842.png' },
-        { name: 'Lily', url: 'https://cdn-icons-png.flaticon.com/512/1539/1539441.png' },
-        { name: 'Lotus', url: 'https://cdn-icons-png.flaticon.com/512/5090/5090207.png' },
-        { name: 'Cherry Blossom', url: 'https://cdn-icons-png.flaticon.com/512/1599/1599898.png' },
-        { name: 'Poppy', url: 'https://cdn-icons-png.flaticon.com/512/3822/3822707.png' },
-        { name: 'Hibiscus', url: 'https://cdn-icons-png.flaticon.com/512/4781/4781767.png' },
-        { name: 'Dandelion', url: 'https://cdn-icons-png.flaticon.com/512/7794/7794814.png' },
-        { name: 'Orchid', url: 'https://cdn-icons-png.flaticon.com/512/3785/3785001.png' },
-      ]
-    },
   ];
 
   // COLOR ICONS - Full color icons with vibrant colors
   const colorIconCategories = [
+    {
+      name: 'Flowers',
+      icons: [
+        { name: 'Colorful Flower', url: 'https://cdn-icons-png.flaticon.com/512/1647/1647683.png' },
+        { name: 'Bouquet', url: 'https://cdn-icons-png.flaticon.com/512/1686/1686375.png' },
+        { name: 'Rose', url: 'https://cdn-icons-png.flaticon.com/512/6645/6645301.png' },
+        { name: 'Tulip', url: 'https://cdn-icons-png.flaticon.com/512/6604/6604613.png' },
+        { name: 'Daisy', url: 'https://cdn-icons-png.flaticon.com/512/867/867891.png' },
+        { name: 'Sunflower', url: 'https://cdn-icons-png.flaticon.com/512/2229/2229076.png' },
+        { name: 'Lotus', url: 'https://cdn-icons-png.flaticon.com/512/628/628338.png' },
+        { name: 'Cherry Blossom', url: 'https://cdn-icons-png.flaticon.com/512/1599/1599733.png' },
+        { name: 'Tropical Flower', url: 'https://cdn-icons-png.flaticon.com/512/2558/2558022.png' },
+        { name: 'Iris', url: 'https://cdn-icons-png.flaticon.com/512/3901/3901746.png' },
+        { name: 'Marigold', url: 'https://cdn-icons-png.flaticon.com/512/8061/8061897.png' },
+        { name: 'Hibiscus', url: 'https://cdn-icons-png.flaticon.com/512/1408/1408247.png' },
+      ]
+    },
+    {
+      name: 'Plants & Nature',
+      icons: [
+        { name: 'Tree', url: 'https://cdn-icons-png.flaticon.com/512/7257/7257232.png' },
+        { name: 'Leaf', url: 'https://cdn-icons-png.flaticon.com/512/2925/2925727.png' },
+        { name: 'Mountain', url: 'https://cdn-icons-png.flaticon.com/512/3309/3309973.png' },
+        { name: 'Beach', url: 'https://cdn-icons-png.flaticon.com/512/2333/2333015.png' },
+        { name: 'Forest', url: 'https://cdn-icons-png.flaticon.com/512/2534/2534050.png' },
+        { name: 'Cactus', url: 'https://cdn-icons-png.flaticon.com/512/2278/2278028.png' },
+        { name: 'Plant', url: 'https://cdn-icons-png.flaticon.com/512/2037/2037085.png' },
+      ]
+    },
     {
       name: 'Weather',
       icons: [
@@ -210,42 +235,6 @@ export function IconSelector({
         { name: 'Elephant', url: 'https://cdn-icons-png.flaticon.com/512/7856/7856344.png' },
         { name: 'Penguin', url: 'https://cdn-icons-png.flaticon.com/512/3069/3069037.png' },
         { name: 'Owl', url: 'https://cdn-icons-png.flaticon.com/512/3069/3069162.png' },
-      ]
-    },
-    {
-      name: 'Plants & Nature',
-      icons: [
-        { name: 'Tree', url: 'https://cdn-icons-png.flaticon.com/512/7257/7257232.png' },
-        { name: 'Flower', url: 'https://cdn-icons-png.flaticon.com/512/1647/1647683.png' },
-        { name: 'Rose', url: 'https://cdn-icons-png.flaticon.com/512/6645/6645301.png' },
-        { name: 'Tulip', url: 'https://cdn-icons-png.flaticon.com/512/6604/6604613.png' },
-        { name: 'Daisy', url: 'https://cdn-icons-png.flaticon.com/512/867/867891.png' },
-        { name: 'Sunflower', url: 'https://cdn-icons-png.flaticon.com/512/2229/2229076.png' },
-        { name: 'Lotus', url: 'https://cdn-icons-png.flaticon.com/512/628/628338.png' },
-        { name: 'Sakura', url: 'https://cdn-icons-png.flaticon.com/512/1599/1599733.png' },
-        { name: 'Leaf', url: 'https://cdn-icons-png.flaticon.com/512/2925/2925727.png' },
-        { name: 'Mountain', url: 'https://cdn-icons-png.flaticon.com/512/3309/3309973.png' },
-        { name: 'Beach', url: 'https://cdn-icons-png.flaticon.com/512/2333/2333015.png' },
-        { name: 'Forest', url: 'https://cdn-icons-png.flaticon.com/512/2534/2534050.png' },
-        { name: 'Cactus', url: 'https://cdn-icons-png.flaticon.com/512/2278/2278028.png' },
-        { name: 'Plant', url: 'https://cdn-icons-png.flaticon.com/512/2037/2037085.png' },
-      ]
-    },
-    {
-      name: 'Travel',
-      icons: [
-        { name: 'Airplane', url: 'https://cdn-icons-png.flaticon.com/512/826/826437.png' },
-        { name: 'Car', url: 'https://cdn-icons-png.flaticon.com/512/3393/3393250.png' },
-        { name: 'Train', url: 'https://cdn-icons-png.flaticon.com/512/8613/8613571.png' },
-        { name: 'Ship', url: 'https://cdn-icons-png.flaticon.com/512/1170/1170576.png' },
-        { name: 'Compass', url: 'https://cdn-icons-png.flaticon.com/512/2785/2785834.png' },
-        { name: 'Map', url: 'https://cdn-icons-png.flaticon.com/512/1379/1379505.png' },
-        { name: 'Suitcase', url: 'https://cdn-icons-png.flaticon.com/512/149/149337.png' },
-        { name: 'Passport', url: 'https://cdn-icons-png.flaticon.com/512/1147/1147125.png' },
-        { name: 'Camera', url: 'https://cdn-icons-png.flaticon.com/512/3659/3659860.png' },
-        { name: 'Landmark', url: 'https://cdn-icons-png.flaticon.com/512/9490/9490361.png' },
-        { name: 'Bus', url: 'https://cdn-icons-png.flaticon.com/512/3034/3034056.png' },
-        { name: 'Bike', url: 'https://cdn-icons-png.flaticon.com/512/3198/3198344.png' },
       ]
     },
     {
@@ -283,6 +272,23 @@ export function IconSelector({
       ]
     },
     {
+      name: 'Travel',
+      icons: [
+        { name: 'Airplane', url: 'https://cdn-icons-png.flaticon.com/512/826/826437.png' },
+        { name: 'Car', url: 'https://cdn-icons-png.flaticon.com/512/3393/3393250.png' },
+        { name: 'Train', url: 'https://cdn-icons-png.flaticon.com/512/8613/8613571.png' },
+        { name: 'Ship', url: 'https://cdn-icons-png.flaticon.com/512/1170/1170576.png' },
+        { name: 'Compass', url: 'https://cdn-icons-png.flaticon.com/512/2785/2785834.png' },
+        { name: 'Map', url: 'https://cdn-icons-png.flaticon.com/512/1379/1379505.png' },
+        { name: 'Suitcase', url: 'https://cdn-icons-png.flaticon.com/512/149/149337.png' },
+        { name: 'Passport', url: 'https://cdn-icons-png.flaticon.com/512/1147/1147125.png' },
+        { name: 'Camera', url: 'https://cdn-icons-png.flaticon.com/512/3659/3659860.png' },
+        { name: 'Landmark', url: 'https://cdn-icons-png.flaticon.com/512/9490/9490361.png' },
+        { name: 'Bus', url: 'https://cdn-icons-png.flaticon.com/512/3034/3034056.png' },
+        { name: 'Bike', url: 'https://cdn-icons-png.flaticon.com/512/3198/3198344.png' },
+      ]
+    },
+    {
       name: 'Symbols',
       icons: [
         { name: 'Heart', url: 'https://cdn-icons-png.flaticon.com/512/833/833472.png' },
@@ -314,23 +320,6 @@ export function IconSelector({
         { name: 'India', url: 'https://cdn-icons-png.flaticon.com/512/197/197419.png' },
         { name: 'Italy', url: 'https://cdn-icons-png.flaticon.com/512/197/197626.png' },
         { name: 'Spain', url: 'https://cdn-icons-png.flaticon.com/512/197/197593.png' },
-      ]
-    },
-    {
-      name: 'Flowers',
-      icons: [
-        { name: 'Colorful Flower', url: 'https://cdn-icons-png.flaticon.com/512/1647/1647683.png' },
-        { name: 'Bouquet', url: 'https://cdn-icons-png.flaticon.com/512/1686/1686375.png' },
-        { name: 'Rose', url: 'https://cdn-icons-png.flaticon.com/512/6645/6645301.png' },
-        { name: 'Tulip', url: 'https://cdn-icons-png.flaticon.com/512/6604/6604613.png' },
-        { name: 'Daisy', url: 'https://cdn-icons-png.flaticon.com/512/867/867891.png' },
-        { name: 'Sunflower', url: 'https://cdn-icons-png.flaticon.com/512/2229/2229076.png' },
-        { name: 'Lotus', url: 'https://cdn-icons-png.flaticon.com/512/628/628338.png' },
-        { name: 'Cherry Blossom', url: 'https://cdn-icons-png.flaticon.com/512/1599/1599733.png' },
-        { name: 'Tropical Flower', url: 'https://cdn-icons-png.flaticon.com/512/2558/2558022.png' },
-        { name: 'Iris', url: 'https://cdn-icons-png.flaticon.com/512/3901/3901746.png' },
-        { name: 'Marigold', url: 'https://cdn-icons-png.flaticon.com/512/8061/8061897.png' },
-        { name: 'Hibiscus', url: 'https://cdn-icons-png.flaticon.com/512/1408/1408247.png' },
       ]
     },
   ];
@@ -422,7 +411,7 @@ export function IconSelector({
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search icons..."
+                  placeholder="Search icons (e.g., flower, heart, dog)..."
                   className="pl-8 pr-10"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
