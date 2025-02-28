@@ -1,16 +1,15 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Pencil, ImagePlus, Palette } from 'lucide-react';
+import { Eye, EyeOff, Maximize2, Trash2, MinusSquare, PlusSquare, Pencil, ImagePlus, Palette, Sticker, IconSquare } from 'lucide-react';
 import { moodOptions } from './config/editorConfig';
-import type { Mood, Sticker, Icon } from '@/types/journal';
+import type { Mood, Sticker as StickerType, Icon } from '@/types/journal';
 import { applyTextStyle } from '@/utils/unicodeTextStyles';
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { StickerSelector } from './StickerSelector';
 import { IconSelector } from './IconSelector';
 import { BackgroundImageSelector } from './BackgroundImageSelector';
 import { ImageFilterSelector } from './ImageFilterSelector';
-import { ImageUploader } from './ImageUploader';
 import { IconContainer } from './IconContainer';
 import { DrawingLayer } from './DrawingLayer';
 
@@ -24,13 +23,13 @@ interface JournalPreviewProps {
   fontColor: string;
   gradient: string;
   textStyle?: string;
-  stickers: Sticker[];
+  stickers: StickerType[];
   icons: Icon[];
   textPosition: { x: number, y: number };
   backgroundImage?: string;
   drawing?: string;
   filter?: string;
-  onStickerAdd: (sticker: Sticker) => void;
+  onStickerAdd: (sticker: StickerType) => void;
   onIconAdd: (icon: Icon) => void;
   onStickerMove: (stickerId: string, position: { x: number, y: number }) => void;
   onIconMove: (iconId: string, position: { x: number, y: number }) => void;
@@ -40,12 +39,6 @@ interface JournalPreviewProps {
   onDrawingChange: (dataUrl: string) => void;
   onFilterChange: (filter: string) => void;
   onTogglePreview: () => void;
-}
-
-interface IconGroup {
-  id: string;
-  position: { x: number, y: number };
-  icons: Icon[];
 }
 
 export function JournalPreview({
@@ -77,45 +70,27 @@ export function JournalPreview({
 }: JournalPreviewProps) {
   const previewRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
+  const iconContainerRef = useRef<HTMLDivElement>(null);
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [isTextDragging, setIsTextDragging] = useState(false);
+  const [isIconContainerDragging, setIsIconContainerDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [iconContainerPosition, setIconContainerPosition] = useState({ x: 80, y: 20 });
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const [showIconControls, setShowIconControls] = useState(false);
   const [iconSize, setIconSize] = useState<number>(48);
-  
-  // Icon grouping state
-  const [iconGroups, setIconGroups] = useState<IconGroup[]>([]);
-  const [ungroupedIcons, setUngroupedIcons] = useState<Icon[]>([]);
+  const [visibleIcons, setVisibleIcons] = useState<Icon[]>([]);
 
-  // Group icons when there are 3 or more
+  // Update visible icons when icons array changes
   useEffect(() => {
-    // Group management - initialize with all icons as ungrouped
-    const visibleIcons = icons.filter(icon => 
+    // Filter icons that are visible (not moved off-screen)
+    const visible = icons.filter(icon => 
       icon.position.x > -100 && icon.position.y > -100
     );
-    setUngroupedIcons(visibleIcons);
+    setVisibleIcons(visible);
   }, [icons]);
-
-  // Auto-group icons when there are 3 or more ungrouped
-  useEffect(() => {
-    if (ungroupedIcons.length >= 3) {
-      // Create a new group with all ungrouped icons
-      const avgX = ungroupedIcons.reduce((sum, icon) => sum + icon.position.x, 0) / ungroupedIcons.length;
-      const avgY = ungroupedIcons.reduce((sum, icon) => sum + icon.position.y, 0) / ungroupedIcons.length;
-      
-      const newGroup: IconGroup = {
-        id: `group-${Date.now()}`,
-        position: { x: avgX, y: avgY },
-        icons: [...ungroupedIcons]
-      };
-      
-      setIconGroups(prev => [...prev, newGroup]);
-      setUngroupedIcons([]);
-    }
-  }, [ungroupedIcons]);
 
   useEffect(() => {
     if (selectedIconId) {
@@ -196,6 +171,41 @@ export function JournalPreview({
     window.addEventListener('mouseup', handleMouseUp);
   };
 
+  const handleIconContainerMouseDown = (e: React.MouseEvent) => {
+    if (!iconContainerRef.current || !previewRef.current) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const containerRect = iconContainerRef.current.getBoundingClientRect();
+    const previewRect = previewRef.current.getBoundingClientRect();
+    
+    const offsetX = e.clientX - containerRect.left;
+    const offsetY = e.clientY - containerRect.top;
+    
+    setDragOffset({ x: offsetX, y: offsetY });
+    setIsIconContainerDragging(true);
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isIconContainerDragging || !previewRef.current) return;
+      
+      const previewRect = previewRef.current.getBoundingClientRect();
+      const x = Math.max(0, Math.min(100, ((e.clientX - previewRect.left - dragOffset.x) / previewRect.width) * 100));
+      const y = Math.max(0, Math.min(100, ((e.clientY - previewRect.top - dragOffset.y) / previewRect.height) * 100));
+      
+      setIconContainerPosition({ x, y });
+    };
+    
+    const handleMouseUp = () => {
+      setIsIconContainerDragging(false);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
   const handleTextTouchStart = (e: React.TouchEvent) => {
     if (!textRef.current) return;
     
@@ -228,7 +238,42 @@ export function JournalPreview({
     window.addEventListener('touchend', handleTouchEnd);
   };
 
-  const handleStickerAdd = (sticker: Sticker) => {
+  const handleIconContainerTouchStart = (e: React.TouchEvent) => {
+    if (!iconContainerRef.current || !previewRef.current) return;
+    
+    e.stopPropagation();
+    
+    const touch = e.touches[0];
+    const containerRect = iconContainerRef.current.getBoundingClientRect();
+    
+    const offsetX = touch.clientX - containerRect.left;
+    const offsetY = touch.clientY - containerRect.top;
+    
+    setDragOffset({ x: offsetX, y: offsetY });
+    setIsIconContainerDragging(true);
+    
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isIconContainerDragging || !previewRef.current) return;
+      
+      const touch = e.touches[0];
+      const previewRect = previewRef.current.getBoundingClientRect();
+      const x = Math.max(0, Math.min(100, ((touch.clientX - previewRect.left - dragOffset.x) / previewRect.width) * 100));
+      const y = Math.max(0, Math.min(100, ((touch.clientY - previewRect.top - dragOffset.y) / previewRect.height) * 100));
+      
+      setIconContainerPosition({ x, y });
+    };
+    
+    const handleTouchEnd = () => {
+      setIsIconContainerDragging(false);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+    
+    window.addEventListener('touchmove', handleTouchMove);
+    window.addEventListener('touchend', handleTouchEnd);
+  };
+
+  const handleStickerAdd = (sticker: StickerType) => {
     const newSticker = {
       ...sticker,
       position: { x: 50, y: 50 }
@@ -274,40 +319,6 @@ export function JournalPreview({
     window.addEventListener('mouseup', handleMouseUp);
   };
 
-  const handleIconMouseDown = (e: React.MouseEvent, iconId: string) => {
-    e.stopPropagation();
-    
-    setSelectedIconId(iconId);
-    setShowIconControls(true);
-    
-    const icon = icons.find(i => i.id === iconId);
-    if (!icon || !previewRef.current) return;
-    
-    const previewRect = previewRef.current.getBoundingClientRect();
-    const startX = (icon.position.x / 100) * previewRect.width;
-    const startY = (icon.position.y / 100) * previewRect.height;
-    const offsetX = e.clientX - startX;
-    const offsetY = e.clientY - startY;
-    
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!previewRef.current) return;
-      
-      const previewRect = previewRef.current.getBoundingClientRect();
-      const x = ((e.clientX - offsetX) / previewRect.width) * 100;
-      const y = ((e.clientY - offsetY) / previewRect.height) * 100;
-      
-      onIconMove(iconId, { x, y });
-    };
-    
-    const handleMouseUp = () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-    
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-  };
-
   const handleIconClick = (iconId: string) => {
     setSelectedIconId(iconId);
     setShowIconControls(true);
@@ -325,7 +336,6 @@ export function JournalPreview({
   const handleRemoveSticker = () => {
     if (!selectedStickerId) return;
     
-    const newStickers = stickers.filter(s => s.id !== selectedStickerId);
     onStickerMove(selectedStickerId, { x: -999, y: -999 });
     
     setSelectedStickerId(null);
@@ -335,7 +345,6 @@ export function JournalPreview({
   const handleRemoveIcon = () => {
     if (!selectedIconId) return;
     
-    const newIcons = icons.filter(i => i.id !== selectedIconId);
     onIconMove(selectedIconId, { x: -999, y: -999 });
     
     setSelectedIconId(null);
@@ -359,75 +368,57 @@ export function JournalPreview({
     }
     onDrawingChange(dataUrl);
   };
-  
-  const handleContainerMove = (groupId: string, position: { x: number, y: number }) => {
-    setIconGroups(prev => 
-      prev.map(group => group.id === groupId ? { ...group, position } : group)
-    );
-  };
-  
-  const handleRemoveContainer = (groupId: string) => {
-    const group = iconGroups.find(g => g.id === groupId);
-    if (!group) return;
-    
-    // Move all icons in the group back to visible positions
-    group.icons.forEach((icon, index) => {
-      const position = {
-        x: group.position.x + (index * 5),
-        y: group.position.y + (index * 5)
-      };
-      onIconMove(icon.id, position);
-    });
-    
-    // Remove the group
-    setIconGroups(prev => prev.filter(g => g.id !== groupId));
-    
-    // Add icons back to ungrouped list
-    setUngroupedIcons(prev => [...prev, ...group.icons]);
-  };
 
   return (
     <div className="w-full lg:w-3/4 p-6 relative print:w-full print:p-0 min-h-[800px]">
       <div className="absolute top-4 right-4 z-10 flex gap-2 print:hidden">
-        {/* Use different icons for each selector */}
-        <StickerSelector onStickerSelect={handleStickerAdd} />
-        <IconSelector onIconSelect={handleIconAdd} />
-        <BackgroundImageSelector onImageSelect={onBackgroundSelect} />
+        {/* Using different icons for each selector */}
+        <StickerSelector onStickerSelect={handleStickerAdd}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="hover:bg-accent hover:text-accent-foreground"
+            title="Add stickers"
+          >
+            <Sticker className="w-4 h-4" />
+          </Button>
+        </StickerSelector>
         
-        {/* Image uploader with unique icon */}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="hover:bg-accent hover:text-accent-foreground"
-          title="Upload an image"
-          onClick={() => {
-            const fileInput = document.createElement('input');
-            fileInput.type = 'file';
-            fileInput.accept = 'image/*';
-            fileInput.onchange = (e) => {
-              const target = e.target as HTMLInputElement;
-              if (target.files && target.files[0]) {
-                const file = target.files[0];
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                  if (e.target && typeof e.target.result === 'string') {
-                    onBackgroundSelect(e.target.result);
-                  }
-                };
-                reader.readAsDataURL(file);
-              }
-            };
-            fileInput.click();
-          }}
-        >
-          <ImagePlus className="w-4 h-4" />
-        </Button>
+        <IconSelector onIconSelect={handleIconAdd}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="hover:bg-accent hover:text-accent-foreground"
+            title="Add icons"
+          >
+            <IconSquare className="w-4 h-4" />
+          </Button>
+        </IconSelector>
         
-        {/* Filter selector with unique icon */}
+        <BackgroundImageSelector onImageSelect={onBackgroundSelect}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="hover:bg-accent hover:text-accent-foreground"
+            title="Choose background"
+          >
+            <ImagePlus className="w-4 h-4" />
+          </Button>
+        </BackgroundImageSelector>
+        
         <ImageFilterSelector 
           onFilterSelect={onFilterChange}
           currentFilter={filter || 'none'}
-        />
+        >
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="hover:bg-accent hover:text-accent-foreground"
+            title="Apply filters"
+          >
+            <Palette className="w-4 h-4" />
+          </Button>
+        </ImageFilterSelector>
         
         <Button
           onClick={toggleDrawingMode}
@@ -547,39 +538,43 @@ export function JournalPreview({
                 />
               ))}
 
-              {/* Display icon containers */}
-              {iconGroups.map((group) => (
-                <IconContainer
-                  key={group.id}
-                  icons={group.icons}
-                  containerPosition={group.position}
-                  onIconClick={handleIconClick}
-                  onRemoveContainer={() => handleRemoveContainer(group.id)}
-                  onContainerMove={(position) => handleContainerMove(group.id, position)}
-                />
-              ))}
-
-              {/* Display ungrouped icons */}
-              {ungroupedIcons.map((icon) => (
-                <img
-                  key={icon.id}
-                  src={icon.url}
-                  alt={icon.id}
+              {/* Icon Container - Draggable box with icons */}
+              {visibleIcons.length > 0 && (
+                <div 
+                  ref={iconContainerRef}
                   style={{
-                    left: `${icon.position.x}%`,
-                    top: `${icon.position.y}%`,
-                    transform: 'translate(-50%, -50%)',
-                    width: `${icon.size || 48}px`,
-                    height: `${icon.size || 48}px`,
-                    color: icon.color,
+                    left: `${iconContainerPosition.x}%`,
+                    top: `${iconContainerPosition.y}%`,
                   }}
-                  className={`absolute cursor-move transition-all hover:ring-2 hover:ring-primary
-                    ${selectedIconId === icon.id ? 'ring-2 ring-primary' : ''}
+                  className={`absolute p-2 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-md shadow-sm cursor-move z-10
+                    ${isIconContainerDragging ? 'ring-2 ring-primary/30' : ''}
                   `}
-                  draggable={false}
-                  onMouseDown={(e) => handleIconMouseDown(e, icon.id)}
-                />
-              ))}
+                  onMouseDown={handleIconContainerMouseDown}
+                  onTouchStart={handleIconContainerTouchStart}
+                >
+                  <div className="flex items-center pb-1 mb-1 border-b border-gray-200">
+                    <div className="text-xs text-gray-500 font-medium">Icons</div>
+                  </div>
+                  <div className="flex flex-wrap gap-1 max-w-[150px]">
+                    {visibleIcons.map((icon) => (
+                      <img
+                        key={icon.id}
+                        src={icon.url}
+                        alt={icon.id}
+                        style={{
+                          width: '20px',
+                          height: '20px',
+                          color: icon.color,
+                        }}
+                        className={`cursor-pointer transition-all hover:scale-110
+                          ${selectedIconId === icon.id ? 'ring-1 ring-primary' : ''}
+                        `}
+                        onClick={() => handleIconClick(icon.id)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
               
               {selectedStickerId && showDeleteButton && (
                 <Button
