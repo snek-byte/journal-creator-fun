@@ -1,15 +1,21 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Palette } from "lucide-react";
 
 interface ImageFilterSelectorProps {
   onFilterChange: (filter: string) => void;
+  currentFilter?: string;
 }
 
-export function ImageFilterSelector({ onFilterChange }: ImageFilterSelectorProps) {
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+export function ImageFilterSelector({ onFilterChange, currentFilter = 'none' }: ImageFilterSelectorProps) {
+  const [selectedFilter, setSelectedFilter] = useState<string>(currentFilter);
+  
+  // Update local state when the prop changes
+  useEffect(() => {
+    setSelectedFilter(currentFilter);
+  }, [currentFilter]);
   
   const filterPresets = [
     { name: 'None', value: 'none' },

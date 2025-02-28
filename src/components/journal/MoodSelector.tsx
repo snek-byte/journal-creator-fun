@@ -7,23 +7,22 @@ import type { Mood } from '@/types/journal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface MoodSelectorProps {
-  mood?: Mood;
-  isPublic: boolean;
-  onMoodChange: (mood: Mood) => void;
-  onIsPublicChange: (isPublic: boolean) => void;
+  selectedMood?: Mood;
+  onMoodSelect: (mood: Mood) => void;
 }
 
 export function MoodSelector({
-  mood,
-  isPublic,
-  onMoodChange,
-  onIsPublicChange
+  selectedMood,
+  onMoodSelect
 }: MoodSelectorProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium">Today's Mood</label>
-        <Select value={mood} onValueChange={(value) => onMoodChange(value as Mood)}>
+        <Select 
+          value={selectedMood} 
+          onValueChange={(value) => onMoodSelect(value as Mood)}
+        >
           <SelectTrigger className="w-36">
             <SelectValue placeholder="Select mood" />
           </SelectTrigger>
@@ -38,15 +37,6 @@ export function MoodSelector({
             ))}
           </SelectContent>
         </Select>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium">Make Public</span>
-        <Switch
-          checked={isPublic}
-          onCheckedChange={onIsPublicChange}
-          aria-label="Toggle public sharing"
-        />
       </div>
     </div>
   );
