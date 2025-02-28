@@ -2,7 +2,10 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Compass, Lightbulb, Heart, Star, Sun, Moon, Cloud, Flag, Bookmark, Award, Gift, Music, Camera, ShoppingCart, Coffee, Cpu, Globe, Home, Map, Smile, Mail, Phone, Settings, User, Users, FileText, Calendar, Clock, Bell, Book, Briefcase, Building, Link, Tag, Truck } from "lucide-react";
+import { Search, Compass, Lightbulb, Heart, Star, Sun, Moon, Cloud, Flag, Bookmark, Award, Gift, Music, Camera, 
+         ShoppingCart, Coffee, Cpu, Globe, Home, Map, Smile, Mail, Phone, Settings, User, Users, FileText, 
+         Calendar, Clock, Bell, Book, Briefcase, Building, Link, Tag, Truck, Zap, Target, Umbrella, 
+         Diamond, Palette, Scissors, Headphones, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -11,10 +14,10 @@ interface IconSelectorProps {
 }
 
 export function IconSelector({ onIconSelect }: IconSelectorProps) {
-  const [category, setCategory] = useState('general');
   const [iconStyle, setIconStyle] = useState<'outline' | 'color'>('outline');
+  const [category, setCategory] = useState('general');
   
-  // All available Lucide icons for selection (just a subset for the demo)
+  // All available Lucide icons organized by category
   const iconSets = {
     general: [
       { component: Search, name: 'Search' },
@@ -25,6 +28,10 @@ export function IconSelector({ onIconSelect }: IconSelectorProps) {
       { component: Settings, name: 'Settings' },
       { component: User, name: 'User' },
       { component: FileText, name: 'Document' },
+      { component: Zap, name: 'Zap' },
+      { component: Target, name: 'Target' },
+      { component: Diamond, name: 'Diamond' },
+      { component: Palette, name: 'Palette' },
     ],
     nature: [
       { component: Sun, name: 'Sun' },
@@ -33,6 +40,7 @@ export function IconSelector({ onIconSelect }: IconSelectorProps) {
       { component: Globe, name: 'Globe' },
       { component: Map, name: 'Map' },
       { component: Flag, name: 'Flag' },
+      { component: Umbrella, name: 'Umbrella' },
     ],
     objects: [
       { component: Bookmark, name: 'Bookmark' },
@@ -43,6 +51,8 @@ export function IconSelector({ onIconSelect }: IconSelectorProps) {
       { component: Book, name: 'Book' },
       { component: Briefcase, name: 'Briefcase' },
       { component: Building, name: 'Building' },
+      { component: Scissors, name: 'Scissors' },
+      { component: Headphones, name: 'Headphones' },
     ],
     activities: [
       { component: ShoppingCart, name: 'Shopping' },
@@ -61,6 +71,7 @@ export function IconSelector({ onIconSelect }: IconSelectorProps) {
       { component: Tag, name: 'Tag' },
       { component: Truck, name: 'Shipping' },
       { component: Users, name: 'Users' },
+      { component: MessageSquare, name: 'Message' },
     ],
   };
 
@@ -97,7 +108,7 @@ export function IconSelector({ onIconSelect }: IconSelectorProps) {
       </div>
 
       <Tabs defaultValue="outline" className="w-full">
-        <TabsList className="w-full grid grid-cols-2 mb-4">
+        <TabsList className="w-full grid grid-cols-2 mb-2">
           <TabsTrigger 
             value="outline" 
             onClick={() => setIconStyle('outline')}
@@ -114,36 +125,36 @@ export function IconSelector({ onIconSelect }: IconSelectorProps) {
           </TabsTrigger>
         </TabsList>
       </Tabs>
-
-      <div className="flex gap-1 mb-2 overflow-x-auto pb-1">
-        {Object.keys(iconSets).map((cat) => (
-          <Button
-            key={cat}
-            variant={category === cat ? 'default' : 'outline'}
-            size="sm"
-            className="text-xs h-7"
-            onClick={() => setCategory(cat)}
-          >
-            {cat.charAt(0).toUpperCase() + cat.slice(1)}
-          </Button>
+      
+      <Tabs defaultValue="general" value={category} onValueChange={setCategory}>
+        <TabsList className="w-full grid grid-cols-5 mb-2">
+          <TabsTrigger value="general" className="text-[9px]">General</TabsTrigger>
+          <TabsTrigger value="nature" className="text-[9px]">Nature</TabsTrigger>
+          <TabsTrigger value="objects" className="text-[9px]">Objects</TabsTrigger>
+          <TabsTrigger value="activities" className="text-[9px]">Activities</TabsTrigger>
+          <TabsTrigger value="communication" className="text-[9px]">Comm.</TabsTrigger>
+        </TabsList>
+        
+        {Object.entries(iconSets).map(([cat, icons]) => (
+          <TabsContent key={cat} value={cat}>
+            <ScrollArea className="h-[200px]">
+              <div className="grid grid-cols-4 gap-2">
+                {icons.map(({ component: IconComponent, name }) => (
+                  <button
+                    key={name}
+                    className="p-1 rounded hover:bg-accent transition-colors flex flex-col items-center justify-center h-16"
+                    onClick={() => handleIconSelect(IconComponent, name)}
+                    title={name}
+                  >
+                    <IconComponent className="h-8 w-8 mb-1" />
+                    <span className="text-[10px] text-muted-foreground truncate w-full text-center">{name}</span>
+                  </button>
+                ))}
+              </div>
+            </ScrollArea>
+          </TabsContent>
         ))}
-      </div>
-
-      <ScrollArea className="h-[200px]">
-        <div className="grid grid-cols-4 gap-2">
-          {iconSets[category as CategoryKey].map(({ component: IconComponent, name }) => (
-            <button
-              key={name}
-              className="p-1 rounded hover:bg-accent transition-colors flex flex-col items-center justify-center h-16"
-              onClick={() => handleIconSelect(IconComponent, name)}
-              title={name}
-            >
-              <IconComponent className="h-8 w-8 mb-1" />
-              <span className="text-[10px] text-muted-foreground">{name}</span>
-            </button>
-          ))}
-        </div>
-      </ScrollArea>
+      </Tabs>
     </div>
   );
 }

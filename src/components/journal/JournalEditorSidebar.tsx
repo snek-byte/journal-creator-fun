@@ -60,7 +60,7 @@ interface JournalEditorSidebarProps {
   onClearDrawing?: () => void;
   onBrushSizeChange?: (size: number) => void;
   currentBrushSize?: number;
-  onStickerAdd?: (sticker: Sticker) => void;
+  onStickerAdd?: (sticker: string) => void;
   onIconAdd?: (icon: Icon) => void;
   onBackgroundSelect?: (imageUrl: string) => void;
   onFilterChange?: (filter: string) => void;
@@ -131,7 +131,6 @@ export function JournalEditorSidebar({
   const [activeTab, setActiveTab] = useState('write');
   const [charCount, setCharCount] = useState(0);
   const [wordCount, setWordCount] = useState(0);
-  const [activeStyleTab, setActiveStyleTab] = useState<string>('text');
 
   // Recalculate word and character counts when text changes
   useEffect(() => {
@@ -162,7 +161,7 @@ export function JournalEditorSidebar({
   };
 
   return (
-    <aside className="w-full lg:w-1/4 border-r p-4 flex flex-col h-auto lg:h-screen min-h-[400px] bg-background">
+    <aside className="w-full lg:w-1/4 border-r p-4 flex flex-col h-auto lg:h-screen min-h-[400px] bg-background overflow-hidden">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Journal Editor</h2>
         <div className="flex gap-1">
@@ -206,10 +205,12 @@ export function JournalEditorSidebar({
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
         <TabsList className="w-full mb-4">
           <TabsTrigger value="write" className="flex-1">Write</TabsTrigger>
+          <TabsTrigger value="decorate" className="flex-1">Decorate</TabsTrigger>
           <TabsTrigger value="style" className="flex-1">Style</TabsTrigger>
         </TabsList>
 
-        <ScrollArea className="flex-1 w-full">
+        <ScrollArea className="flex-1 w-full pr-2">
+          {/* WRITING TAB - For text entry and mood selection */}
           <TabsContent value="write" className="mt-0 h-full flex flex-col gap-4">
             <div className="space-y-4">
               <MoodSelector 
@@ -257,48 +258,38 @@ export function JournalEditorSidebar({
             </div>
           </TabsContent>
 
-          <TabsContent value="style" className="mt-0 space-y-4">
-            <Tabs defaultValue="text" value={activeStyleTab} onValueChange={setActiveStyleTab} className="w-full">
-              <TabsList className="grid grid-cols-5 mb-4">
-                <TabsTrigger value="text" className="text-[10px]">Text</TabsTrigger>
-                <TabsTrigger value="drawing" className="text-[10px]">Drawing</TabsTrigger>
+          {/* DECORATE TAB - For stickers, icons, backgrounds, etc. */}
+          <TabsContent value="decorate" className="mt-0 space-y-4">
+            <Tabs defaultValue="stickers" className="w-full">
+              <TabsList className="grid grid-cols-4 mb-4">
                 <TabsTrigger value="stickers" className="text-[10px]">Stickers</TabsTrigger>
                 <TabsTrigger value="icons" className="text-[10px]">Icons</TabsTrigger>
                 <TabsTrigger value="background" className="text-[10px]">Background</TabsTrigger>
+                <TabsTrigger value="drawing" className="text-[10px]">Drawing</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="text" className="mt-0 space-y-4">
-                <JournalStylingControls
-                  font={currentEntry.font}
-                  fontSize={currentEntry.fontSize}
-                  fontWeight={currentEntry.fontWeight}
-                  fontColor={currentEntry.fontColor}
-                  gradient={currentEntry.gradient}
-                  onFontChange={setFont}
-                  onFontSizeChange={setFontSize}
-                  onFontWeightChange={setFontWeight}
-                  onFontColorChange={setFontColor}
-                  onGradientChange={setGradient}
-                  onTextStyleChange={setTextStyle}
-                  selectedIconId={selectedIconId}
-                />
+              <TabsContent value="stickers" className="mt-0">
+                {onStickerAdd && (
+                  <StickerSelector onStickerSelect={onStickerAdd} />
+                )}
+              </TabsContent>
+              
+              <TabsContent value="icons" className="mt-0">
+                {onIconAdd && (
+                  <IconSelector onIconSelect={onIconAdd} />
+                )}
+              </TabsContent>
+              
+              <TabsContent value="background" className="mt-0 space-y-4">
+                {onBackgroundSelect && (
+                  <BackgroundImageSelector onBackgroundSelect={onBackgroundSelect} />
+                )}
                 
-                {/* Gradient Presets */}
-                <div className="space-y-2 pt-4">
-                  <h3 className="text-xs font-semibold tracking-tight">Gradients</h3>
-                  <div className="grid grid-cols-3 gap-2">
-                    {gradients.slice(0, 9).map((gradient) => (
-                      <button
-                        key={gradient.label}
-                        className="p-0.5 rounded border border-gray-200 hover:border-primary"
-                        onClick={() => setGradient(gradient.value)}
-                        title={gradient.label}
-                      >
-                        <div style={getGradientStyle(gradient.value)} />
-                      </button>
-                    ))}
+                {onFilterChange && (
+                  <div className="pt-4">
+                    <ImageFilterSelector onFilterChange={onFilterChange} />
                   </div>
-                </div>
+                )}
               </TabsContent>
               
               <TabsContent value="drawing" className="mt-0 space-y-4">
@@ -406,31 +397,45 @@ export function JournalEditorSidebar({
                   </div>
                 )}
               </TabsContent>
-              
-              <TabsContent value="stickers" className="mt-0">
-                {onStickerAdd && (
-                  <StickerSelector onStickerSelect={onStickerAdd} />
-                )}
-              </TabsContent>
-              
-              <TabsContent value="icons" className="mt-0">
-                {onIconAdd && (
-                  <IconSelector onIconSelect={onIconAdd} />
-                )}
-              </TabsContent>
-              
-              <TabsContent value="background" className="mt-0 space-y-4">
-                {onBackgroundSelect && (
-                  <BackgroundImageSelector onBackgroundSelect={onBackgroundSelect} />
-                )}
-                
-                {onFilterChange && (
-                  <div className="pt-4">
-                    <ImageFilterSelector onFilterChange={onFilterChange} />
-                  </div>
-                )}
-              </TabsContent>
             </Tabs>
+          </TabsContent>
+
+          {/* STYLE TAB - Text and icon styling */}
+          <TabsContent value="style" className="mt-0 space-y-4">
+            {/* Text/Icon styling controls */}
+            <JournalStylingControls
+              font={currentEntry.font}
+              fontSize={currentEntry.fontSize}
+              fontWeight={currentEntry.fontWeight}
+              fontColor={currentEntry.fontColor}
+              gradient={currentEntry.gradient}
+              onFontChange={setFont}
+              onFontSizeChange={setFontSize}
+              onFontWeightChange={setFontWeight}
+              onFontColorChange={setFontColor}
+              onGradientChange={setGradient}
+              onTextStyleChange={setTextStyle}
+              selectedIconId={selectedIconId}
+            />
+            
+            {/* Gradient Presets - Only shown when styling text, not icons */}
+            {!selectedIconId && (
+              <div className="space-y-2 pt-4">
+                <h3 className="text-xs font-semibold tracking-tight">Gradients</h3>
+                <div className="grid grid-cols-3 gap-2">
+                  {gradients.slice(0, 9).map((gradient) => (
+                    <button
+                      key={gradient.label}
+                      className="p-0.5 rounded border border-gray-200 hover:border-primary"
+                      onClick={() => setGradient(gradient.value)}
+                      title={gradient.label}
+                    >
+                      <div style={getGradientStyle(gradient.value)} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </TabsContent>
         </ScrollArea>
 

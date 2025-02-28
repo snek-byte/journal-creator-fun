@@ -3,6 +3,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { fontOptions, fontSizes, fontWeights } from "./config/editorConfig";
 import { textStyles } from "@/utils/unicodeTextStyles";
 import { useState, useEffect } from "react";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface JournalStylingControlsProps {
   font: string;
@@ -58,95 +60,9 @@ export function JournalStylingControls({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Text Styling Controls Section - Always visible */}
-      {!selectedIconId && (
-        <div className="space-y-3">
-          <h3 className="text-xs font-semibold tracking-tight">Text Styling</h3>
-          
-          <div className="space-y-2">
-            <div className="space-y-0.5">
-              <label className="text-[10px] font-medium">Text Style</label>
-              <Select 
-                onValueChange={onTextStyleChange} 
-                defaultValue="normal"
-              >
-                <SelectTrigger className="h-7 text-[10px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {textStyles.map((style) => (
-                    <SelectItem key={style.value} value={style.value} className="text-[10px]">
-                      {style.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-0.5">
-              <label className="text-[10px] font-medium">Font Family</label>
-              <Select value={font} onValueChange={onFontChange}>
-                <SelectTrigger className="h-7 text-[10px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {fontOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value} className="text-[10px]">
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-0.5">
-              <label className="text-[10px] font-medium">Font Size</label>
-              <Select value={fontSize} onValueChange={onFontSizeChange}>
-                <SelectTrigger className="h-7 text-[10px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {fontSizes.map((option) => (
-                    <SelectItem key={option.value} value={option.value} className="text-[10px]">
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-0.5">
-              <label className="text-[10px] font-medium">Font Weight</label>
-              <Select value={fontWeight} onValueChange={onFontWeightChange}>
-                <SelectTrigger className="h-7 text-[10px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {fontWeights.map((option) => (
-                    <SelectItem key={option.value} value={option.value} className="text-[10px]">
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-0.5">
-              <label className="text-[10px] font-medium">Font Color</label>
-              <input
-                type="color"
-                value={fontColor}
-                onChange={(e) => onFontColorChange(e.target.value)}
-                className="w-full h-7 rounded-md cursor-pointer"
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Icon Styling Section - Only visible when icon is selected */}
-      {selectedIconId && (
+    <div className="space-y-4">
+      {selectedIconId ? (
+        // Icon Styling Section - Only visible when icon is selected
         <div className="space-y-3">
           <h3 className="text-xs font-semibold tracking-tight">Icon Styling</h3>
           <div className="space-y-2 border-2 border-primary/10 bg-primary/5 p-3 rounded-md">
@@ -155,7 +71,7 @@ export function JournalStylingControls({
             </p>
             
             <div className="space-y-0.5">
-              <label className="text-[10px] font-medium">Icon Size</label>
+              <Label className="text-[10px] font-medium">Icon Size</Label>
               <Select value={iconSize} onValueChange={handleIconSizeChange}>
                 <SelectTrigger className="h-7 text-[10px]">
                   <SelectValue />
@@ -176,7 +92,7 @@ export function JournalStylingControls({
             </div>
 
             <div className="space-y-0.5">
-              <label className="text-[10px] font-medium">Icon Color</label>
+              <Label className="text-[10px] font-medium">Icon Color</Label>
               <input
                 type="color"
                 value={iconColor}
@@ -186,6 +102,135 @@ export function JournalStylingControls({
             </div>
           </div>
         </div>
+      ) : (
+        // Text Styling Controls Section - Visible when no icon is selected
+        <Tabs defaultValue="font" className="w-full">
+          <TabsList className="grid grid-cols-3 mb-4">
+            <TabsTrigger value="font" className="text-[10px]">Font</TabsTrigger>
+            <TabsTrigger value="color" className="text-[10px]">Color</TabsTrigger>
+            <TabsTrigger value="style" className="text-[10px]">Style</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="font" className="space-y-3">
+            <div className="space-y-2">
+              <div className="space-y-1">
+                <Label className="text-[10px] font-medium">Font Family</Label>
+                <Select value={font} onValueChange={onFontChange}>
+                  <SelectTrigger className="h-7 text-[10px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {fontOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value} className="text-[10px]">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] font-medium">Font Size</Label>
+                <Select value={fontSize} onValueChange={onFontSizeChange}>
+                  <SelectTrigger className="h-7 text-[10px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {fontSizes.map((option) => (
+                      <SelectItem key={option.value} value={option.value} className="text-[10px]">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] font-medium">Font Weight</Label>
+                <Select value={fontWeight} onValueChange={onFontWeightChange}>
+                  <SelectTrigger className="h-7 text-[10px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {fontWeights.map((option) => (
+                      <SelectItem key={option.value} value={option.value} className="text-[10px]">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="color" className="space-y-3">
+            <div className="space-y-1">
+              <Label className="text-[10px] font-medium">Font Color</Label>
+              <input
+                type="color"
+                value={fontColor}
+                onChange={(e) => onFontColorChange(e.target.value)}
+                className="w-full h-7 rounded-md cursor-pointer"
+              />
+            </div>
+            
+            <div className="space-y-1 pt-2">
+              <Label className="text-[10px] font-medium">Preview</Label>
+              <div 
+                className="w-full h-12 rounded-md flex items-center justify-center text-sm"
+                style={{ 
+                  backgroundColor: 'white',
+                  color: fontColor,
+                  fontFamily: font,
+                  fontSize: fontSize,
+                  fontWeight: fontWeight
+                }}
+              >
+                Sample Text
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="style" className="space-y-3">
+            <div className="space-y-1">
+              <Label className="text-[10px] font-medium">Text Style</Label>
+              <Select 
+                onValueChange={onTextStyleChange} 
+                defaultValue="normal"
+              >
+                <SelectTrigger className="h-7 text-[10px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {textStyles.map((style) => (
+                    <SelectItem key={style.value} value={style.value} className="text-[10px]">
+                      {style.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-1 pt-2">
+              <Label className="text-[10px] font-medium">Style Preview</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {textStyles.slice(0, 6).map((style) => (
+                  <div 
+                    key={style.value}
+                    className="p-2 text-[10px] border border-gray-200 rounded-md hover:bg-accent text-center cursor-default"
+                    style={{
+                      fontStyle: style.value.includes('italic') ? 'italic' : 'normal',
+                      textDecoration: style.value.includes('underline') ? 'underline' : 'none',
+                      textAlign: style.value.includes('center') ? 'center' : 'left',
+                    }}
+                  >
+                    {style.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );
