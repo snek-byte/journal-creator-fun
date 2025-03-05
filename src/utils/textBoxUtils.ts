@@ -55,6 +55,12 @@ export const getTextStyles = (
 
 // Helper to set element transform with smooth transition
 export const setTransform = (element: HTMLElement, x: number, y: number, rotation: number = 0) => {
+  // Don't apply transform if element has Bootstrap draggable
+  if (element.classList.contains('ui-draggable')) {
+    console.log('Element is using Bootstrap draggable, skipping transform');
+    return;
+  }
+
   // Add a slight transition for smoother movements
   element.style.transition = 'transform 0.05s ease';
   
@@ -102,4 +108,26 @@ export const pixelsToPercent = (
   const y = (position.y / containerHeight) * 100;
   
   return { x, y };
+};
+
+// Function to initialize Bootstrap in the app
+export const initializeBootstrap = () => {
+  if (typeof window !== 'undefined') {
+    // Load Bootstrap JS if not already loaded
+    if (!window.jQuery) {
+      console.log('Loading jQuery for Bootstrap draggable');
+      const script = document.createElement('script');
+      script.src = 'https://code.jquery.com/ui/1.13.2/jquery-ui.min.js';
+      script.async = true;
+      document.body.appendChild(script);
+      
+      // Load Bootstrap styles if not already loaded
+      if (!document.querySelector('link[href*="bootstrap"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css';
+        document.head.appendChild(link);
+      }
+    }
+  }
 };

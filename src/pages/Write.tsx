@@ -1,9 +1,9 @@
-
 import { JournalEditor } from "@/components/JournalEditor";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useJournalStore } from "@/store/journalStore";
 import { toast } from "sonner";
+import { initializeBootstrap } from "@/utils/textBoxUtils";
 
 export default function Write() {
   const { loadEntries, loadProgress } = useJournalStore();
@@ -92,6 +92,9 @@ export default function Write() {
     
     loadInteractJs();
 
+    // Initialize Bootstrap for draggable functionality
+    initializeBootstrap();
+
     return () => {
       subscription.unsubscribe();
     };
@@ -114,7 +117,6 @@ export default function Write() {
   );
 }
 
-// Add global type for TypeScript
 declare global {
   interface Window {
     interact: any;
