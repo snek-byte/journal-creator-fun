@@ -5,7 +5,7 @@ import { JournalPreview } from './journal/JournalPreview';
 import { EmailDialog } from './journal/EmailDialog';
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import type { Sticker, Icon, TextBox } from '@/types/journal';
+import type { Sticker, Icon, TextBox, JournalEntry } from '@/types/journal';
 import { toast } from 'sonner';
 
 export function JournalEditor() {
@@ -194,8 +194,9 @@ export function JournalEditor() {
   const fullEntry = {
     ...currentEntry,
     id: 0,
-    date: new Date().toISOString()
-  };
+    date: new Date().toISOString(),
+    challengeId: dailyChallenge?.id
+  } as JournalEntry;
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50 overflow-auto">
@@ -240,6 +241,7 @@ export function JournalEditor() {
         canRedo={canRedo}
         isDrawingMode={isDrawingMode}
         onDrawingModeToggle={handleDrawingModeToggle}
+        onCreateTextBox={handleCreateTextBox}
       />
 
       <EmailDialog
