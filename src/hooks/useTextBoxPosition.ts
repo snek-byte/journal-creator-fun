@@ -49,32 +49,27 @@ export function useTextBoxPosition(
     }
   }, [position, containerDimensions]);
 
-  // Handle drag start
+  // These functions are kept for backwards compatibility
+  // but we've simplified the drag handling in the component
   const handleDragStart = (callback: () => void) => {
     setIsDragging(true);
     callback();
   };
 
-  // Handle drag stop and convert position to percentages
   const handleDragStop = (
     d: { x: number; y: number },
     onUpdate: (updates: { position: { x: number; y: number } }) => void
   ) => {
-    // First update the local position for immediate UI feedback
     setLocalPosition({ x: d.x, y: d.y });
     
-    // Get the container dimensions
     const containerWidth = containerDimensions.width || 1;
     const containerHeight = containerDimensions.height || 1;
     
-    // Calculate percentage position based on container dimensions
     const xPercent = Math.max(0, Math.min(100, (d.x / containerWidth) * 100));
     const yPercent = Math.max(0, Math.min(100, (d.y / containerHeight) * 100));
     
-    // Update the text box position through parent component
     onUpdate({ position: { x: xPercent, y: yPercent } });
     
-    // End dragging state after a short delay
     setTimeout(() => {
       setIsDragging(false);
     }, 50);
