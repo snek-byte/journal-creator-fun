@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Meme } from "@/types/meme";
 import { Card, CardContent } from "@/components/ui/card";
 import { Download, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 
 interface MemeControlsProps {
   meme: Meme;
@@ -26,6 +27,15 @@ export function MemeControls({ meme, onMemeChange, onDownload, onReset }: MemeCo
   };
 
   const fontFamilies = ["Impact", "Arial", "Comic Sans MS", "Tahoma", "Verdana"];
+  
+  const handleDownloadClick = () => {
+    try {
+      onDownload();
+    } catch (error) {
+      console.error("Error downloading meme:", error);
+      toast.error("Failed to download. Please try again.");
+    }
+  };
   
   return (
     <Card className="w-full">
@@ -144,7 +154,7 @@ export function MemeControls({ meme, onMemeChange, onDownload, onReset }: MemeCo
           </Button>
           <Button
             variant="default"
-            onClick={onDownload}
+            onClick={handleDownloadClick}
             className="flex-1"
           >
             <Download className="mr-2 h-4 w-4" />

@@ -8,47 +8,47 @@ import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
 
-// Default templates
+// Default templates with direct image URLs that allow CORS
 const defaultTemplates: MemeTemplate[] = [
   {
     id: "1",
     name: "Drake",
-    url: "https://imgflip.com/s/meme/Drake-Hotline-Bling.jpg",
+    url: "https://i.imgflip.com/30b1gx.jpg", // Using imgflip direct image URL
     width: 1200,
     height: 1200,
   },
   {
     id: "2",
     name: "Distracted Boyfriend",
-    url: "https://imgflip.com/s/meme/Distracted-Boyfriend.jpg",
+    url: "https://i.imgflip.com/1ur9b0.jpg",
     width: 1200,
     height: 800,
   },
   {
     id: "3",
     name: "Two Buttons",
-    url: "https://imgflip.com/s/meme/Two-Buttons.jpg",
+    url: "https://i.imgflip.com/1g8my4.jpg",
     width: 600,
     height: 908,
   },
   {
     id: "4",
     name: "Change My Mind",
-    url: "https://imgflip.com/s/meme/Change-My-Mind.jpg",
+    url: "https://i.imgflip.com/24y43o.jpg",
     width: 482,
     height: 361,
   },
   {
     id: "5",
     name: "Expanding Brain",
-    url: "https://imgflip.com/s/meme/Expanding-Brain.jpg",
+    url: "https://i.imgflip.com/1jwhww.jpg",
     width: 857,
     height: 1202,
   },
   {
     id: "6",
     name: "Sad Pablo Escobar",
-    url: "https://imgflip.com/s/meme/Sad-Pablo-Escobar.jpg",
+    url: "https://i.imgflip.com/1c1uej.jpg",
     width: 720,
     height: 709,
   },

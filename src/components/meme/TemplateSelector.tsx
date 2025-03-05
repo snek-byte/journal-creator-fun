@@ -3,6 +3,7 @@ import React from "react";
 import { MemeTemplate } from "@/types/meme";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "sonner";
 
 interface TemplateSelectorProps {
   templates: MemeTemplate[];
@@ -15,6 +16,16 @@ export function TemplateSelector({
   selectedTemplate, 
   onSelectTemplate 
 }: TemplateSelectorProps) {
+  
+  const handleTemplateSelect = (templateUrl: string) => {
+    try {
+      onSelectTemplate(templateUrl);
+    } catch (error) {
+      console.error("Error selecting template:", error);
+      toast.error("Failed to select template");
+    }
+  };
+  
   return (
     <Card className="w-full">
       <CardContent className="pt-4">
@@ -28,13 +39,13 @@ export function TemplateSelector({
                   aspect-square overflow-hidden rounded-md border cursor-pointer transition-all
                   ${selectedTemplate === template.url ? 'ring-2 ring-primary' : 'hover:opacity-80'}
                 `}
-                onClick={() => onSelectTemplate(template.url)}
+                onClick={() => handleTemplateSelect(template.url)}
                 role="button"
                 tabIndex={0}
                 aria-label={`Select ${template.name} template`}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
-                    onSelectTemplate(template.url);
+                    handleTemplateSelect(template.url);
                   }
                 }}
               >
@@ -43,6 +54,11 @@ export function TemplateSelector({
                   alt={template.name}
                   className="h-full w-full object-cover"
                   loading="lazy"
+                  onError={(e) => {
+                    console.warn(`Failed to load template image: ${template.url}`);
+                    // Replace with placeholder
+                    (e.target as HTMLImageElement).src = "https://via.placeholder.com/150?text=Image+Error";
+                  }}
                 />
               </div>
             ))}

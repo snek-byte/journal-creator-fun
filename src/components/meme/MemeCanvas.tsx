@@ -1,6 +1,7 @@
 
 import React, { useRef, useEffect } from "react";
 import { Meme } from "@/types/meme";
+import { toast } from "sonner";
 
 interface MemeCanvasProps {
   meme: Meme;
@@ -23,7 +24,7 @@ export function MemeCanvas({ meme, width, height }: MemeCanvasProps) {
     
     // Load and draw the template image
     const img = new Image();
-    img.crossOrigin = "anonymous";
+    img.crossOrigin = "anonymous"; // Enable CORS
     img.src = meme.template;
     
     img.onload = () => {
@@ -73,6 +74,9 @@ export function MemeCanvas({ meme, width, height }: MemeCanvasProps) {
       ctx.textAlign = "center";
       ctx.font = "16px sans-serif";
       ctx.fillText("Could not load template", canvas.width / 2, canvas.height / 2);
+      
+      // Notify user
+      toast.error("Failed to load image template. Try another one.");
     };
   }, [meme, width, height]);
   
