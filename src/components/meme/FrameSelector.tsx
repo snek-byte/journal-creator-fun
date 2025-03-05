@@ -14,6 +14,13 @@ const frameOptions = [
   { id: 'geometric', name: 'Geometric', url: '/frames/geometric.svg' },
   { id: 'grunge', name: 'Grunge', url: '/frames/grunge.svg' },
   { id: 'minimalist', name: 'Minimalist', url: '/frames/minimalist.svg' },
+  { id: 'double-box', name: 'Double Box', url: '/frames/double-box.svg' },
+  { id: 'rounded', name: 'Rounded', url: '/frames/rounded.svg' },
+  { id: 'dotted', name: 'Dotted', url: '/frames/dotted.svg' },
+  { id: 'comic', name: 'Comic', url: '/frames/comic.svg' },
+  { id: 'speech-bubble', name: 'Speech Bubble', url: '/frames/speech-bubble.svg' },
+  { id: 'torn-paper', name: 'Torn Paper', url: '/frames/torn-paper.svg' },
+  { id: 'cinema', name: 'Cinema', url: '/frames/cinema.svg' },
 ];
 
 interface FrameSelectorProps {
