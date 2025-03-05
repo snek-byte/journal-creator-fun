@@ -33,6 +33,7 @@ const App = () => {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/meme" element={<MemeGenerator />} />
+              <Route path="/journal" element={<Write />} /> {/* Added explicit journal route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
             <ToastViewport />

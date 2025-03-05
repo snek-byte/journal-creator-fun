@@ -63,6 +63,17 @@ export function MemeCanvas({ meme, width, height }: MemeCanvasProps) {
         ctx.strokeText(meme.bottomText, canvas.width / 2, canvas.height - 20);
       }
     };
+    
+    img.onerror = () => {
+      console.error("Failed to load template image:", meme.template);
+      // Draw a placeholder or error message
+      ctx.fillStyle = "#f0f0f0";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#666";
+      ctx.textAlign = "center";
+      ctx.font = "16px sans-serif";
+      ctx.fillText("Could not load template", canvas.width / 2, canvas.height / 2);
+    };
   }, [meme, width, height]);
   
   return (

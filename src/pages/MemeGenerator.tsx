@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { Meme, MemeTemplate } from "@/types/meme";
 import { MemeCanvas } from "@/components/meme/MemeCanvas";
@@ -91,7 +92,9 @@ export default function MemeGenerator() {
   };
   
   const handleTemplateSelect = (templateUrl: string) => {
-    setMeme({ ...meme, template: templateUrl });
+    console.log("Template selected:", templateUrl);
+    setMeme(prevMeme => ({ ...prevMeme, template: templateUrl }));
+    toast.success("Template updated");
   };
   
   const handleReset = () => {

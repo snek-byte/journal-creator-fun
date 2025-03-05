@@ -29,6 +29,14 @@ export function TemplateSelector({
                   ${selectedTemplate === template.url ? 'ring-2 ring-primary' : 'hover:opacity-80'}
                 `}
                 onClick={() => onSelectTemplate(template.url)}
+                role="button"
+                tabIndex={0}
+                aria-label={`Select ${template.name} template`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    onSelectTemplate(template.url);
+                  }
+                }}
               >
                 <img
                   src={template.url}
