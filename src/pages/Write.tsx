@@ -29,30 +29,35 @@ export default function Write() {
       }
     );
 
-    // Direct script injection for interact.js
-    if (typeof window !== 'undefined' && !window.interact) {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js';
-      script.async = true;
-      script.onload = () => {
-        if (window.interact) {
-          console.log('interact.js loaded successfully via direct script injection');
-          setInteractJsLoaded(true);
-          toast.success("Journal editor ready");
-        } else {
-          console.error('interact is not available after script load');
-          toast.error("Failed to initialize the editor");
-        }
-      };
-      script.onerror = () => {
-        console.error('Failed to load interact.js script');
-        toast.error("Failed to load editor components");
-      };
-      
-      document.body.appendChild(script);
-    } else if (window.interact) {
-      console.log('interact.js already available');
-      setInteractJsLoaded(true);
+    // Load interact.js directly as a script
+    if (typeof window !== 'undefined') {
+      // Check if interact.js is already loaded
+      if (window.interact) {
+        console.log('interact.js already available');
+        setInteractJsLoaded(true);
+        toast.success("Journal editor ready");
+      } else {
+        console.log('Loading interact.js script');
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/interactjs@1.10.17/dist/interact.min.js';
+        script.async = true;
+        script.onload = () => {
+          if (window.interact) {
+            console.log('interact.js loaded successfully');
+            setInteractJsLoaded(true);
+            toast.success("Journal editor ready");
+          } else {
+            console.error('interact is not available after script load');
+            toast.error("Failed to initialize the editor");
+          }
+        };
+        script.onerror = () => {
+          console.error('Failed to load interact.js script');
+          toast.error("Failed to load editor components");
+        };
+        
+        document.body.appendChild(script);
+      }
     }
 
     return () => {
