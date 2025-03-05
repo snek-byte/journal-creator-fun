@@ -10,8 +10,8 @@ import { Card } from "@/components/ui/card";
 
 export default function MemeGenerator() {
   // Meme text states
-  const [topText, setTopText] = useState('TOP TEXT');
-  const [bottomText, setBottomText] = useState('BOTTOM TEXT');
+  const [topText, setTopText] = useState('');
+  const [bottomText, setBottomText] = useState('');
   
   // Meme style states
   const [font, setFont] = useState('Impact');
@@ -101,6 +101,8 @@ export default function MemeGenerator() {
                     setFontSize={setFontSize}
                     fontColor={fontColor}
                     setFontColor={setFontColor}
+                    strokeColor={strokeColor}
+                    setStrokeColor={setStrokeColor}
                     fontWeight={fontWeight}
                     setFontWeight={setFontWeight}
                     textStyle={textStyle}
