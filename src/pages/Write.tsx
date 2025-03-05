@@ -29,14 +29,14 @@ export default function Write() {
       }
     );
 
-    // Load interact.js with a simpler method to ensure it works
-    if (!window.interact) {
+    // Direct script injection for interact.js
+    if (typeof window !== 'undefined' && !window.interact) {
       const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/interactjs@1.10.17/dist/interact.min.js';
+      script.src = 'https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js';
       script.async = true;
       script.onload = () => {
-        console.log('interact.js loaded successfully');
         if (window.interact) {
+          console.log('interact.js loaded successfully via direct script injection');
           setInteractJsLoaded(true);
           toast.success("Journal editor ready");
         } else {
@@ -50,7 +50,7 @@ export default function Write() {
       };
       
       document.body.appendChild(script);
-    } else {
+    } else if (window.interact) {
       console.log('interact.js already available');
       setInteractJsLoaded(true);
     }
