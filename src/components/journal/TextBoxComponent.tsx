@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Rnd } from 'react-rnd';
@@ -35,7 +36,7 @@ export function TextBoxComponent({
   const [size, setSize] = useState({ width, height });
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
   const [isPrinting, setIsPrinting] = useState(false);
-  const [localPosition, setLocalPosition] = useState({ x: position ? (position.x / 100) * 500 : 0, y: position ? (position.y / 100) * 300 : 0 });
+  const [localPosition, setLocalPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   
   // Refs
@@ -68,12 +69,6 @@ export function TextBoxComponent({
           height: containerRef.current.offsetHeight
         };
         setContainerDimensions(newDimensions);
-        
-        if (!initializedRef.current) {
-          // Only set initial position once when dimensions are available
-          updateLocalPosition(newDimensions);
-          initializedRef.current = true;
-        }
       }
     };
     
@@ -89,31 +84,25 @@ export function TextBoxComponent({
     };
   }, [containerRef]);
   
-  // Sync with prop changes
+  // Initialize and update position based on percentage values
+  useEffect(() => {
+    if (containerDimensions.width && containerDimensions.height && position) {
+      const pixelX = (position.x / 100) * containerDimensions.width;
+      const pixelY = (position.y / 100) * containerDimensions.height;
+      setLocalPosition({ x: pixelX, y: pixelY });
+      initializedRef.current = true;
+    }
+  }, [position, containerDimensions]);
+  
+  // Sync with prop changes for text
   useEffect(() => {
     setEditValue(text || '');
   }, [text]);
   
+  // Sync with prop changes for size
   useEffect(() => {
     setSize({ width, height });
   }, [width, height]);
-  
-  // Update local position when position prop changes or container dimensions change
-  const updateLocalPosition = (dimensions = containerDimensions) => {
-    if (!dimensions.width || !dimensions.height) return;
-    
-    const x = (position.x / 100) * dimensions.width;
-    const y = (position.y / 100) * dimensions.height;
-    
-    setLocalPosition({ x, y });
-  };
-  
-  // Update position when container dimensions change (but not during drag)
-  useEffect(() => {
-    if (!isDragging && initializedRef.current) {
-      updateLocalPosition();
-    }
-  }, [containerDimensions, position.x, position.y]);
   
   // Activate edit mode when the component becomes selected
   useEffect(() => {
@@ -251,16 +240,20 @@ export function TextBoxComponent({
   };
   
   const handleDragStop = (e: any, d: any) => {
+    console.log(`Drag stop at position: x=${d.x}, y=${d.y}`);
+    
     // First update the local position for immediate UI feedback
     setLocalPosition({ x: d.x, y: d.y });
     
-    // Convert pixel position to percentage
+    // Get the container dimensions
     const containerWidth = containerDimensions.width || 1;
     const containerHeight = containerDimensions.height || 1;
     
-    // Calculate percentage position with bounds
-    const xPercent = Math.min(95, Math.max(5, (d.x / containerWidth) * 100));
-    const yPercent = Math.min(95, Math.max(5, (d.y / containerHeight) * 100));
+    // Calculate percentage position based on container dimensions
+    const xPercent = Math.max(0, Math.min(100, (d.x / containerWidth) * 100));
+    const yPercent = Math.max(0, Math.min(100, (d.y / containerHeight) * 100));
+    
+    console.log(`Converting to percentage: x=${xPercent}%, y=${yPercent}%`);
     
     // Update the text box position through parent component
     onUpdate(id, { position: { x: xPercent, y: yPercent } });
@@ -268,7 +261,7 @@ export function TextBoxComponent({
     // End dragging state after a short delay
     setTimeout(() => {
       setIsDragging(false);
-    }, 0);
+    }, 50);
   };
   
   const handleStopResize = (e: any, direction: any, ref: HTMLDivElement, delta: any) => {
@@ -367,7 +360,7 @@ export function TextBoxComponent({
               className="w-full h-full whitespace-pre-wrap overflow-hidden flex items-center justify-center"
             >
               <div style={getTextStyles()}>
-                {displayText}
+                {displayText || 'Click to edit'}
               </div>
             </div>
           )}
