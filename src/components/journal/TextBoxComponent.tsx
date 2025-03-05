@@ -129,7 +129,7 @@ export function TextBoxComponent({
     }
   };
   
-  const handleSelect = (e: React.MouseEvent | React.TouchEvent) => {
+  const handleSelectClick = (e: React.MouseEvent<Element, MouseEvent> | React.TouchEvent<Element>) => {
     e.stopPropagation();
     if (!selected) {
       onSelect(id);
@@ -149,7 +149,7 @@ export function TextBoxComponent({
   };
   
   const handleDragStartInternal = () => {
-    handleDragStart(handleSelect as any);
+    handleDragStart(() => onSelect(id));
   };
   
   const handleDragStopInternal = (e: any, d: any) => {
@@ -186,8 +186,6 @@ export function TextBoxComponent({
         bounds="parent"
         enableResizing={selected && !isEditing && !isPrinting && !isDrawingMode}
         disableDragging={isEditing || isPrinting || isDrawingMode}
-        onMouseDown={handleSelect}
-        onTouchStart={handleSelect}
         dragHandleClassName="drag-handle"
       >
         <div 
@@ -196,6 +194,8 @@ export function TextBoxComponent({
             selected && !isPrinting && !isDrawingMode ? "ring-2 ring-primary ring-inset" : "ring-0 ring-transparent",
             !selected && !isPrinting && !isDrawingMode ? "hover:ring-1 hover:ring-gray-300" : ""
           )}
+          onClick={handleSelectClick}
+          onTouchStart={handleSelectClick}
         >
           {/* Controls */}
           {showControls && (
