@@ -54,7 +54,12 @@ export function TextBoxContent({
   // Merge with any additional style props
   const mergedStyles = {
     ...contentStyles,
-    ...style
+    ...style,
+    // Ensure these styles for proper interaction
+    pointerEvents: isEditing ? 'auto' : 'none',
+    userSelect: isEditing ? 'text' : 'none',
+    width: '100%',
+    height: '100%'
   };
 
   if (isEditing) {
@@ -66,7 +71,7 @@ export function TextBoxContent({
         onKeyDown={onKeyDown}
         onBlur={onBlur}
         style={mergedStyles}
-        className="text-box-content-edit"
+        className="text-box-content-edit w-full h-full resize-none focus:outline-none"
         placeholder="Enter text here..."
       />
     );
@@ -75,7 +80,7 @@ export function TextBoxContent({
   return (
     <div
       style={mergedStyles}
-      className="text-box-content-view"
+      className="text-box-content-view w-full h-full overflow-hidden"
       title={isPrinting ? undefined : "Double-click to edit"}
     >
       {text || 'Empty text box'}
