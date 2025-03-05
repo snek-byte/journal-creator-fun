@@ -1,4 +1,3 @@
-
 import { useJournalEditor } from '@/hooks/useJournalEditor';
 import { JournalEditorSidebar } from './journal/JournalEditorSidebar';
 import { JournalPreview } from './journal/JournalPreview';
@@ -145,7 +144,6 @@ export function JournalEditor() {
     
     handleTextBoxAdd(newTextBox);
     handleTextBoxSelect(newTextBox.id);
-    toast.success("New text box added");
   };
 
   // Resize sticker handler

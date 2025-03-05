@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Rnd } from 'react-rnd';
@@ -166,10 +167,7 @@ export function TextBoxComponent({
     setIsEditing(false);
     onUpdate(id, { text: editValue });
     
-    toast({
-      title: "Text saved",
-      description: "Your text has been updated."
-    });
+    // Removed toast notification
   };
   
   const handleBlur = () => {
@@ -276,7 +274,7 @@ export function TextBoxComponent({
         bounds="parent"
         enableResizing={selected && !isEditing && !isPrinting && !isDrawingMode}
         disableDragging={isEditing || isPrinting || isDrawingMode}
-        onMouseDown={handleClick}
+        onClick={handleClick}
         onTouchStart={handleClick}
       >
         <div 
