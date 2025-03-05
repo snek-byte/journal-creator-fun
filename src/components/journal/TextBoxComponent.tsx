@@ -42,7 +42,7 @@ export function TextBoxComponent({
   const rndRef = useRef<Rnd>(null);
   
   // Custom hooks
-  const { localPosition } = useTextBoxPosition(position, containerRef);
+  const { localPosition, containerDimensions } = useTextBoxPosition(position, containerRef);
   
   // Print detection
   useEffect(() => {
@@ -143,10 +143,12 @@ export function TextBoxComponent({
   
   // Handle drag operations
   const handleDragStart = () => {
+    console.log(`Text box ${id} drag started`);
     onSelect(id); // Select this text box when dragging starts
   };
   
   const handleDragStop = (_e: any, data: any) => {
+    console.log(`Text box ${id} drag stopped at x: ${data.x}, y: ${data.y}`);
     if (!containerRef.current) return;
     
     const containerWidth = containerRef.current.offsetWidth || 1;
@@ -156,11 +158,12 @@ export function TextBoxComponent({
     const xPercent = Math.max(0, Math.min(100, (data.x / containerWidth) * 100));
     const yPercent = Math.max(0, Math.min(100, (data.y / containerHeight) * 100));
     
+    console.log(`Updating position to ${xPercent}%, ${yPercent}%`);
     onUpdate(id, { position: { x: xPercent, y: yPercent } });
   };
   
   // Handle resize operations
-  const handleStopResize = (_e: any, _direction: any, ref: HTMLDivElement, delta: any) => {
+  const handleResizeStop = (_e: any, _direction: any, ref: HTMLElement, delta: any) => {
     const newWidth = width + delta.width;
     const newHeight = height + delta.height;
     
@@ -182,21 +185,20 @@ export function TextBoxComponent({
           zIndex: selected ? zIndex + 10 : zIndex,
           pointerEvents: isDrawingMode ? 'none' : 'auto',
           opacity: isPrinting && !text ? 0 : 1,
-          cursor: 'move',
+          cursor: isEditing ? 'text' : 'move',
         }}
         size={{ width: size.width, height: size.height }}
         position={{ x: localPosition.x, y: localPosition.y }}
         onDragStart={handleDragStart}
         onDragStop={handleDragStop}
-        onResizeStop={handleStopResize}
+        onResizeStop={handleResizeStop}
         bounds="parent"
         enableResizing={selected && !isEditing && !isPrinting && !isDrawingMode}
         disableDragging={isEditing || isPrinting || isDrawingMode}
-        dragHandleClassName={isEditing ? "non-existent-class" : "text-box-border"}
       >
         <div 
           className={cn(
-            "relative h-full w-full text-box-border",
+            "relative h-full w-full",
             selected && !isPrinting && !isDrawingMode ? "ring-2 ring-primary ring-inset" : "ring-0 ring-transparent",
             !selected && !isPrinting && !isDrawingMode ? "hover:ring-1 hover:ring-gray-300" : ""
           )}
