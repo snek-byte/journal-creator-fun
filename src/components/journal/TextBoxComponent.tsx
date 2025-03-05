@@ -142,7 +142,7 @@ export function TextBoxComponent({
   };
   
   // Handle drag operations
-  const handleDragStart = (_e: any, _d: any) => {
+  const handleDragStart = () => {
     onSelect(id); // Select this text box when dragging starts
   };
   
@@ -182,6 +182,7 @@ export function TextBoxComponent({
           zIndex: selected ? zIndex + 10 : zIndex,
           pointerEvents: isDrawingMode ? 'none' : 'auto',
           opacity: isPrinting && !text ? 0 : 1,
+          cursor: 'move',
         }}
         size={{ width: size.width, height: size.height }}
         position={{ x: localPosition.x, y: localPosition.y }}
@@ -191,6 +192,7 @@ export function TextBoxComponent({
         bounds="parent"
         enableResizing={selected && !isEditing && !isPrinting && !isDrawingMode}
         disableDragging={isEditing || isPrinting || isDrawingMode}
+        dragHandleClassName={isEditing ? "non-existent-class" : "text-box-border"}
       >
         <div 
           className={cn(
