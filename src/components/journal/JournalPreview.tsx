@@ -232,6 +232,12 @@ export function JournalPreview({
     onIconSelect('');
   };
 
+  const handleTextBoxRemove = (id: string) => {
+    console.log("Removing text box:", id);
+    onTextBoxRemove(id);
+    setSelectedTextBoxId(null);
+  };
+
   const handlePageClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
     
@@ -650,7 +656,7 @@ export function JournalPreview({
                   containerRef={previewRef}
                   onSelect={handleTextBoxSelect}
                   onUpdate={onTextBoxUpdate}
-                  onRemove={onTextBoxRemove}
+                  onRemove={handleTextBoxRemove}
                   isDrawingMode={isDrawingMode}
                   style={{ 
                     filter: !backgroundImage ? getCssFilter() : undefined,

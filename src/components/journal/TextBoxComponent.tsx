@@ -102,7 +102,6 @@ export function TextBoxComponent({
   };
   
   const handleSaveText = () => {
-    console.log(`TextBox ${id}: Saving text:`, editValue);
     setIsEditing(false);
     onUpdate(id, { text: editValue });
   };
@@ -130,7 +129,8 @@ export function TextBoxComponent({
     }
   };
   
-  const handleSelect = () => {
+  const handleSelect = (e: React.MouseEvent | React.TouchEvent) => {
+    e.stopPropagation();
     if (!selected) {
       onSelect(id);
     }
@@ -149,7 +149,7 @@ export function TextBoxComponent({
   };
   
   const handleDragStartInternal = () => {
-    handleDragStart(handleSelect);
+    handleDragStart(handleSelect as any);
   };
   
   const handleDragStopInternal = (e: any, d: any) => {
@@ -188,7 +188,7 @@ export function TextBoxComponent({
         disableDragging={isEditing || isPrinting || isDrawingMode}
         onMouseDown={handleSelect}
         onTouchStart={handleSelect}
-        className="drag-handle"
+        dragHandleClassName="drag-handle"
       >
         <div 
           className={cn(
