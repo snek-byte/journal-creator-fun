@@ -36,13 +36,177 @@ export function TextBoxComponent({
   const [editValue, setEditValue] = useState(text || '');
   const [size, setSize] = useState({ width, height });
   const [isPrinting, setIsPrinting] = useState(false);
+  const [localPosition, setLocalPosition] = useState({ x: 0, y: 0 });
   
   // Refs
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  const rndRef = useRef<Rnd>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const interactInstance = useRef<any>(null);
   
-  // Custom hooks
-  const { localPosition, containerDimensions } = useTextBoxPosition(position, containerRef);
+  // Convert percentage position to pixels on mount and when container or position changes
+  useEffect(() => {
+    if (!containerRef.current) return;
+    
+    const containerWidth = containerRef.current.offsetWidth;
+    const containerHeight = containerRef.current.offsetHeight;
+    
+    const pixelX = (position.x / 100) * containerWidth;
+    const pixelY = (position.y / 100) * containerHeight;
+    
+    setLocalPosition({ x: pixelX, y: pixelY });
+  }, [position, containerRef]);
+  
+  // Initialize interact.js
+  useEffect(() => {
+    // Add interact.js CDN script if it doesn't exist
+    if (!document.getElementById('interactjs-script')) {
+      const script = document.createElement('script');
+      script.id = 'interactjs-script';
+      script.src = 'https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js';
+      script.async = true;
+      document.body.appendChild(script);
+      
+      script.onload = () => {
+        initializeInteract();
+      };
+      
+      return () => {
+        if (document.getElementById('interactjs-script')) {
+          document.getElementById('interactjs-script')?.remove();
+        }
+      };
+    } else {
+      // If the script is already loaded, initialize interact
+      if (window.interact) {
+        initializeInteract();
+      }
+    }
+  }, []);
+  
+  const initializeInteract = () => {
+    if (!boxRef.current || !window.interact) return;
+    
+    if (interactInstance.current) {
+      interactInstance.current.unset();
+    }
+    
+    interactInstance.current = window.interact(boxRef.current)
+      .draggable({
+        inertia: true,
+        modifiers: [
+          window.interact.modifiers.restrictRect({
+            restriction: 'parent',
+            endOnly: true
+          })
+        ],
+        listeners: {
+          start: (event) => {
+            console.log('Dragging started with interact.js');
+            if (isDrawingMode || isEditing || isPrinting) return;
+            onSelect(id);
+          },
+          move: (event) => {
+            if (isDrawingMode || isEditing || isPrinting) return;
+            
+            const target = event.target;
+            const x = (parseFloat(target.getAttribute('data-x')) || localPosition.x) + event.dx;
+            const y = (parseFloat(target.getAttribute('data-y')) || localPosition.y) + event.dy;
+            
+            // Update the element's position
+            target.style.transform = `translate(${x}px, ${y}px)`;
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
+            
+            setLocalPosition({ x, y });
+          },
+          end: (event) => {
+            if (isDrawingMode || isEditing || isPrinting) return;
+            
+            console.log('Dragging ended with interact.js');
+            const target = event.target;
+            const x = parseFloat(target.getAttribute('data-x')) || localPosition.x;
+            const y = parseFloat(target.getAttribute('data-y')) || localPosition.y;
+            
+            // Convert back to percentage
+            if (containerRef.current) {
+              const containerWidth = containerRef.current.offsetWidth;
+              const containerHeight = containerRef.current.offsetHeight;
+              
+              const xPercent = Math.max(0, Math.min(100, (x / containerWidth) * 100));
+              const yPercent = Math.max(0, Math.min(100, (y / containerHeight) * 100));
+              
+              console.log(`interact.js: Updating position to ${xPercent}%, ${yPercent}%`);
+              onUpdate(id, { position: { x: xPercent, y: yPercent } });
+            }
+          }
+        }
+      })
+      .resizable({
+        edges: { left: true, right: true, bottom: true, top: true },
+        restrictEdges: {
+          outer: 'parent',
+          endOnly: true,
+        },
+        inertia: true,
+        listeners: {
+          move: (event) => {
+            if (isDrawingMode || isEditing || isPrinting || !selected) return;
+            
+            const target = event.target;
+            let x = (parseFloat(target.getAttribute('data-x')) || localPosition.x);
+            let y = (parseFloat(target.getAttribute('data-y')) || localPosition.y);
+            
+            // Update the element's width and height
+            const newWidth = event.rect.width;
+            const newHeight = event.rect.height;
+            
+            target.style.width = `${newWidth}px`;
+            target.style.height = `${newHeight}px`;
+            
+            // Update the element's position if it was resized from top or left edges
+            x += event.deltaRect.left;
+            y += event.deltaRect.top;
+            
+            target.style.transform = `translate(${x}px, ${y}px)`;
+            
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
+            
+            setLocalPosition({ x, y });
+            setSize({ width: newWidth, height: newHeight });
+          },
+          end: (event) => {
+            if (isDrawingMode || isEditing || isPrinting || !selected) return;
+            
+            // Update the text box with the new size
+            onUpdate(id, { width: size.width, height: size.height });
+            
+            // Also update position as it might have changed during resize
+            if (containerRef.current) {
+              const containerWidth = containerRef.current.offsetWidth;
+              const containerHeight = containerRef.current.offsetHeight;
+              
+              const x = parseFloat(event.target.getAttribute('data-x')) || localPosition.x;
+              const y = parseFloat(event.target.getAttribute('data-y')) || localPosition.y;
+              
+              const xPercent = Math.max(0, Math.min(100, (x / containerWidth) * 100));
+              const yPercent = Math.max(0, Math.min(100, (y / containerHeight) * 100));
+              
+              onUpdate(id, { position: { x: xPercent, y: yPercent } });
+            }
+          }
+        }
+      });
+  };
+  
+  // Cleanup interact instance on unmount
+  useEffect(() => {
+    return () => {
+      if (interactInstance.current) {
+        interactInstance.current.unset();
+      }
+    };
+  }, []);
   
   // Print detection
   useEffect(() => {
@@ -90,6 +254,20 @@ export function TextBoxComponent({
       return () => clearTimeout(timer);
     }
   }, [isEditing]);
+  
+  // Update interactJS when selection, editing, or drawing mode changes
+  useEffect(() => {
+    // If we have interact.js loaded, update the dragging state
+    if (window.interact && interactInstance.current) {
+      if (isDrawingMode || isEditing || isPrinting) {
+        interactInstance.current.draggable(false);
+        interactInstance.current.resizable(false);
+      } else {
+        interactInstance.current.draggable(true);
+        interactInstance.current.resizable(selected);
+      }
+    }
+  }, [isDrawingMode, isEditing, isPrinting, selected]);
   
   // Event handlers
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -141,60 +319,33 @@ export function TextBoxComponent({
     onRemove(id);
   };
   
-  // Handle drag operations
-  const handleDragStart = () => {
-    console.log(`Text box ${id} drag started`);
-    onSelect(id); // Select this text box when dragging starts
-  };
-  
-  const handleDragStop = (_e: any, data: any) => {
-    console.log(`Text box ${id} drag stopped at x: ${data.x}, y: ${data.y}`);
-    if (!containerRef.current) return;
-    
-    const containerWidth = containerRef.current.offsetWidth || 1;
-    const containerHeight = containerRef.current.offsetHeight || 1;
-    
-    // Convert to percentage position
-    const xPercent = Math.max(0, Math.min(100, (data.x / containerWidth) * 100));
-    const yPercent = Math.max(0, Math.min(100, (data.y / containerHeight) * 100));
-    
-    console.log(`Updating position to ${xPercent}%, ${yPercent}%`);
-    onUpdate(id, { position: { x: xPercent, y: yPercent } });
-  };
-  
-  // Handle resize operations
-  const handleResizeStop = (_e: any, _direction: any, ref: HTMLElement, delta: any) => {
-    const newWidth = width + delta.width;
-    const newHeight = height + delta.height;
-    
-    setSize({ width: newWidth, height: newHeight });
-    onUpdate(id, { width: newWidth, height: newHeight });
-  };
-  
   // Controls visibility
   const showControls = selected && !isEditing && !isPrinting && !isDrawingMode;
+  
+  // Style with position and rotation
+  const boxStyle: React.CSSProperties = {
+    ...style,
+    width: `${size.width}px`,
+    height: `${size.height}px`,
+    transform: `translate(${localPosition.x}px, ${localPosition.y}px) rotate(${rotation || 0}deg)`,
+    zIndex: selected ? zIndex + 10 : zIndex,
+    pointerEvents: isDrawingMode ? 'none' : 'auto',
+    opacity: isPrinting && !text ? 0 : 1,
+    cursor: isEditing ? 'text' : 'move',
+    position: 'absolute',
+    touchAction: 'none',
+  };
   
   return (
     <>
       <style>{getPrintStyles()}</style>
-      <Rnd
-        ref={rndRef}
+      <div
+        ref={boxRef}
         className="text-box-component"
-        style={{
-          ...style,
-          zIndex: selected ? zIndex + 10 : zIndex,
-          pointerEvents: isDrawingMode ? 'none' : 'auto',
-          opacity: isPrinting && !text ? 0 : 1,
-          cursor: isEditing ? 'text' : 'move',
-        }}
-        size={{ width: size.width, height: size.height }}
-        position={{ x: localPosition.x, y: localPosition.y }}
-        onDragStart={handleDragStart}
-        onDragStop={handleDragStop}
-        onResizeStop={handleResizeStop}
-        bounds="parent"
-        enableResizing={selected && !isEditing && !isPrinting && !isDrawingMode}
-        disableDragging={isEditing || isPrinting || isDrawingMode}
+        style={boxStyle}
+        onClick={handleSelectClick}
+        data-x={localPosition.x}
+        data-y={localPosition.y}
       >
         <div 
           className={cn(
@@ -202,7 +353,6 @@ export function TextBoxComponent({
             selected && !isPrinting && !isDrawingMode ? "ring-2 ring-primary ring-inset" : "ring-0 ring-transparent",
             !selected && !isPrinting && !isDrawingMode ? "hover:ring-1 hover:ring-gray-300" : ""
           )}
-          onClick={handleSelectClick}
         >
           {/* Controls */}
           {showControls && (
@@ -228,7 +378,14 @@ export function TextBoxComponent({
             isPrinting={isPrinting}
           />
         </div>
-      </Rnd>
+      </div>
     </>
   );
+}
+
+// Add this to make TypeScript recognize interact from the CDN
+declare global {
+  interface Window {
+    interact: any;
+  }
 }
