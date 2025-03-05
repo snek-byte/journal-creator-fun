@@ -236,6 +236,7 @@ export function JournalPreview({
     console.log("Removing text box:", id);
     onTextBoxRemove(id);
     setSelectedTextBoxId(null);
+    onTextBoxSelect(null);
   };
 
   const handlePageClick = (e: React.MouseEvent) => {

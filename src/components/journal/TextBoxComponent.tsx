@@ -39,15 +39,10 @@ export function TextBoxComponent({
   
   // Refs
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  const initializedRef = useRef(false);
+  const rndRef = useRef<Rnd>(null);
   
   // Custom hooks
-  const { 
-    localPosition, 
-    isDragging, 
-    handleDragStart, 
-    handleDragStop 
-  } = useTextBoxPosition(position, containerRef);
+  const { localPosition } = useTextBoxPosition(position, containerRef);
   
   // Print detection
   useEffect(() => {
@@ -146,26 +141,25 @@ export function TextBoxComponent({
     onRemove(id);
   };
   
-  // Simplify drag handlers
-  const handleDragStartInternal = (_e: any, _d: any) => {
+  // Handle drag operations
+  const handleDragStart = (_e: any, _d: any) => {
     onSelect(id); // Select this text box when dragging starts
   };
   
-  const handleDragStopInternal = (_e: any, d: any) => {
-    // Get the container dimensions
+  const handleDragStop = (_e: any, data: any) => {
     if (!containerRef.current) return;
     
     const containerWidth = containerRef.current.offsetWidth || 1;
     const containerHeight = containerRef.current.offsetHeight || 1;
     
-    // Calculate percentage position based on container dimensions
-    const xPercent = Math.max(0, Math.min(100, (d.x / containerWidth) * 100));
-    const yPercent = Math.max(0, Math.min(100, (d.y / containerHeight) * 100));
+    // Convert to percentage position
+    const xPercent = Math.max(0, Math.min(100, (data.x / containerWidth) * 100));
+    const yPercent = Math.max(0, Math.min(100, (data.y / containerHeight) * 100));
     
-    // Update the text box position directly
     onUpdate(id, { position: { x: xPercent, y: yPercent } });
   };
   
+  // Handle resize operations
   const handleStopResize = (_e: any, _direction: any, ref: HTMLDivElement, delta: any) => {
     const newWidth = width + delta.width;
     const newHeight = height + delta.height;
@@ -181,6 +175,7 @@ export function TextBoxComponent({
     <>
       <style>{getPrintStyles()}</style>
       <Rnd
+        ref={rndRef}
         className="text-box-component"
         style={{
           ...style,
@@ -190,8 +185,8 @@ export function TextBoxComponent({
         }}
         size={{ width: size.width, height: size.height }}
         position={{ x: localPosition.x, y: localPosition.y }}
-        onDragStart={handleDragStartInternal}
-        onDragStop={handleDragStopInternal}
+        onDragStart={handleDragStart}
+        onDragStop={handleDragStop}
         onResizeStop={handleStopResize}
         bounds="parent"
         enableResizing={selected && !isEditing && !isPrinting && !isDrawingMode}
