@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { TextStyle } from '@/utils/unicodeTextStyles';
 
@@ -122,21 +123,18 @@ export const pixelsToPercent = (
 // Function to initialize Bootstrap in the app
 export const initializeBootstrap = () => {
   if (typeof window !== 'undefined') {
-    // Load Bootstrap JS if not already loaded
-    if (!window.jQuery) {
-      console.log('Loading jQuery for Bootstrap draggable');
-      const script = document.createElement('script');
-      script.src = 'https://code.jquery.com/ui/1.13.2/jquery-ui.min.js';
-      script.async = true;
-      document.body.appendChild(script);
-      
-      // Load Bootstrap styles if not already loaded
-      if (!document.querySelector('link[href*="bootstrap"]')) {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css';
-        document.head.appendChild(link);
-      }
+    // Optionally load UI resources if needed for draggable functionality
+    const script = document.createElement('script');
+    script.src = 'https://code.jquery.com/ui/1.13.2/jquery-ui.min.js';
+    script.async = true;
+    document.body.appendChild(script);
+    
+    // Load Bootstrap styles if not already loaded
+    if (!document.querySelector('link[href*="bootstrap"]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css';
+      document.head.appendChild(link);
     }
   }
 };
