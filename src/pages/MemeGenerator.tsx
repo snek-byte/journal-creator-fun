@@ -1,165 +1,74 @@
 
-import React, { useState, useRef, useEffect } from "react";
-import { Meme, MemeTemplate } from "@/types/meme";
-import { MemeCanvas } from "@/components/meme/MemeCanvas";
-import { MemeControls } from "@/components/meme/MemeControls";
-import { TemplateSelector } from "@/components/meme/TemplateSelector";
-import { v4 as uuidv4 } from "uuid";
-import { toast } from "sonner";
-import html2canvas from "html2canvas";
-
-// Default templates with direct image URLs that allow CORS
-const defaultTemplates: MemeTemplate[] = [
-  {
-    id: "1",
-    name: "Drake",
-    url: "https://i.imgflip.com/30b1gx.jpg", // Using imgflip direct image URL
-    width: 1200,
-    height: 1200,
-  },
-  {
-    id: "2",
-    name: "Distracted Boyfriend",
-    url: "https://i.imgflip.com/1ur9b0.jpg",
-    width: 1200,
-    height: 800,
-  },
-  {
-    id: "3",
-    name: "Two Buttons",
-    url: "https://i.imgflip.com/1g8my4.jpg",
-    width: 600,
-    height: 908,
-  },
-  {
-    id: "4",
-    name: "Change My Mind",
-    url: "https://i.imgflip.com/24y43o.jpg",
-    width: 482,
-    height: 361,
-  },
-  {
-    id: "5",
-    name: "Expanding Brain",
-    url: "https://i.imgflip.com/1jwhww.jpg",
-    width: 857,
-    height: 1202,
-  },
-  {
-    id: "6",
-    name: "Sad Pablo Escobar",
-    url: "https://i.imgflip.com/1c1uej.jpg",
-    width: 720,
-    height: 709,
-  },
-];
-
-// Default meme state
-const getDefaultMeme = (): Meme => ({
-  id: uuidv4(),
-  template: defaultTemplates[0].url,
-  topText: "TOP TEXT",
-  bottomText: "BOTTOM TEXT",
-  fontSize: 36,
-  fontColor: "#ffffff",
-  fontFamily: "Impact",
-  strokeColor: "#000000",
-  strokeWidth: 2,
-});
+import { useState, useRef } from 'react';
+import { MemeCanvas, downloadMeme } from '@/components/meme/MemeCanvas';
+import { MemeControls } from '@/components/meme/MemeControls';
+import { TemplateSelector } from '@/components/meme/TemplateSelector';
 
 export default function MemeGenerator() {
-  const [meme, setMeme] = useState<Meme>(getDefaultMeme());
-  const canvasContainerRef = useRef<HTMLDivElement>(null);
-  const [canvasSize, setCanvasSize] = useState({ width: 480, height: 480 });
+  // Meme text states
+  const [topText, setTopText] = useState('TOP TEXT');
+  const [bottomText, setBottomText] = useState('BOTTOM TEXT');
   
-  // Update canvas size on window resize
-  useEffect(() => {
-    const updateSize = () => {
-      if (canvasContainerRef.current) {
-        const width = canvasContainerRef.current.clientWidth;
-        // Keep aspect ratio close to 1:1
-        setCanvasSize({ width, height: width });
-      }
-    };
-    
-    updateSize();
-    window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
-  }, []);
+  // Meme style states
+  const [font, setFont] = useState('Impact');
+  const [fontSize, setFontSize] = useState(40);
+  const [fontColor, setFontColor] = useState('#FFFFFF');
+  const [strokeColor, setStrokeColor] = useState('#000000');
+  const [selectedTemplate, setSelectedTemplate] = useState('https://imgflip.com/s/meme/Drake-Hotline-Bling.jpg');
+  const [fontWeight, setFontWeight] = useState('bold');
+  const [textStyle, setTextStyle] = useState('normal');
+  const [gradient, setGradient] = useState('');
   
-  const handleMemeChange = (updatedMeme: Meme) => {
-    setMeme(updatedMeme);
+  // Handle template selection
+  const handleTemplateSelect = (template: string) => {
+    console.log("Template selected:", template);
+    setSelectedTemplate(template);
   };
-  
-  const handleTemplateSelect = (templateUrl: string) => {
-    console.log("Template selected:", templateUrl);
-    setMeme(prevMeme => ({ ...prevMeme, template: templateUrl }));
-    toast.success("Template updated");
-  };
-  
-  const handleReset = () => {
-    setMeme(getDefaultMeme());
-    toast.info("Meme reset to default");
-  };
-  
-  const handleDownload = async () => {
-    if (!canvasContainerRef.current) return;
-    
-    try {
-      const canvas = await html2canvas(canvasContainerRef.current.querySelector('canvas') as HTMLElement);
-      const dataUrl = canvas.toDataURL("image/png");
-      
-      // Create a download link
-      const link = document.createElement("a");
-      link.download = `meme-${new Date().getTime()}.png`;
-      link.href = dataUrl;
-      link.click();
-      
-      toast.success("Meme downloaded successfully!");
-    } catch (error) {
-      console.error("Error downloading meme:", error);
-      toast.error("Failed to download meme");
-    }
-  };
-  
+
   return (
-    <div className="min-h-screen p-4 md:p-8 bg-gray-50">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Meme Generator</h1>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8 text-center">Meme Generator</h1>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-2 space-y-8">
+          <MemeCanvas 
+            template={selectedTemplate}
+            topText={topText}
+            bottomText={bottomText}
+            font={font}
+            fontSize={fontSize}
+            fontColor={fontColor}
+            strokeColor={strokeColor}
+            fontWeight={fontWeight}
+            textStyle={textStyle}
+            gradient={gradient}
+          />
+          
+          <TemplateSelector onSelect={handleTemplateSelect} />
+        </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left column - Template selector */}
-          <div className="lg:col-span-3">
-            <TemplateSelector 
-              templates={defaultTemplates}
-              selectedTemplate={meme.template}
-              onSelectTemplate={handleTemplateSelect}
-            />
-          </div>
-          
-          {/* Middle column - Meme canvas */}
-          <div className="lg:col-span-5">
-            <div
-              ref={canvasContainerRef}
-              className="rounded-lg overflow-hidden border border-gray-200 shadow-md bg-white"
-            >
-              <MemeCanvas
-                meme={meme}
-                width={canvasSize.width}
-                height={canvasSize.height}
-              />
-            </div>
-          </div>
-          
-          {/* Right column - Controls */}
-          <div className="lg:col-span-4">
-            <MemeControls
-              meme={meme}
-              onMemeChange={handleMemeChange}
-              onDownload={handleDownload}
-              onReset={handleReset}
-            />
-          </div>
+        <div>
+          <MemeControls 
+            topText={topText}
+            bottomText={bottomText}
+            setTopText={setTopText}
+            setBottomText={setBottomText}
+            font={font}
+            setFont={setFont}
+            fontSize={fontSize}
+            setFontSize={setFontSize}
+            fontColor={fontColor}
+            setFontColor={setFontColor}
+            strokeColor={strokeColor}
+            setStrokeColor={setStrokeColor}
+            onDownload={downloadMeme}
+            fontWeight={fontWeight}
+            setFontWeight={setFontWeight}
+            textStyle={textStyle}
+            setTextStyle={setTextStyle}
+            gradient={gradient}
+            setGradient={setGradient}
+          />
         </div>
       </div>
     </div>

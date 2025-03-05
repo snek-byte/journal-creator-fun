@@ -1,91 +1,159 @@
 
-import React, { useRef, useEffect } from "react";
-import { Meme } from "@/types/meme";
-import { toast } from "sonner";
+import { useRef, useEffect, useState } from 'react';
+import { Card } from '@/components/ui/card';
+import html2canvas from 'html2canvas';
 
 interface MemeCanvasProps {
-  meme: Meme;
-  width: number;
-  height: number;
+  template: string;
+  topText: string;
+  bottomText: string;
+  font: string;
+  fontSize: number;
+  fontColor: string;
+  strokeColor: string;
+  fontWeight: string;
+  textStyle: string;
+  gradient: string;
 }
 
-export function MemeCanvas({ meme, width, height }: MemeCanvasProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  
+export function MemeCanvas({
+  template,
+  topText,
+  bottomText,
+  font,
+  fontSize,
+  fontColor,
+  strokeColor,
+  fontWeight,
+  textStyle,
+  gradient
+}: MemeCanvasProps) {
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [imageHeight, setImageHeight] = useState(0);
+  const [imageWidth, setImageWidth] = useState(0);
+
+  // Text styling
+  const textStyle1 = {
+    fontFamily: font,
+    fontSize: `${fontSize}px`,
+    fontWeight: fontWeight as any,
+    color: fontColor,
+    textStroke: `2px ${strokeColor}`,
+    WebkitTextStroke: `2px ${strokeColor}`,
+    textAlign: 'center' as const,
+    textTransform: 'uppercase' as const,
+    wordBreak: 'break-word' as const,
+    padding: '0 10px',
+    fontStyle: textStyle?.includes('italic') ? 'italic' : 'normal',
+    textDecoration: textStyle?.includes('underline') ? 'underline' : 'none',
+    background: gradient || 'transparent',
+    WebkitBackgroundClip: gradient ? 'text' : 'border-box',
+    WebkitTextFillColor: gradient ? 'transparent' : fontColor,
+    backgroundClip: gradient ? 'text' : 'border-box'
+  };
+
+  // Handle image load and size
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    setImageLoaded(true);
+    setImageError(false);
+    setImageHeight(e.currentTarget.naturalHeight);
+    setImageWidth(e.currentTarget.naturalWidth);
+    console.log("Image loaded successfully");
+  };
+
+  // Handle image error
+  const handleImageError = () => {
+    console.error("Error loading meme template:", template);
+    setImageError(true);
+    setImageLoaded(false);
+  };
+
+  // Download function (exposed to parent via ref)
+  const downloadMeme = async () => {
+    if (!canvasRef.current || !imageLoaded) {
+      console.error("Canvas not ready or image not loaded");
+      return;
+    }
+
+    try {
+      const canvas = await html2canvas(canvasRef.current, {
+        allowTaint: true,
+        useCORS: true,
+        logging: false,
+        backgroundColor: null,
+      });
+
+      const link = document.createElement('a');
+      link.download = 'my-meme.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (error) {
+      console.error("Error generating meme:", error);
+    }
+  };
+
+  // Expose download function to parent
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Load and draw the template image
-    const img = new Image();
-    img.crossOrigin = "anonymous"; // Enable CORS
-    img.src = meme.template;
-    
-    img.onload = () => {
-      // Calculate aspect ratio and sizing
-      const aspectRatio = img.width / img.height;
-      let drawWidth = canvas.width;
-      let drawHeight = canvas.width / aspectRatio;
-      
-      if (drawHeight > canvas.height) {
-        drawHeight = canvas.height;
-        drawWidth = canvas.height * aspectRatio;
-      }
-      
-      // Center the image
-      const xOffset = (canvas.width - drawWidth) / 2;
-      const yOffset = (canvas.height - drawHeight) / 2;
-      
-      // Draw the image
-      ctx.drawImage(img, xOffset, yOffset, drawWidth, drawHeight);
-      
-      // Configure text style
-      ctx.textAlign = "center";
-      ctx.font = `bold ${meme.fontSize}px ${meme.fontFamily}`;
-      ctx.fillStyle = meme.fontColor;
-      ctx.strokeStyle = meme.strokeColor;
-      ctx.lineWidth = meme.strokeWidth;
-      
-      // Draw top text
-      if (meme.topText) {
-        ctx.fillText(meme.topText, canvas.width / 2, 40);
-        ctx.strokeText(meme.topText, canvas.width / 2, 40);
-      }
-      
-      // Draw bottom text
-      if (meme.bottomText) {
-        ctx.fillText(meme.bottomText, canvas.width / 2, canvas.height - 20);
-        ctx.strokeText(meme.bottomText, canvas.width / 2, canvas.height - 20);
-      }
+    // Make downloadMeme available on the window for the parent component
+    (window as any).downloadMeme = downloadMeme;
+    return () => {
+      delete (window as any).downloadMeme;
     };
-    
-    img.onerror = () => {
-      console.error("Failed to load template image:", meme.template);
-      // Draw a placeholder or error message
-      ctx.fillStyle = "#f0f0f0";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "#666";
-      ctx.textAlign = "center";
-      ctx.font = "16px sans-serif";
-      ctx.fillText("Could not load template", canvas.width / 2, canvas.height / 2);
-      
-      // Notify user
-      toast.error("Failed to load image template. Try another one.");
-    };
-  }, [meme, width, height]);
-  
+  }, [imageLoaded]);
+
   return (
-    <canvas 
-      ref={canvasRef} 
-      width={width} 
-      height={height}
-      className="w-full rounded-md border border-gray-300 shadow-sm"
-    />
+    <Card className="p-3 w-full flex justify-center bg-gray-100">
+      <div 
+        ref={canvasRef}
+        className="relative meme-canvas inline-block"
+        style={{ maxWidth: '100%' }}
+      >
+        {imageError ? (
+          <div className="flex items-center justify-center bg-gray-200 text-gray-700 h-[400px] w-[400px]">
+            <p>Failed to load template</p>
+          </div>
+        ) : (
+          <>
+            <img
+              src={template}
+              alt="Meme template"
+              className="max-w-full"
+              onLoad={handleImageLoad}
+              onError={handleImageError}
+              crossOrigin="anonymous"
+            />
+            
+            {imageLoaded && (
+              <>
+                <div
+                  className="absolute top-0 left-0 right-0 flex items-start justify-center"
+                  style={textStyle1}
+                >
+                  {topText}
+                </div>
+                
+                <div
+                  className="absolute bottom-0 left-0 right-0 flex items-end justify-center"
+                  style={textStyle1}
+                >
+                  {bottomText}
+                </div>
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </Card>
   );
+}
+
+// Make the download function accessible
+export function downloadMeme() {
+  if (typeof window !== 'undefined' && (window as any).downloadMeme) {
+    (window as any).downloadMeme();
+  } else {
+    console.error("Download function not available");
+  }
 }
