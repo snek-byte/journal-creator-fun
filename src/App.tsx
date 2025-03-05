@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import Write from "./pages/Write";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
+import MemeGenerator from "./pages/MemeGenerator";
 
 const App = () => {
   // Create the query client inside the component to ensure proper React context
@@ -31,6 +32,7 @@ const App = () => {
               <Route path="/write" element={<Write />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/meme" element={<MemeGenerator />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <ToastViewport />
@@ -40,6 +42,6 @@ const App = () => {
       </QueryClientProvider>
     </BrowserRouter>
   );
-};
+}
 
 export default App;
