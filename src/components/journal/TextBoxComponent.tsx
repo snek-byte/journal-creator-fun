@@ -40,6 +40,7 @@ export function TextBoxComponent({
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const interactInstance = useRef<any>(null);
+  const dragHandleRef = useRef<HTMLDivElement>(null); // New ref for drag handle
   
   // Convert percentage position to pixels on mount and when container or position changes
   useEffect(() => {
@@ -54,52 +55,20 @@ export function TextBoxComponent({
     setLocalPosition({ x: pixelX, y: pixelY });
   }, [position, containerRef]);
   
-  // Add interact.js script dynamically
-  useEffect(() => {
-    // Remove any existing interact.js script
-    const existingScript = document.getElementById('interactjs-script');
-    if (existingScript) {
-      existingScript.remove();
-    }
-    
-    // Add new script
-    const script = document.createElement('script');
-    script.id = 'interactjs-script';
-    script.src = 'https://cdn.jsdelivr.net/npm/interactjs@1.10.17/dist/interact.min.js';
-    script.async = true;
-    script.onload = () => {
-      console.log('Interact.js loaded successfully');
-      if (boxRef.current) {
-        initializeInteract();
-      }
-    };
-    script.onerror = () => {
-      console.error('Failed to load interact.js');
-    };
-    
-    document.body.appendChild(script);
-    
-    return () => {
-      if (document.getElementById('interactjs-script')) {
-        document.getElementById('interactjs-script')?.remove();
-      }
-    };
-  }, []);
-  
   // Initialize interact.js
   const initializeInteract = () => {
-    if (!boxRef.current || !window.interact) {
-      console.error('Cannot initialize interact: missing ref or interact not loaded');
+    if (!dragHandleRef.current || !window.interact) {
+      console.error('Cannot initialize interact: missing dragHandleRef or interact not loaded');
       return;
     }
     
-    console.log('Initializing interact.js for box', id);
+    console.log('Initializing interact.js for drag handle of box', id);
     
     if (interactInstance.current) {
       interactInstance.current.unset();
     }
     
-    interactInstance.current = window.interact(boxRef.current)
+    interactInstance.current = window.interact(dragHandleRef.current)
       .draggable({
         inertia: true,
         modifiers: [],
@@ -113,14 +82,16 @@ export function TextBoxComponent({
           move: (event) => {
             if (isDrawingMode || isEditing || isPrinting) return;
             
-            const target = event.target;
-            const x = (parseFloat(target.getAttribute('data-x')) || localPosition.x) + event.dx;
-            const y = (parseFloat(target.getAttribute('data-y')) || localPosition.y) + event.dy;
+            if (!boxRef.current) return;
+            
+            const target = boxRef.current;
+            const x = (parseFloat(target.getAttribute('data-x') || '0') || localPosition.x) + event.dx;
+            const y = (parseFloat(target.getAttribute('data-y') || '0') || localPosition.y) + event.dy;
             
             // Update the element's position
             target.style.transform = `translate(${x}px, ${y}px) rotate(${rotation || 0}deg)`;
-            target.setAttribute('data-x', x);
-            target.setAttribute('data-y', y);
+            target.setAttribute('data-x', x.toString());
+            target.setAttribute('data-y', y.toString());
             
             setLocalPosition({ x, y });
           },
@@ -128,9 +99,12 @@ export function TextBoxComponent({
             if (isDrawingMode || isEditing || isPrinting) return;
             
             console.log('Dragging ended', id);
-            const target = event.target;
-            const x = parseFloat(target.getAttribute('data-x')) || localPosition.x;
-            const y = parseFloat(target.getAttribute('data-y')) || localPosition.y;
+            
+            if (!boxRef.current) return;
+            
+            const target = boxRef.current;
+            const x = parseFloat(target.getAttribute('data-x') || '0') || localPosition.x;
+            const y = parseFloat(target.getAttribute('data-y') || '0') || localPosition.y;
             
             // Convert back to percentage
             if (containerRef.current) {
@@ -145,72 +119,71 @@ export function TextBoxComponent({
             }
           }
         }
-      })
-      .resizable({
-        edges: { left: true, right: true, bottom: true, top: true },
-        inertia: true,
-        listeners: {
-          move: (event) => {
-            if (isDrawingMode || isEditing || isPrinting || !selected) return;
-            
-            const target = event.target;
-            let x = (parseFloat(target.getAttribute('data-x')) || localPosition.x);
-            let y = (parseFloat(target.getAttribute('data-y')) || localPosition.y);
-            
-            // Update the element's width and height
-            const newWidth = event.rect.width;
-            const newHeight = event.rect.height;
-            
-            target.style.width = `${newWidth}px`;
-            target.style.height = `${newHeight}px`;
-            
-            // Update the element's position if it was resized from top or left edges
-            x += event.deltaRect.left;
-            y += event.deltaRect.top;
-            
-            target.style.transform = `translate(${x}px, ${y}px) rotate(${rotation || 0}deg)`;
-            
-            target.setAttribute('data-x', x);
-            target.setAttribute('data-y', y);
-            
-            setLocalPosition({ x, y });
-            setSize({ width: newWidth, height: newHeight });
-          },
-          end: (event) => {
-            if (isDrawingMode || isEditing || isPrinting || !selected) return;
-            
-            // Update the text box with the new size
-            onUpdate(id, { width: size.width, height: size.height });
-            
-            // Also update position as it might have changed during resize
-            if (containerRef.current) {
-              const containerWidth = containerRef.current.offsetWidth;
-              const containerHeight = containerRef.current.offsetHeight;
+      });
+    
+    // Only set up resize if selected
+    if (selected && boxRef.current) {
+      window.interact(boxRef.current)
+        .resizable({
+          edges: { left: true, right: true, bottom: true, top: true },
+          inertia: true,
+          listeners: {
+            move: (event) => {
+              if (isDrawingMode || isEditing || isPrinting || !selected) return;
               
-              const x = parseFloat(event.target.getAttribute('data-x')) || localPosition.x;
-              const y = parseFloat(event.target.getAttribute('data-y')) || localPosition.y;
+              const target = event.target;
+              let x = (parseFloat(target.getAttribute('data-x') || '0') || localPosition.x);
+              let y = (parseFloat(target.getAttribute('data-y') || '0') || localPosition.y);
               
-              const xPercent = Math.max(0, Math.min(100, (x / containerWidth) * 100));
-              const yPercent = Math.max(0, Math.min(100, (y / containerHeight) * 100));
+              // Update the element's width and height
+              const newWidth = event.rect.width;
+              const newHeight = event.rect.height;
               
-              onUpdate(id, { position: { x: xPercent, y: yPercent } });
+              target.style.width = `${newWidth}px`;
+              target.style.height = `${newHeight}px`;
+              
+              // Update the element's position if it was resized from top or left edges
+              x += event.deltaRect.left;
+              y += event.deltaRect.top;
+              
+              target.style.transform = `translate(${x}px, ${y}px) rotate(${rotation || 0}deg)`;
+              
+              target.setAttribute('data-x', x.toString());
+              target.setAttribute('data-y', y.toString());
+              
+              setLocalPosition({ x, y });
+              setSize({ width: newWidth, height: newHeight });
+            },
+            end: (event) => {
+              if (isDrawingMode || isEditing || isPrinting || !selected) return;
+              
+              // Update the text box with the new size
+              onUpdate(id, { width: size.width, height: size.height });
+              
+              // Also update position as it might have changed during resize
+              if (containerRef.current) {
+                const containerWidth = containerRef.current.offsetWidth;
+                const containerHeight = containerRef.current.offsetHeight;
+                
+                const x = parseFloat(event.target.getAttribute('data-x') || '0') || localPosition.x;
+                const y = parseFloat(event.target.getAttribute('data-y') || '0') || localPosition.y;
+                
+                const xPercent = Math.max(0, Math.min(100, (x / containerWidth) * 100));
+                const yPercent = Math.max(0, Math.min(100, (y / containerHeight) * 100));
+                
+                onUpdate(id, { position: { x: xPercent, y: yPercent } });
+              }
             }
           }
-        }
-      });
+        });
+    }
   };
   
   // Update interactJS when selection, editing, or drawing mode changes
   useEffect(() => {
     // If we have interact.js loaded, update the dragging state
-    if (window.interact && interactInstance.current) {
-      if (isDrawingMode || isEditing || isPrinting) {
-        interactInstance.current.draggable(false);
-        interactInstance.current.resizable(false);
-      } else {
-        interactInstance.current.draggable(true);
-        interactInstance.current.resizable(selected);
-      }
+    if (window.interact && dragHandleRef.current) {
+      initializeInteract();
     }
   }, [isDrawingMode, isEditing, isPrinting, selected]);
   
@@ -332,6 +305,20 @@ export function TextBoxComponent({
     touchAction: 'none',
   };
   
+  // Drag handle styles - make it cover the entire box but with higher z-index when not editing
+  const dragHandleStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: isEditing ? -1 : 1000, // Put behind content when editing, on top when not
+    cursor: 'move',
+    opacity: 0, // Invisible but still interactive
+    touchAction: 'none',
+    background: 'transparent', // Ensure it's invisible
+  };
+  
   return (
     <>
       <style>{getPrintStyles()}</style>
@@ -344,6 +331,16 @@ export function TextBoxComponent({
         data-y={localPosition.y}
         data-id={id}
       >
+        {/* Invisible drag handle layer */}
+        {!isEditing && !isPrinting && !isDrawingMode && (
+          <div 
+            ref={dragHandleRef}
+            style={dragHandleStyle}
+            className="drag-handle"
+            data-box-id={id}
+          />
+        )}
+        
         <div 
           className={cn(
             "relative h-full w-full",
