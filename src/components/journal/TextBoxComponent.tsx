@@ -1,11 +1,12 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Textarea } from "@/components/ui/textarea";
 import { Rnd } from 'react-rnd';
 import { TextBox } from '@/types/journal';
-import { applyTextStyle, TextStyle } from '@/utils/unicodeTextStyles';
-import { X, RotateCw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTextBoxPosition } from '@/hooks/useTextBoxPosition';
+import { TextBoxControls } from './TextBoxControls';
+import { TextBoxContent } from './TextBoxContent';
+import { getPrintStyles } from '@/utils/textBoxUtils';
 
 interface TextBoxComponentProps {
   textBox: TextBox;
@@ -34,15 +35,19 @@ export function TextBoxComponent({
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(text || '');
   const [size, setSize] = useState({ width, height });
-  const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
   const [isPrinting, setIsPrinting] = useState(false);
-  const [localPosition, setLocalPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
   
   // Refs
-  const boxRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const initializedRef = useRef(false);
+  
+  // Custom hooks
+  const { 
+    localPosition, 
+    isDragging, 
+    handleDragStart, 
+    handleDragStop 
+  } = useTextBoxPosition(position, containerRef);
   
   // Print detection
   useEffect(() => {
@@ -57,44 +62,6 @@ export function TextBoxComponent({
       window.removeEventListener('afterprint', handleAfterPrint);
     };
   }, []);
-  
-  // Container dimensions
-  useEffect(() => {
-    if (!containerRef.current) return;
-    
-    const updateDimensions = () => {
-      if (containerRef.current) {
-        const newDimensions = {
-          width: containerRef.current.offsetWidth,
-          height: containerRef.current.offsetHeight
-        };
-        setContainerDimensions(newDimensions);
-      }
-    };
-    
-    updateDimensions();
-    
-    const resizeObserver = new ResizeObserver(updateDimensions);
-    resizeObserver.observe(containerRef.current);
-    
-    return () => {
-      if (containerRef.current) {
-        resizeObserver.unobserve(containerRef.current);
-      }
-    };
-  }, [containerRef]);
-  
-  // Initialize and update position based on percentage values
-  useEffect(() => {
-    if (containerDimensions.width && containerDimensions.height && position) {
-      console.log(`Converting position ${position.x}%, ${position.y}% to pixels in container ${containerDimensions.width}x${containerDimensions.height}`);
-      const pixelX = (position.x / 100) * containerDimensions.width;
-      const pixelY = (position.y / 100) * containerDimensions.height;
-      console.log(`Setting local position to ${pixelX}, ${pixelY}`);
-      setLocalPosition({ x: pixelX, y: pixelY });
-      initializedRef.current = true;
-    }
-  }, [position, containerDimensions]);
   
   // Sync with prop changes for text
   useEffect(() => {
@@ -128,61 +95,6 @@ export function TextBoxComponent({
       return () => clearTimeout(timer);
     }
   }, [isEditing]);
-  
-  // Text styling
-  const getTextStyles = (): React.CSSProperties => {
-    const usingGradient = gradient && gradient !== '';
-    
-    const styles: React.CSSProperties = {
-      fontFamily: font || 'sans-serif',
-      fontSize: fontSize || '16px',
-      fontWeight: fontWeight as any || 'normal',
-      padding: '0.5rem',
-      width: '100%',
-      height: '100%',
-      border: 'none',
-      resize: 'none',
-      backgroundColor: 'transparent',
-      transform: `rotate(${rotation}deg)`,
-      transformOrigin: 'center center',
-      overflow: 'hidden',
-      boxSizing: 'border-box',
-      wordBreak: 'break-word',
-    };
-    
-    if (textStyle) {
-      if (textStyle.includes('italic')) {
-        styles.fontStyle = 'italic';
-      }
-      
-      if (textStyle.includes('underline')) {
-        styles.textDecoration = 'underline';
-      }
-    }
-    
-    if (usingGradient) {
-      styles.background = gradient;
-      styles.WebkitBackgroundClip = 'text';
-      styles.WebkitTextFillColor = 'transparent';
-      styles.backgroundClip = 'text';
-      styles.color = 'transparent';
-    } else {
-      styles.color = fontColor || 'inherit';
-    }
-    
-    return styles;
-  };
-  
-  // Apply text style
-  const processText = (text: string) => {
-    if (!text) return '';
-    
-    if (textStyle && textStyle !== 'normal') {
-      return applyTextStyle(text, textStyle as TextStyle);
-    }
-    
-    return text;
-  };
   
   // Event handlers
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -236,35 +148,12 @@ export function TextBoxComponent({
     onRemove(id);
   };
   
-  const handleDragStart = () => {
-    console.log(`Starting drag for textbox ${id}`);
-    setIsDragging(true);
-    handleSelect();
+  const handleDragStartInternal = () => {
+    handleDragStart(handleSelect);
   };
   
-  const handleDragStop = (e: any, d: any) => {
-    console.log(`Drag stop at position: x=${d.x}, y=${d.y}`);
-    
-    // First update the local position for immediate UI feedback
-    setLocalPosition({ x: d.x, y: d.y });
-    
-    // Get the container dimensions
-    const containerWidth = containerDimensions.width || 1;
-    const containerHeight = containerDimensions.height || 1;
-    
-    // Calculate percentage position based on container dimensions
-    const xPercent = Math.max(0, Math.min(100, (d.x / containerWidth) * 100));
-    const yPercent = Math.max(0, Math.min(100, (d.y / containerHeight) * 100));
-    
-    console.log(`Converting to percentage: x=${xPercent}%, y=${yPercent}%`);
-    
-    // Update the text box position through parent component
-    onUpdate(id, { position: { x: xPercent, y: yPercent } });
-    
-    // End dragging state after a short delay
-    setTimeout(() => {
-      setIsDragging(false);
-    }, 50);
+  const handleDragStopInternal = (e: any, d: any) => {
+    handleDragStop(d, (updates) => onUpdate(id, updates));
   };
   
   const handleStopResize = (e: any, direction: any, ref: HTMLDivElement, delta: any) => {
@@ -275,23 +164,12 @@ export function TextBoxComponent({
     onUpdate(id, { width: newWidth, height: newHeight });
   };
   
-  // Display empty text for new boxes
-  const displayText = isPrinting ? (text || '') : (processText(text || ''));
-  
   // Controls visibility
   const showControls = selected && !isEditing && !isPrinting && !isDrawingMode;
   
-  // Print styles
-  const printStyles = `
-    @media print {
-      .text-box-controls { display: none !important; }
-      .text-box-border { border: none !important; }
-    }
-  `;
-  
   return (
     <>
-      <style>{printStyles}</style>
+      <style>{getPrintStyles()}</style>
       <Rnd
         style={{
           ...style,
@@ -302,8 +180,8 @@ export function TextBoxComponent({
         }}
         size={{ width: size.width, height: size.height }}
         position={localPosition}
-        onDragStart={handleDragStart}
-        onDragStop={handleDragStop}
+        onDragStart={handleDragStartInternal}
+        onDragStop={handleDragStopInternal}
         onResizeStop={handleStopResize}
         bounds="parent"
         enableResizing={selected && !isEditing && !isPrinting && !isDrawingMode}
@@ -319,55 +197,29 @@ export function TextBoxComponent({
             !selected && !isPrinting && !isDrawingMode ? "hover:ring-1 hover:ring-gray-300" : ""
           )}
         >
-          {/* Controls - only shown when selected and not editing */}
+          {/* Controls */}
           {showControls && (
-            <>
-              {/* Delete button */}
-              <button
-                className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg z-10 text-box-controls"
-                onClick={handleDelete}
-                aria-label="Delete text box"
-              >
-                <X size={14} />
-              </button>
-              
-              {/* Rotate button */}
-              <div className="absolute -top-2 -left-2 flex gap-1 text-box-controls">
-                <button
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 p-1 rounded-full"
-                  onClick={handleRotate}
-                  title="Rotate"
-                >
-                  <RotateCw size={12} />
-                </button>
-              </div>
-            </>
+            <TextBoxControls onDelete={handleDelete} onRotate={handleRotate} />
           )}
           
-          {/* Text content - either editing or display mode */}
-          {isEditing ? (
-            // Edit mode - textarea
-            <Textarea
-              ref={textAreaRef}
-              value={editValue}
-              onChange={handleTextChange}
-              onBlur={handleBlur}
-              onKeyDown={handleKeyDown}
-              className="w-full h-full resize-none border-none focus-visible:ring-0 focus-visible:outline-none p-2"
-              style={{ ...getTextStyles(), border: 'none' }}
-              autoFocus
-              placeholder="Type here..."
-            />
-          ) : (
-            // View mode - display text
-            <div
-              className="w-full h-full whitespace-pre-wrap overflow-hidden flex items-center justify-center"
-            >
-              <div style={getTextStyles()}>
-                {displayText || 'Click to edit'}
-              </div>
-            </div>
-          )}
+          {/* Text content */}
+          <TextBoxContent
+            isEditing={isEditing}
+            editValue={editValue}
+            text={text}
+            font={font}
+            fontSize={fontSize}
+            fontWeight={fontWeight}
+            fontColor={fontColor}
+            gradient={gradient}
+            textStyle={textStyle}
+            rotation={rotation}
+            onTextChange={handleTextChange}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+            textAreaRef={textAreaRef}
+            isPrinting={isPrinting}
+          />
         </div>
       </Rnd>
     </>
