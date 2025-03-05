@@ -87,8 +87,10 @@ export function TextBoxComponent({
   // Initialize and update position based on percentage values
   useEffect(() => {
     if (containerDimensions.width && containerDimensions.height && position) {
+      console.log(`Converting position ${position.x}%, ${position.y}% to pixels in container ${containerDimensions.width}x${containerDimensions.height}`);
       const pixelX = (position.x / 100) * containerDimensions.width;
       const pixelY = (position.y / 100) * containerDimensions.height;
+      console.log(`Setting local position to ${pixelX}, ${pixelY}`);
       setLocalPosition({ x: pixelX, y: pixelY });
       initializedRef.current = true;
     }
@@ -235,6 +237,7 @@ export function TextBoxComponent({
   };
   
   const handleDragStart = () => {
+    console.log(`Starting drag for textbox ${id}`);
     setIsDragging(true);
     handleSelect();
   };
@@ -307,10 +310,11 @@ export function TextBoxComponent({
         disableDragging={isEditing || isPrinting || isDrawingMode}
         onMouseDown={handleSelect}
         onTouchStart={handleSelect}
+        dragHandleClassName={isEditing ? undefined : "drag-handle"}
       >
         <div 
           className={cn(
-            "relative h-full w-full text-box-border",
+            "relative h-full w-full text-box-border drag-handle",
             selected && !isPrinting && !isDrawingMode ? "ring-2 ring-primary ring-inset" : "ring-0 ring-transparent",
             !selected && !isPrinting && !isDrawingMode ? "hover:ring-1 hover:ring-gray-300" : ""
           )}
