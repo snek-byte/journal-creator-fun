@@ -1,6 +1,6 @@
 
-import { Toaster } from "@/components/ui/toast";
-import { Toaster as Sonner } from "sonner";
+import { ToastProvider, Toast } from "@/components/ui/toast";
+import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -32,8 +32,8 @@ const App = () => {
             <Route path="/auth" element={<Auth />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <Toast />
           <Toaster />
-          <Sonner />
         </TooltipProvider>
       </QueryClientProvider>
     </BrowserRouter>
