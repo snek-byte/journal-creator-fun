@@ -1,4 +1,3 @@
-
 import { useJournalEditor } from '@/hooks/useJournalEditor';
 import { JournalEditorSidebar } from './journal/JournalEditorSidebar';
 import { JournalPreview } from './journal/JournalPreview';
@@ -60,17 +59,14 @@ export function JournalEditor() {
     canRedo,
   } = useJournalEditor();
   
-  // Drawing tool state
   const [currentDrawingTool, setCurrentDrawingTool] = useState('pen');
   const [currentDrawingColor, setCurrentDrawingColor] = useState('#000000');
   const [currentBrushSize, setCurrentBrushSize] = useState(3);
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   
-  // Sticker resize state - default to 100px
   const [stickerSize, setStickerSize] = useState(100);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
 
-  // Update sticker size when a new sticker is selected
   useEffect(() => {
     if (selectedStickerId) {
       const sticker = currentEntry.stickers.find(s => s.id === selectedStickerId);
@@ -89,7 +85,6 @@ export function JournalEditor() {
     handleDrawingChange('');
   };
 
-  // Function to create a sticker object from a URL
   const handleStickerAddFromUrl = (stickerUrl: string) => {
     console.log("Creating sticker from URL:", stickerUrl);
     const newSticker: Sticker = {
@@ -117,12 +112,11 @@ export function JournalEditor() {
     handleIconAdd(newIcon);
   };
 
-  // Function to create a new empty text box
   const handleCreateTextBox = () => {
     console.log("Creating new text box");
     const newTextBox: TextBox = {
       id: uuidv4(),
-      text: '', // Empty by default
+      text: '',
       position: { x: 50, y: 50 },
       width: 200,
       height: 100,
@@ -140,40 +134,32 @@ export function JournalEditor() {
     handleTextBoxSelect(newTextBox.id);
   };
 
-  // Resize sticker handler
   const handleStickerResize = (size: number) => {
     console.log("JournalEditor: handleStickerResize called with size", size);
     setStickerSize(size);
     
-    // If a sticker is selected, update its size
     if (selectedStickerId) {
       console.log("Resizing sticker:", selectedStickerId, "to size:", size);
       
-      // Find the sticker to update
       const stickerToUpdate = currentEntry.stickers.find(s => s.id === selectedStickerId);
       if (stickerToUpdate) {
-        // Create updated sticker with new size
         const updatedSticker: Sticker = {
           ...stickerToUpdate,
           width: size,
           height: size
         };
         
-        // Update the sticker by passing the entire updated sticker object
         handleStickerAdd(updatedSticker);
       }
     } else if (currentEntry.stickers.length > 0) {
-      // No sticker is selected, but we'll set the size for the next sticker that's added
       console.log("Setting default sticker size for new stickers:", size);
     }
   };
 
-  // Handler for sticker selection
   const handleStickerSelect = (id: string | null) => {
     console.log("Sticker selected in JournalEditor:", id);
     setSelectedStickerId(id);
     
-    // If we selected a new sticker, update the size state
     if (id) {
       const sticker = currentEntry.stickers.find(s => s.id === id);
       if (sticker && sticker.width) {
@@ -182,7 +168,6 @@ export function JournalEditor() {
     }
   };
 
-  // For TypeScript to accept currentEntry as JournalEntry
   const fullEntry = {
     ...currentEntry,
     id: 0,
