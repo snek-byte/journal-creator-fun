@@ -1,10 +1,8 @@
-
 import { useState, useRef, useEffect, useReducer } from 'react';
 import { useJournalStore } from '@/store/journalStore';
 import { supabase } from "@/integrations/supabase/client";
 import type { Mood, Sticker, Icon, HistoryEntry, TextBox } from '@/types/journal';
 import { EmojiClickData } from 'emoji-picker-react';
-import { toast } from "sonner";
 import { v4 as uuidv4 } from 'uuid';
 
 // Define initial state
@@ -924,7 +922,6 @@ export function useJournalEditor() {
   const handleResetToDefault = () => {
     console.log("Resetting journal to default");
     dispatch({ type: 'RESET' });
-    toast.success("Journal reset to default");
   };
 
   // Undo function
@@ -932,11 +929,9 @@ export function useJournalEditor() {
     try {
       console.log("Attempting UNDO - History index:", editorState.historyIndex, "History length:", editorState.history.length);
       dispatch({ type: 'UNDO' });
-      toast.success("Undo successful");
       return true;
     } catch (error) {
       console.error("Error during undo:", error);
-      toast.error("Undo failed");
       return false;
     }
   };
@@ -946,11 +941,9 @@ export function useJournalEditor() {
     try {
       console.log("Attempting REDO - History index:", editorState.historyIndex, "History length:", editorState.history.length);
       dispatch({ type: 'REDO' });
-      toast.success("Redo successful");
       return true;
     } catch (error) {
       console.error("Error during redo:", error);
-      toast.error("Redo failed");
       return false;
     }
   };
@@ -961,10 +954,8 @@ export function useJournalEditor() {
       syncStateToStore(editorState.currentState);
       await storeSaveEntry();
       dispatch({ type: 'RESET' });
-      toast.success("Entry saved successfully");
     } catch (error) {
       console.error("Error saving entry:", error);
-      toast.error("Failed to save entry");
     }
   };
 

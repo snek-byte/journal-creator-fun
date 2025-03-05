@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Rnd } from 'react-rnd';
@@ -36,7 +35,7 @@ export function TextBoxComponent({
   const [size, setSize] = useState({ width, height });
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
   const [isPrinting, setIsPrinting] = useState(false);
-  const [localPosition, setLocalPosition] = useState({ x: 0, y: 0 });
+  const [localPosition, setLocalPosition] = useState({ x: position ? (position.x / 100) * 500 : 0, y: position ? (position.y / 100) * 300 : 0 });
   const [isDragging, setIsDragging] = useState(false);
   
   // Refs
@@ -101,7 +100,7 @@ export function TextBoxComponent({
   
   // Update local position when position prop changes or container dimensions change
   const updateLocalPosition = (dimensions = containerDimensions) => {
-    if (!dimensions.width || !dimensions.height || isDragging) return;
+    if (!dimensions.width || !dimensions.height) return;
     
     const x = (position.x / 100) * dimensions.width;
     const y = (position.y / 100) * dimensions.height;
@@ -114,14 +113,7 @@ export function TextBoxComponent({
     if (!isDragging && initializedRef.current) {
       updateLocalPosition();
     }
-  }, [containerDimensions, position]);
-  
-  // Update position when position prop changes (but not during drag)
-  useEffect(() => {
-    if (!isDragging && initializedRef.current) {
-      updateLocalPosition();
-    }
-  }, [position]);
+  }, [containerDimensions, position.x, position.y]);
   
   // Activate edit mode when the component becomes selected
   useEffect(() => {
@@ -259,8 +251,6 @@ export function TextBoxComponent({
   };
   
   const handleDragStop = (e: any, d: any) => {
-    if (isEditing) return;
-    
     // First update the local position for immediate UI feedback
     setLocalPosition({ x: d.x, y: d.y });
     
@@ -275,7 +265,7 @@ export function TextBoxComponent({
     // Update the text box position through parent component
     onUpdate(id, { position: { x: xPercent, y: yPercent } });
     
-    // End dragging state
+    // End dragging state after a short delay
     setTimeout(() => {
       setIsDragging(false);
     }, 0);
@@ -312,7 +302,7 @@ export function TextBoxComponent({
           zIndex: selected ? zIndex + 10 : zIndex,
           pointerEvents: isDrawingMode ? 'none' : 'auto',
           opacity: isPrinting && !text ? 0 : 1,
-          cursor: isEditing ? 'text' : 'pointer'
+          cursor: isEditing ? 'text' : 'move'
         }}
         size={{ width: size.width, height: size.height }}
         position={localPosition}

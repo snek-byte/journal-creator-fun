@@ -232,6 +232,7 @@ export function JournalEditor() {
         canRedo={canRedo}
         isDrawingMode={isDrawingMode}
         onDrawingModeToggle={handleDrawingModeToggle}
+        onCreateTextBox={handleCreateTextBox}
       />
 
       <EmailDialog
