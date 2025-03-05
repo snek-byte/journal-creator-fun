@@ -62,49 +62,8 @@ export function TextBoxContent({
     height: '100%'
   };
 
-  // Add Bootstrap drag behavior
+  // Ref for drag handling
   const contentRef = useRef<HTMLDivElement>(null);
-  
-  useEffect(() => {
-    // Skip if we're in editing mode or printing
-    if (isEditing || isPrinting || !contentRef.current) return;
-    
-    // Initialize Bootstrap draggable functionality
-    try {
-      if (window.jQuery && typeof window.jQuery.fn.draggable === 'function') {
-        const $element = window.jQuery(contentRef.current.parentElement);
-        
-        // Clean up any previous instance
-        if ($element.data('ui-draggable')) {
-          $element.draggable('destroy');
-        }
-        
-        // Initialize draggable
-        $element.draggable({
-          handle: ".drag-handle",
-          cursor: "grabbing",
-          scroll: false,
-          containment: "parent"
-        });
-      }
-    } catch (err) {
-      console.error("Error initializing Bootstrap draggable:", err);
-    }
-    
-    return () => {
-      // Cleanup on unmount
-      try {
-        if (window.jQuery && contentRef.current) {
-          const $element = window.jQuery(contentRef.current.parentElement);
-          if ($element.data('ui-draggable')) {
-            $element.draggable('destroy');
-          }
-        }
-      } catch (err) {
-        console.error("Error cleaning up Bootstrap draggable:", err);
-      }
-    };
-  }, [isEditing, isPrinting]);
 
   if (isEditing) {
     return (
@@ -131,11 +90,4 @@ export function TextBoxContent({
       {text || 'Empty text box'}
     </div>
   );
-}
-
-// Declare jQuery for TypeScript
-declare global {
-  interface Window {
-    jQuery: any;
-  }
 }

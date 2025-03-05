@@ -55,12 +55,6 @@ export const getTextStyles = (
 
 // Helper to set element transform with smooth transition
 export const setTransform = (element: HTMLElement, x: number, y: number, rotation: number = 0) => {
-  // Don't apply transform if element has Bootstrap draggable
-  if (element.classList.contains('ui-draggable')) {
-    console.log('Element is using Bootstrap draggable, skipping transform');
-    return;
-  }
-
   // Add a slight transition for smoother movements
   element.style.transition = 'transform 0.05s ease';
   
@@ -83,6 +77,21 @@ export const getPrintStyles = () => `
   @media print {
     .text-box-controls { display: none !important; }
     .text-box-component { border: none !important; }
+  }
+
+  [draggable="true"] {
+    cursor: move;
+  }
+
+  .resizable {
+    overflow: scroll;
+    resize: both;
+    max-width: 300px;
+    max-height: 460px;
+    border: 1px solid black;
+    min-width: 50px;
+    min-height: 50px;
+    background-color: skyblue;
   }
 `;
 

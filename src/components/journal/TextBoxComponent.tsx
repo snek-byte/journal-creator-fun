@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { TextBox } from '@/types/journal';
 import { cn } from "@/lib/utils";
@@ -441,6 +440,83 @@ export function TextBoxComponent({
     cursor: isEditing ? 'text' : isDragging ? 'grabbing' : 'grab',
   };
   
+  // Setup event handlers for HTML5 draggable
+  const handleDragStart = (e: React.DragEvent) => {
+    if (isDrawingMode || isEditing || isPrinting) return;
+    
+    console.log(`Drag start for box ${id}`);
+    setIsDragging(true);
+    onSelect(id);
+    
+    // Set the data that will be dragged
+    e.dataTransfer.setData('text/plain', id);
+    
+    // Set the drag image to the current element
+    if (boxRef.current) {
+      // Use the offset to center the drag image
+      const rect = boxRef.current.getBoundingClientRect();
+      const offsetX = e.clientX - rect.left;
+      const offsetY = e.clientY - rect.top;
+      e.dataTransfer.setDragImage(boxRef.current, offsetX, offsetY);
+    }
+    
+    // Track starting position
+    if (boxRef.current) {
+      const x = parseFloat(boxRef.current.getAttribute('data-x') || '0');
+      const y = parseFloat(boxRef.current.getAttribute('data-y') || '0');
+      boxRef.current.setAttribute('data-start-x', x.toString());
+      boxRef.current.setAttribute('data-start-y', y.toString());
+    }
+  };
+  
+  const handleDrag = (e: React.DragEvent) => {
+    if (isDrawingMode || isEditing || isPrinting || !e.clientX) return;
+    
+    if (boxRef.current && containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const boxRect = boxRef.current.getBoundingClientRect();
+      
+      // Calculate new position relative to container
+      const offsetX = e.clientX - containerRect.left;
+      const offsetY = e.clientY - containerRect.top;
+      
+      // Account for box dimensions and cursor position within box
+      const startX = parseFloat(boxRef.current.getAttribute('data-start-x') || '0');
+      const startY = parseFloat(boxRef.current.getAttribute('data-start-y') || '0');
+      
+      const newX = offsetX - (boxRect.width / 2);
+      const newY = offsetY - (boxRect.height / 2);
+      
+      // Update element transform
+      setTransform(boxRef.current, newX, newY, rotation || 0);
+      
+      // Update state
+      setPositionPx({ x: newX, y: newY });
+    }
+  };
+  
+  const handleDragEnd = (e: React.DragEvent) => {
+    if (isDrawingMode || isEditing || isPrinting) return;
+    
+    setIsDragging(false);
+    
+    if (boxRef.current && containerRef.current) {
+      const x = parseFloat(boxRef.current.getAttribute('data-x') || '0');
+      const y = parseFloat(boxRef.current.getAttribute('data-y') || '0');
+      
+      console.log(`Drag end for box ${id}: finalX=${x}, finalY=${y}`);
+      
+      const containerWidth = containerRef.current.offsetWidth;
+      const containerHeight = containerRef.current.offsetHeight;
+      
+      // Convert pixels to percentage
+      const percentPos = pixelsToPercent({ x, y }, containerWidth, containerHeight);
+      
+      console.log(`Updating position for box ${id}: xPercent=${percentPos.x}, yPercent=${percentPos.y}`);
+      onUpdate(id, { position: { x: percentPos.x, y: percentPos.y } });
+    }
+  };
+  
   return (
     <>
       <style>{getPrintStyles()}</style>
@@ -456,6 +532,10 @@ export function TextBoxComponent({
         data-y={positionPx.y}
         data-id={id}
         data-rotation={rotation || 0}
+        draggable={!isEditing && !isPrinting && !isDrawingMode}
+        onDragStart={handleDragStart}
+        onDrag={handleDrag}
+        onDragEnd={handleDragEnd}
       >
         {/* Drag handle bar */}
         {!isPrinting && !isDrawingMode && (
