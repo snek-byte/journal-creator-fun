@@ -29,36 +29,45 @@ export default function Write() {
       }
     );
 
-    // Load interact.js directly as a script
-    if (typeof window !== 'undefined') {
-      // Check if interact.js is already loaded
-      if (window.interact) {
-        console.log('interact.js already available');
-        setInteractJsLoaded(true);
-        toast.success("Journal editor ready");
-      } else {
+    // Load interact.js script
+    const loadInteractJs = () => {
+      if (typeof window !== 'undefined') {
+        if (window.interact) {
+          console.log('interact.js already available');
+          setInteractJsLoaded(true);
+          return;
+        }
+        
         console.log('Loading interact.js script');
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/interactjs@1.10.17/dist/interact.min.js';
         script.async = true;
+        
         script.onload = () => {
+          console.log('interact.js loaded successfully, window.interact:', !!window.interact);
           if (window.interact) {
-            console.log('interact.js loaded successfully');
             setInteractJsLoaded(true);
             toast.success("Journal editor ready");
           } else {
             console.error('interact is not available after script load');
             toast.error("Failed to initialize the editor");
+            // Try loading again after a delay
+            setTimeout(loadInteractJs, 1000);
           }
         };
+        
         script.onerror = () => {
           console.error('Failed to load interact.js script');
           toast.error("Failed to load editor components");
+          // Try loading again after a delay
+          setTimeout(loadInteractJs, 1000);
         };
         
         document.body.appendChild(script);
       }
-    }
+    };
+    
+    loadInteractJs();
 
     return () => {
       subscription.unsubscribe();

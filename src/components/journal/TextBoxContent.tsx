@@ -50,10 +50,11 @@ export function TextBoxContent({
     return text;
   };
 
-  const styles = getTextStyles(font, fontSize, fontWeight, fontColor, gradient, textStyle, rotation);
+  const styles = getTextStyles(font, fontSize, fontWeight, fontColor, gradient, textStyle, 0); // Use 0 for rotation as it's applied at the parent level
   
   // Display empty text for new boxes
-  const displayText = isPrinting ? (text || '') : (processText(text || ''));
+  const displayText = text || (isPrinting ? '' : 'Click to edit');
+  const processedText = processText(displayText);
   
   return (
     <>
@@ -76,7 +77,7 @@ export function TextBoxContent({
           className="w-full h-full whitespace-pre-wrap overflow-hidden flex items-center justify-center"
         >
           <div style={styles}>
-            {displayText || 'Click to edit'}
+            {processedText}
           </div>
         </div>
       )}

@@ -34,7 +34,7 @@ export function TextBoxComponent({
   const [editValue, setEditValue] = useState(text || '');
   const [size, setSize] = useState({ width, height });
   const [isPrinting, setIsPrinting] = useState(false);
-  const [localPosition, setLocalPosition] = useState({ x: 0, y: 0 });
+  const [positionPx, setPositionPx] = useState({ x: 0, y: 0 });
   
   // Refs
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -50,13 +50,24 @@ export function TextBoxComponent({
     const pixelX = (position.x / 100) * containerWidth;
     const pixelY = (position.y / 100) * containerHeight;
     
-    setLocalPosition({ x: pixelX, y: pixelY });
-  }, [position, containerRef]);
+    console.log(`Converting position for ${id}: 
+      percent: (${position.x}%, ${position.y}%), 
+      container: ${containerWidth}x${containerHeight}, 
+      pixels: (${pixelX}px, ${pixelY}px)`);
+    
+    setPositionPx({ x: pixelX, y: pixelY });
+    
+    if (boxRef.current) {
+      boxRef.current.style.transform = `translate(${pixelX}px, ${pixelY}px) rotate(${rotation || 0}deg)`;
+      boxRef.current.setAttribute('data-x', pixelX.toString());
+      boxRef.current.setAttribute('data-y', pixelY.toString());
+    }
+  }, [id, position.x, position.y, containerRef, rotation]);
   
   // Initialize interact.js for dragging and resizing
   useEffect(() => {
     if (!boxRef.current || isDrawingMode || isPrinting || !window.interact) {
-      console.log("Cannot initialize interact.js:", {
+      console.log(`Cannot initialize interact.js for box ${id}:`, {
         boxRefExists: !!boxRef.current,
         isDrawingMode,
         isPrinting,
@@ -65,9 +76,9 @@ export function TextBoxComponent({
       return;
     }
     
-    console.log("Initializing interact.js for TextBox:", id);
+    console.log(`Initializing interact.js for TextBox ${id}`);
     
-    // Cleanup any previous interact instance
+    // Clean up any previous interact instance
     try {
       window.interact(boxRef.current).unset();
     } catch (e) {
@@ -79,16 +90,11 @@ export function TextBoxComponent({
     // Configure draggable
     interactable.draggable({
       inertia: false,
-      modifiers: [
-        window.interact.modifiers.restrict({
-          restriction: 'parent',
-          endOnly: true
-        })
-      ],
+      modifiers: [],
       listeners: {
         start: (event) => {
           if (isDrawingMode || isEditing || isPrinting) return;
-          console.log("Drag start:", id);
+          console.log(`Drag start for box ${id}`);
           onSelect(id);
         },
         move: (event) => {
@@ -96,25 +102,25 @@ export function TextBoxComponent({
           
           const target = event.target;
           
-          // Get current position
+          // Get current position from data attributes
           const x = parseFloat(target.getAttribute('data-x') || '0');
           const y = parseFloat(target.getAttribute('data-y') || '0');
           
-          // Update position
+          // Calculate new position
           const newX = x + event.dx;
           const newY = y + event.dy;
           
-          console.log(`Dragging: dx=${event.dx}, dy=${event.dy}, newX=${newX}, newY=${newY}`);
+          console.log(`Dragging box ${id}: dx=${event.dx}, dy=${event.dy}, newX=${newX}, newY=${newY}`);
           
-          // Translate element
+          // Update element transform
           target.style.transform = `translate(${newX}px, ${newY}px) rotate(${rotation || 0}deg)`;
           
-          // Update attributes
+          // Update data attributes
           target.setAttribute('data-x', newX.toString());
           target.setAttribute('data-y', newY.toString());
           
-          // Update local state
-          setLocalPosition({ x: newX, y: newY });
+          // Update state
+          setPositionPx({ x: newX, y: newY });
         },
         end: (event) => {
           if (isDrawingMode || isEditing || isPrinting) return;
@@ -123,17 +129,17 @@ export function TextBoxComponent({
           const x = parseFloat(target.getAttribute('data-x') || '0');
           const y = parseFloat(target.getAttribute('data-y') || '0');
           
-          console.log(`Drag end: x=${x}, y=${y}`);
+          console.log(`Drag end for box ${id}: finalX=${x}, finalY=${y}`);
           
           if (containerRef.current) {
             const containerWidth = containerRef.current.offsetWidth;
             const containerHeight = containerRef.current.offsetHeight;
             
-            // Convert to percentage
+            // Convert pixels to percentage
             const xPercent = (x / containerWidth) * 100;
             const yPercent = (y / containerHeight) * 100;
             
-            console.log(`Updating position: xPercent=${xPercent}, yPercent=${yPercent}`);
+            console.log(`Updating position for box ${id}: xPercent=${xPercent}, yPercent=${yPercent}`);
             onUpdate(id, { position: { x: xPercent, y: yPercent } });
           }
         }
@@ -152,13 +158,13 @@ export function TextBoxComponent({
             let x = parseFloat(target.getAttribute('data-x') || '0');
             let y = parseFloat(target.getAttribute('data-y') || '0');
             
-            // Update the element's position to account for the resize
+            // Update position to account for resize
             x += event.deltaRect.left;
             y += event.deltaRect.top;
             
-            console.log(`Resize move: width=${event.rect.width}, height=${event.rect.height}`);
+            console.log(`Resize move for box ${id}: width=${event.rect.width}, height=${event.rect.height}, x=${x}, y=${y}`);
             
-            // Set element width and height
+            // Update element size
             target.style.width = `${event.rect.width}px`;
             target.style.height = `${event.rect.height}px`;
             
@@ -169,12 +175,14 @@ export function TextBoxComponent({
             target.setAttribute('data-x', x.toString());
             target.setAttribute('data-y', y.toString());
             
-            // Update size state
+            // Update state
             setSize({ width: event.rect.width, height: event.rect.height });
-            setLocalPosition({ x, y });
+            setPositionPx({ x, y });
           },
           end: (event) => {
             if (isDrawingMode || isEditing || isPrinting) return;
+            
+            console.log(`Resize end for box ${id}: final width=${event.rect.width}, height=${event.rect.height}`);
             
             // Update size in parent
             onUpdate(id, { 
@@ -182,7 +190,7 @@ export function TextBoxComponent({
               height: event.rect.height 
             });
             
-            // Also update position
+            // Update position
             const target = event.target;
             const x = parseFloat(target.getAttribute('data-x') || '0');
             const y = parseFloat(target.getAttribute('data-y') || '0');
@@ -194,6 +202,7 @@ export function TextBoxComponent({
               const xPercent = (x / containerWidth) * 100;
               const yPercent = (y / containerHeight) * 100;
               
+              console.log(`Updating position for box ${id} after resize: xPercent=${xPercent}, yPercent=${yPercent}`);
               onUpdate(id, { position: { x: xPercent, y: yPercent } });
             }
           }
@@ -206,22 +215,14 @@ export function TextBoxComponent({
       });
     }
     
-    // Set initial data attributes
-    if (boxRef.current) {
-      boxRef.current.setAttribute('data-x', localPosition.x.toString());
-      boxRef.current.setAttribute('data-y', localPosition.y.toString());
-      
-      // Make sure the transform is set
-      boxRef.current.style.transform = `translate(${localPosition.x}px, ${localPosition.y}px) rotate(${rotation || 0}deg)`;
-    }
-    
     return () => {
-      if (interactable) {
-        try {
+      try {
+        if (interactable) {
           interactable.unset();
-        } catch (e) {
-          console.error("Error cleaning up interact instance:", e);
+          console.log(`Cleaned up interact for box ${id}`);
         }
+      } catch (e) {
+        console.error(`Error cleaning up interact for box ${id}:`, e);
       }
     };
   }, [
@@ -233,9 +234,7 @@ export function TextBoxComponent({
     rotation, 
     onSelect, 
     onUpdate, 
-    containerRef, 
-    localPosition.x, 
-    localPosition.y
+    containerRef
   ]);
   
   // Print detection
@@ -316,6 +315,7 @@ export function TextBoxComponent({
   const handleSelectClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!isEditing) {
+      console.log(`Box ${id} clicked, selecting`);
       onSelect(id);
     }
   };
@@ -340,7 +340,7 @@ export function TextBoxComponent({
     ...style,
     width: `${size.width}px`,
     height: `${size.height}px`,
-    transform: `translate(${localPosition.x}px, ${localPosition.y}px) rotate(${rotation || 0}deg)`,
+    transform: `translate(${positionPx.x}px, ${positionPx.y}px) rotate(${rotation || 0}deg)`,
     zIndex: selected ? zIndex + 10 : zIndex,
     pointerEvents: isDrawingMode ? 'none' : 'auto',
     opacity: isPrinting && !text ? 0 : 1,
@@ -360,8 +360,8 @@ export function TextBoxComponent({
         )}
         style={boxStyle}
         onClick={handleSelectClick}
-        data-x={localPosition.x}
-        data-y={localPosition.y}
+        data-x={positionPx.x}
+        data-y={positionPx.y}
         data-id={id}
         data-rotation={rotation || 0}
       >
@@ -372,7 +372,7 @@ export function TextBoxComponent({
             onMouseDown={(e) => {
               if (!isEditing) {
                 e.stopPropagation();
-                console.log("Overlay mousedown, selecting:", id);
+                console.log(`Overlay mousedown for box ${id}, selecting`);
                 onSelect(id);
               }
             }}

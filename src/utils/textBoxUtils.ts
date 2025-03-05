@@ -24,13 +24,12 @@ export const getTextStyles = (
     border: 'none',
     resize: 'none',
     backgroundColor: 'transparent',
-    transform: `rotate(${rotation}deg)`,
-    transformOrigin: 'center center',
     overflow: 'hidden',
     boxSizing: 'border-box',
     wordBreak: 'break-word',
   };
   
+  // Handle text style
   if (textStyle) {
     if (textStyle.includes('italic')) {
       styles.fontStyle = 'italic';
@@ -41,6 +40,7 @@ export const getTextStyles = (
     }
   }
   
+  // Handle gradient or solid color
   if (usingGradient) {
     styles.background = gradient;
     styles.WebkitBackgroundClip = 'text';
@@ -48,7 +48,7 @@ export const getTextStyles = (
     styles.backgroundClip = 'text';
     styles.color = 'transparent';
   } else {
-    styles.color = fontColor || 'inherit';
+    styles.color = fontColor || '#000000';
   }
   
   return styles;
@@ -58,6 +58,6 @@ export const getTextStyles = (
 export const getPrintStyles = () => `
   @media print {
     .text-box-controls { display: none !important; }
-    .text-box-border { border: none !important; }
+    .text-box-component { border: none !important; }
   }
 `;
