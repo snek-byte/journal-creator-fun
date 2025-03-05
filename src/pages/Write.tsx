@@ -8,6 +8,7 @@ import { toast } from "sonner";
 export default function Write() {
   const { loadEntries, loadProgress } = useJournalStore();
   const [interactJsLoaded, setInteractJsLoaded] = useState(false);
+  const [loadingAttempts, setLoadingAttempts] = useState(0);
 
   useEffect(() => {
     // Check if user is authenticated
@@ -33,15 +34,21 @@ export default function Write() {
     const loadInteractJs = () => {
       if (typeof window !== 'undefined') {
         if (window.interact) {
-          console.log('interact.js already available');
+          console.log('interact.js already available in window');
           setInteractJsLoaded(true);
           return;
         }
         
-        console.log('Loading interact.js script');
+        console.log('Loading interact.js script, attempt:', loadingAttempts + 1);
+        
+        // Remove any previous script elements to avoid duplicates
+        const existingScripts = document.querySelectorAll('script[src*="interact.min.js"]');
+        existingScripts.forEach(script => script.remove());
+        
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/interactjs@1.10.17/dist/interact.min.js';
         script.async = true;
+        script.defer = true;
         
         script.onload = () => {
           console.log('interact.js loaded successfully, window.interact:', !!window.interact);
@@ -51,16 +58,32 @@ export default function Write() {
           } else {
             console.error('interact is not available after script load');
             toast.error("Failed to initialize the editor");
-            // Try loading again after a delay
-            setTimeout(loadInteractJs, 1000);
+            
+            // Try loading again after a delay, with max attempts
+            if (loadingAttempts < 3) {
+              setTimeout(() => {
+                setLoadingAttempts(prev => prev + 1);
+                loadInteractJs();
+              }, 1000);
+            } else {
+              toast.error("Editor failed to initialize completely. Please refresh the page.");
+            }
           }
         };
         
         script.onerror = () => {
           console.error('Failed to load interact.js script');
           toast.error("Failed to load editor components");
-          // Try loading again after a delay
-          setTimeout(loadInteractJs, 1000);
+          
+          // Try loading again after a delay, with max attempts
+          if (loadingAttempts < 3) {
+            setTimeout(() => {
+              setLoadingAttempts(prev => prev + 1);
+              loadInteractJs();
+            }, 1000);
+          } else {
+            toast.error("Could not load all required components. Please refresh the page.");
+          }
         };
         
         document.body.appendChild(script);
@@ -72,7 +95,7 @@ export default function Write() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [loadEntries, loadProgress]);
+  }, [loadEntries, loadProgress, loadingAttempts]);
 
   return (
     <div className="min-h-screen">
@@ -83,9 +106,17 @@ export default function Write() {
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
             <p className="text-lg font-medium">Loading journal editor...</p>
+            <p className="text-sm text-muted-foreground mt-2">Initializing interactive components...</p>
           </div>
         </div>
       )}
     </div>
   );
+}
+
+// Add global type for TypeScript
+declare global {
+  interface Window {
+    interact: any;
+  }
 }

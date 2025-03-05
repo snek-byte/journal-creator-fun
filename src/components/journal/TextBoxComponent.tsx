@@ -4,7 +4,7 @@ import { TextBox } from '@/types/journal';
 import { cn } from "@/lib/utils";
 import { TextBoxControls } from './TextBoxControls';
 import { TextBoxContent } from './TextBoxContent';
-import { getPrintStyles } from '@/utils/textBoxUtils';
+import { getPrintStyles, setTransform, percentToPixels, pixelsToPercent } from '@/utils/textBoxUtils';
 
 interface TextBoxComponentProps {
   textBox: TextBox;
@@ -47,20 +47,17 @@ export function TextBoxComponent({
     const containerWidth = containerRef.current.offsetWidth;
     const containerHeight = containerRef.current.offsetHeight;
     
-    const pixelX = (position.x / 100) * containerWidth;
-    const pixelY = (position.y / 100) * containerHeight;
+    const pixelPos = percentToPixels(position, containerWidth, containerHeight);
     
     console.log(`Converting position for ${id}: 
       percent: (${position.x}%, ${position.y}%), 
       container: ${containerWidth}x${containerHeight}, 
-      pixels: (${pixelX}px, ${pixelY}px)`);
+      pixels: (${pixelPos.x}px, ${pixelPos.y}px)`);
     
-    setPositionPx({ x: pixelX, y: pixelY });
+    setPositionPx(pixelPos);
     
     if (boxRef.current) {
-      boxRef.current.style.transform = `translate(${pixelX}px, ${pixelY}px) rotate(${rotation || 0}deg)`;
-      boxRef.current.setAttribute('data-x', pixelX.toString());
-      boxRef.current.setAttribute('data-y', pixelY.toString());
+      setTransform(boxRef.current, pixelPos.x, pixelPos.y, rotation || 0);
     }
   }, [id, position.x, position.y, containerRef, rotation]);
   
@@ -90,7 +87,7 @@ export function TextBoxComponent({
     // Configure draggable
     interactable.draggable({
       inertia: false,
-      modifiers: [],
+      autoScroll: true, // Enable auto-scrolling when dragging near edges
       listeners: {
         start: (event) => {
           if (isDrawingMode || isEditing || isPrinting) return;
@@ -113,11 +110,7 @@ export function TextBoxComponent({
           console.log(`Dragging box ${id}: dx=${event.dx}, dy=${event.dy}, newX=${newX}, newY=${newY}`);
           
           // Update element transform
-          target.style.transform = `translate(${newX}px, ${newY}px) rotate(${rotation || 0}deg)`;
-          
-          // Update data attributes
-          target.setAttribute('data-x', newX.toString());
-          target.setAttribute('data-y', newY.toString());
+          setTransform(target, newX, newY, rotation || 0);
           
           // Update state
           setPositionPx({ x: newX, y: newY });
@@ -136,11 +129,10 @@ export function TextBoxComponent({
             const containerHeight = containerRef.current.offsetHeight;
             
             // Convert pixels to percentage
-            const xPercent = (x / containerWidth) * 100;
-            const yPercent = (y / containerHeight) * 100;
+            const percentPos = pixelsToPercent({ x, y }, containerWidth, containerHeight);
             
-            console.log(`Updating position for box ${id}: xPercent=${xPercent}, yPercent=${yPercent}`);
-            onUpdate(id, { position: { x: xPercent, y: yPercent } });
+            console.log(`Updating position for box ${id}: xPercent=${percentPos.x}, yPercent=${percentPos.y}`);
+            onUpdate(id, { position: { x: percentPos.x, y: percentPos.y } });
           }
         }
       }
@@ -150,6 +142,7 @@ export function TextBoxComponent({
     if (selected) {
       interactable.resizable({
         edges: { left: true, right: true, bottom: true, top: true },
+        invert: 'reposition',
         listeners: {
           move: (event) => {
             if (isDrawingMode || isEditing || isPrinting) return;
@@ -169,11 +162,7 @@ export function TextBoxComponent({
             target.style.height = `${event.rect.height}px`;
             
             // Update transform
-            target.style.transform = `translate(${x}px, ${y}px) rotate(${rotation || 0}deg)`;
-            
-            // Update attributes
-            target.setAttribute('data-x', x.toString());
-            target.setAttribute('data-y', y.toString());
+            setTransform(target, x, y, rotation || 0);
             
             // Update state
             setSize({ width: event.rect.width, height: event.rect.height });
@@ -199,11 +188,10 @@ export function TextBoxComponent({
               const containerWidth = containerRef.current.offsetWidth;
               const containerHeight = containerRef.current.offsetHeight;
               
-              const xPercent = (x / containerWidth) * 100;
-              const yPercent = (y / containerHeight) * 100;
+              const percentPos = pixelsToPercent({ x, y }, containerWidth, containerHeight);
               
-              console.log(`Updating position for box ${id} after resize: xPercent=${xPercent}, yPercent=${yPercent}`);
-              onUpdate(id, { position: { x: xPercent, y: yPercent } });
+              console.log(`Updating position for box ${id} after resize: xPercent=${percentPos.x}, yPercent=${percentPos.y}`);
+              onUpdate(id, { position: { x: percentPos.x, y: percentPos.y } });
             }
           }
         },
@@ -413,11 +401,4 @@ export function TextBoxComponent({
       </div>
     </>
   );
-}
-
-// Add this to make TypeScript recognize interact from the CDN
-declare global {
-  interface Window {
-    interact: any;
-  }
 }

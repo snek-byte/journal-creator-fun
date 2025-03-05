@@ -54,6 +54,17 @@ export const getTextStyles = (
   return styles;
 };
 
+// Helper to set element transform
+export const setTransform = (element: HTMLElement, x: number, y: number, rotation: number = 0) => {
+  const transform = `translate(${x}px, ${y}px) rotate(${rotation}deg)`;
+  element.style.transform = transform;
+  
+  // Store position as data attributes
+  element.setAttribute('data-x', x.toString());
+  element.setAttribute('data-y', y.toString());
+  element.setAttribute('data-rotation', rotation.toString());
+};
+
 // Get print styles for text boxes
 export const getPrintStyles = () => `
   @media print {
@@ -61,3 +72,27 @@ export const getPrintStyles = () => `
     .text-box-component { border: none !important; }
   }
 `;
+
+// Convert percentage position to pixels
+export const percentToPixels = (
+  position: { x: number, y: number }, 
+  containerWidth: number, 
+  containerHeight: number
+) => {
+  const x = (position.x / 100) * containerWidth;
+  const y = (position.y / 100) * containerHeight;
+  
+  return { x, y };
+};
+
+// Convert pixel position to percentage
+export const pixelsToPercent = (
+  position: { x: number, y: number }, 
+  containerWidth: number, 
+  containerHeight: number
+) => {
+  const x = (position.x / containerWidth) * 100;
+  const y = (position.y / containerHeight) * 100;
+  
+  return { x, y };
+};
