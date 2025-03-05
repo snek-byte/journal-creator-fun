@@ -14,6 +14,8 @@ interface MemeCanvasProps {
   fontWeight: string;
   textStyle: string;
   gradient: string;
+  frame?: string;
+  backgroundColor?: string;
 }
 
 export function MemeCanvas({
@@ -26,13 +28,17 @@ export function MemeCanvas({
   strokeColor,
   fontWeight,
   textStyle,
-  gradient
+  gradient,
+  frame = '',
+  backgroundColor = '#ffffff'
 }: MemeCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [imageHeight, setImageHeight] = useState(0);
   const [imageWidth, setImageWidth] = useState(0);
+  const [frameLoaded, setFrameLoaded] = useState(false);
+  const [frameError, setFrameError] = useState(false);
 
   // Text styling
   const textStyle1 = {
@@ -54,6 +60,20 @@ export function MemeCanvas({
     backgroundClip: gradient ? 'text' : 'border-box'
   };
 
+  // Handle frame load
+  const handleFrameLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    setFrameLoaded(true);
+    setFrameError(false);
+    console.log("Frame loaded successfully");
+  };
+
+  // Handle frame error
+  const handleFrameError = () => {
+    console.error("Error loading frame:", frame);
+    setFrameError(true);
+    setFrameLoaded(false);
+  };
+
   // Handle image load and size
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     setImageLoaded(true);
@@ -65,15 +85,15 @@ export function MemeCanvas({
 
   // Handle image error
   const handleImageError = () => {
-    console.error("Error loading meme template:", template);
+    console.error("Error loading image template:", template);
     setImageError(true);
     setImageLoaded(false);
   };
 
   // Download function (exposed to parent via ref)
   const downloadMeme = async () => {
-    if (!canvasRef.current || !imageLoaded) {
-      console.error("Canvas not ready or image not loaded");
+    if (!canvasRef.current) {
+      console.error("Canvas not ready");
       return;
     }
 
@@ -86,11 +106,11 @@ export function MemeCanvas({
       });
 
       const link = document.createElement('a');
-      link.download = 'my-meme.png';
+      link.download = 'my-creation.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
     } catch (error) {
-      console.error("Error generating meme:", error);
+      console.error("Error generating image:", error);
     }
   };
 
@@ -101,7 +121,7 @@ export function MemeCanvas({
     return () => {
       delete (window as any).downloadMeme;
     };
-  }, [imageLoaded]);
+  }, []);
 
   return (
     <Card className="p-3 w-full flex justify-center bg-gray-100">
@@ -110,40 +130,51 @@ export function MemeCanvas({
         className="relative meme-canvas inline-block"
         style={{ maxWidth: '100%' }}
       >
-        {imageError ? (
-          <div className="flex items-center justify-center bg-gray-200 text-gray-700 h-[400px] w-[400px]">
-            <p>Failed to load template</p>
-          </div>
-        ) : (
-          <>
+        <div 
+          className="bg-white relative"
+          style={{ 
+            width: '640px', 
+            height: '640px',
+            maxWidth: '100%',
+            backgroundColor: backgroundColor || '#ffffff'
+          }}
+        >
+          {template && (
             <img
               src={template}
-              alt="Meme template"
-              className="max-w-full"
+              alt="Background template"
+              className="absolute inset-0 w-full h-full object-cover"
               onLoad={handleImageLoad}
               onError={handleImageError}
               crossOrigin="anonymous"
             />
-            
-            {imageLoaded && (
-              <>
-                <div
-                  className="absolute top-0 left-0 right-0 flex items-start justify-center"
-                  style={textStyle1}
-                >
-                  {topText}
-                </div>
-                
-                <div
-                  className="absolute bottom-0 left-0 right-0 flex items-end justify-center"
-                  style={textStyle1}
-                >
-                  {bottomText}
-                </div>
-              </>
-            )}
-          </>
-        )}
+          )}
+
+          <div
+            className="absolute top-0 left-0 right-0 flex items-start justify-center pt-4 z-10"
+            style={textStyle1}
+          >
+            {topText}
+          </div>
+          
+          <div
+            className="absolute bottom-0 left-0 right-0 flex items-end justify-center pb-4 z-10"
+            style={textStyle1}
+          >
+            {bottomText}
+          </div>
+
+          {frame && (
+            <img
+              src={frame}
+              alt="Frame"
+              className="absolute inset-0 w-full h-full object-cover z-20 pointer-events-none"
+              onLoad={handleFrameLoad}
+              onError={handleFrameError}
+              crossOrigin="anonymous"
+            />
+          )}
+        </div>
       </div>
     </Card>
   );

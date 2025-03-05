@@ -2,8 +2,11 @@
 import { useState, useRef } from 'react';
 import { MemeCanvas, downloadMeme } from '@/components/meme/MemeCanvas';
 import { MemeControls } from '@/components/meme/MemeControls';
-import { TemplateSelector } from '@/components/meme/TemplateSelector';
-import { MemeTemplate } from '@/types/meme';
+import { FrameSelector } from '@/components/meme/FrameSelector';
+import { TextStyleControls } from '@/components/meme/TextStyleControls';
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
 
 export default function MemeGenerator() {
   // Meme text states
@@ -19,33 +22,29 @@ export default function MemeGenerator() {
   const [textStyle, setTextStyle] = useState('normal');
   const [gradient, setGradient] = useState('');
   
-  // Template states
-  const [selectedTemplate, setSelectedTemplate] = useState('https://imgflip.com/s/meme/Drake-Hotline-Bling.jpg');
+  // Frame states
+  const [selectedFrame, setSelectedFrame] = useState('');
+  const [selectedBackground, setSelectedBackground] = useState('#ffffff');
+
+  // Handle frame selection
+  const handleFrameSelect = (frame: string) => {
+    console.log("Frame selected:", frame);
+    setSelectedFrame(frame);
+  };
   
-  // Default meme templates
-  const defaultTemplates: MemeTemplate[] = [
-    { id: '1', name: 'Drake Hotline Bling', url: 'https://imgflip.com/s/meme/Drake-Hotline-Bling.jpg', width: 640, height: 640 },
-    { id: '2', name: 'Two Buttons', url: 'https://imgflip.com/s/meme/Two-Buttons.jpg', width: 600, height: 908 },
-    { id: '3', name: 'Distracted Boyfriend', url: 'https://imgflip.com/s/meme/Distracted-Boyfriend.jpg', width: 640, height: 454 },
-    { id: '4', name: 'Expanding Brain', url: 'https://imgflip.com/s/meme/Expanding-Brain.jpg', width: 640, height: 1200 },
-    { id: '5', name: 'Change My Mind', url: 'https://imgflip.com/s/meme/Change-My-Mind.jpg', width: 640, height: 602 },
-    { id: '6', name: 'Surprised Pikachu', url: 'https://imgflip.com/s/meme/Surprised-Pikachu.jpg', width: 640, height: 640 },
-  ];
-  
-  // Handle template selection
-  const handleTemplateSelect = (template: string) => {
-    console.log("Template selected:", template);
-    setSelectedTemplate(template);
+  // Handle background color change
+  const handleBackgroundChange = (color: string) => {
+    setSelectedBackground(color);
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 text-center">Meme Generator</h1>
+      <h1 className="text-3xl font-bold mb-8 text-center">Creative Studio</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2 space-y-8">
           <MemeCanvas 
-            template={selectedTemplate}
+            template=""
             topText={topText}
             bottomText={bottomText}
             font={font}
@@ -55,37 +54,73 @@ export default function MemeGenerator() {
             fontWeight={fontWeight}
             textStyle={textStyle}
             gradient={gradient}
-          />
-          
-          <TemplateSelector 
-            templates={defaultTemplates} 
-            selectedTemplate={selectedTemplate} 
-            onSelectTemplate={handleTemplateSelect} 
+            frame={selectedFrame}
+            backgroundColor={selectedBackground}
           />
         </div>
         
         <div>
-          <MemeControls 
-            topText={topText}
-            bottomText={bottomText}
-            setTopText={setTopText}
-            setBottomText={setBottomText}
-            font={font}
-            setFont={setFont}
-            fontSize={fontSize}
-            setFontSize={setFontSize}
-            fontColor={fontColor}
-            setFontColor={setFontColor}
-            strokeColor={strokeColor}
-            setStrokeColor={setStrokeColor}
-            onDownload={downloadMeme}
-            fontWeight={fontWeight}
-            setFontWeight={setFontWeight}
-            textStyle={textStyle}
-            setTextStyle={setTextStyle}
-            gradient={gradient}
-            setGradient={setGradient}
-          />
+          <Card className="p-4">
+            <Tabs defaultValue="text" className="w-full">
+              <TabsList className="grid grid-cols-3 mb-4">
+                <TabsTrigger value="text">Text</TabsTrigger>
+                <TabsTrigger value="style">Style</TabsTrigger>
+                <TabsTrigger value="frames">Frames</TabsTrigger>
+              </TabsList>
+              
+              <ScrollArea className="h-[70vh]">
+                <TabsContent value="text" className="mt-0">
+                  <MemeControls 
+                    topText={topText}
+                    bottomText={bottomText}
+                    setTopText={setTopText}
+                    setBottomText={setBottomText}
+                    font={font}
+                    setFont={setFont}
+                    fontSize={fontSize}
+                    setFontSize={setFontSize}
+                    fontColor={fontColor}
+                    setFontColor={setFontColor}
+                    strokeColor={strokeColor}
+                    setStrokeColor={setStrokeColor}
+                    onDownload={downloadMeme}
+                    fontWeight={fontWeight}
+                    setFontWeight={setFontWeight}
+                    textStyle={textStyle}
+                    setTextStyle={setTextStyle}
+                    gradient={gradient}
+                    setGradient={setGradient}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="style" className="mt-0">
+                  <TextStyleControls 
+                    font={font}
+                    setFont={setFont}
+                    fontSize={fontSize}
+                    setFontSize={setFontSize}
+                    fontColor={fontColor}
+                    setFontColor={setFontColor}
+                    fontWeight={fontWeight}
+                    setFontWeight={setFontWeight}
+                    textStyle={textStyle}
+                    setTextStyle={setTextStyle}
+                    gradient={gradient}
+                    setGradient={setGradient}
+                    backgroundColor={selectedBackground}
+                    setBackgroundColor={handleBackgroundChange}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="frames" className="mt-0">
+                  <FrameSelector 
+                    selectedFrame={selectedFrame}
+                    onSelectFrame={handleFrameSelect}
+                  />
+                </TabsContent>
+              </ScrollArea>
+            </Tabs>
+          </Card>
         </div>
       </div>
     </div>
