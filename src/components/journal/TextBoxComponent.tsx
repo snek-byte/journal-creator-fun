@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { TextBoxControls } from './TextBoxControls';
 import { TextBoxContent } from './TextBoxContent';
 import { getPrintStyles, setTransform, percentToPixels, pixelsToPercent } from '@/utils/textBoxUtils';
+import { GripHorizontal } from 'lucide-react';
 
 interface TextBoxComponentProps {
   textBox: TextBox;
@@ -353,18 +354,20 @@ export function TextBoxComponent({
         data-id={id}
         data-rotation={rotation || 0}
       >
-        {/* Drag handle overlay when not editing */}
-        {!isEditing && !isPrinting && (
+        {/* Drag handle bar - always visible */}
+        {!isPrinting && !isDrawingMode && (
           <div 
-            className="absolute inset-0 z-10 cursor-move"
+            className="absolute top-0 left-0 right-0 h-6 bg-primary/20 hover:bg-primary/40 flex items-center justify-center rounded-t-sm cursor-move z-20"
             onMouseDown={(e) => {
               if (!isEditing) {
                 e.stopPropagation();
-                console.log(`Overlay mousedown for box ${id}, selecting`);
+                console.log(`Drag handle mousedown for box ${id}, selecting`);
                 onSelect(id);
               }
             }}
-          />
+          >
+            <GripHorizontal size={16} className="text-primary-foreground" />
+          </div>
         )}
         
         <div 
@@ -396,6 +399,7 @@ export function TextBoxComponent({
             onKeyDown={handleKeyDown}
             textAreaRef={textAreaRef}
             isPrinting={isPrinting}
+            style={{ paddingTop: '8px' }} // Add padding for the drag handle
           />
         </div>
       </div>
