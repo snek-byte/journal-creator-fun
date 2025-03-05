@@ -29,36 +29,31 @@ export default function Write() {
       }
     );
 
-    // Load interact.js directly with the correct namespace
-    const loadInteractJs = () => {
-      if (window.interact) {
-        console.log('Interact.js already available in window');
-        setInteractJsLoaded(true);
-        return;
-      }
-
+    // Load interact.js with a simpler method to ensure it works
+    if (!window.interact) {
       const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js';
+      script.src = 'https://cdn.jsdelivr.net/npm/interactjs@1.10.17/dist/interact.min.js';
       script.async = true;
       script.onload = () => {
-        console.log('Interact.js loaded successfully from CDN');
+        console.log('interact.js loaded successfully');
         if (window.interact) {
           setInteractJsLoaded(true);
-          toast.success("Drag functionality is ready");
+          toast.success("Journal editor ready");
         } else {
           console.error('interact is not available after script load');
-          toast.error("Failed to initialize drag functionality");
+          toast.error("Failed to initialize the editor");
         }
       };
       script.onerror = () => {
         console.error('Failed to load interact.js script');
-        toast.error("Failed to load drag functionality");
+        toast.error("Failed to load editor components");
       };
       
-      document.head.appendChild(script);
-    };
-
-    loadInteractJs();
+      document.body.appendChild(script);
+    } else {
+      console.log('interact.js already available');
+      setInteractJsLoaded(true);
+    }
 
     return () => {
       subscription.unsubscribe();
@@ -74,7 +69,6 @@ export default function Write() {
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
             <p className="text-lg font-medium">Loading journal editor...</p>
-            <p className="text-sm text-muted-foreground">Setting up drag and drop functionality</p>
           </div>
         </div>
       )}
