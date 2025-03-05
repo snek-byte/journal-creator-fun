@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -63,7 +64,6 @@ interface JournalEditorSidebarProps {
   canRedo: boolean;
   isDrawingMode: boolean;
   onDrawingModeToggle: (enabled: boolean) => void;
-  onCreateTextBox: () => void;
 }
 
 export function JournalEditorSidebar({
@@ -106,8 +106,7 @@ export function JournalEditorSidebar({
   canUndo,
   canRedo,
   isDrawingMode,
-  onDrawingModeToggle,
-  onCreateTextBox
+  onDrawingModeToggle
 }: JournalEditorSidebarProps) {
   const [selectedTab, setSelectedTab] = useState('write');
   
