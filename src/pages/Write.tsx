@@ -29,52 +29,36 @@ export default function Write() {
       }
     );
 
-    // Load interact.js with a more robust approach
-    if (!document.getElementById('interactjs-script-global')) {
-      const script = document.createElement('script');
-      script.id = 'interactjs-script-global';
-      script.src = 'https://cdn.jsdelivr.net/npm/interactjs@1.10.17/dist/interact.min.js';
-      script.async = false;
-      script.defer = false;
-      
-      script.onload = () => {
-        console.log('Interact.js script loaded successfully');
+    // Load interact.js directly with the correct namespace
+    const loadInteractJs = () => {
+      if (window.interact) {
+        console.log('Interact.js already available in window');
         setInteractJsLoaded(true);
-        toast.success("Drag and resize functionality loaded");
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js';
+      script.async = true;
+      script.onload = () => {
+        console.log('Interact.js loaded successfully from CDN');
+        if (window.interact) {
+          setInteractJsLoaded(true);
+          toast.success("Drag functionality is ready");
+        } else {
+          console.error('interact is not available after script load');
+          toast.error("Failed to initialize drag functionality");
+        }
       };
-      
       script.onerror = () => {
-        console.error('Failed to load interact.js');
+        console.error('Failed to load interact.js script');
         toast.error("Failed to load drag functionality");
       };
       
       document.head.appendChild(script);
-      console.log('Interact.js script added to page');
-    } else {
-      // If script tag already exists, check if window.interact is available
-      if (window.interact) {
-        console.log('Interact.js already available');
-        setInteractJsLoaded(true);
-      } else {
-        // Poll for interact.js to become available
-        const checkInteract = setInterval(() => {
-          if (window.interact) {
-            console.log('Interact.js detected after polling');
-            setInteractJsLoaded(true);
-            clearInterval(checkInteract);
-          }
-        }, 100);
-        
-        // Clear interval after 5 seconds to prevent infinite polling
-        setTimeout(() => {
-          clearInterval(checkInteract);
-          if (!window.interact) {
-            console.error('Interact.js failed to load after polling');
-            toast.error("Drag functionality unavailable. Try refreshing the page.");
-          }
-        }, 5000);
-      }
-    }
+    };
+
+    loadInteractJs();
 
     return () => {
       subscription.unsubscribe();
