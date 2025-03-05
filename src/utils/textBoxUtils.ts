@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TextStyle } from '@/utils/unicodeTextStyles';
 
@@ -54,8 +53,11 @@ export const getTextStyles = (
   return styles;
 };
 
-// Helper to set element transform
+// Helper to set element transform with smooth transition
 export const setTransform = (element: HTMLElement, x: number, y: number, rotation: number = 0) => {
+  // Add a slight transition for smoother movements
+  element.style.transition = 'transform 0.05s ease';
+  
   const transform = `translate(${x}px, ${y}px) rotate(${rotation}deg)`;
   element.style.transform = transform;
   
@@ -63,6 +65,11 @@ export const setTransform = (element: HTMLElement, x: number, y: number, rotatio
   element.setAttribute('data-x', x.toString());
   element.setAttribute('data-y', y.toString());
   element.setAttribute('data-rotation', rotation.toString());
+  
+  // Remove transition after movement to prevent lag on next interaction
+  setTimeout(() => {
+    element.style.transition = '';
+  }, 60);
 };
 
 // Get print styles for text boxes

@@ -52,7 +52,7 @@ export function TextBoxContent({
   );
   
   // Merge with any additional style props
-  const mergedStyles = {
+  const mergedStyles: React.CSSProperties = {
     ...contentStyles,
     ...style,
     // Ensure these styles for proper interaction
@@ -71,7 +71,7 @@ export function TextBoxContent({
         onKeyDown={onKeyDown}
         onBlur={onBlur}
         style={mergedStyles}
-        className="text-box-content-edit w-full h-full resize-none focus:outline-none"
+        className="text-box-content-edit w-full h-full resize-none focus:outline-none p-2"
         placeholder="Enter text here..."
       />
     );
