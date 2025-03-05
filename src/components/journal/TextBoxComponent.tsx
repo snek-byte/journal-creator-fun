@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Rnd } from 'react-rnd';
@@ -6,6 +5,7 @@ import { TextBox } from '@/types/journal';
 import { applyTextStyle, TextStyle } from '@/utils/unicodeTextStyles';
 import { X, RotateCw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface TextBoxComponentProps {
   textBox: TextBox;
@@ -30,51 +30,25 @@ export function TextBoxComponent({
 }: TextBoxComponentProps) {
   const { id, text, position, width, height, font, fontSize, fontWeight, fontColor, gradient, textStyle, rotation, zIndex } = textBox;
   
-  // State
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(text || '');
   const [size, setSize] = useState({ width, height });
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
   const [isPrinting, setIsPrinting] = useState(false);
-  const [localPosition, setLocalPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
   
-  // Refs
-  const boxRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  const initializedRef = useRef(false);
   
-  // Print detection
-  useEffect(() => {
-    const handleBeforePrint = () => setIsPrinting(true);
-    const handleAfterPrint = () => setIsPrinting(false);
-    
-    window.addEventListener('beforeprint', handleBeforePrint);
-    window.addEventListener('afterprint', handleAfterPrint);
-    
-    return () => {
-      window.removeEventListener('beforeprint', handleBeforePrint);
-      window.removeEventListener('afterprint', handleAfterPrint);
-    };
-  }, []);
+  const { toast } = useToast();
   
-  // Container dimensions
   useEffect(() => {
     if (!containerRef.current) return;
     
     const updateDimensions = () => {
       if (containerRef.current) {
-        const newDimensions = {
+        setContainerDimensions({
           width: containerRef.current.offsetWidth,
           height: containerRef.current.offsetHeight
-        };
-        setContainerDimensions(newDimensions);
-        
-        if (!initializedRef.current) {
-          // Only set initial position once when dimensions are available
-          updateLocalPosition(newDimensions);
-          initializedRef.current = true;
-        }
+        });
       }
     };
     
@@ -90,7 +64,6 @@ export function TextBoxComponent({
     };
   }, [containerRef]);
   
-  // Sync with prop changes
   useEffect(() => {
     setEditValue(text || '');
   }, [text]);
@@ -99,54 +72,38 @@ export function TextBoxComponent({
     setSize({ width, height });
   }, [width, height]);
   
-  // Update local position when position prop changes or container dimensions change
-  const updateLocalPosition = (dimensions = containerDimensions) => {
-    if (!dimensions.width || !dimensions.height || isDragging) return;
+  useEffect(() => {
+    const handleBeforePrint = () => setIsPrinting(true);
+    const handleAfterPrint = () => setIsPrinting(false);
     
-    const x = (position.x / 100) * dimensions.width;
-    const y = (position.y / 100) * dimensions.height;
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
     
-    setLocalPosition({ x, y });
-  };
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+  }, []);
   
-  // Update position when container dimensions change (but not during drag)
-  useEffect(() => {
-    if (!isDragging && initializedRef.current) {
-      updateLocalPosition();
-    }
-  }, [containerDimensions, position]);
-  
-  // Update position when position prop changes (but not during drag)
-  useEffect(() => {
-    if (!isDragging && initializedRef.current) {
-      updateLocalPosition();
-    }
-  }, [position]);
-  
-  // Activate edit mode when the component becomes selected
-  useEffect(() => {
-    if (selected && !isDrawingMode && !isPrinting) {
-      // Add small delay before setting edit mode
-      const timer = setTimeout(() => {
-        setIsEditing(true);
-      }, 10);
-      return () => clearTimeout(timer);
-    }
-  }, [selected, isDrawingMode, isPrinting]);
-  
-  // Focus textarea when editing starts
   useEffect(() => {
     if (isEditing && textAreaRef.current) {
-      const timer = setTimeout(() => {
+      setTimeout(() => {
         if (textAreaRef.current) {
           textAreaRef.current.focus();
         }
       }, 10);
-      return () => clearTimeout(timer);
     }
   }, [isEditing]);
   
-  // Text styling
+  const calculatePosition = () => {
+    if (!containerDimensions.width || !containerDimensions.height) return { x: 0, y: 0 };
+    
+    const x = Math.min(95, Math.max(5, position.x)) / 100 * containerDimensions.width;
+    const y = Math.min(95, Math.max(5, position.y)) / 100 * containerDimensions.height;
+    
+    return { x, y };
+  };
+  
   const getTextStyles = (): React.CSSProperties => {
     const usingGradient = gradient && gradient !== '';
     
@@ -190,7 +147,6 @@ export function TextBoxComponent({
     return styles;
   };
   
-  // Apply text style
   const processText = (text: string) => {
     if (!text) return '';
     
@@ -201,7 +157,6 @@ export function TextBoxComponent({
     return text;
   };
   
-  // Event handlers
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setEditValue(e.target.value);
   };
@@ -210,6 +165,11 @@ export function TextBoxComponent({
     console.log(`TextBox ${id}: Saving text:`, editValue);
     setIsEditing(false);
     onUpdate(id, { text: editValue });
+    
+    toast({
+      title: "Text saved",
+      description: "Your text has been updated."
+    });
   };
   
   const handleBlur = () => {
@@ -221,23 +181,30 @@ export function TextBoxComponent({
   };
   
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Save on Ctrl+Enter or Cmd+Enter
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
       handleSaveText();
     }
     
-    // Cancel on Escape
     if (e.key === 'Escape') {
       e.preventDefault();
       setIsEditing(false);
-      setEditValue(text || ''); // Reset to original value
+      setEditValue(text || '');
     }
   };
   
-  const handleSelect = () => {
-    if (!selected) {
-      onSelect(id);
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (selected && !isEditing) {
+      setIsEditing(true);
+      return;
+    }
+    
+    onSelect(id);
+    
+    if (!isDrawingMode) {
+      setIsEditing(true);
     }
   };
   
@@ -254,31 +221,21 @@ export function TextBoxComponent({
   };
   
   const handleDragStart = () => {
-    setIsDragging(true);
-    handleSelect();
+    if (!isEditing) {
+      onSelect(id);
+    }
   };
   
   const handleDragStop = (e: any, d: any) => {
     if (isEditing) return;
     
-    // First update the local position for immediate UI feedback
-    setLocalPosition({ x: d.x, y: d.y });
-    
-    // Convert pixel position to percentage
     const containerWidth = containerDimensions.width || 1;
     const containerHeight = containerDimensions.height || 1;
     
-    // Calculate percentage position with bounds
     const xPercent = Math.min(95, Math.max(5, (d.x / containerWidth) * 100));
     const yPercent = Math.min(95, Math.max(5, (d.y / containerHeight) * 100));
     
-    // Update the text box position through parent component
     onUpdate(id, { position: { x: xPercent, y: yPercent } });
-    
-    // End dragging state
-    setTimeout(() => {
-      setIsDragging(false);
-    }, 0);
   };
   
   const handleStopResize = (e: any, direction: any, ref: HTMLDivElement, delta: any) => {
@@ -289,13 +246,10 @@ export function TextBoxComponent({
     onUpdate(id, { width: newWidth, height: newHeight });
   };
   
-  // Display empty text for new boxes
-  const displayText = isPrinting ? (text || '') : (processText(text || ''));
+  const displayText = isPrinting ? (text || '') : (processText(text || '') || 'Tap to edit');
   
-  // Controls visibility
   const showControls = selected && !isEditing && !isPrinting && !isDrawingMode;
   
-  // Print styles
   const printStyles = `
     @media print {
       .text-box-controls { display: none !important; }
@@ -315,15 +269,15 @@ export function TextBoxComponent({
           cursor: isEditing ? 'text' : 'pointer'
         }}
         size={{ width: size.width, height: size.height }}
-        position={localPosition}
+        position={calculatePosition()}
         onDragStart={handleDragStart}
         onDragStop={handleDragStop}
         onResizeStop={handleStopResize}
         bounds="parent"
         enableResizing={selected && !isEditing && !isPrinting && !isDrawingMode}
         disableDragging={isEditing || isPrinting || isDrawingMode}
-        onMouseDown={handleSelect}
-        onTouchStart={handleSelect}
+        onMouseDown={handleClick}
+        onTouchStart={handleClick}
       >
         <div 
           className={cn(
@@ -332,10 +286,8 @@ export function TextBoxComponent({
             !selected && !isPrinting && !isDrawingMode ? "hover:ring-1 hover:ring-gray-300" : ""
           )}
         >
-          {/* Controls - only shown when selected and not editing */}
           {showControls && (
             <>
-              {/* Delete button */}
               <button
                 className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg z-10 text-box-controls"
                 onClick={handleDelete}
@@ -344,7 +296,6 @@ export function TextBoxComponent({
                 <X size={14} />
               </button>
               
-              {/* Rotate button */}
               <div className="absolute -top-2 -left-2 flex gap-1 text-box-controls">
                 <button
                   className="bg-primary text-primary-foreground hover:bg-primary/90 p-1 rounded-full"
@@ -357,9 +308,7 @@ export function TextBoxComponent({
             </>
           )}
           
-          {/* Text content - either editing or display mode */}
           {isEditing ? (
-            // Edit mode - textarea
             <Textarea
               ref={textAreaRef}
               value={editValue}
@@ -369,10 +318,8 @@ export function TextBoxComponent({
               className="w-full h-full resize-none border-none focus-visible:ring-0 focus-visible:outline-none p-2"
               style={{ ...getTextStyles(), border: 'none' }}
               autoFocus
-              placeholder="Type here..."
             />
           ) : (
-            // View mode - display text
             <div
               className="w-full h-full whitespace-pre-wrap overflow-hidden flex items-center justify-center"
             >
