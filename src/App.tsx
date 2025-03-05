@@ -1,5 +1,5 @@
 
-import { ToastProvider, Toast } from "@/components/ui/toast";
+import { ToastProvider, ToastViewport, Toast } from "@/components/ui/toast";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -24,16 +24,18 @@ const App = () => {
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <Routes>
-            <Route path="/" element={<Write />} />
-            <Route path="/index" element={<Navigate to="/" replace />} />
-            <Route path="/write" element={<Write />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toast />
-          <Toaster />
+          <ToastProvider>
+            <Routes>
+              <Route path="/" element={<Write />} />
+              <Route path="/index" element={<Navigate to="/" replace />} />
+              <Route path="/write" element={<Write />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <ToastViewport />
+            <Toaster />
+          </ToastProvider>
         </TooltipProvider>
       </QueryClientProvider>
     </BrowserRouter>
