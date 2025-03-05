@@ -188,7 +188,7 @@ export function TextBoxComponent({
         disableDragging={isEditing || isPrinting || isDrawingMode}
         onMouseDown={handleSelect}
         onTouchStart={handleSelect}
-        dragHandleClassName={isEditing ? undefined : "drag-handle"}
+        className="drag-handle"
       >
         <div 
           className={cn(

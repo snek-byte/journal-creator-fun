@@ -43,17 +43,14 @@ export function useTextBoxPosition(
   // Convert percentage position to pixels
   useEffect(() => {
     if (containerDimensions.width && containerDimensions.height && position) {
-      console.log(`Converting position ${position.x}%, ${position.y}% to pixels in container ${containerDimensions.width}x${containerDimensions.height}`);
       const pixelX = (position.x / 100) * containerDimensions.width;
       const pixelY = (position.y / 100) * containerDimensions.height;
-      console.log(`Setting local position to ${pixelX}, ${pixelY}`);
       setLocalPosition({ x: pixelX, y: pixelY });
     }
   }, [position, containerDimensions]);
 
   // Handle drag start
   const handleDragStart = (callback: () => void) => {
-    console.log(`Starting drag for textbox`);
     setIsDragging(true);
     callback();
   };
@@ -63,8 +60,6 @@ export function useTextBoxPosition(
     d: { x: number; y: number },
     onUpdate: (updates: { position: { x: number; y: number } }) => void
   ) => {
-    console.log(`Drag stop at position: x=${d.x}, y=${d.y}`);
-    
     // First update the local position for immediate UI feedback
     setLocalPosition({ x: d.x, y: d.y });
     
@@ -75,8 +70,6 @@ export function useTextBoxPosition(
     // Calculate percentage position based on container dimensions
     const xPercent = Math.max(0, Math.min(100, (d.x / containerWidth) * 100));
     const yPercent = Math.max(0, Math.min(100, (d.y / containerHeight) * 100));
-    
-    console.log(`Converting to percentage: x=${xPercent}%, y=${yPercent}%`);
     
     // Update the text box position through parent component
     onUpdate({ position: { x: xPercent, y: yPercent } });

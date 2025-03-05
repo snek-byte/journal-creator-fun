@@ -8,7 +8,6 @@ import { TextBoxComponent } from './TextBoxComponent';
 import { useScreenshot } from 'use-react-screenshot';
 import type { Icon } from '@/types/journal';
 import { applyTextStyle, TextStyle } from '@/utils/unicodeTextStyles';
-import { toast } from "sonner";
 import { Plus } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -121,7 +120,6 @@ export function JournalPreview({
     }
   }, [drawing]);
 
-  // Detect print mode
   useEffect(() => {
     const handleBeforePrint = () => {
       setIsPrinting(true);
@@ -145,7 +143,7 @@ export function JournalPreview({
     boxShadow: '0 0 20px rgba(0, 0, 0, 0.1)',
     borderRadius: '8px', 
     width: '100%',
-    minHeight: '600px', // Provide a minimum height
+    minHeight: '600px',
     position: 'relative' as 'relative',
     overflow: 'hidden',
     margin: '20px 0',
@@ -529,7 +527,6 @@ export function JournalPreview({
     
     onTextBoxAdd(newTextBox);
     handleTextBoxSelect(newTextBox.id);
-    toast.success("New text box added");
   };
 
   const printStyles = `
