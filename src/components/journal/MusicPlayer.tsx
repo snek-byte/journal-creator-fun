@@ -11,12 +11,14 @@ import {
   VolumeX, 
   Music, 
   UploadCloud,
-  Loader2
+  Loader2,
+  AlertCircle
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from 'uuid';
 import type { AudioTrack } from '@/types/journal';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface MusicPlayerProps {
   audioTrack?: AudioTrack;
@@ -296,12 +298,17 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
         
         <div className="text-sm font-medium truncate">
           {trackName || 'No track selected'}
-          {audioError && (
-            <span className="text-xs text-red-500 ml-2">
-              (Error: {audioError})
-            </span>
-          )}
         </div>
+        
+        {audioError && (
+          <Alert variant="destructive" className="py-2">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle className="text-sm">Audio Error</AlertTitle>
+            <AlertDescription className="text-xs">
+              {audioError}. Try uploading your own audio file.
+            </AlertDescription>
+          </Alert>
+        )}
         
         <div className="flex items-center space-x-2">
           <span className="text-xs">{formatTime(currentTime)}</span>
