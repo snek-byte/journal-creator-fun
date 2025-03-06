@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { JournalEntry, Challenge, Mood, Sticker, Icon, TextBox, AudioTrack, Badge, Progress } from '@/types/journal';
+import type { JournalEntry, Challenge, Mood, Sticker, Icon, TextBox, AudioTrack } from '@/types/journal';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-interface Badge {
+interface BadgeType {
   id: string;
   name: string;
   description: string;
@@ -13,7 +13,7 @@ interface Badge {
   type: 'streak' | 'entries' | 'challenges';
 }
 
-interface UserProgress {
+interface UserProgressType {
   totalXp: number;
   currentStreak: number;
   longestStreak: number;
@@ -46,8 +46,8 @@ interface JournalState {
   };
   entries: JournalEntry[];
   dailyChallenge: Challenge | null;
-  badges: Badge[];
-  progress: UserProgress;
+  badges: BadgeType[];
+  progress: UserProgressType;
   showPreview: boolean;
   setText: (text: string) => void;
   setFont: (font: string) => void;

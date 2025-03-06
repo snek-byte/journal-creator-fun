@@ -111,10 +111,9 @@ export interface AudioTrack {
   url: string;
   volume: number;
   isPlaying: boolean;
-  category?: string; // Adding category property for SoundMixer
+  category?: string;
 }
 
-// Add the missing types
 export type StickerSource = 'decorative' | 'nature' | 'food';
 
 export interface Badge {
