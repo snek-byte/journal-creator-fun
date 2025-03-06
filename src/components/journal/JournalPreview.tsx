@@ -178,6 +178,26 @@ export function JournalPreview({
     }
   };
 
+  // Fix: Properly handle textBox updates
+  const handleTextBoxUpdateFix = (id: string, updates: Partial<TextBox>) => {
+    onTextBoxUpdate(id, updates);
+  };
+
+  // Fix: Properly handle icon position updates
+  const handleIconMoveFix = (id: string, position: { x: number, y: number }) => {
+    onIconMove(id, position);
+  };
+
+  // Fix: Properly handle icon property updates
+  const handleIconUpdateFix = (id: string, updates: Partial<Icon>) => {
+    onIconUpdate(id, updates);
+  };
+
+  // Fix: Properly handle sticker position updates
+  const handleStickerMoveFix = (id: string, position: { x: number, y: number }) => {
+    onStickerMove(id, position);
+  };
+
   return (
     <div
       className={`flex-1 w-full ${showPreview ? 'flex' : 'hidden'} flex-col justify-center items-center p-4 overflow-hidden relative bg-gray-100`}
@@ -224,7 +244,7 @@ export function JournalPreview({
             textBox={textBox}
             selected={textBox.id === selectedTextBoxId}
             containerRef={containerRef}
-            onUpdate={(updates) => onTextBoxUpdate(textBox.id, updates)}
+            onUpdate={(updates) => handleTextBoxUpdateFix(textBox.id, updates)}
             onRemove={() => onTextBoxRemove(textBox.id)}
             onSelect={() => onTextBoxSelect(textBox.id)}
             isDrawingMode={isDrawingMode}
@@ -237,7 +257,7 @@ export function JournalPreview({
             sticker={sticker}
             selected={sticker.id === selectedStickerId}
             containerRef={containerRef}
-            onMove={(position) => onStickerMove(sticker.id, position)}
+            onMove={(position) => handleStickerMoveFix(sticker.id, position)}
             onSelect={() => onStickerSelect(sticker.id)}
           />
         ))}
@@ -248,8 +268,8 @@ export function JournalPreview({
             icon={icon}
             selected={icon.id === selectedIconId}
             containerRef={containerRef}
-            onMove={(position) => onIconMove(icon.id, position)}
-            onUpdate={(updates) => onIconUpdate(icon.id, updates)}
+            onMove={(position) => handleIconMoveFix(icon.id, position)}
+            onUpdate={(updates) => handleIconUpdateFix(icon.id, updates)}
             onSelect={() => onIconSelect(icon.id)}
           />
         ))}
