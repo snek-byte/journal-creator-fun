@@ -8,7 +8,7 @@ import { Upload, Download, Image, RotateCw, RotateCcw, ZoomIn, ZoomOut, Trash } 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import FrameTemplateSelector from "@/components/meme/FrameTemplateSelector";
-import { applyFrameToImage } from "@/utils/frameUtils";
+import { applyFrameWithClaidApi } from "@/utils/claidApi";
 
 export default function MemeGenerator() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -63,7 +63,9 @@ export default function MemeGenerator() {
     
     try {
       setIsGenerating(true);
-      const compositeImage = await applyFrameToImage(selectedImage, selectedFrame, scale, rotation);
+      
+      // Use the new Claid API utility
+      const compositeImage = await applyFrameWithClaidApi(selectedImage, selectedFrame);
       
       // Create a temporary link to download the image
       const link = document.createElement('a');

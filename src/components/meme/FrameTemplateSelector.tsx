@@ -120,27 +120,27 @@ export default function FrameTemplateSelector({ onSelect, selectedFrame }: Frame
   // Function to calculate correct positioning for the preview image inside each frame
   const getFramePreviewStyle = (framePath: string): CSSProperties => {
     // Different frames need different padding for the preview image
+    // These values ensure the preview content (placeholder gray box) fits nicely within the frame
     if (framePath.includes('shadow-box')) {
-      // Shadow box needs a specifically positioned preview
       return { 
         margin: '0',
-        width: '60%', 
-        height: '60%',
-        position: 'absolute' as const, // Type assertion needed for position
-        top: '20%',
-        left: '20%'
+        width: '70%', 
+        height: '70%',
+        position: 'absolute' as const,
+        top: '15%',
+        left: '15%'
       };
     } else if (framePath.includes('polaroid')) {
-      return { margin: '20% 15% 35% 15%' }; // Polaroid has more padding at bottom
+      return { margin: '10% 10% 30% 10%' }; // Polaroid has more padding at bottom
     } else if (framePath.includes('taped')) {
-      return { margin: '22%' }; // Taped frame
+      return { margin: '15%' }; // Taped frame
     } else if (framePath.includes('photo-frame')) {
-      return { margin: '15%' }; // Photo frame
+      return { margin: '12%' }; // Photo frame
     } else if (framePath.includes('rounded') || framePath.includes('basic-border')) {
-      return { margin: '10%' }; // Simple frames
+      return { margin: '8%' }; // Simple frames
     }
     // Default for other frames
-    return { margin: '18%' };
+    return { margin: '12%' };
   };
   
   return (
@@ -160,7 +160,7 @@ export default function FrameTemplateSelector({ onSelect, selectedFrame }: Frame
               >
                 <div className="aspect-square bg-gray-50 rounded flex items-center justify-center overflow-hidden">
                   <div className="relative w-full h-full flex items-center justify-center">
-                    {/* Sample image square that properly fits inside the frame */}
+                    {/* Sample image square that fits inside the frame */}
                     <div 
                       className="absolute bg-gray-300 rounded-sm"
                       style={getFramePreviewStyle(frame)}
