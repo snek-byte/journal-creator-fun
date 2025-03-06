@@ -1,9 +1,11 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
-import html2canvas from 'html2canvas';
-import { X } from 'lucide-react';
 import { FramedImage } from './FramedImage';
+import { MemeText } from './MemeText';
+import { RemoveButton } from './RemoveButton';
+import { MemeCanvasPlaceholder } from './MemeCanvasPlaceholder';
+import { downloadMemeAsImage } from '@/utils/memeUtils';
 
 interface MemeCanvasProps {
   template: string;
@@ -49,25 +51,6 @@ export function MemeCanvas({
     console.log("MemeCanvas received frame:", frame || "No frame");
   }, [template, frame]);
 
-  const textStyle1 = {
-    fontFamily: font,
-    fontSize: `${fontSize}px`,
-    fontWeight: fontWeight as any,
-    color: fontColor,
-    textStroke: `2px ${strokeColor}`,
-    WebkitTextStroke: `2px ${strokeColor}`,
-    textAlign: 'center' as const,
-    textTransform: 'uppercase' as const,
-    wordBreak: 'break-word' as const,
-    padding: '0 10px',
-    fontStyle: textStyle?.includes('italic') ? 'italic' : 'normal',
-    textDecoration: textStyle?.includes('underline') ? 'underline' : 'none',
-    background: gradient || 'transparent',
-    WebkitBackgroundClip: gradient ? 'text' : 'border-box',
-    WebkitTextFillColor: gradient ? 'transparent' : fontColor,
-    backgroundClip: gradient ? 'text' : 'border-box'
-  };
-
   const handleImageLoadSuccess = (dimensions: { width: number, height: number }) => {
     setImageLoaded(true);
     setImageError(false);
@@ -97,33 +80,9 @@ export function MemeCanvas({
     }
   };
 
-  const downloadMeme = async () => {
-    if (!canvasRef.current) {
-      console.error("Canvas not ready");
-      return;
-    }
-
-    try {
-      console.log("Starting to generate image");
-      const canvas = await html2canvas(canvasRef.current, {
-        allowTaint: true,
-        useCORS: true,
-        logging: false,
-        backgroundColor: null,
-      });
-
-      const link = document.createElement('a');
-      link.download = 'my-creation.png';
-      link.href = canvas.toDataURL('image/png');
-      console.log("Image generated successfully, downloading");
-      link.click();
-    } catch (error) {
-      console.error("Error generating image:", error);
-    }
-  };
-
+  // Set up global download function
   useEffect(() => {
-    (window as any).downloadMeme = downloadMeme;
+    (window as any).downloadMeme = () => downloadMemeAsImage(canvasRef);
     return () => {
       delete (window as any).downloadMeme;
     };
@@ -145,7 +104,6 @@ export function MemeCanvas({
           }}
           onClick={handleCanvasClick}
         >
-          {/* Background color and template image with frame */}
           {template ? (
             <div className="absolute inset-0">
               <FramedImage
@@ -156,43 +114,36 @@ export function MemeCanvas({
                 onError={handleImageLoadError}
               />
               
-              <button 
-                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors z-50"
-                onClick={handleBackgroundRemove}
-                title="Remove background"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <RemoveButton onRemove={handleBackgroundRemove} />
             </div>
           ) : (
-            <>
-              {/* Background color layer when no image */}
-              <div 
-                className="absolute inset-0"
-                style={{ backgroundColor: backgroundColor || '#ffffff' }}
-              />
-
-              {/* Placeholder if no image */}
-              <div className="absolute inset-0 flex items-center justify-center cursor-pointer z-10">
-                <p className="text-gray-400 text-center p-4">Click to add your photo</p>
-              </div>
-            </>
+            <MemeCanvasPlaceholder backgroundColor={backgroundColor} />
           )}
 
-          {/* Text layers - positioned above everything else */}
-          <div
-            className="absolute top-0 left-0 right-0 flex items-start justify-center pt-4 z-40"
-            style={textStyle1}
-          >
-            {topText}
-          </div>
+          {/* Text layers */}
+          <MemeText 
+            text={topText}
+            position="top"
+            font={font}
+            fontSize={fontSize}
+            fontColor={fontColor}
+            strokeColor={strokeColor}
+            fontWeight={fontWeight}
+            textStyle={textStyle}
+            gradient={gradient}
+          />
           
-          <div
-            className="absolute bottom-0 left-0 right-0 flex items-end justify-center pb-4 z-40"
-            style={textStyle1}
-          >
-            {bottomText}
-          </div>
+          <MemeText 
+            text={bottomText}
+            position="bottom"
+            font={font}
+            fontSize={fontSize}
+            fontColor={fontColor}
+            strokeColor={strokeColor}
+            fontWeight={fontWeight}
+            textStyle={textStyle}
+            gradient={gradient}
+          />
         </div>
       </div>
     </Card>
