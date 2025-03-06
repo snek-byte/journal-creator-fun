@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -32,7 +31,6 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Initialize component state from props
   useEffect(() => {
     if (audioTrack) {
       setVolume(audioTrack.volume || 50);
@@ -42,15 +40,12 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
     }
   }, [audioTrack]);
 
-  // Handle current active track audio element
   useEffect(() => {
     if (audioRef.current && audioTrack?.url) {
-      // Set audio properties
       audioRef.current.src = audioTrack.url;
       audioRef.current.volume = volume / 100;
       audioRef.current.loop = true;
       
-      // Handle play/pause state
       if (isPlaying) {
         console.log("Attempting to play audio in SoundMixer:", audioTrack.url);
         const playPromise = audioRef.current.play();
@@ -63,7 +58,6 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
             setIsPlaying(false);
             setLoadError("Couldn't play audio. Try another sound.");
             
-            // Update the store to reflect that playing failed
             onAudioChange({
               ...audioTrack,
               playing: false
@@ -76,7 +70,6 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
     }
   }, [isPlaying, volume, audioTrack?.url, audioTrack]);
 
-  // Handle preview sound
   useEffect(() => {
     if (previewAudioRef.current && previewSound) {
       previewAudioRef.current.src = previewSound.url;
@@ -100,19 +93,16 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
     }
   }, [previewSound]);
 
-  // Handle audio loading
   const handleAudioLoaded = () => {
     console.log("Audio loaded successfully in mixer:", audioTrack?.name);
     setLoadError(null);
   };
 
-  // Handle audio errors
   const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
     console.error("Audio error in mixer:", e);
     setLoadError("Error loading audio. Try another sound.");
     setIsPlaying(false);
     
-    // Update store to reflect the error
     if (audioTrack) {
       onAudioChange({
         ...audioTrack,
@@ -179,7 +169,6 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
   const handleSoundSelect = (sound: AudioTrack) => {
     console.log("Selected sound:", sound);
     setLoadError(null);
-    // Create a new copy of the sound to ensure state updates are recognized
     const newAudioTrack: AudioTrack = {
       ...sound,
       id: sound.id || uuidv4(),
@@ -210,7 +199,6 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
     return <Volume2 className="h-4 w-4" />;
   };
 
-  // Main render
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -220,10 +208,9 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
         </h3>
       </div>
       
-      {/* Current audio track controls */}
       <audio ref={audioRef} onLoadedData={handleAudioLoaded} onError={handleAudioError} />
       
-      {audio?.url ? (
+      {audioTrack?.url ? (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
@@ -288,7 +275,6 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
 
       <Separator className="my-2" />
       
-      {/* Sound library */}
       <Tabs defaultValue="ambient" value={selectedCategory} onValueChange={setSelectedCategory}>
         <TabsList className="grid grid-cols-2 mb-2">
           {soundCategories.map(category => (
@@ -297,7 +283,6 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
         </TabsList>
         
         <ScrollArea className="h-36 border rounded-md p-1">
-          {/* Audio element for previews */}
           <audio ref={previewAudioRef} />
           
           {publicDomainSounds
@@ -349,7 +334,6 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
         </ScrollArea>
       </Tabs>
       
-      {/* Upload section */}
       <div className="flex flex-col gap-2 mt-4">
         <p className="text-xs text-muted-foreground">Or upload your own audio file</p>
         <Button 
