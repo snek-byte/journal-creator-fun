@@ -1,4 +1,3 @@
-
 import { useState, useEffect, CSSProperties } from 'react';
 import { cn } from "@/lib/utils";
 
@@ -117,10 +116,9 @@ export default function FrameTemplateSelector({ onSelect, selectedFrame }: Frame
     return framePath.split('/').pop()?.replace('.svg', '').replace(/-/g, ' ') || '';
   };
   
-  // Function to calculate correct positioning for the preview image inside each frame
+  // Updated function to calculate correct positioning for the preview image inside each frame
   const getFramePreviewStyle = (framePath: string): CSSProperties => {
     // Different frames need different padding for the preview image
-    // These values ensure the preview content (placeholder gray box) fits nicely within the frame
     if (framePath.includes('shadow-box')) {
       return { 
         margin: '0',
@@ -128,19 +126,51 @@ export default function FrameTemplateSelector({ onSelect, selectedFrame }: Frame
         height: '70%',
         position: 'absolute' as const,
         top: '15%',
-        left: '15%'
+        left: '15%',
+        borderRadius: '4px'
       };
     } else if (framePath.includes('polaroid')) {
-      return { margin: '10% 10% 30% 10%' }; // Polaroid has more padding at bottom
+      return { 
+        margin: '10% 10% 30% 10%',
+        borderRadius: '0'
+      }; 
     } else if (framePath.includes('taped')) {
-      return { margin: '15%' }; // Taped frame
+      return { 
+        margin: '15%',
+        borderRadius: '0'
+      }; 
     } else if (framePath.includes('photo-frame')) {
-      return { margin: '12%' }; // Photo frame
-    } else if (framePath.includes('rounded') || framePath.includes('basic-border')) {
-      return { margin: '8%' }; // Simple frames
+      return { 
+        margin: '12%',
+        borderRadius: '0'
+      }; 
+    } else if (framePath.includes('rounded')) {
+      return { 
+        margin: '8%',
+        borderRadius: '8px'
+      }; 
+    } else if (framePath.includes('basic-border')) {
+      return { 
+        margin: '8%',
+        borderRadius: '0'
+      }; 
+    } else if (framePath.includes('circular')) {
+      return { 
+        margin: '15%',
+        borderRadius: '50%'
+      };
+    } else if (framePath.includes('hexagon')) {
+      return { 
+        margin: '15%',
+        clipPath: 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)'
+      };
     }
+    
     // Default for other frames
-    return { margin: '12%' };
+    return { 
+      margin: '12%',
+      borderRadius: '2px'
+    };
   };
   
   return (

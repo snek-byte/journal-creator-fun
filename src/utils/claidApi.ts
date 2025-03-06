@@ -4,6 +4,10 @@
  * for professional image framing and editing
  */
 
+// Define the Claid API key - in a real app, this would be an environment variable
+// For demo purposes, we'll use a placeholder
+const CLAID_API_KEY = 'YOUR_CLAID_API_KEY'; // Replace with actual API key in production
+
 // Function to call Claid.ai API to apply a frame to an image
 export const applyFrameWithClaidApi = async (
   imageDataUrl: string,
@@ -20,32 +24,35 @@ export const applyFrameWithClaidApi = async (
     // Extract frame type from the path for API parameters
     const frameType = getFrameTypeFromPath(framePath);
     
-    // Add frame parameters
-    formData.append('frame', frameType);
-    formData.append('auto_fit', 'true');
+    console.log(`Applying frame: ${frameType} to image using Claid API`);
     
-    // This would be the actual API call in production
-    // For now, we'll use a mock response since we don't have an actual API key
-    // In production, you would use:
-    /*
-    const response = await fetch('https://api.claid.ai/v1/image/edit', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${CLAID_API_KEY}`,
-      },
-      body: formData
-    });
-    
-    const data = await response.blob();
-    return URL.createObjectURL(data);
-    */
-    
-    // For now, use our existing canvas-based approach as a fallback
-    // This should be replaced with the actual API call when ready
-    console.log('Using Canvas fallback method until Claid API is fully integrated');
-    return await useFallbackCanvasMethod(imageDataUrl, framePath);
+    // Make the actual API call to Claid.ai
+    try {
+      const response = await fetch('https://api.claid.ai/v1/image/edit', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${CLAID_API_KEY}`,
+          // No Content-Type header when using FormData
+        },
+        body: formData
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Claid API error:', errorText);
+        throw new Error(`Claid API responded with status: ${response.status}`);
+      }
+      
+      // Get the processed image as a blob
+      const resultBlob = await response.blob();
+      return URL.createObjectURL(resultBlob);
+    } catch (apiError) {
+      console.error('Error calling Claid API:', apiError);
+      console.log('Falling back to canvas method...');
+      return await useFallbackCanvasMethod(imageDataUrl, framePath);
+    }
   } catch (error) {
-    console.error('Error applying frame with Claid API:', error);
+    console.error('Error in applyFrameWithClaidApi:', error);
     throw error;
   }
 };
@@ -71,7 +78,7 @@ const getFrameTypeFromPath = (framePath: string): string => {
   const frameName = framePath.split('/').pop()?.replace('.svg', '') || '';
   
   // Map our frame names to Claid frame types
-  // These would need to be adjusted based on the actual Claid API options
+  // These mappings should be adjusted based on available Claid API options
   const frameMapping: Record<string, string> = {
     'basic-border': 'simple',
     'rounded': 'rounded',
@@ -80,13 +87,44 @@ const getFrameTypeFromPath = (framePath: string): string => {
     'polaroid': 'polaroid',
     'vintage': 'vintage',
     'neon': 'neon',
-    // Add more mappings as needed
+    'wave': 'wave',
+    'ribbon-box': 'ribbon',
+    'social-media': 'social',
+    'zigzag': 'zigzag',
+    'taped': 'taped',
+    'torn-paper': 'torn',
+    'puzzle': 'puzzle',
+    'triangle-pattern': 'triangle',
+    'watercolor': 'watercolor',
+    'scalloped': 'scalloped',
+    'dashed-box': 'dashed',
+    'dotted': 'dotted',
+    'circular': 'circular',
+    'double-box': 'double',
+    'minimalist': 'minimal',
+    'layered-box': 'layered',
+    'grunge': 'grunge',
+    'box-corners': 'corners',
+    'comic': 'comic',
+    'hexagon': 'hexagon',
+    'geometric': 'geometric',
+    'birthday': 'birthday',
+    'abstract': 'abstract',
+    'instant-photo': 'instant',
+    'certificate': 'certificate',
+    'art-deco': 'artdeco',
+    'landscape': 'landscape',
+    'grid-box': 'grid',
+    'floral': 'floral',
+    'collage': 'collage',
+    'fancy-box': 'fancy',
+    'pixel': 'pixel',
   };
   
   return frameMapping[frameName] || 'simple';
 };
 
-// Fallback method using canvas (our current implementation)
+// Improved fallback method using canvas
 const useFallbackCanvasMethod = async (
   imageDataUrl: string,
   framePath: string
@@ -115,42 +153,45 @@ const useFallbackCanvasMethod = async (
         canvas.width = frame.width;
         canvas.height = frame.height;
         
-        // Fill with white background
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Fill with transparent background
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         // Load the base image
         const img = new Image();
         img.crossOrigin = 'anonymous';
         
         img.onload = () => {
-          // Draw the frame first
-          ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+          // Calculate frame inset percentage based on the frame type
+          let insetPercentage = 0.1; // Default 10% inset
           
-          // Calculate the clipping area based on the frame
-          let clipX, clipY, clipWidth, clipHeight;
-          
-          // Different frames have different clipping areas
           if (framePath.includes('shadow-box')) {
-            // Shadow box needs specific clipping
-            clipX = canvas.width * 0.15;
-            clipY = canvas.height * 0.15;
-            clipWidth = canvas.width * 0.7;
-            clipHeight = canvas.height * 0.7;
+            insetPercentage = 0.15; // 15% inset for shadow box
           } else if (framePath.includes('polaroid')) {
-            clipX = canvas.width * 0.1; 
-            clipY = canvas.width * 0.1;
-            clipWidth = canvas.width * 0.8;
-            clipHeight = canvas.height * 0.7; // Polaroid has more space at bottom
-          } else {
-            // Default clipping area
-            clipX = canvas.width * 0.1;
-            clipY = canvas.height * 0.1;
-            clipWidth = canvas.width * 0.8;
-            clipHeight = canvas.height * 0.8;
+            insetPercentage = { top: 0.1, right: 0.1, bottom: 0.3, left: 0.1 }; // Polaroid has more space at bottom
+          } else if (framePath.includes('taped')) {
+            insetPercentage = 0.15; // 15% for taped photos
+          } else if (framePath.includes('photo-frame')) {
+            insetPercentage = 0.12; // 12% for photo frames
           }
           
-          // Save the canvas state for clipping
+          // Calculate the clipping area based on the frame and inset percentage
+          let clipX, clipY, clipWidth, clipHeight;
+          
+          if (typeof insetPercentage === 'object') {
+            // Handle non-uniform insets (like polaroid)
+            clipX = canvas.width * insetPercentage.left;
+            clipY = canvas.height * insetPercentage.top;
+            clipWidth = canvas.width * (1 - insetPercentage.left - insetPercentage.right);
+            clipHeight = canvas.height * (1 - insetPercentage.top - insetPercentage.bottom);
+          } else {
+            // Uniform insets on all sides
+            clipX = canvas.width * insetPercentage;
+            clipY = canvas.height * insetPercentage;
+            clipWidth = canvas.width * (1 - 2 * insetPercentage);
+            clipHeight = canvas.height * (1 - 2 * insetPercentage);
+          }
+          
+          // Save the canvas state before clipping
           ctx.save();
           
           // Create a clipping path
@@ -158,20 +199,20 @@ const useFallbackCanvasMethod = async (
           ctx.rect(clipX, clipY, clipWidth, clipHeight);
           ctx.clip();
           
-          // Calculate image scaling to fit the clipping area
+          // Calculate image scaling to fit the clipping area while maintaining aspect ratio
           const imgRatio = img.width / img.height;
           const clipRatio = clipWidth / clipHeight;
           
           let drawWidth, drawHeight, offsetX, offsetY;
           
           if (imgRatio > clipRatio) {
-            // Image is wider - scale by height
+            // Image is wider - scale by height and center horizontally
             drawHeight = clipHeight;
             drawWidth = drawHeight * imgRatio;
             offsetX = clipX + (clipWidth - drawWidth) / 2;
             offsetY = clipY;
           } else {
-            // Image is taller - scale by width
+            // Image is taller - scale by width and center vertically
             drawWidth = clipWidth;
             drawHeight = drawWidth / imgRatio;
             offsetX = clipX;
@@ -181,8 +222,11 @@ const useFallbackCanvasMethod = async (
           // Draw the image within the clipping path
           ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
           
-          // Restore canvas state
+          // Restore canvas state (removes clipping)
           ctx.restore();
+          
+          // Now draw the frame on top
+          ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
           
           // Get the final composite image
           const compositeImage = canvas.toDataURL('image/png');

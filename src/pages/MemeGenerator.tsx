@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -36,7 +35,6 @@ export default function MemeGenerator() {
     reader.onload = (e) => {
       if (typeof e.target?.result === 'string') {
         setSelectedImage(e.target.result);
-        // Reset transformations when new image is loaded
         setRotation(0);
         setScale(1);
         toast.success('Image uploaded successfully');
@@ -63,11 +61,11 @@ export default function MemeGenerator() {
     
     try {
       setIsGenerating(true);
+      toast.info('Applying frame to image...', { duration: 2000 });
       
-      // Use the new Claid API utility
+      console.log('Calling applyFrameWithClaidApi...');
       const compositeImage = await applyFrameWithClaidApi(selectedImage, selectedFrame);
       
-      // Create a temporary link to download the image
       const link = document.createElement('a');
       link.href = compositeImage;
       link.download = `framed-image-${Date.now()}.png`;
@@ -79,14 +77,13 @@ export default function MemeGenerator() {
       setGeneratedImage(compositeImage);
     } catch (error) {
       console.error('Error generating composite image:', error);
-      toast.error('Failed to generate image');
+      toast.error('Failed to generate image. Please try again.');
     } finally {
       setIsGenerating(false);
     }
   };
   
   const handleUploadClick = () => {
-    // Reset the file input value before clicking it
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
       fileInputRef.current.click();
@@ -117,6 +114,31 @@ export default function MemeGenerator() {
     setScale((prev) => Math.max(prev - 0.1, 0.5));
   };
   
+  useEffect(() => {
+    const previewFrameOnImage = async () => {
+      if (selectedImage && selectedFrame) {
+        try {
+          const previewImageContainer = document.querySelector('.preview-image-container');
+          if (previewImageContainer) {
+            const existingFramePreview = previewImageContainer.querySelector('.frame-preview');
+            if (existingFramePreview) {
+              existingFramePreview.remove();
+            }
+            
+            const frameImg = document.createElement('img');
+            frameImg.src = selectedFrame;
+            frameImg.className = 'frame-preview absolute inset-0 w-full h-full object-contain pointer-events-none';
+            previewImageContainer.appendChild(frameImg);
+          }
+        } catch (error) {
+          console.error('Error previewing frame:', error);
+        }
+      }
+    };
+    
+    previewFrameOnImage();
+  }, [selectedFrame, selectedImage]);
+  
   return (
     <div className="container mx-auto py-6">
       <h1 className="text-3xl font-bold mb-6">Frame Your Photos</h1>
@@ -131,9 +153,8 @@ export default function MemeGenerator() {
                 ref={previewRef} 
                 className="relative max-w-full max-h-full flex items-center justify-center"
               >
-                <div className="relative w-auto h-auto">
+                <div className="preview-image-container relative w-auto h-auto">
                   <div className="relative inline-block">
-                    {/* Base image with transformations */}
                     {selectedImage && (
                       <img 
                         ref={imageRef}
@@ -144,15 +165,6 @@ export default function MemeGenerator() {
                           transform: `rotate(${rotation}deg) scale(${scale})`,
                           transition: 'transform 0.3s ease',
                         }}
-                      />
-                    )}
-                    
-                    {/* Frame overlay */}
-                    {selectedFrame && (
-                      <img 
-                        src={selectedFrame}
-                        alt="Frame"
-                        className="absolute inset-0 w-full h-full object-contain pointer-events-none"
                       />
                     )}
                   </div>
