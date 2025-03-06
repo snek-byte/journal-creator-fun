@@ -23,7 +23,7 @@ export const DrawingCanvas = forwardRef<HTMLCanvasElement, DrawingCanvasProps>(
         style={{ 
           width: '100%', 
           height: '100%',
-          touchAction: 'none'
+          touchAction: 'none' // This prevents scroll/zoom during touch events
         }}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
