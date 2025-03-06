@@ -72,39 +72,65 @@ export const applyFrameToImage = async (
 };
 
 /**
- * Creates a preview of the image with the frame
+ * Creates a preview of an image with SVG frame overlay
+ * This function creates a non-destructive preview where the image and frame remain separate
  */
-export const createFramePreview = (
-  imageElement: HTMLImageElement,
-  frameElement: HTMLImageElement,
-  container: HTMLElement,
-  scale: number = 1,
-  rotation: number = 0
-): void => {
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
+export const getFramedImageDimensions = (
+  imageWidth: number,
+  imageHeight: number,
+  containerWidth: number,
+  containerHeight: number
+): { width: number; height: number } => {
+  // Calculate the aspect ratio of the image and container
+  const imageAspect = imageWidth / imageHeight;
+  const containerAspect = containerWidth / containerHeight;
   
-  if (!ctx) return;
+  // Determine the dimensions to fit the image within the container
+  let width, height;
   
-  // Set canvas dimensions based on container
-  canvas.width = container.clientWidth;
-  canvas.height = container.clientHeight;
+  if (imageAspect > containerAspect) {
+    // Image is wider than container (relative to height)
+    width = containerWidth;
+    height = width / imageAspect;
+  } else {
+    // Image is taller than container (relative to width)
+    height = containerHeight;
+    width = height * imageAspect;
+  }
   
-  // Clear the canvas
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
-  // Draw the image with transformations
-  ctx.save();
-  ctx.translate(canvas.width / 2, canvas.height / 2);
-  ctx.rotate((rotation * Math.PI) / 180);
-  ctx.scale(scale, scale);
-  ctx.drawImage(imageElement, -imageElement.width / 2, -imageElement.height / 2);
-  ctx.restore();
-  
-  // Draw the frame
-  ctx.drawImage(frameElement, 0, 0, canvas.width, canvas.height);
-  
-  // Replace the content of the container with the canvas
-  container.innerHTML = '';
-  container.appendChild(canvas);
+  return { width, height };
 };
+
+/**
+ * Creates a proper clipping mask for the image based on the frame dimensions
+ */
+export const clipImageToFrame = (
+  frameElement: SVGSVGElement,
+  imageElement: HTMLImageElement
+): void => {
+  // Extract the main shape from the SVG frame
+  const paths = frameElement.querySelectorAll('path, rect, circle, polygon');
+  
+  if (paths.length > 0) {
+    // Use the first shape for clipping (typically the main frame shape)
+    const mainPath = paths[0];
+    
+    // Get the clip path ID
+    const clipId = `frame-clip-${Date.now()}`;
+    
+    // Create a clip path element
+    const clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+    clipPath.setAttribute('id', clipId);
+    
+    // Clone the path to use in the clip path
+    const clonedPath = mainPath.cloneNode(true) as SVGElement;
+    clipPath.appendChild(clonedPath);
+    
+    // Add the clip path to the frame SVG
+    frameElement.appendChild(clipPath);
+    
+    // Apply the clip path to the image
+    imageElement.style.clipPath = `url(#${clipId})`;
+  }
+};
+

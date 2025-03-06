@@ -8,7 +8,7 @@ import { Upload, Download, Image, RotateCw, RotateCcw, ZoomIn, ZoomOut } from "l
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import FrameTemplateSelector from "@/components/meme/FrameTemplateSelector";
-import { applyFrameToImage } from "@/utils/frameUtils";
+import { applyFrameToImage, getFramedImageDimensions } from "@/utils/frameUtils";
 
 export default function MemeGenerator() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -16,9 +16,13 @@ export default function MemeGenerator() {
   const [selectedFrame, setSelectedFrame] = useState<string | null>(null);
   const [rotation, setRotation] = useState(0);
   const [scale, setScale] = useState(1);
+  const [isGenerating, setIsGenerating] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
+  const frameRef = useRef<HTMLImageElement | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -53,6 +57,7 @@ export default function MemeGenerator() {
     }
     
     try {
+      setIsGenerating(true);
       const compositeImage = await applyFrameToImage(selectedImage, selectedFrame, scale, rotation);
       
       // Create a temporary link to download the image
@@ -68,6 +73,8 @@ export default function MemeGenerator() {
     } catch (error) {
       console.error('Error generating composite image:', error);
       toast.error('Failed to generate image');
+    } finally {
+      setIsGenerating(false);
     }
   };
   
@@ -96,41 +103,44 @@ export default function MemeGenerator() {
       <h1 className="text-3xl font-bold mb-6">Frame Your Photos</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-4 col-span-1 md:col-span-2 bg-white shadow-md">
-          <div className="bg-gray-100 h-[500px] flex items-center justify-center rounded-md overflow-hidden">
+          <div 
+            className="bg-gray-100 h-[500px] flex items-center justify-center rounded-md overflow-hidden"
+            ref={containerRef}
+          >
             {selectedImage ? (
               <div 
                 ref={previewRef} 
                 className="relative max-w-full max-h-full flex items-center justify-center"
               >
                 {selectedImage && selectedFrame && (
-                  <div 
-                    className="w-full h-full relative"
-                    style={{
-                      maxWidth: '100%',
-                      maxHeight: '100%',
-                    }}
-                  >
-                    <img 
-                      src={selectedImage}
-                      alt="Selected"
-                      className="object-contain"
-                      style={{
-                        transform: `rotate(${rotation}deg) scale(${scale})`,
-                        maxWidth: '100%',
-                        maxHeight: '100%',
-                        transition: 'transform 0.3s ease',
-                        position: 'relative',
-                        zIndex: 10,
-                      }}
-                    />
-                    <img 
-                      src={selectedFrame}
-                      alt="Frame"
-                      className="absolute top-0 left-0 w-full h-full object-contain pointer-events-none"
-                      style={{
-                        zIndex: 20,
-                      }}
-                    />
+                  <div className="relative" style={{ width: '100%', height: '100%' }}>
+                    {/* Container to properly position the image and frame */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      {/* Image with transformations */}
+                      <img 
+                        ref={imageRef}
+                        src={selectedImage}
+                        alt="Selected"
+                        className="max-w-full max-h-full object-contain"
+                        style={{
+                          transform: `rotate(${rotation}deg) scale(${scale})`,
+                          transition: 'transform 0.3s ease',
+                          position: 'relative',
+                          zIndex: 10
+                        }}
+                      />
+                      
+                      {/* Frame as overlay */}
+                      <img 
+                        ref={frameRef}
+                        src={selectedFrame}
+                        alt="Frame"
+                        className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                        style={{
+                          zIndex: 20
+                        }}
+                      />
+                    </div>
                   </div>
                 )}
                 
@@ -181,8 +191,9 @@ export default function MemeGenerator() {
               <Button variant="outline" onClick={handleUploadClick}>
                 <Upload className="h-4 w-4 mr-2" /> Change Image
               </Button>
-              <Button onClick={handleDownload}>
-                <Download className="h-4 w-4 mr-2" /> Download
+              <Button onClick={handleDownload} disabled={isGenerating}>
+                <Download className="h-4 w-4 mr-2" /> 
+                {isGenerating ? 'Generating...' : 'Download'}
               </Button>
             </div>
           )}
