@@ -52,20 +52,23 @@ export const applyFrameToImage = async (
           resolve(compositeImage);
         };
         
-        frame.onerror = () => {
+        frame.onerror = (error) => {
+          console.error('Frame load error:', error);
           reject(new Error(`Failed to load frame from: ${framePath}`));
         };
         
         frame.src = framePath;
       };
       
-      img.onerror = () => {
+      img.onerror = (error) => {
+        console.error('Image load error:', error);
         reject(new Error('Failed to load the selected image'));
       };
       
       img.src = imageDataUrl;
       
     } catch (error) {
+      console.error('General error in applyFrameToImage:', error);
       reject(error);
     }
   });

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
-import { Upload, Download, Image, RotateCw, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
+import { Upload, Download, Image, RotateCw, RotateCcw, ZoomIn, ZoomOut, Trash } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import FrameTemplateSelector from "@/components/meme/FrameTemplateSelector";
@@ -40,6 +40,7 @@ export default function MemeGenerator() {
         // Reset transformations when new image is loaded
         setRotation(0);
         setScale(1);
+        toast.success('Image uploaded successfully');
       }
     };
     reader.readAsDataURL(file);
@@ -79,7 +80,18 @@ export default function MemeGenerator() {
   };
   
   const handleUploadClick = () => {
+    // Reset the file input value before clicking it
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
     fileInputRef.current?.click();
+  };
+  
+  const handleClearImage = () => {
+    setSelectedImage(null);
+    setRotation(0);
+    setScale(1);
+    toast.success('Image cleared');
   };
   
   const handleRotateLeft = () => {
@@ -190,6 +202,9 @@ export default function MemeGenerator() {
               </Button>
               <Button variant="outline" onClick={handleUploadClick}>
                 <Upload className="h-4 w-4 mr-2" /> Change Image
+              </Button>
+              <Button variant="destructive" onClick={handleClearImage}>
+                <Trash className="h-4 w-4 mr-2" /> Clear Image
               </Button>
               <Button onClick={handleDownload} disabled={isGenerating}>
                 <Download className="h-4 w-4 mr-2" /> 
