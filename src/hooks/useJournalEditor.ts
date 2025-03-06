@@ -364,6 +364,7 @@ function editorReducer(state: EditorState, action: Action): EditorState {
     }
     
     case 'RESET': {
+      console.log("Resetting journal to default");
       return {
         ...state,
         currentState: { ...initialState },
@@ -922,6 +923,11 @@ export function useJournalEditor() {
   const handleResetToDefault = () => {
     console.log("Resetting journal to default");
     dispatch({ type: 'RESET' });
+    
+    // Force sync with store after reset to ensure UI updates
+    setTimeout(() => {
+      syncStateToStore(initialState);
+    }, 0);
   };
 
   // Undo function
