@@ -121,3 +121,8 @@ export const soundCategories = [
 export function getSoundsByCategory(category: string): AudioTrack[] {
   return publicDomainSounds.filter(sound => sound.category === category);
 }
+
+// Helper function to explain possible sound issues
+export function getAudioTroubleshootingMessage(): string {
+  return "External audio from freesound.org is often blocked by CORS policies. For best results, upload your own audio files.";
+}

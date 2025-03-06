@@ -1,10 +1,11 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { TextBoxComponent } from './TextBoxComponent';
 import { StickerContainer } from './StickerContainer';
 import { IconContainer } from './IconContainer';
 import { DrawingLayer } from './DrawingLayer';
-import { X, Volume2, VolumeX } from 'lucide-react';
+import { X, Volume2, VolumeX, AlertCircle } from 'lucide-react';
 import type { Mood, Sticker, Icon, TextBox, AudioTrack } from '@/types/journal';
 
 interface JournalPreviewProps {
@@ -238,6 +239,7 @@ export function JournalPreview({
     onStickerMove(id, position);
   };
 
+  // Fix this function to properly handle TypeScript typing
   const handleDeleteByMovingOffscreen = (id: string, isIcon: boolean) => {
     const offscreenPosition = { x: -1000, y: -1000 };
     

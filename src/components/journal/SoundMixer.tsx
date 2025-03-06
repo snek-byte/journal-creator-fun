@@ -12,7 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { AudioTrack } from '@/types/journal';
-import { publicDomainSounds, soundCategories } from '@/data/publicDomainSounds';
+import { publicDomainSounds, soundCategories, getAudioTroubleshootingMessage } from '@/data/publicDomainSounds';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
 
