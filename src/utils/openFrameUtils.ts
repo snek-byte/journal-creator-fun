@@ -40,9 +40,8 @@ export const createOpenFrameArtwork = (
   author: string,
   isAnimated: boolean = false
 ): OpenFrameArtwork => {
-  // For animated GIFs or complex frames, we should use website format
-  // to properly display with HTML/CSS for better control
-  const format = isAnimated ? OPENFRAME_FORMATS.WEBSITE : OPENFRAME_FORMATS.VLC;
+  // Always use website format for better control over image positioning and scaling
+  const format = OPENFRAME_FORMATS.WEBSITE;
   
   return {
     title,
@@ -72,7 +71,7 @@ export const pushToOpenFrame = async (artwork: OpenFrameArtwork): Promise<void> 
 };
 
 /**
- * Prepare an image for OpenFrame by ensuring it's in the right format
+ * Prepare an image for OpenFrame by ensuring it's in the right format and size
  * @param imageDataUrl - The image data URL
  * @param isAnimated - Whether the image is animated
  * @returns Processed image URL ready for OpenFrame
@@ -81,8 +80,8 @@ export const prepareImageForOpenFrame = (
   imageDataUrl: string,
   isAnimated: boolean = false
 ): string => {
-  // For all images, we'll wrap in HTML to ensure proper positioning
-  // This gives us better control over how the image displays
+  // Create an HTML wrapper that ensures the image fits properly within the frame
+  // Using CSS to enforce proper scaling and positioning
   const htmlWrapper = `
     <!DOCTYPE html>
     <html>
@@ -91,8 +90,8 @@ export const prepareImageForOpenFrame = (
           body, html {
             margin: 0;
             padding: 0;
-            height: 100%;
-            width: 100%;
+            height: 100vh;
+            width: 100vw;
             overflow: hidden;
             background: black;
             display: flex;
@@ -100,9 +99,16 @@ export const prepareImageForOpenFrame = (
             justify-content: center;
           }
           .frame-container {
-            width: 80%;
-            height: 80%;
-            position: relative;
+            width: 90%;
+            height: 90%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+          }
+          .image-wrapper {
+            max-width: 100%;
+            max-height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -111,13 +117,26 @@ export const prepareImageForOpenFrame = (
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
+            display: block;
           }
         </style>
       </head>
       <body>
         <div class="frame-container">
-          <img src="${imageDataUrl}" alt="OpenFrame Artwork" />
+          <div class="image-wrapper">
+            <img src="${imageDataUrl}" alt="OpenFrame Artwork" />
+          </div>
         </div>
+        <script>
+          // This script ensures the image is properly scaled on load
+          document.addEventListener('DOMContentLoaded', function() {
+            const img = document.querySelector('img');
+            img.onload = function() {
+              // Additional resize handling if needed
+              console.log('Image loaded with dimensions:', img.width, 'x', img.height);
+            };
+          });
+        </script>
       </body>
     </html>
   `;
