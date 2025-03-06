@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -212,38 +211,25 @@ export default function MemeGenerator() {
                         }}
                       />
                     )}
+                    {selectedImage && selectedFrame && (
+                      <img 
+                        src={selectedFrame}
+                        alt="Frame"
+                        className="frame-preview absolute inset-0 w-full h-full object-contain pointer-events-none"
+                      />
+                    )}
                   </div>
                 </div>
               </div>
             ) : (
               <div className="text-center p-8">
-                {selectedFrame ? (
-                  // Show frame template with placeholder when frame is selected but no image
-                  <div className="preview-image-container relative w-80 h-80 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-gray-200 w-full h-full" style={{ opacity: 0.5 }}></div>
-                    <img 
-                      src={selectedFrame}
-                      alt="Frame"
-                      className="frame-preview absolute inset-0 w-full h-full object-contain pointer-events-none"
-                    />
-                    <div className="z-10 text-center">
-                      <Image className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                      <p className="text-gray-500 mb-4">Select an image to place in this frame</p>
-                      <Button onClick={handleUploadClick}>
-                        <Upload className="mr-2 h-4 w-4" /> Select Image
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  // Default placeholder when no image or frame is selected
-                  <div>
-                    <Image className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                    <p className="text-gray-500 mb-4">Upload an image or select a frame to get started</p>
-                    <Button onClick={handleUploadClick}>
-                      <Upload className="mr-2 h-4 w-4" /> Select Image
-                    </Button>
-                  </div>
-                )}
+                <div>
+                  <Image className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-500 mb-4">Upload an image to get started</p>
+                  <Button onClick={handleUploadClick}>
+                    <Upload className="mr-2 h-4 w-4" /> Select Image
+                  </Button>
+                </div>
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -255,33 +241,29 @@ export default function MemeGenerator() {
             )}
           </div>
           
-          {(selectedImage || selectedFrame) && (
+          {selectedImage && (
             <div className="mt-4 flex flex-wrap gap-2 justify-center">
-              {selectedImage && (
-                <>
-                  <Button variant="outline" onClick={handleRotateLeft}>
-                    <RotateCcw className="h-4 w-4 mr-2" /> Rotate Left
-                  </Button>
-                  <Button variant="outline" onClick={handleRotateRight}>
-                    <RotateCw className="h-4 w-4 mr-2" /> Rotate Right
-                  </Button>
-                  <Button variant="outline" onClick={handleZoomIn}>
-                    <ZoomIn className="h-4 w-4 mr-2" /> Zoom In
-                  </Button>
-                  <Button variant="outline" onClick={handleZoomOut}>
-                    <ZoomOut className="h-4 w-4 mr-2" /> Zoom Out
-                  </Button>
-                  <Button variant="outline" onClick={handleUploadClick}>
-                    <Upload className="h-4 w-4 mr-2" /> Change Image
-                  </Button>
-                  <Button variant="destructive" onClick={handleClearImage}>
-                    <Trash className="h-4 w-4 mr-2" /> Clear Image
-                  </Button>
-                </>
-              )}
+              <Button variant="outline" onClick={handleRotateLeft}>
+                <RotateCcw className="h-4 w-4 mr-2" /> Rotate Left
+              </Button>
+              <Button variant="outline" onClick={handleRotateRight}>
+                <RotateCw className="h-4 w-4 mr-2" /> Rotate Right
+              </Button>
+              <Button variant="outline" onClick={handleZoomIn}>
+                <ZoomIn className="h-4 w-4 mr-2" /> Zoom In
+              </Button>
+              <Button variant="outline" onClick={handleZoomOut}>
+                <ZoomOut className="h-4 w-4 mr-2" /> Zoom Out
+              </Button>
+              <Button variant="outline" onClick={handleUploadClick}>
+                <Upload className="h-4 w-4 mr-2" /> Change Image
+              </Button>
+              <Button variant="destructive" onClick={handleClearImage}>
+                <Trash className="h-4 w-4 mr-2" /> Clear Image
+              </Button>
               <Button 
                 onClick={handleDownload} 
-                disabled={isGenerating || !selectedFrame || !selectedImage}
+                disabled={isGenerating || !selectedFrame}
               >
                 <Download className="h-4 w-4 mr-2" /> 
                 {isGenerating ? 'Generating...' : 'Download'}
