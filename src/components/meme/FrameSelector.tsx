@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -56,6 +56,16 @@ interface FrameSelectorProps {
 }
 
 export function FrameSelector({ selectedFrame, onSelectFrame }: FrameSelectorProps) {
+  // Debug the current selected frame
+  useEffect(() => {
+    console.log("Current selected frame in FrameSelector:", selectedFrame);
+  }, [selectedFrame]);
+
+  const handleFrameClick = (frameUrl: string) => {
+    console.log("Frame clicked:", frameUrl);
+    onSelectFrame(frameUrl);
+  };
+
   return (
     <div className="space-y-4">
       <div>
@@ -71,7 +81,7 @@ export function FrameSelector({ selectedFrame, onSelectFrame }: FrameSelectorPro
               className={`p-2 cursor-pointer hover:bg-accent transition-colors ${
                 selectedFrame === frame.url ? 'ring-2 ring-primary' : ''
               }`}
-              onClick={() => onSelectFrame(frame.url)}
+              onClick={() => handleFrameClick(frame.url)}
             >
               <div className="aspect-square relative flex items-center justify-center bg-muted rounded overflow-hidden">
                 {frame.url ? (
@@ -82,6 +92,7 @@ export function FrameSelector({ selectedFrame, onSelectFrame }: FrameSelectorPro
                         alt={frame.name} 
                         className="max-w-full max-h-full object-contain"
                         onError={(e) => {
+                          console.error(`Error loading frame preview: ${frame.url}`);
                           e.currentTarget.src = '/placeholder.svg';
                         }}
                       />

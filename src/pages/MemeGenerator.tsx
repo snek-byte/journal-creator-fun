@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { MemeCanvas, downloadMeme } from '@/components/meme/MemeCanvas';
 import { MemeControls } from '@/components/meme/MemeControls';
@@ -40,8 +39,8 @@ export default function MemeGenerator() {
 
   // Handle frame selection
   const handleFrameSelect = (frame: string) => {
-    setSelectedFrame(frame);
     console.log("Frame selected:", frame);
+    setSelectedFrame(frame);
   };
   
   // Handle background color change

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 
 interface FramedImageProps {
@@ -28,7 +29,10 @@ export function FramedImage({
     }
     
     fetch(frame)
-      .then(response => response.text())
+      .then(response => {
+        console.log("Frame fetch response status:", response.status);
+        return response.text();
+      })
       .then(data => {
         // Make SVG responsive by adding viewBox if missing
         let modifiedSvg = data;
@@ -36,11 +40,10 @@ export function FramedImage({
           modifiedSvg = modifiedSvg.replace('<svg', '<svg viewBox="0 0 640 640"');
         }
         
-        // Keep all paths and shapes visible, preserving both transparent and filled areas
-        // We'll use SVG as an overlay with its original appearance
+        // Set SVG content and mark as loaded
         setSvgContent(modifiedSvg);
         setFrameLoaded(true);
-        console.log("Frame SVG loaded and processed");
+        console.log("Frame SVG loaded and processed successfully");
       })
       .catch(error => {
         console.error("Error loading frame SVG:", error);
@@ -68,13 +71,6 @@ export function FramedImage({
     console.error("Error loading image in FramedImage");
   };
   
-  // Determine if we have both the image and frame ready (or just image if no frame)
-  const isReady = template && (frame ? frameLoaded && imageLoaded : imageLoaded);
-  
-  if (!template) {
-    return null;
-  }
-  
   return (
     <div className="relative w-full h-full">
       {/* Background color */}
@@ -98,10 +94,10 @@ export function FramedImage({
               crossOrigin="anonymous"
             />
             
-            {/* The frame overlay with original appearance */}
+            {/* The frame overlay */}
             {svgContent && (
               <div 
-                className="absolute inset-0 pointer-events-none"
+                className="absolute inset-0 pointer-events-none" 
                 style={{ zIndex: 30 }}
                 dangerouslySetInnerHTML={{ __html: svgContent }}
               />
