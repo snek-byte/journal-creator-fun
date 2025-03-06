@@ -1,3 +1,4 @@
+
 import { useJournalEditor } from '@/hooks/useJournalEditor';
 import { JournalEditorSidebar } from './journal/JournalEditorSidebar';
 import { JournalPreview } from './journal/JournalPreview';
@@ -175,20 +176,22 @@ export function JournalEditor() {
     }
   };
 
-  const handleStickerMove = (id: string, position: { x: number; y: number }) => {
+  // Renamed to processStickerMove from handleStickerMove to avoid conflict
+  const processStickerMove = (id: string, position: { x: number; y: number }) => {
     if (id && position && typeof position.x === 'number' && typeof position.y === 'number') {
       const stickers = currentEntry.stickers || [];
-      const updatedStickers = stickers.map(sticker => 
-        sticker.id === id ? { ...sticker, position } : sticker
-      );
-      handleStickerAdd({
-        ...stickers.find(s => s.id === id),
-        position
-      } as Sticker);
+      const sticker = stickers.find(s => s.id === id);
+      if (sticker) {
+        handleStickerAdd({
+          ...sticker,
+          position
+        });
+      }
     }
   };
 
-  const handleIconMove = (id: string, position: { x: number; y: number }) => {
+  // Renamed to processIconMove from handleIconMove to avoid conflict
+  const processIconMove = (id: string, position: { x: number; y: number }) => {
     if (id && position && typeof position.x === 'number' && typeof position.y === 'number') {
       const icons = currentEntry.icons || [];
       const icon = icons.find(i => i.id === id);
@@ -283,8 +286,8 @@ export function JournalEditor() {
         audio={currentEntry.audio}
         onStickerAdd={handleStickerAdd}
         onIconAdd={handleIconAdd}
-        onStickerMove={handleStickerMove}
-        onIconMove={handleIconMove}
+        onStickerMove={processStickerMove}
+        onIconMove={processIconMove}
         onIconUpdate={handleIconUpdate}
         onIconSelect={handleIconSelect}
         onStickerSelect={handleStickerSelect}

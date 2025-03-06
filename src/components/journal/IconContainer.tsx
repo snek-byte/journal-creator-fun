@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import { Icon } from '@/types/journal';
 import { X } from 'lucide-react';
@@ -69,11 +70,11 @@ export function IconContainer({
         case '+':
         case '=':
           e.preventDefault();
-          onUpdate(icon.id, { size: (icon.size || 48) + 5 });
+          onUpdate({ size: (icon.size || 48) + 5 });
           break;
         case '-':
           e.preventDefault();
-          onUpdate(icon.id, { size: Math.max(10, (icon.size || 48) - 5) });
+          onUpdate({ size: Math.max(10, (icon.size || 48) - 5) });
           break;
       }
     };
