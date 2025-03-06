@@ -1,4 +1,3 @@
-
 /**
  * Applies a frame to an image and returns the composite as a data URL
  */
@@ -47,13 +46,13 @@ export const applyFrameToImage = async (
           
           if (imgAspect > frameAspect) {
             // Image is wider than frame
-            drawHeight = frame.height * 0.85; // Leave some padding
+            drawHeight = frame.height * 0.8; // Reduce padding to better fit in shadow-box
             drawWidth = drawHeight * imgAspect;
             offsetX = (frame.width - drawWidth) / 2;
             offsetY = (frame.height - drawHeight) / 2;
           } else {
             // Image is taller than frame
-            drawWidth = frame.width * 0.85; // Leave some padding
+            drawWidth = frame.width * 0.8; // Reduce padding to better fit in shadow-box
             drawHeight = drawWidth / imgAspect;
             offsetX = (frame.width - drawWidth) / 2;
             offsetY = (frame.height - drawHeight) / 2;
@@ -93,8 +92,23 @@ export const applyFrameToImage = async (
           
           ctx.restore();
           
-          // Draw the frame on top
-          ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+          // For shadow-box specifically, adjust how the frame is rendered
+          if (framePath.includes('shadow-box')) {
+            // Draw a white background first
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw the frame on top with shadow
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+            ctx.shadowBlur = 15;
+            ctx.shadowOffsetX = 5;
+            ctx.shadowOffsetY = 5;
+            ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+            ctx.shadowColor = 'transparent';
+          } else {
+            // Draw the frame on top for other frame types
+            ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+          }
           
           // Get the final composite image as a data URL
           const compositeImage = canvas.toDataURL('image/png');

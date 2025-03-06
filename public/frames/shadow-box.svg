@@ -1,5 +1,5 @@
 
 <svg width="640" height="640" viewBox="0 0 640 640" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="640" height="640" fill="transparent"/>
-  <rect x="80" y="80" width="480" height="480" rx="4" fill="white" filter="drop-shadow(0px 6px 12px rgba(0, 0, 0, 0.15))"/>
+  <rect x="40" y="40" width="560" height="560" rx="4" fill="white" filter="drop-shadow(0px 10px 15px rgba(0, 0, 0, 0.25))"/>
 </svg>

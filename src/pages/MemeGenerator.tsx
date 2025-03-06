@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -45,7 +46,6 @@ export default function MemeGenerator() {
   };
   
   const handleFrameSelect = (framePath: string) => {
-    // Only update the frame, keep the image intact
     setSelectedFrame(framePath);
     toast.success('Frame selected');
   };
@@ -132,16 +132,18 @@ export default function MemeGenerator() {
                 <div className="relative w-auto h-auto">
                   <div className="relative inline-block">
                     {/* Base image with transformations */}
-                    <img 
-                      ref={imageRef}
-                      src={selectedImage}
-                      alt="Selected"
-                      className="block max-w-full max-h-[460px]"
-                      style={{
-                        transform: `rotate(${rotation}deg) scale(${scale})`,
-                        transition: 'transform 0.3s ease',
-                      }}
-                    />
+                    {selectedImage && (
+                      <img 
+                        ref={imageRef}
+                        src={selectedImage}
+                        alt="Selected"
+                        className="block max-w-full max-h-[460px]"
+                        style={{
+                          transform: `rotate(${rotation}deg) scale(${scale})`,
+                          transition: 'transform 0.3s ease',
+                        }}
+                      />
+                    )}
                     
                     {/* Frame overlay */}
                     {selectedFrame && (
