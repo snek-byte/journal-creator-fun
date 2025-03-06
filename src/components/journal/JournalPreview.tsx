@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { TextBoxComponent } from './TextBoxComponent';
@@ -100,7 +99,6 @@ export function JournalPreview({
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
   const [audioLoaded, setAudioLoaded] = useState(false);
 
-  // Set up audio when the audio prop changes
   useEffect(() => {
     if (!audioRef.current) return;
 
@@ -223,9 +221,7 @@ export function JournalPreview({
     onStickerMove(id, position);
   };
 
-  // This function fixes the issue where we delete icons/stickers by moving them off-screen
   const handleDeleteByMovingOffscreen = (id: string, isIcon: boolean) => {
-    // Create a valid position object to move the item off-screen
     const offscreenPosition = { x: -1000, y: -1000 };
     
     if (isIcon) {
