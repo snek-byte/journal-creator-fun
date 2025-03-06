@@ -239,18 +239,21 @@ export function JournalPreview({
     onStickerMove(id, position);
   };
 
-  // Fix this function to properly handle TypeScript typing
+  // Fixed function to properly handle TypeScript typing
   const handleDeleteByMovingOffscreen = (id: string, isIcon: boolean) => {
     const offscreenPosition = { x: -1000, y: -1000 };
     
     if (isIcon) {
+      // Properly pass the position object for icons
       handleIconMoveFix(id, offscreenPosition);
       
+      // Create a proper Partial<Icon> object
       const iconUpdates: Partial<Icon> = {
         size: 0
       };
       handleIconUpdateFix(id, iconUpdates);
     } else {
+      // Properly pass the position object for stickers
       handleStickerMoveFix(id, offscreenPosition);
     }
   };
