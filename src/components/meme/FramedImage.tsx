@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 
 interface FramedImageProps {
@@ -37,10 +36,8 @@ export function FramedImage({
           modifiedSvg = modifiedSvg.replace('<svg', '<svg viewBox="0 0 640 640"');
         }
         
-        // Create a mask by modifying the SVG
-        // Find all shapes with fill="transparent" and make them white for the mask
-        modifiedSvg = modifiedSvg.replace(/fill="transparent"/g, 'fill="white"');
-        
+        // Keep all paths and shapes visible, preserving both transparent and filled areas
+        // We'll use SVG as an overlay with its original appearance
         setSvgContent(modifiedSvg);
         setFrameLoaded(true);
         console.log("Frame SVG loaded and processed");
@@ -89,23 +86,22 @@ export function FramedImage({
       {/* The image */}
       <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
         {frame ? (
-          // With frame: Use clip-path or mask
+          // With frame: Use a container to position both image and frame
           <div className="relative w-full h-full">
-            {/* The image to be framed */}
+            {/* The template image as background */}
             <img
               src={template}
               alt="Meme template"
               className="absolute inset-0 w-full h-full object-cover"
-              style={{ objectFit: 'cover' }}
               onLoad={handleImageLoad}
               onError={handleImageError}
               crossOrigin="anonymous"
             />
             
-            {/* The frame overlay */}
+            {/* The frame overlay with original appearance */}
             {svgContent && (
               <div 
-                className="absolute inset-0 pointer-events-none z-20"
+                className="absolute inset-0 pointer-events-none z-10"
                 dangerouslySetInnerHTML={{ __html: svgContent }}
               />
             )}
