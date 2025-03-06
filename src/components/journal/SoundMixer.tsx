@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -27,6 +28,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("ambient");
   const [previewSound, setPreviewSound] = useState<AudioTrack | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [previewLoadError, setPreviewLoadError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -49,7 +51,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
       
       if (isPlaying) {
         console.log("SoundMixer: Attempting to play audio:", audioTrack.url);
-        // Use a timeout to ensure the audio has time to load
+        // Use a longer timeout to ensure the audio has time to load
         setTimeout(() => {
           if (audioRef.current) {
             const playPromise = audioRef.current.play();
@@ -60,7 +62,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
               }).catch(error => {
                 console.error("SoundMixer: Error playing audio:", error);
                 setIsPlaying(false);
-                setLoadError("Couldn't play audio. Try another sound or upload your own.");
+                setLoadError(`Couldn't play audio (${error.message}). Try another sound or upload your own.`);
                 
                 onAudioChange({
                   ...audioTrack,
@@ -69,7 +71,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
               });
             }
           }
-        }, 300);
+        }, 1000); // Increased timeout for better loading chance
       } else {
         audioRef.current.pause();
       }
@@ -78,18 +80,28 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
 
   useEffect(() => {
     if (previewAudioRef.current && previewSound) {
+      console.log("Setting up preview for:", previewSound.url);
       previewAudioRef.current.src = previewSound.url;
       previewAudioRef.current.volume = 0.5; // Set preview volume to 50%
+      setPreviewLoadError(null);
       
       console.log("Attempting to play preview sound:", previewSound.url);
-      const playPromise = previewAudioRef.current.play();
-      
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.error("Error playing preview audio:", error);
-          toast.error("Couldn't play preview. Try another sound.");
-        });
-      }
+      // Add a delay before playing to allow audio to load
+      setTimeout(() => {
+        if (previewAudioRef.current) {
+          const playPromise = previewAudioRef.current.play();
+          
+          if (playPromise !== undefined) {
+            playPromise.then(() => {
+              console.log("Preview started successfully");
+            }).catch(error => {
+              console.error("Error playing preview audio:", error);
+              setPreviewLoadError(`Couldn't play preview (${error.message}). Audio sources may be unavailable.`);
+              toast.error("Couldn't play preview. Try uploading your own audio file.");
+            });
+          }
+        }
+      }, 500);
 
       return () => {
         if (previewAudioRef.current) {
@@ -106,7 +118,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
 
   const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
     console.error("Audio error in mixer:", e);
-    setLoadError("Error loading audio. Try another sound.");
+    setLoadError("Error loading audio. The source may be unavailable. Try uploading your own audio file.");
     setIsPlaying(false);
     
     if (audioTrack) {
@@ -115,6 +127,11 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
         playing: false
       });
     }
+  };
+
+  const handlePreviewAudioError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
+    console.error("Preview audio error:", e);
+    setPreviewLoadError("Error loading preview. The source may be unavailable. Try uploading your own audio file.");
   };
 
   const handleVolumeChange = (value: number[]) => {
@@ -220,8 +237,15 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
         onError={handleAudioError}
         preload="auto"
         className="w-full"
-        controls 
+        controls
       />
+      
+      {previewLoadError && (
+        <div className="text-xs text-red-500 mt-1 p-2 bg-red-50 rounded-md">
+          <AlertCircle className="h-3 w-3 inline mr-1" />
+          {previewLoadError}
+        </div>
+      )}
       
       {audioTrack?.url ? (
         <div className="space-y-2">
@@ -274,6 +298,13 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
             </div>
           </div>
           
+          {loadError && (
+            <div className="text-xs text-red-500 my-1 p-2 bg-red-50 rounded-md">
+              <AlertCircle className="h-3 w-3 inline mr-1" />
+              {loadError}
+            </div>
+          )}
+          
           <div className="flex items-center gap-2">
             <VolumeIcon />
             <Slider
@@ -288,6 +319,10 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
 
       <Separator className="my-2" />
       
+      <div className="text-xs p-2 bg-amber-50 text-amber-700 rounded-md mb-2">
+        Note: External audio sources may be unavailable. We recommend uploading your own audio files for the best experience.
+      </div>
+      
       <Tabs defaultValue="ambient" value={selectedCategory} onValueChange={setSelectedCategory}>
         <TabsList className="grid grid-cols-2 mb-2">
           {soundCategories.map(category => (
@@ -296,7 +331,12 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
         </TabsList>
         
         <ScrollArea className="h-36 border rounded-md p-1">
-          <audio ref={previewAudioRef} />
+          <audio 
+            ref={previewAudioRef} 
+            controls
+            className="hidden"
+            onError={handlePreviewAudioError} 
+          />
           
           {publicDomainSounds
             .filter(sound => sound.category === selectedCategory)
@@ -348,7 +388,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
       </Tabs>
       
       <div className="flex flex-col gap-2 mt-4">
-        <p className="text-xs text-muted-foreground">Or upload your own audio file</p>
+        <p className="text-xs text-muted-foreground font-medium">Upload your own audio file (recommended)</p>
         <Button 
           variant="outline" 
           size="sm" 

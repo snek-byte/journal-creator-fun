@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { TextBoxComponent } from './TextBoxComponent';
@@ -229,13 +228,22 @@ export function JournalPreview({
     onStickerMove(id, position);
   };
 
-  // Function to handle deleting elements by moving them offscreen
+  // Fixed function to handle deleting elements by moving them offscreen
   const handleDeleteByMovingOffscreen = (id: string, isIcon: boolean) => {
+    // Create a proper position object
     const offscreenPosition = { x: -1000, y: -1000 };
     
     if (isIcon) {
+      // Pass the position object to the move function
       handleIconMoveFix(id, offscreenPosition);
+      
+      // For icons, we may also want to update other properties
+      const iconUpdates: Partial<Icon> = {
+        size: 0 // Make it invisible
+      };
+      handleIconUpdateFix(id, iconUpdates);
     } else {
+      // For stickers, just move them offscreen
       handleStickerMoveFix(id, offscreenPosition);
     }
   };
@@ -254,7 +262,7 @@ export function JournalPreview({
             onError={handleAudioError}
             preload="auto"
             controls
-            className="hidden"
+            className="absolute top-0 left-0 w-48 z-20"  // Make controls visible for debugging
           />
           <div className="absolute top-4 right-16 z-10 flex items-center gap-2">
             <span className="text-xs bg-white/80 px-2 py-1 rounded-md">
