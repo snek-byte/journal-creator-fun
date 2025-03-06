@@ -11,8 +11,8 @@ import { Button } from '@/components/ui/button';
 import { DrawingLayer } from './DrawingLayer';
 import { useTextBoxPosition } from '@/hooks/useTextBoxPosition';
 
-// Import unicodeTextStyles correctly
-import { unicodeTextStyleMap as unicodeTextStyles } from '@/utils/unicodeTextStyles';
+// Import unicodeTextStyles correctly - check the actual export name
+import { unicodeMap as unicodeTextStyles } from '@/utils/unicodeTextStyles';
 
 interface JournalPreviewProps {
   // Using currentEntry directly conflicts with properties we're passing individually
@@ -111,14 +111,21 @@ export function JournalPreview({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Fix the useTextBoxPosition hook usage
-  const textPositionHook = useTextBoxPosition({
+  const { 
+    localPosition, 
+    containerDimensions, 
+    isDraggingText, 
+    handleDragStart, 
+    handleDragEnd 
+  } = useTextBoxPosition({
     initialPosition: textPosition || { x: 50, y: 50 },
     containerRef: containerRef
   });
 
-  // Expose the correct methods from the hook
+  // Create our own event handlers using the hook's methods
   const handleMouseDown = (e: React.MouseEvent) => {
     if (onTextDragStart) onTextDragStart();
+    handleDragStart();
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -127,6 +134,7 @@ export function JournalPreview({
 
   const handleMouseUp = (e: React.MouseEvent) => {
     if (onTextDragEnd) onTextDragEnd();
+    handleDragEnd();
   };
 
   useEffect(() => {
@@ -160,15 +168,15 @@ export function JournalPreview({
     }
   };
 
-  const handleRemoveSticker = (stickerId: string) => {
+  const handleMoveSticker = (stickerId: string, position: { x: number; y: number }) => {
     if (onStickerMove) {
-      onStickerMove(stickerId, { x: -1000, y: -1000 });
+      onStickerMove(stickerId, position);
     }
   };
 
-  const handleRemoveIcon = (iconId: string) => {
+  const handleMoveIcon = (iconId: string, position: { x: number; y: number }) => {
     if (onIconMove) {
-      onIconMove(iconId, { x: -1000, y: -1000 });
+      onIconMove(iconId, position);
     }
   };
 
@@ -311,17 +319,15 @@ export function JournalPreview({
             sticker={sticker}
             selected={sticker.id === selectedStickerId}
             onSelect={() => handleStickerSelect(sticker.id)}
-            onRemove={() => handleRemoveSticker(sticker.id)}
+            onMove={handleMoveSticker}
             onPositionChange={(position) => {
               if (onStickerMove) {
                 onStickerMove(sticker.id, position);
               }
             }}
             onResize={(width, height) => {
-              // Fix for width parameter type
-              if (typeof width === 'string') {
-                width = parseInt(width, 10);
-              }
+              // Convert width to string if it's a number
+              const widthStr = typeof width === 'number' ? `${width}px` : width;
               // Pass to parent
             }}
             containerRef={containerRef}
@@ -335,7 +341,6 @@ export function JournalPreview({
             icon={icon}
             selected={icon.id === selectedIconId}
             onSelect={() => handleIconSelect(icon.id)}
-            onRemove={() => handleRemoveIcon(icon.id)}
             onMove={(id, position) => {
               if (onIconMove) {
                 onIconMove(id, position);
@@ -367,9 +372,8 @@ export function JournalPreview({
                 onTextBoxUpdate(textBox.id, updates);
               }
             }}
-            onZIndexChange={(change) => {
-              // Handle z-index change
-            }}
+            containerRef={containerRef}
+            isDrawingMode={isDrawingMode}
           />
         ))}
       </div>
