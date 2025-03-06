@@ -1,6 +1,6 @@
 import { useJournalEditor } from '@/hooks/useJournalEditor';
 import { JournalEditorSidebar } from './journal/JournalEditorSidebar';
-import { JournalPreview } from './journal/JournalPreview';
+import { JournalPreview } from './journal/preview/JournalPreview';
 import { EmailDialog } from './journal/EmailDialog';
 import { useState, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';

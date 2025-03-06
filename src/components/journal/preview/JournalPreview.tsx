@@ -1,22 +1,19 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { GripVertical, X, Trash, Image, Check, PenTool, Undo, Redo, Plus } from 'lucide-react';
-import type { JournalEntry, HistoryEntry, Sticker, Icon, TextBox } from '@/types/journal';
-import { StickerContainer } from './StickerContainer';
-import { IconContainer } from './IconContainer';
-import { TextBoxComponent } from './TextBoxComponent';
+import type { JournalEntry, Sticker, Icon, TextBox } from '@/types/journal';
+import { StickerContainer } from '../StickerContainer';
+import { IconContainer } from '../IconContainer';
+import { TextBoxComponent } from '../TextBoxComponent';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { DrawingLayer } from './DrawingLayer';
-import { useTextBoxPosition } from '@/hooks/useTextBoxPosition';
-
-// Import unicodeTextStyles correctly - check the actual export name
-import { unicodeMap as unicodeTextStyles } from '@/utils/unicodeTextStyles';
+import { DrawingLayer } from '../DrawingLayer';
+import { MainTextDisplay } from './MainTextDisplay';
+import { PreviewControls } from './PreviewControls';
+import { useJournalTextPosition } from '@/hooks/useJournalTextPosition';
 
 interface JournalPreviewProps {
-  // Using currentEntry directly conflicts with properties we're passing individually
-  // We'll use individual props instead
   text: string;
   mood?: string;
   font: string;
@@ -107,35 +104,20 @@ export function JournalPreview({
 }: JournalPreviewProps) {
   const [undoAvailable, setUndoAvailable] = useState(false);
   const [redoAvailable, setRedoAvailable] = useState(false);
-  const drawingLayerRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Fix the useTextBoxPosition hook usage
+  // Use the new hook for text position
   const { 
-    localPosition, 
-    containerDimensions, 
-    isDraggingText, 
-    handleDragStart, 
-    handleDragEnd 
-  } = useTextBoxPosition({
+    position, 
+    isDragging, 
+    handleDragStart 
+  } = useJournalTextPosition({
     initialPosition: textPosition || { x: 50, y: 50 },
-    containerRef: containerRef
+    containerRef,
+    onTextMove,
+    onTextDragStart,
+    onTextDragEnd
   });
-
-  // Create our own event handlers using the hook's methods
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (onTextDragStart) onTextDragStart();
-    handleDragStart();
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    // Implementation for text movement
-  };
-
-  const handleMouseUp = (e: React.MouseEvent) => {
-    if (onTextDragEnd) onTextDragEnd();
-    handleDragEnd();
-  };
 
   useEffect(() => {
     if (drawing) {
@@ -167,58 +149,17 @@ export function JournalPreview({
       onTextBoxSelect(null);
     }
   };
-
-  const handleMoveSticker = (stickerId: string, position: { x: number; y: number }) => {
-    if (onStickerMove) {
-      onStickerMove(stickerId, position);
+  
+  const handleTextBoxSelect = (id: string | null) => {
+    if (onTextBoxSelect) {
+      onTextBoxSelect(id);
     }
-  };
-
-  const handleMoveIcon = (iconId: string, position: { x: number; y: number }) => {
-    if (onIconMove) {
-      onIconMove(iconId, position);
+    if (onIconSelect) {
+      onIconSelect(null);
     }
-  };
-
-  const getTextStyle = () => {
-    let currentTextStyle = textStyle || '';
-
-    if (unicodeTextStyles[currentTextStyle]) {
-      return {}; // Unicode styling is applied in renderUnicodeText
+    if (onStickerSelect) {
+      onStickerSelect(null);
     }
-
-    const styleMap: any = {
-      shadow: {
-        textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)'
-      },
-      outline: {
-        WebkitTextStroke: '1px black',
-        textShadow: 'none'
-      },
-      embossed: {
-        textShadow: '2px 2px 2px rgba(0, 0, 0, 0.6), -1px -1px 1px rgba(255, 255, 255, 0.5)'
-      },
-      glow: {
-        textShadow: '0 0 15px rgba(255, 255, 255, 0.8), 0 0 10px rgba(255, 255, 255, 0.5)'
-      }
-    };
-
-    return styleMap[currentTextStyle] || {};
-  };
-
-  const renderUnicodeText = (textContent: string) => {
-    const currentTextStyle = textStyle || '';
-    if (unicodeTextStyles[currentTextStyle]) {
-      return textContent
-        .split('')
-        .map(char => {
-          const normalChar = char.normalize('NFKD')[0]; // Get base character
-          const styleMap = unicodeTextStyles[currentTextStyle];
-          return styleMap[normalChar] || char;
-        })
-        .join('');
-    }
-    return textContent;
   };
 
   const getBackgroundStyling = () => {
@@ -231,24 +172,6 @@ export function JournalPreview({
       };
     }
     return {};
-  };
-
-  const getGradientStyle = () => {
-    return {
-      backgroundImage: gradient,
-    };
-  };
-
-  const handleTextBoxSelect = (id: string | null) => {
-    if (onTextBoxSelect) {
-      onTextBoxSelect(id);
-    }
-    if (onIconSelect) {
-      onIconSelect(null);
-    }
-    if (onStickerSelect) {
-      onStickerSelect(null);
-    }
   };
 
   const applyFilter = () => {
@@ -281,35 +204,20 @@ export function JournalPreview({
         
         {/* Main Journal Text */}
         {text && !textBoxes?.some(box => box.text === text) && (
-          <div
-            className={cn(
-              "absolute p-4 cursor-move",
-              "transition-opacity duration-300",
-              isDrawingMode ? "opacity-50" : "opacity-100",
-              "max-w-[60%] break-words"
-            )}
-            style={{
-              left: `${textPosition.x}%`,
-              top: `${textPosition.y}%`,
-              transform: 'translate(-50%, -50%)',
-              fontFamily: font || 'sans-serif',
-              fontSize: fontSize || '16px',
-              fontWeight: fontWeight || 'normal',
-              color: fontColor || 'black',
-              background: gradient ? getGradientStyle() : 'transparent',
-              WebkitBackgroundClip: gradient ? 'text' : 'unset',
-              WebkitTextFillColor: gradient ? 'transparent' : 'unset',
-              ...getTextStyle()
-            }}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            dangerouslySetInnerHTML={{ 
-              __html: renderUnicodeText(text)
-                .replace(/\n/g, '<br>')
-                .replace(/(^|\s)(#[^\s#]+)/g, '$1<span style="color:#3b82f6">$2</span>')
-            }}
-          ></div>
+          <MainTextDisplay
+            text={text}
+            textPosition={textPosition}
+            font={font}
+            fontSize={fontSize}
+            fontWeight={fontWeight}
+            fontColor={fontColor}
+            gradient={gradient}
+            textStyle={textStyle}
+            isDrawingMode={!!isDrawingMode}
+            onMouseDown={handleDragStart}
+            onMouseMove={() => {}}
+            onMouseUp={() => {}}
+          />
         )}
         
         {/* Stickers Layer */}
@@ -319,16 +227,10 @@ export function JournalPreview({
             sticker={sticker}
             selected={sticker.id === selectedStickerId}
             onSelect={() => handleStickerSelect(sticker.id)}
-            onMove={handleMoveSticker}
-            onPositionChange={(position) => {
+            onMove={(id, position) => {
               if (onStickerMove) {
-                onStickerMove(sticker.id, position);
+                onStickerMove(id, position);
               }
-            }}
-            onResize={(width, height) => {
-              // Convert width to string if it's a number
-              const widthStr = typeof width === 'number' ? `${width}px` : width;
-              // Pass to parent
             }}
             containerRef={containerRef}
           />
@@ -379,40 +281,17 @@ export function JournalPreview({
       </div>
       
       {/* Overlay Controls */}
-      <div className="absolute bottom-4 right-4 flex gap-2">
-        {(!isDrawingMode && (onTextBoxSelect || onTextBoxUpdate)) && (
-          <Button 
-            variant="subtle" 
-            size="sm" 
-            className="rounded-full"
-            onClick={() => {
-              if (onTextBoxSelect) {
-                onTextBoxSelect(null); // Deselect any selected text box first
-              }
-            }}
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            Text
-          </Button>
-        )}
-        
-        <Button
-          variant="subtle"
-          size="sm"
-          className={cn(
-            "rounded-full",
-            isDrawingMode ? "bg-blue-100 border-blue-300" : ""
-          )}
-          onClick={() => {
-            if (onDrawingChange && typeof isDrawingMode !== 'undefined' && onDrawingModeToggle) {
-              onDrawingModeToggle(!isDrawingMode);
-            }
-          }}
-        >
-          <PenTool className="h-4 w-4 mr-1" />
-          Draw
-        </Button>
-      </div>
+      {onDrawingModeToggle && (
+        <PreviewControls 
+          isDrawingMode={!!isDrawingMode} 
+          onDrawingModeToggle={onDrawingModeToggle} 
+          onCreateTextBox={
+            onTextBoxSelect && onTextBoxAdd 
+              ? () => handleTextBoxSelect(null) // Deselect any selected text box first
+              : undefined
+          }
+        />
+      )}
     </div>
   );
 }
