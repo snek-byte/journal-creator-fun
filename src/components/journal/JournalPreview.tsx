@@ -102,6 +102,17 @@ export function JournalPreview({
   const [audioLoaded, setAudioLoaded] = useState(false);
   const [audioError, setAudioError] = useState<string | null>(null);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const [audioAttempted, setAudioAttempted] = useState(false);
+
+  // Reset audio state when audio url changes
+  useEffect(() => {
+    if (!audio?.url) {
+      setAudioLoaded(false);
+      setIsAudioPlaying(false);
+      setAudioError(null);
+      setAudioAttempted(false);
+    }
+  }, [audio?.url]);
 
   // Handle audio setup and play/pause when audioTrack changes
   useEffect(() => {
@@ -133,17 +144,24 @@ export function JournalPreview({
     const audioElement = audioRef.current;
     
     try {
-      // Explicitly create a new Audio element to avoid stale refs
-      audioElement.src = audio.url;
-      audioElement.volume = (audio.volume || 50) / 100;
-      audioElement.muted = audioMuted;
-      audioElement.loop = true;
-      setAudioError(null);
+      // Only attempt to set src if audio object exists and has a url
+      if (audio && audio.url) {
+        audioElement.src = audio.url;
+        audioElement.volume = (audio.volume || 50) / 100;
+        audioElement.muted = audioMuted;
+        audioElement.loop = true;
+        setAudioError(null);
+      } else {
+        // Clear audio state if no audio
+        return cleanupAudio;
+      }
 
       console.log("Audio set up with URL:", audio.url, "playing:", audio.playing);
       
       // Handle playback based on the audio.playing property
-      if (audio.playing) {
+      if (audio.playing && !audioAttempted) {
+        setAudioAttempted(true);
+        
         // Delay playback to ensure the audio element is ready
         const playbackTimer = setTimeout(() => {
           if (!audioRef.current) return;
@@ -173,14 +191,14 @@ export function JournalPreview({
             setIsAudioPlaying(false);
             setAudioError("Playback failed. Try uploading a different audio file.");
           }
-        }, 500); // Increased delay to give more time for loading
+        }, 1000); // Increased delay to give more time for loading
         
         // Clean up the timer if the component unmounts
         return () => {
           clearTimeout(playbackTimer);
           cleanupAudio();
         };
-      } else {
+      } else if (!audio.playing) {
         // Audio should not be playing
         console.log("Audio not set to play");
         try {
@@ -197,7 +215,7 @@ export function JournalPreview({
     }
     
     return cleanupAudio;
-  }, [audio, audioMuted]);
+  }, [audio, audioMuted, audioAttempted]);
 
   const handleAudioLoaded = () => {
     console.log("Audio loaded successfully:", audio?.name);

@@ -34,13 +34,21 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [audioError, setAudioError] = useState<string | null>(null);
+  const [audioInitialized, setAudioInitialized] = useState<boolean>(false);
 
   // Update component state when audioTrack prop changes
   useEffect(() => {
     if (audioTrack) {
       setVolume(audioTrack.volume || 50);
-      setIsPlaying(audioTrack.playing || false);
       setTrackName(audioTrack.name || 'Untitled Track');
+      
+      // Only update playing state if we have an audio URL
+      if (audioTrack.url) {
+        setIsPlaying(audioTrack.playing || false);
+      }
+    } else {
+      setIsPlaying(false);
+      setTrackName('No track selected');
     }
   }, [audioTrack]);
 
@@ -50,15 +58,17 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
     
     const audio = audioRef.current;
     
-    // Set up audio source and parameters if URL exists
-    if (audioTrack?.url) {
+    // Only initialize audio if we have a URL and it hasn't been initialized
+    if (audioTrack?.url && !audioInitialized) {
       console.log("Setting up audio source:", audioTrack.url);
+      setAudioInitialized(true);
       audio.src = audioTrack.url;
       audio.volume = volume / 100;
       audio.muted = isMuted;
-    } else {
-      // Clear audio source if no URL
+    } else if (!audioTrack?.url) {
+      // Reset audio if no URL available
       audio.src = '';
+      setAudioInitialized(false);
       return;
     }
     
@@ -70,9 +80,17 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
       setIsLoading(false);
       setAudioError(null);
     };
-    const handleEnded = () => setIsPlaying(false);
+    const handleEnded = () => {
+      setIsPlaying(false);
+      if (onAudioChange && audioTrack) {
+        onAudioChange({
+          ...audioTrack,
+          playing: false
+        });
+      }
+    };
     const handlePlay = () => {
-      console.log("Audio playing:", audioTrack.name);
+      console.log("Audio playing:", audioTrack?.name);
       setAudioError(null);
     };
     const handleError = (e: ErrorEvent) => {
@@ -98,7 +116,7 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
     audio.addEventListener('error', handleError as EventListener);
     
     // Play or pause based on isPlaying state
-    if (isPlaying) {
+    if (isPlaying && audioTrack?.url) {
       setIsLoading(true);
       
       // Small delay to ensure the audio element is properly set up
@@ -141,8 +159,8 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
             });
           }
         }
-      }, 300);
-    } else {
+      }, 1000); // Increased delay for better reliability
+    } else if (!isPlaying && audioRef.current) {
       try {
         audio.pause();
       } catch (err) {
@@ -165,11 +183,11 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
         console.error("Error pausing audio on cleanup:", err);
       }
     };
-  }, [audioTrack?.url, isPlaying, volume, isMuted, audioTrack, onAudioChange]);
+  }, [audioTrack?.url, isPlaying, volume, isMuted, audioTrack, onAudioChange, audioInitialized]);
 
   // Update the audioTrack when play state changes
   useEffect(() => {
-    if (audioTrack && onAudioChange && !audioError) {
+    if (audioTrack && onAudioChange && !audioError && audioTrack.url) {
       onAudioChange({
         ...audioTrack,
         playing: isPlaying,
@@ -225,6 +243,7 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
     // Reset any previous errors
     setAudioError(null);
     setIsLoading(true);
+    setAudioInitialized(false); // Reset this so new audio will be initialized
     
     try {
       const url = URL.createObjectURL(file);
@@ -248,13 +267,14 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
         // Wait a short period for the audio to load before attempting playback
         setTimeout(() => {
           if (onAudioChange) {
+            // Now set playing to true after a delay
             onAudioChange({
               ...newAudioTrack,
               playing: true
             });
             setIsPlaying(true);
           }
-        }, 500);
+        }, 1500); // Increased delay for more reliable playback
       }
       
       toast.success(`${name} loaded successfully`);
