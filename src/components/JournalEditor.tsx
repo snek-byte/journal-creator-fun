@@ -5,7 +5,7 @@ import { JournalPreview } from './journal/JournalPreview';
 import { EmailDialog } from './journal/EmailDialog';
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import type { Sticker, Icon, TextBox, AudioTrack } from '@/types/journal';
+import type { Sticker, Icon, TextBox } from '@/types/journal';
 
 export function JournalEditor() {
   const {
@@ -44,7 +44,6 @@ export function JournalEditor() {
     handleFontColorChange,
     handleGradientChange,
     handleTextStyleChange,
-    handleAudioChange,
     setShowEmailDialog,
     setEmailAddress,
     setMood,
@@ -170,12 +169,6 @@ export function JournalEditor() {
     }
   };
 
-  const handleAudioUpdate = (audio: AudioTrack) => {
-    if (handleAudioChange) {
-      handleAudioChange(audio);
-    }
-  };
-
   // Renamed to processStickerMove from handleStickerMove to avoid conflict
   const processStickerMove = (id: string, position: { x: number; y: number }) => {
     if (id && position && typeof position.x === 'number' && typeof position.y === 'number') {
@@ -254,7 +247,6 @@ export function JournalEditor() {
         isDrawingMode={isDrawingMode}
         onDrawingModeToggle={handleDrawingModeToggle}
         onCreateTextBox={handleCreateTextBox}
-        onAudioChange={handleAudioUpdate}
       />
 
       <EmailDialog
@@ -283,7 +275,6 @@ export function JournalEditor() {
         backgroundImage={currentEntry.backgroundImage}
         drawing={currentEntry.drawing}
         filter={currentEntry.filter}
-        audio={currentEntry.audio}
         onStickerAdd={handleStickerAdd}
         onIconAdd={handleIconAdd}
         onStickerMove={processStickerMove}

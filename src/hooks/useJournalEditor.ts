@@ -1,8 +1,9 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useJournalStore } from '@/store/journalStore';
 import { toast } from 'sonner';
 import { useUndoRedoState } from './useUndoRedoState';
-import type { Sticker, Icon, TextBox, HistoryEntry, AudioTrack } from '@/types/journal';
+import type { Sticker, Icon, TextBox, HistoryEntry } from '@/types/journal';
 import type { EmojiClickData } from 'emoji-picker-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useTextBoxPosition } from './useTextBoxPosition';
@@ -53,8 +54,7 @@ export function useJournalEditor() {
     setTextBoxes,
     addTextBox,
     updateTextBox,
-    removeTextBox,
-    setAudio
+    removeTextBox
   } = useJournalStore();
 
   const {
@@ -257,10 +257,6 @@ export function useJournalEditor() {
     }
   };
   
-  const handleAudioChange = (audio: AudioTrack) => {
-    setAudio(audio);
-  };
-  
   const handleUndo = () => {
     const previousState = undo();
     if (previousState) {
@@ -322,7 +318,6 @@ export function useJournalEditor() {
     setDrawing('');
     setFilter('none');
     setTextBoxes([]);
-    setAudio(undefined);
     resetHistory({
       text: '',
       font: 'inter',
@@ -512,7 +507,6 @@ export function useJournalEditor() {
     handleFontColorChange,
     handleGradientChange,
     handleTextStyleChange,
-    handleAudioChange,
     setShowEmailDialog,
     setEmailAddress,
     setMood,
