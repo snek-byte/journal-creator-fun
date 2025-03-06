@@ -3,5 +3,4 @@
   <rect width="640" height="640" fill="transparent"/>
   <rect x="120" y="60" width="400" height="520" rx="4" fill="white" filter="drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))"/>
   <rect x="140" y="80" width="360" height="400" fill="transparent" stroke="#EEEEEE" stroke-width="1"/>
-  <text x="320" y="520" text-anchor="middle" font-family="Arial" font-size="18" fill="#333333">MAY 2024</text>
 </svg>

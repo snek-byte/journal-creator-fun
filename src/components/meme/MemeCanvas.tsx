@@ -139,7 +139,7 @@ export function MemeCanvas({
             backgroundColor: backgroundColor || '#ffffff'
           }}
         >
-          {template && (
+          {template ? (
             <img
               src={template}
               alt="Background template"
@@ -148,6 +148,10 @@ export function MemeCanvas({
               onError={handleImageError}
               crossOrigin="anonymous"
             />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+              <p className="text-gray-400 text-center p-4">Click to add your photo</p>
+            </div>
           )}
 
           <div
