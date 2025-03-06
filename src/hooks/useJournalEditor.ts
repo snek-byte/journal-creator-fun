@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useJournalStore } from '@/store/journalStore';
 import { toast } from 'sonner';
@@ -18,6 +17,7 @@ export function useJournalEditor() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
   const [selectedTextBoxId, setSelectedTextBoxId] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   const {
     currentEntry,
@@ -54,7 +54,7 @@ export function useJournalEditor() {
     addTextBox,
     updateTextBox,
     removeTextBox,
-    setAudio // New setter for audio
+    setAudio
   } = useJournalStore();
 
   // Initialize undo/redo functionality
@@ -86,12 +86,12 @@ export function useJournalEditor() {
     textBoxes: currentEntry.textBoxes || [],
   });
   
-  // Initialize text box dragging
+  // Initialize text box position
   const {
     isDraggingText,
     handleDragStart,
     handleDragEnd
-  } = useTextBoxPosition();
+  } = useTextBoxPosition(currentEntry.textPosition, containerRef);
 
   // Load initial data
   useEffect(() => {
@@ -495,6 +495,7 @@ export function useJournalEditor() {
     textareaRef,
     selectedIconId,
     selectedTextBoxId,
+    containerRef,
     handlePrint,
     handleStickerAdd,
     handleIconAdd,

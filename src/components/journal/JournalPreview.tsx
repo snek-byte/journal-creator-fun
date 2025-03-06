@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { TextBoxComponent } from './TextBoxComponent';
@@ -205,15 +206,25 @@ export function JournalPreview({
           filter: calculateFilterStyle()
         }}
       >
-        <DrawingLayer drawing={drawing} drawingTool={drawingTool} drawingColor={drawingColor} brushSize={brushSize} isDrawingMode={isDrawingMode} />
+        <DrawingLayer 
+          drawing={drawing} 
+          drawingTool={drawingTool} 
+          drawingColor={drawingColor} 
+          brushSize={brushSize} 
+          isDrawingMode={isDrawingMode}
+          onDrawingChange={onDrawingChange}
+        />
         
         {textBoxes.map((textBox) => (
           <TextBoxComponent
             key={textBox.id}
             textBox={textBox}
-            onTextBoxUpdate={onTextBoxUpdate}
-            onTextBoxRemove={onTextBoxRemove}
-            onTextBoxSelect={onTextBoxSelect}
+            selected={false} // Add required props
+            containerRef={containerRef}
+            onUpdate={onTextBoxUpdate}
+            onRemove={onTextBoxRemove}
+            onSelect={onTextBoxSelect}
+            isDrawingMode={isDrawingMode}
           />
         ))}
         
@@ -221,8 +232,10 @@ export function JournalPreview({
           <StickerContainer
             key={sticker.id}
             sticker={sticker}
-            onStickerMove={(position) => onStickerMove(sticker.id, position)}
-            onStickerSelect={() => onStickerSelect(sticker.id)}
+            selected={false} // Add required props
+            containerRef={containerRef}
+            onMove={(position) => onStickerMove(sticker.id, position)}
+            onSelect={() => onStickerSelect(sticker.id)}
           />
         ))}
         
@@ -230,9 +243,11 @@ export function JournalPreview({
           <IconContainer
             key={icon.id}
             icon={icon}
-            onIconMove={(position) => onIconMove(icon.id, position)}
-            onIconUpdate={(updates) => onIconUpdate(icon.id, updates)}
-            onIconSelect={() => onIconSelect(icon.id)}
+            selected={false} // Add required props
+            containerRef={containerRef}
+            onMove={(position) => onIconMove(icon.id, position)}
+            onUpdate={(updates) => onIconUpdate(icon.id, updates)}
+            onSelect={() => onIconSelect(icon.id)}
           />
         ))}
         
@@ -255,7 +270,8 @@ export function JournalPreview({
             lineHeight: '1.4',
             maxWidth: '80%',
             textAlign: 'center',
-            ...calculateTextStyle()
+            ...(textStyle ? { fontStyle: textStyle.includes('italic') ? 'italic' : 'normal' } : {}),
+            ...(textStyle ? { textDecoration: textStyle.includes('underline') ? 'underline' : 'none' } : {})
           }}
           draggable
           onPointerDown={handleTextPointerDown}
