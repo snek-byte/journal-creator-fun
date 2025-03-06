@@ -7,6 +7,7 @@ import { TextStyleControls } from '@/components/meme/TextStyleControls';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
 
 export default function MemeGenerator() {
   // Meme text states
@@ -25,6 +26,10 @@ export default function MemeGenerator() {
   // Frame states
   const [selectedFrame, setSelectedFrame] = useState('');
   const [selectedBackground, setSelectedBackground] = useState('#ffffff');
+  const [template, setTemplate] = useState('');
+  
+  // File input ref
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Handle frame selection
   const handleFrameSelect = (frame: string) => {
@@ -37,6 +42,31 @@ export default function MemeGenerator() {
     setSelectedBackground(color);
   };
 
+  // Handle template click to trigger file upload
+  const handleTemplateClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  // Handle file upload
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select an image file');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setTemplate(result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8 text-center">Creative Studio</h1>
@@ -44,7 +74,7 @@ export default function MemeGenerator() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2 space-y-8">
           <MemeCanvas 
-            template=""
+            template={template}
             topText={topText}
             bottomText={bottomText}
             font={font}
@@ -56,6 +86,14 @@ export default function MemeGenerator() {
             gradient={gradient}
             frame={selectedFrame}
             backgroundColor={selectedBackground}
+            onTemplateClick={handleTemplateClick}
+          />
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            accept="image/*" 
+            className="hidden" 
+            onChange={handleFileChange}
           />
         </div>
         

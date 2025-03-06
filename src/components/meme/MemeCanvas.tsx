@@ -16,6 +16,7 @@ interface MemeCanvasProps {
   gradient: string;
   frame?: string;
   backgroundColor?: string;
+  onTemplateClick?: () => void;
 }
 
 export function MemeCanvas({
@@ -30,7 +31,8 @@ export function MemeCanvas({
   textStyle,
   gradient,
   frame = '',
-  backgroundColor = '#ffffff'
+  backgroundColor = '#ffffff',
+  onTemplateClick
 }: MemeCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -88,6 +90,13 @@ export function MemeCanvas({
     console.error("Error loading image template:", template);
     setImageError(true);
     setImageLoaded(false);
+  };
+
+  // Handle canvas click
+  const handleCanvasClick = () => {
+    if (onTemplateClick) {
+      onTemplateClick();
+    }
   };
 
   // Download function (exposed to parent via ref)
@@ -149,7 +158,10 @@ export function MemeCanvas({
               crossOrigin="anonymous"
             />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+            <div 
+              className="absolute inset-0 flex items-center justify-center bg-gray-50 cursor-pointer"
+              onClick={handleCanvasClick}
+            >
               <p className="text-gray-400 text-center p-4">Click to add your photo</p>
             </div>
           )}
@@ -172,7 +184,7 @@ export function MemeCanvas({
             <img
               src={frame}
               alt="Frame"
-              className="absolute inset-0 w-full h-full object-cover z-20 pointer-events-none"
+              className="absolute inset-0 w-full h-full object-contain z-20 pointer-events-none"
               onLoad={handleFrameLoad}
               onError={handleFrameError}
               crossOrigin="anonymous"
