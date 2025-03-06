@@ -238,7 +238,6 @@ export function JournalEditor() {
       />
 
       <JournalPreview
-        showPreview={showPreview}
         text={currentEntry.text}
         mood={currentEntry.mood}
         font={currentEntry.font}

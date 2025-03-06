@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Play, Pause, Check, Plus } from "lucide-react";
+import { Play, Pause, Check, Plus, AlertCircle } from "lucide-react";
 import type { AudioTrack } from '@/types/journal';
+import { toast } from 'sonner';
 
 interface SoundPreviewProps {
   sound: AudioTrack;
@@ -12,17 +13,36 @@ interface SoundPreviewProps {
 
 export function SoundPreview({ sound, onSelect }: SoundPreviewProps) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [audio] = useState<HTMLAudioElement | null>(() => {
-    if (typeof window !== 'undefined') {
-      return new Audio(sound.url);
-    }
-    return null;
-  });
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const [isSelected, setIsSelected] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
+    // Create audio element only when component mounts
+    if (typeof window !== 'undefined') {
+      const newAudio = new Audio();
+      
+      // Set crossOrigin attribute for external resources
+      newAudio.crossOrigin = "anonymous";
+      
+      // Only set the source after we've configured the audio element
+      newAudio.src = sound.url;
+      
+      setAudio(newAudio);
+    }
+    
+    return () => {
+      // Clean up audio when component unmounts
+      if (audio) {
+        audio.pause();
+        audio.src = "";
+        setAudio(null);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (!audio) return;
     
     const handlePlay = () => setIsPlaying(true);
@@ -41,8 +61,14 @@ export function SoundPreview({ sound, onSelect }: SoundPreviewProps) {
       }
     };
     
-    const handleError = () => {
-      setError("Could not load audio");
+    const handleError = (e: Event) => {
+      const target = e.target as HTMLAudioElement;
+      const errorMessage = target.error 
+        ? `Error: ${target.error.message}` 
+        : "Couldn't play preview. Audio sources may be unavailable.";
+      
+      console.error("Audio preview error:", errorMessage);
+      setError(errorMessage);
       setIsPlaying(false);
     };
     
@@ -77,9 +103,20 @@ export function SoundPreview({ sound, onSelect }: SoundPreviewProps) {
       });
       
       // Play this audio
+      setError(null); // Clear previous errors
+      
       audio.play().catch(err => {
         console.error('Error playing audio:', err);
-        setError("Playback failed");
+        const errorMessage = err.message || "Playback failed due to CORS restrictions or unavailable source";
+        setError(errorMessage);
+        
+        // Show a toast to explain the issue
+        if (err.name === "NotSupportedError" || err.name === "NotAllowedError") {
+          toast.error("Audio source is not supported or blocked by your browser", {
+            description: "Try sources from Wikimedia Commons instead",
+            duration: 5000
+          });
+        }
       });
     }
   };
@@ -116,7 +153,12 @@ export function SoundPreview({ sound, onSelect }: SoundPreviewProps) {
         <div>
           <div className="text-sm font-medium">{sound.name}</div>
           <div className="text-xs text-gray-500">{sound.category}</div>
-          {error && <div className="text-xs text-red-500">{error}</div>}
+          {error && (
+            <div className="text-xs text-red-500 flex items-center">
+              <AlertCircle className="h-3 w-3 mr-1" />
+              <span className="truncate max-w-[150px]">Audio unavailable</span>
+            </div>
+          )}
         </div>
       </div>
       
