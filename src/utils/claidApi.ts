@@ -124,6 +124,14 @@ const getFrameTypeFromPath = (framePath: string): string => {
   return frameMapping[frameName] || 'simple';
 };
 
+// Define a type for inset percentages to properly handle both uniform and non-uniform insets
+type InsetPercentage = number | {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+};
+
 // Improved fallback method using canvas
 const useFallbackCanvasMethod = async (
   imageDataUrl: string,
@@ -162,7 +170,7 @@ const useFallbackCanvasMethod = async (
         
         img.onload = () => {
           // Calculate frame inset percentage based on the frame type
-          let insetPercentage = 0.1; // Default 10% inset
+          let insetPercentage: InsetPercentage = 0.1; // Default 10% inset
           
           if (framePath.includes('shadow-box')) {
             insetPercentage = 0.15; // 15% inset for shadow box
@@ -175,7 +183,7 @@ const useFallbackCanvasMethod = async (
           }
           
           // Calculate the clipping area based on the frame and inset percentage
-          let clipX, clipY, clipWidth, clipHeight;
+          let clipX: number, clipY: number, clipWidth: number, clipHeight: number;
           
           if (typeof insetPercentage === 'object') {
             // Handle non-uniform insets (like polaroid)
@@ -203,7 +211,7 @@ const useFallbackCanvasMethod = async (
           const imgRatio = img.width / img.height;
           const clipRatio = clipWidth / clipHeight;
           
-          let drawWidth, drawHeight, offsetX, offsetY;
+          let drawWidth: number, drawHeight: number, offsetX: number, offsetY: number;
           
           if (imgRatio > clipRatio) {
             // Image is wider - scale by height and center horizontally
