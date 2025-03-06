@@ -1,3 +1,4 @@
+
 export interface JournalEntry {
   id: number;
   date: string;
@@ -19,17 +20,6 @@ export interface JournalEntry {
   drawing?: string;
   filter?: string;
   textBoxes: TextBox[];
-  audio?: AudioTrack;
-  audioTracks?: AudioTrack[];
-}
-
-export interface AudioTrack {
-  id: string;
-  url: string;
-  name: string;
-  volume: number;
-  playing: boolean;
-  category?: string;
 }
 
 export interface Challenge {
