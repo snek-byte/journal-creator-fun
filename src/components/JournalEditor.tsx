@@ -3,7 +3,6 @@ import { useJournalEditor } from '@/hooks/useJournalEditor';
 import { JournalEditorSidebar } from './journal/JournalEditorSidebar';
 import { JournalPreview } from './journal/JournalPreview';
 import { EmailDialog } from './journal/EmailDialog';
-import { AIAssistant } from './journal/AIAssistant';
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Sticker, Icon, TextBox } from '@/types/journal';
@@ -198,10 +197,6 @@ export function JournalEditor() {
     }
   };
 
-  const handleAISuggestionApply = (text: string) => {
-    setText(currentEntry.text + '\n\n' + text);
-  };
-
   const fullEntry = {
     ...currentEntry,
     id: 0,
@@ -262,8 +257,6 @@ export function JournalEditor() {
         onSend={handleSendEmail}
         isSending={isSending}
       />
-
-      <AIAssistant onSuggestionApply={handleAISuggestionApply} />
 
       <JournalPreview
         showPreview={showPreview}

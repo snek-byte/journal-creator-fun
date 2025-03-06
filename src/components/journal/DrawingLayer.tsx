@@ -10,15 +10,14 @@ import { ClearButton } from './drawing/ClearButton';
 
 export function DrawingLayer({ 
   className, 
-  width = 800, 
-  height = 600, 
+  width, 
+  height, 
   onDrawingChange,
   tool = 'pen',
   color = '#000000',
   brushSize = 3,
   initialDrawing,
-  onClear,
-  isDrawingMode = true
+  onClear
 }: DrawingLayerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -45,16 +44,13 @@ export function DrawingLayer({
     console.log("DrawingLayer: Initializing canvas with width:", width, "height:", height);
     console.log("DrawingLayer: Initial drawing available:", !!initialDrawing);
 
-    // Set canvas dimensions - ensure these are numbers
-    canvas.width = typeof width === 'number' ? width : parseInt(String(width), 10) || 800;
-    canvas.height = typeof height === 'number' ? height : parseInt(String(height), 10) || 600;
+    // Set canvas dimensions
+    canvas.width = width;
+    canvas.height = height;
 
     // Get and store context
     const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      console.error("DrawingLayer: Failed to get canvas context");
-      return;
-    }
+    if (!ctx) return;
 
     ctxRef.current = ctx;
     
@@ -71,7 +67,7 @@ export function DrawingLayer({
       loadDrawingToCanvas(initialDrawing);
     }
     
-    console.log("DrawingLayer: Canvas initialized with dimensions", canvas.width, "x", canvas.height);
+    console.log("DrawingLayer: Canvas initialized with dimensions", width, "x", height);
     
     return () => {
       // Clean up spray interval if it exists
@@ -88,7 +84,7 @@ export function DrawingLayer({
         }
       }
     };
-  }, [width, height, initialDrawing, onDrawingChange]);
+  }, [width, height]);
 
   // Helper function to load drawing to canvas
   const loadDrawingToCanvas = (drawingDataUrl: string) => {
@@ -151,9 +147,6 @@ export function DrawingLayer({
   };
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
-    // Only start drawing if in drawing mode
-    if (!isDrawingMode) return;
-    
     e.preventDefault();
     e.stopPropagation();
     
@@ -165,8 +158,6 @@ export function DrawingLayer({
     updateBrushStyles();
     
     const point = getPointFromEvent(e, canvas);
-    if (!point) return;
-    
     setIsDrawing(true);
     setLastPoint(point);
     
@@ -205,7 +196,7 @@ export function DrawingLayer({
   };
 
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!isDrawingMode || !isDrawing || !lastPoint) return;
+    if (!isDrawing || !lastPoint) return;
     
     e.preventDefault();
     e.stopPropagation();
@@ -215,7 +206,6 @@ export function DrawingLayer({
     if (!ctx || !canvas) return;
     
     const currentPoint = getPointFromEvent(e, canvas);
-    if (!currentPoint) return;
     
     // Update spray position if currently spraying
     if (tool === 'spray') {
@@ -233,7 +223,7 @@ export function DrawingLayer({
   };
 
   const endDrawing = () => {
-    if (!isDrawingMode || !isDrawing) return;
+    if (!isDrawing) return;
     
     // Save drawing before clearing state
     forceUpdate.current = true;
@@ -333,7 +323,7 @@ export function DrawingLayer({
         onTouchMove={draw}
         onTouchEnd={endDrawing}
       />
-      {isDrawingMode && <ClearButton onClick={clearCanvas} />}
+      <ClearButton onClick={clearCanvas} />
     </div>
   );
 }

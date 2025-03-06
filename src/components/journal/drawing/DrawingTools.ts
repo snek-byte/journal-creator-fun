@@ -5,8 +5,6 @@ export const drawStroke = (
   currentPoint: { x: number; y: number }, 
   tool: string
 ) => {
-  if (!ctx || !lastPoint || !currentPoint) return;
-  
   ctx.beginPath();
   ctx.moveTo(lastPoint.x, lastPoint.y);
   
@@ -31,8 +29,6 @@ export const drawDot = (
   brushSize: number,
   tool: string
 ) => {
-  if (!ctx || !point) return;
-  
   ctx.beginPath();
   
   const radius = tool === 'pen' ? brushSize / 2 : 
@@ -51,8 +47,6 @@ export const sprayPaint = (
   brushSize: number,
   color: string
 ) => {
-  if (!ctx || !point) return;
-  
   // Save context state to restore later
   ctx.save();
   
@@ -87,8 +81,6 @@ export const floodFill = (
   point: { x: number; y: number },
   color: string
 ) => {
-  if (!ctx || !canvas || !point) return;
-  
   // Get image data
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
@@ -96,12 +88,6 @@ export const floodFill = (
   // Get clicked pixel color
   const targetX = Math.floor(point.x);
   const targetY = Math.floor(point.y);
-  
-  // Check if point is within canvas bounds
-  if (targetX < 0 || targetX >= canvas.width || targetY < 0 || targetY >= canvas.height) {
-    return;
-  }
-  
   const targetIndex = (targetY * canvas.width + targetX) * 4;
   
   const targetR = data[targetIndex];

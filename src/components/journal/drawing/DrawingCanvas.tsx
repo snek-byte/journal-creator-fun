@@ -19,13 +19,11 @@ export const DrawingCanvas = forwardRef<HTMLCanvasElement, DrawingCanvasProps>(
     return (
       <canvas
         ref={ref}
-        width={width}
-        height={height}
         className="cursor-crosshair"
         style={{ 
           width: '100%', 
           height: '100%',
-          touchAction: 'none' // This prevents scroll/zoom during touch events
+          touchAction: 'none'
         }}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}

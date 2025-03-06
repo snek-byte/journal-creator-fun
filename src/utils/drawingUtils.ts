@@ -10,8 +10,6 @@ export const configureBrushStyles = (
   color: string, 
   brushSize: number
 ) => {
-  if (!ctx) return null;
-  
   // Save the current context state
   ctx.save();
   
@@ -65,8 +63,8 @@ export const configureBrushStyles = (
 export const getPointFromEvent = (
   e: React.MouseEvent | React.TouchEvent,
   canvas: HTMLCanvasElement
-): { x: number; y: number } | null => {
-  if (!canvas) return null;
+): { x: number; y: number } => {
+  if (!canvas) return { x: 0, y: 0 };
 
   const rect = canvas.getBoundingClientRect();
   
@@ -78,7 +76,6 @@ export const getPointFromEvent = (
   
   if ('touches' in e) {
     // Touch event
-    if (e.touches.length === 0) return null;
     clientX = e.touches[0].clientX;
     clientY = e.touches[0].clientY;
   } else {
@@ -96,6 +93,5 @@ export const getPointFromEvent = (
 
 // Generate data URL from canvas
 export const canvasToDataURL = (canvas: HTMLCanvasElement): string => {
-  if (!canvas) return '';
   return canvas.toDataURL('image/png');
 };
