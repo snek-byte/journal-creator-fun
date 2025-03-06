@@ -1,7 +1,7 @@
 
 <svg width="640" height="640" viewBox="0 0 640 640" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="640" height="640" fill="#F7F7F7"/>
-  <rect x="60" y="80" width="520" height="480" rx="0" fill="white" filter="drop-shadow(0px 2px 6px rgba(0, 0, 0, 0.1))"/>
+  <rect width="640" height="640" fill="transparent"/>
+  <rect x="60" y="80" width="520" height="480" rx="0" fill="transparent" stroke="#CCCCCC" stroke-width="2" filter="drop-shadow(0px 2px 6px rgba(0, 0, 0, 0.1))"/>
   <!-- Action buttons -->
   <circle cx="120" cy="590" r="15" fill="transparent" stroke="#888888" stroke-width="1.5"/>
   <circle cx="180" cy="590" r="15" fill="transparent" stroke="#888888" stroke-width="1.5"/>

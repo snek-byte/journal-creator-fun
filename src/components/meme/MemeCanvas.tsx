@@ -132,6 +132,11 @@ export function MemeCanvas({
     };
   }, []);
 
+  // Special styling for specific frames
+  const isCollageFrame = frame && frame.includes('collage');
+  const isBirthdayFrame = frame && frame.includes('birthday');
+  const isInstantPhotoFrame = frame && frame.includes('instant-photo');
+
   return (
     <Card className="p-3 w-full flex justify-center bg-gray-100">
       <div 
@@ -188,6 +193,10 @@ export function MemeCanvas({
               onLoad={handleFrameLoad}
               onError={handleFrameError}
               crossOrigin="anonymous"
+              style={{ 
+                mixBlendMode: 'normal',
+                opacity: 1
+              }}
             />
           )}
         </div>
