@@ -1,10 +1,9 @@
 
-import React from 'react';
-import { Textarea } from "@/components/ui/textarea";
-import { applyTextStyle, TextStyle } from '@/utils/unicodeTextStyles';
+import React, { useEffect, useRef } from 'react';
+import { TextStyle } from '@/utils/unicodeTextStyles';
 import { getTextStyles } from '@/utils/textBoxUtils';
 
-interface TextBoxContentProps {
+export interface TextBoxContentProps {
   isEditing: boolean;
   editValue: string;
   text: string;
@@ -20,6 +19,7 @@ interface TextBoxContentProps {
   onKeyDown: (e: React.KeyboardEvent) => void;
   textAreaRef: React.RefObject<HTMLTextAreaElement>;
   isPrinting: boolean;
+  style?: React.CSSProperties;
 }
 
 export function TextBoxContent({
@@ -37,49 +37,57 @@ export function TextBoxContent({
   onBlur,
   onKeyDown,
   textAreaRef,
-  isPrinting
+  isPrinting,
+  style = {}
 }: TextBoxContentProps) {
-  // Apply text style
-  const processText = (text: string) => {
-    if (!text) return '';
-    
-    if (textStyle && textStyle !== 'normal') {
-      return applyTextStyle(text, textStyle as TextStyle);
-    }
-    
-    return text;
+  // Get the base styles for the content
+  const contentStyles = getTextStyles(
+    font,
+    fontSize,
+    fontWeight,
+    fontColor,
+    gradient,
+    textStyle,
+    rotation
+  );
+  
+  // Merge with any additional style props
+  const mergedStyles: React.CSSProperties = {
+    ...contentStyles,
+    ...style,
+    // Ensure these styles for proper interaction
+    pointerEvents: isEditing ? 'auto' : 'none',
+    userSelect: isEditing ? 'text' : 'none',
+    width: '100%',
+    height: '100%'
   };
 
-  const styles = getTextStyles(font, fontSize, fontWeight, fontColor, gradient, textStyle, rotation);
-  
-  // Display empty text for new boxes
-  const displayText = isPrinting ? (text || '') : (processText(text || ''));
-  
+  // Ref for drag handling
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  if (isEditing) {
+    return (
+      <textarea
+        ref={textAreaRef}
+        value={editValue}
+        onChange={onTextChange}
+        onKeyDown={onKeyDown}
+        onBlur={onBlur}
+        style={mergedStyles}
+        className="text-box-content-edit w-full h-full resize-none focus:outline-none p-2"
+        placeholder="Enter text here..."
+      />
+    );
+  }
+
   return (
-    <>
-      {isEditing ? (
-        // Edit mode - textarea
-        <Textarea
-          ref={textAreaRef}
-          value={editValue}
-          onChange={onTextChange}
-          onBlur={onBlur}
-          onKeyDown={onKeyDown}
-          className="w-full h-full resize-none border-none focus-visible:ring-0 focus-visible:outline-none p-2"
-          style={{ ...styles, border: 'none' }}
-          autoFocus
-          placeholder="Type here..."
-        />
-      ) : (
-        // View mode - display text
-        <div
-          className="w-full h-full whitespace-pre-wrap overflow-hidden flex items-center justify-center"
-        >
-          <div style={styles}>
-            {displayText || 'Click to edit'}
-          </div>
-        </div>
-      )}
-    </>
+    <div
+      ref={contentRef}
+      style={mergedStyles}
+      className="text-box-content-view w-full h-full overflow-hidden"
+      title={isPrinting ? undefined : "Double-click to edit"}
+    >
+      {text || 'Empty text box'}
+    </div>
   );
 }
