@@ -32,7 +32,6 @@ const App = () => {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/journal" element={<Write />} /> {/* Explicit journal route */}
-              <Route path="/meme" element={<Write />} /> {/* Fallback to Write for meme route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
             <ToastViewport />

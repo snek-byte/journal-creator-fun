@@ -76,9 +76,6 @@ export const getPointFromEvent = (
   
   if ('touches' in e) {
     // Touch event
-    if (e.touches.length === 0) {
-      return { x: 0, y: 0 }; // Return a default if no touches available
-    }
     clientX = e.touches[0].clientX;
     clientY = e.touches[0].clientY;
   } else {

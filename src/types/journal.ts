@@ -1,23 +1,99 @@
-
-export interface Point {
-  x: number;
-  y: number;
+export interface JournalEntry {
+  id: number;
+  date: string;
+  text: string;
+  font: string;
+  fontSize: string;
+  fontWeight: string;
+  fontColor: string;
+  gradient: string;
+  mood?: Mood;
+  moodNote?: string;
+  isPublic: boolean;
+  challengeId?: string;
+  textStyle?: string;
+  stickers: Sticker[];
+  icons: Icon[];
+  textPosition: { x: number; y: number };
+  backgroundImage?: string;
+  drawing?: string;
+  filter?: string;
+  textBoxes: TextBox[];
+  audio?: AudioTrack;
+  audioTracks?: AudioTrack[];
 }
+
+export interface AudioTrack {
+  id: string;
+  url: string;
+  name: string;
+  volume: number;
+  playing: boolean;
+  category?: string;
+}
+
+export interface Challenge {
+  id: string;
+  prompt: string;
+  date: string;
+  xpReward: number;
+}
+
+export interface Badge {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  requirement: number;
+  type: 'streak' | 'entries' | 'challenges';
+}
+
+export interface UserProgress {
+  totalXp: number;
+  currentStreak: number;
+  longestStreak: number;
+  totalEntries: number;
+  completedChallenges: string[];
+  unlockedFeatures: string[];
+  earnedBadges: string[];
+}
+
+export type Mood =
+  | 'happy'
+  | 'excited'
+  | 'content'
+  | 'grateful'
+  | 'relaxed'
+  | 'hopeful'
+  | 'motivated'
+  | 'proud'
+  | 'silly'
+  | 'calm'
+  | 'okay'
+  | 'tired'
+  | 'bored'
+  | 'stressed'
+  | 'anxious'
+  | 'sad'
+  | 'angry'
+  | 'frustrated'
+  | 'overwhelmed'
+  | 'lonely';
 
 export interface Sticker {
   id: string;
   url: string;
   position: { x: number; y: number };
-  width?: number;
-  height?: number;
+  width: number;
+  height: number;
 }
 
 export interface Icon {
   id: string;
   url: string;
   position: { x: number; y: number };
-  color: string;
   size: number;
+  color: string;
   style: 'outline' | 'color';
 }
 
@@ -32,44 +108,9 @@ export interface TextBox {
   fontWeight: string;
   fontColor: string;
   gradient: string;
-  textStyle?: string;
+  textStyle: string;
   rotation: number;
   zIndex: number;
-}
-
-export interface Mood {
-  id: string;
-  name: string;
-  icon: string;
-  color: string;
-}
-
-export interface JournalEntry {
-  id: number;
-  date: string;
-  text: string;
-  mood?: Mood;
-  moodNote?: string;
-  font: string;
-  fontSize: string;
-  fontWeight: string;
-  fontColor: string;
-  gradient: string;
-  textStyle?: string;
-  isPublic: boolean;
-  stickers: Sticker[];
-  icons: Icon[];
-  textBoxes: TextBox[];
-  textPosition: { x: number; y: number };
-  backgroundImage?: string;
-  drawing?: string;
-  filter?: string;
-}
-
-export interface Challenge {
-  id: number;
-  date: string;
-  prompt: string;
 }
 
 export interface HistoryEntry {
@@ -92,45 +133,4 @@ export interface HistoryEntry {
   textBoxes: TextBox[];
 }
 
-export interface Progress {
-  streak: number;
-  longestStreak: number;
-  entries: number;
-}
-
-export interface UserProfile {
-  id: string;
-  email: string;
-  name?: string;
-  avatar_url?: string;
-}
-
-export interface AudioTrack {
-  id: string;
-  name: string; 
-  url: string;
-  volume: number;
-  isPlaying: boolean;
-  category?: string;
-}
-
 export type StickerSource = 'decorative' | 'nature' | 'food';
-
-export interface Badge {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  requirement: number;
-  type: 'streak' | 'entries' | 'challenges';
-}
-
-export interface UserProgress {
-  totalXp: number;
-  currentStreak: number;
-  longestStreak: number;
-  totalEntries: number;
-  completedChallenges: string[];
-  unlockedFeatures: string[];
-  earnedBadges: string[];
-}

@@ -10,14 +10,13 @@ import { ClearButton } from './drawing/ClearButton';
 
 export function DrawingLayer({ 
   className, 
-  width = 800, 
-  height = 600, 
+  width, 
+  height, 
   onDrawingChange,
-  initialDrawing,
   tool = 'pen',
   color = '#000000',
   brushSize = 3,
-  isDrawingMode = true,
+  initialDrawing,
   onClear
 }: DrawingLayerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -85,7 +84,7 @@ export function DrawingLayer({
         }
       }
     };
-  }, [width, height, initialDrawing, onDrawingChange]);
+  }, [width, height]);
 
   // Helper function to load drawing to canvas
   const loadDrawingToCanvas = (drawingDataUrl: string) => {
@@ -151,12 +150,6 @@ export function DrawingLayer({
     e.preventDefault();
     e.stopPropagation();
     
-    // Don't allow drawing if we're not in drawing mode
-    if (!isDrawingMode) {
-      console.log("DrawingLayer: Drawing is disabled");
-      return;
-    }
-    
     const ctx = ctxRef.current;
     const canvas = canvasRef.current;
     if (!ctx || !canvas) return;
@@ -203,7 +196,7 @@ export function DrawingLayer({
   };
 
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!isDrawing || !lastPoint || !isDrawingMode) return;
+    if (!isDrawing || !lastPoint) return;
     
     e.preventDefault();
     e.stopPropagation();
@@ -330,7 +323,7 @@ export function DrawingLayer({
         onTouchMove={draw}
         onTouchEnd={endDrawing}
       />
-      {isDrawingMode && <ClearButton onClick={clearCanvas} />}
+      <ClearButton onClick={clearCanvas} />
     </div>
   );
 }

@@ -1,27 +1,9 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { JournalEntry, Challenge, Mood, Sticker, Icon, TextBox, AudioTrack } from '@/types/journal';
+import type { JournalEntry, Challenge, Badge, UserProgress, Mood, Sticker, Icon, TextBox, AudioTrack } from '@/types/journal';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-interface BadgeType {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  requirement: number;
-  type: 'streak' | 'entries' | 'challenges';
-}
-
-interface UserProgressType {
-  totalXp: number;
-  currentStreak: number;
-  longestStreak: number;
-  totalEntries: number;
-  completedChallenges: string[];
-  unlockedFeatures: string[];
-  earnedBadges: string[];
-}
 
 interface JournalState {
   currentEntry: {
@@ -46,8 +28,8 @@ interface JournalState {
   };
   entries: JournalEntry[];
   dailyChallenge: Challenge | null;
-  badges: BadgeType[];
-  progress: UserProgressType;
+  badges: Badge[];
+  progress: UserProgress;
   showPreview: boolean;
   setText: (text: string) => void;
   setFont: (font: string) => void;
@@ -437,9 +419,10 @@ export const useJournalStore = create<JournalState>()(
         
         set({
           dailyChallenge: {
-            id: Number(`${Date.now()}${randomIndex}`),
+            id: `challenge-${today}-${randomIndex}`,
             prompt: prompts[randomIndex],
-            date: today
+            date: today,
+            xpReward: 20
           }
         });
       },

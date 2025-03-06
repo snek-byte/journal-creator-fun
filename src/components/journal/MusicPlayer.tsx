@@ -53,7 +53,7 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
         setAudioInitialized(true);
         
         // Set playing state from prop but don't auto-play yet
-        setIsPlaying(audioTrack.isPlaying || false);
+        setIsPlaying(audioTrack.playing || false);
       }
     } else {
       setTrackName('No track selected');
@@ -78,10 +78,10 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
             setAudioError(null);
             
             // Only update the parent if this was a local state change
-            if (onAudioChange && audioTrack && audioTrack.isPlaying !== isPlaying) {
+            if (onAudioChange && audioTrack && audioTrack.playing !== isPlaying) {
               onAudioChange({
                 ...audioTrack,
-                isPlaying: true
+                playing: true
               });
             }
           })
@@ -94,7 +94,7 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
             if (onAudioChange && audioTrack) {
               onAudioChange({
                 ...audioTrack,
-                isPlaying: false
+                playing: false
               });
             }
           });
@@ -104,10 +104,10 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
         audioRef.current.pause();
         
         // Only update the parent if this was a local state change
-        if (onAudioChange && audioTrack && audioTrack.isPlaying !== isPlaying) {
+        if (onAudioChange && audioTrack && audioTrack.playing !== isPlaying) {
           onAudioChange({
             ...audioTrack,
-            isPlaying: false
+            playing: false
           });
         }
       } catch (err) {
@@ -165,7 +165,7 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
       if (onAudioChange && audioTrack) {
         onAudioChange({
           ...audioTrack,
-          isPlaying: false
+          playing: false
         });
       }
     };
@@ -178,7 +178,7 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
       if (onAudioChange && audioTrack) {
         onAudioChange({
           ...audioTrack,
-          isPlaying: false
+          playing: false
         });
       }
     };
@@ -245,8 +245,7 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
         url,
         name,
         volume,
-        isPlaying: false,
-        category: 'custom'
+        playing: false
       };
       
       setTrackName(name);

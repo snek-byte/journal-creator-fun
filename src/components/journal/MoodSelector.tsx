@@ -20,21 +20,8 @@ export function MoodSelector({
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium">Today's Mood</label>
         <Select 
-          value={selectedMood?.id} 
-          onValueChange={(value) => {
-            // Find the mood option with the selected value
-            const selectedOption = moodOptions.find(option => option.value === value);
-            if (selectedOption) {
-              // Create a Mood object from the selected option
-              const mood: Mood = {
-                id: selectedOption.value,
-                name: selectedOption.label,
-                icon: selectedOption.icon,
-                color: '#' + Math.floor(Math.random()*16777215).toString(16) // random color
-              };
-              onMoodSelect(mood);
-            }
-          }}
+          value={selectedMood} 
+          onValueChange={(value) => onMoodSelect(value as Mood)}
         >
           <SelectTrigger className="w-36">
             <SelectValue placeholder="Select mood" />
