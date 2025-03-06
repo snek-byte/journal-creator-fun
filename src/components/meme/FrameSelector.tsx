@@ -65,13 +65,26 @@ export function FrameSelector({ selectedFrame, onSelectFrame }: FrameSelectorPro
   const handleFrameClick = (frameUrl: string) => {
     console.log("Frame clicked:", frameUrl);
     
+    // Ensure we're sending the correct frame path
+    const framePath = frameUrl;
+    
     // Select the frame
-    onSelectFrame(frameUrl);
+    onSelectFrame(framePath);
     
     // Show confirmation toast
     const frameName = frameOptions.find(f => f.url === frameUrl)?.name || 'Custom';
     toast.success(`${frameName} frame selected`);
   };
+
+  // Preload SVG frames
+  useEffect(() => {
+    frameOptions.forEach(frame => {
+      if (frame.url) {
+        const img = new Image();
+        img.src = frame.url;
+      }
+    });
+  }, []);
 
   return (
     <div className="space-y-4">

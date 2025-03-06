@@ -29,7 +29,10 @@ export function FramedImage({
     
     console.log("Loading frame from:", frame);
     
-    fetch(frame)
+    // Use a cache buster to prevent caching issues
+    const cacheBuster = `?t=${new Date().getTime()}`;
+    
+    fetch(`${frame}${cacheBuster}`)
       .then(response => {
         console.log("Frame fetch response status:", response.status);
         if (!response.ok) {
@@ -39,7 +42,12 @@ export function FramedImage({
       })
       .then(data => {
         console.log("Received SVG content, length:", data.length);
-        setSvgContent(data);
+        if (data.length > 0) {
+          setSvgContent(data);
+        } else {
+          console.error("Received empty SVG content");
+          setSvgContent(null);
+        }
       })
       .catch(error => {
         console.error("Error loading frame SVG:", error, "Frame path:", frame);
@@ -70,6 +78,7 @@ export function FramedImage({
     console.log("Frame rendering state:", { 
       hasFrame: Boolean(frame), 
       hasSvgContent: Boolean(svgContent),
+      frameUrl: frame,
       svgContentLength: svgContent ? svgContent.length : 0
     });
   }, [frame, svgContent]);
@@ -99,6 +108,7 @@ export function FramedImage({
           <div 
             className="absolute inset-0 pointer-events-none z-30"
             dangerouslySetInnerHTML={{ __html: svgContent }}
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
           />
         )}
       </div>

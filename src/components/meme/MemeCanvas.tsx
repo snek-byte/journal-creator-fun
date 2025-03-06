@@ -88,6 +88,14 @@ export function MemeCanvas({
     };
   }, []);
 
+  // Debug frame props
+  useEffect(() => {
+    console.log("MemeCanvas frame state:", {
+      hasFrame: Boolean(frame),
+      frameUrl: frame
+    });
+  }, [frame]);
+
   return (
     <Card className="p-3 w-full flex justify-center bg-gray-100">
       <div 
@@ -108,7 +116,7 @@ export function MemeCanvas({
             <div className="absolute inset-0">
               <FramedImage
                 template={template}
-                frame={frame || undefined}
+                frame={frame}
                 backgroundColor={backgroundColor}
                 onImageLoad={handleImageLoadSuccess}
                 onError={handleImageLoadError}
