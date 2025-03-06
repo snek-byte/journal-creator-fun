@@ -45,6 +45,11 @@ export function MemeCanvas({
   const [frameLoaded, setFrameLoaded] = useState(false);
   const [frameError, setFrameError] = useState(false);
 
+  // Debug template changes
+  useEffect(() => {
+    console.log("Template updated in MemeCanvas:", template ? template.substring(0, 30) + "..." : "empty");
+  }, [template]);
+
   // Text styling
   const textStyle1 = {
     fontFamily: font,
@@ -97,6 +102,7 @@ export function MemeCanvas({
 
   // Handle canvas click
   const handleCanvasClick = () => {
+    console.log("Canvas clicked, triggering template click");
     if (onTemplateClick) {
       onTemplateClick();
     }
@@ -105,6 +111,7 @@ export function MemeCanvas({
   // Function to handle background removal
   const handleBackgroundRemove = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering canvas click
+    console.log("Background removal triggered");
     if (onBackgroundRemove) {
       onBackgroundRemove();
     }

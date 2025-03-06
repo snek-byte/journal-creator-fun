@@ -48,6 +48,7 @@ export default function MemeGenerator() {
 
   // Handle template click to trigger file upload
   const handleTemplateClick = () => {
+    console.log("Template click triggered, uploadInProgress:", uploadInProgress);
     if (fileInputRef.current && !uploadInProgress) {
       fileInputRef.current.click();
     }
@@ -63,6 +64,7 @@ export default function MemeGenerator() {
 
   // Handle file upload
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("File change triggered");
     const file = event.target.files?.[0];
     if (file) {
       if (!file.type.startsWith('image/')) {
@@ -75,8 +77,10 @@ export default function MemeGenerator() {
 
       const reader = new FileReader();
       reader.onload = (e) => {
+        console.log("File read successfully");
         const result = e.target?.result as string;
         if (result) {
+          console.log("Setting template to:", result.substring(0, 30) + "...");
           setTemplate(result);
           toast.success('Image uploaded successfully');
         } else {
@@ -90,6 +94,7 @@ export default function MemeGenerator() {
       };
       
       reader.onerror = () => {
+        console.error("Error reading file");
         toast.error('Error reading file');
         setUploadInProgress(false);
       };
