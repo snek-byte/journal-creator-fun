@@ -164,7 +164,6 @@ export function DrawingLayer({
     drawDot(ctx, point, brushSize, tool);
     
     forceUpdate.current = true;
-    saveDrawing();
   };
 
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
@@ -237,7 +236,12 @@ export function DrawingLayer({
     const canvasWidth = canvas.width;
     const canvasHeight = canvas.height;
     
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+    
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    
     console.log("DrawingLayer: Canvas cleared successfully");
     
     previousInitialDrawing.current = '';

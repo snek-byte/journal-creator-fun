@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Trash2 } from 'lucide-react'; // Using Trash2 icon instead of Eraser for clearer meaning
+import { Trash2 } from 'lucide-react';
 
 interface ClearButtonProps {
   onClick: () => void;
@@ -15,7 +15,8 @@ export const ClearButton: React.FC<ClearButtonProps> = ({ onClick }) => {
         e.preventDefault();
         e.stopPropagation();
         console.log("ClearButton clicked - initiating canvas clear");
-        onClick();
+        // Force this to run in a new execution context
+        setTimeout(() => onClick(), 0);
       }}
       title="Clear Canvas"
       type="button"
