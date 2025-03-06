@@ -101,7 +101,8 @@ export function FramedImage({
             {/* The frame overlay with original appearance */}
             {svgContent && (
               <div 
-                className="absolute inset-0 pointer-events-none z-10"
+                className="absolute inset-0 pointer-events-none"
+                style={{ zIndex: 30 }}
                 dangerouslySetInnerHTML={{ __html: svgContent }}
               />
             )}
