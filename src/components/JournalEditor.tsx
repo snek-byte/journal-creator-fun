@@ -1,9 +1,8 @@
-
 import { useJournalEditor } from '@/hooks/useJournalEditor';
 import { JournalEditorSidebar } from './journal/JournalEditorSidebar';
 import { JournalPreview } from './journal/JournalPreview';
 import { EmailDialog } from './journal/EmailDialog';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Sticker, Icon, TextBox, AudioTrack } from '@/types/journal';
 
@@ -278,6 +277,9 @@ export function JournalEditor() {
         drawingColor={currentDrawingColor}
         brushSize={currentBrushSize}
         isDrawingMode={isDrawingMode}
+        selectedStickerId={selectedStickerId}
+        selectedIconId={selectedIconId}
+        selectedTextBoxId={selectedTextBoxId}
       />
     </div>
   );
