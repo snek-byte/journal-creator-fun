@@ -30,6 +30,7 @@ export default function MemeGenerator() {
   
   // Track if we need to refresh the file input
   const [fileInputKey, setFileInputKey] = useState(0);
+  const [uploadInProgress, setUploadInProgress] = useState(false);
   
   // File input ref
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -47,7 +48,7 @@ export default function MemeGenerator() {
 
   // Handle template click to trigger file upload
   const handleTemplateClick = () => {
-    if (fileInputRef.current) {
+    if (fileInputRef.current && !uploadInProgress) {
       fileInputRef.current.click();
     }
   };
@@ -68,6 +69,9 @@ export default function MemeGenerator() {
         toast.error('Please select an image file');
         return;
       }
+      
+      // Set upload in progress to prevent dialog reopening
+      setUploadInProgress(true);
 
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -79,16 +83,25 @@ export default function MemeGenerator() {
           toast.error('Failed to load image');
         }
         
-        // Reset the file input 
-        if (event.target) {
-          event.target.value = '';
-        }
+        // Reset upload state after upload completes
+        setTimeout(() => {
+          setUploadInProgress(false);
+        }, 200);
       };
+      
       reader.onerror = () => {
         toast.error('Error reading file');
+        setUploadInProgress(false);
       };
+      
       reader.readAsDataURL(file);
+    } else {
+      // If no file was selected, reset upload state
+      setUploadInProgress(false);
     }
+    
+    // Clear the input value to allow selecting the same file again
+    event.target.value = '';
   };
 
   return (
@@ -120,6 +133,7 @@ export default function MemeGenerator() {
             className="hidden" 
             onChange={handleFileChange}
             key={fileInputKey} // Use fileInputKey to force re-render of the input
+            disabled={uploadInProgress} // Disable while upload is in progress
           />
         </div>
         
