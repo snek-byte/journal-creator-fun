@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import type { AudioTrack } from '@/types/journal';
 
@@ -108,6 +107,18 @@ export const publicDomainSounds: AudioTrack[] = [
     volume: 50,
     playing: false,
     category: "meditation"
+  },
+  
+  // Add Wikimedia Commons section
+  {
+    id: "wikimedia-neighbors-yard",
+    name: "Neighbors Yard (Mild Wild)",
+    url: "https://upload.wikimedia.org/wikipedia/commons/4/41/Mild_Wild_-_02_-_Neighbors_Yard.ogg",
+    volume: 50,
+    playing: false,
+    category: "ambient",
+    source: "wikimedia",
+    attribution: "By Mild Wild - Wikimedia Commons"
   }
 ];
 
