@@ -68,6 +68,12 @@ export default function MemeGenerator() {
       reader.onload = (e) => {
         const result = e.target?.result as string;
         setTemplate(result);
+        toast.success('Image uploaded successfully');
+        
+        // Reset the file input so the same file can be selected again
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -101,6 +107,7 @@ export default function MemeGenerator() {
             accept="image/*" 
             className="hidden" 
             onChange={handleFileChange}
+            key={template} // Add key to force re-render when template changes
           />
         </div>
         

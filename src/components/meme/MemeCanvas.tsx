@@ -164,6 +164,7 @@ export function MemeCanvas({
             maxWidth: '100%',
             backgroundColor: backgroundColor || '#ffffff'
           }}
+          onClick={!template ? handleCanvasClick : undefined}
         >
           {/* Background or template image layer */}
           {template ? (
