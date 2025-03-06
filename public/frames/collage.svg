@@ -1,0 +1,17 @@
+
+<svg width="640" height="640" viewBox="0 0 640 640" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="640" fill="transparent"/>
+  <!-- Top left photo -->
+  <rect x="60" y="60" width="255" height="255" fill="white" filter="drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.1))"/>
+  <!-- Top right photo -->
+  <rect x="325" y="60" width="255" height="255" fill="white" filter="drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.1))"/>
+  <!-- Bottom left photo -->
+  <rect x="60" y="325" width="255" height="255" fill="white" filter="drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.1))"/>
+  <!-- Bottom right photo -->
+  <rect x="325" y="325" width="255" height="255" fill="white" filter="drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.1))"/>
+  <!-- Borders -->
+  <rect x="70" y="70" width="235" height="235" fill="transparent" stroke="#EEEEEE" stroke-width="1"/>
+  <rect x="335" y="70" width="235" height="235" fill="transparent" stroke="#EEEEEE" stroke-width="1"/>
+  <rect x="70" y="335" width="235" height="235" fill="transparent" stroke="#EEEEEE" stroke-width="1"/>
+  <rect x="335" y="335" width="235" height="235" fill="transparent" stroke="#EEEEEE" stroke-width="1"/>
+</svg>

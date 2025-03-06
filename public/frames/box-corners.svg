@@ -1,8 +1,8 @@
 
 <svg width="640" height="640" viewBox="0 0 640 640" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="640" height="640" fill="transparent"/>
-  <path d="M120 40 L40 40 L40 120" stroke="#333" stroke-width="8" fill="transparent"/>
-  <path d="M520 40 L600 40 L600 120" stroke="#333" stroke-width="8" fill="transparent"/>
-  <path d="M120 600 L40 600 L40 520" stroke="#333" stroke-width="8" fill="transparent"/>
-  <path d="M520 600 L600 600 L600 520" stroke="#333" stroke-width="8" fill="transparent"/>
+  <path d="M120 80 L80 80 L80 120" stroke="#333333" stroke-width="4" fill="transparent"/>
+  <path d="M520 80 L560 80 L560 120" stroke="#333333" stroke-width="4" fill="transparent"/>
+  <path d="M120 560 L80 560 L80 520" stroke="#333333" stroke-width="4" fill="transparent"/>
+  <path d="M520 560 L560 560 L560 520" stroke="#333333" stroke-width="4" fill="transparent"/>
 </svg>
