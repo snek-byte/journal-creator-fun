@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { TextBoxComponent } from './TextBoxComponent';
@@ -239,23 +238,20 @@ export function JournalPreview({
     onStickerMove(id, position);
   };
 
-  // Completely rewrite this function to fix TypeScript errors
   const handleDeleteByMovingOffscreen = (id: string, isIcon: boolean) => {
-    // Define position object with the correct type
-    const offscreenPosition: { x: number; y: number } = { x: -1000, y: -1000 };
+    const offscreenPosition: { x: number; y: number } = { 
+      x: -1000, 
+      y: -1000 
+    };
     
     if (isIcon) {
-      // Call the move function with the properly typed position object
       handleIconMoveFix(id, offscreenPosition);
       
-      // Create a proper Partial<Icon> object with the correct type
       const iconUpdates: Partial<Icon> = {
         size: 0
       };
-      // Pass the properly typed updates object
       handleIconUpdateFix(id, iconUpdates);
     } else {
-      // Call the sticker move function with the properly typed position object
       handleStickerMoveFix(id, offscreenPosition);
     }
   };
