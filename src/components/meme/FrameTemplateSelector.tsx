@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, CSSProperties } from 'react';
 import { cn } from "@/lib/utils";
 
 interface FrameTemplateSelectorProps {
@@ -118,7 +118,7 @@ export default function FrameTemplateSelector({ onSelect, selectedFrame }: Frame
   };
   
   // Function to calculate correct positioning for the preview image inside each frame
-  const getFramePreviewStyle = (framePath: string) => {
+  const getFramePreviewStyle = (framePath: string): CSSProperties => {
     // Different frames need different padding for the preview image
     if (framePath.includes('shadow-box')) {
       // Shadow box needs a specifically positioned preview
@@ -126,7 +126,7 @@ export default function FrameTemplateSelector({ onSelect, selectedFrame }: Frame
         margin: '0',
         width: '60%', 
         height: '60%',
-        position: 'absolute',
+        position: 'absolute' as const, // Type assertion to make TypeScript happy
         top: '20%',
         left: '20%'
       };

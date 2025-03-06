@@ -15,6 +15,6 @@
   <rect x="70" y="70" width="500" height="500" rx="4" fill="white" filter="url(#shadow)"/>
   <!-- This is the border -->
   <rect x="70" y="70" width="500" height="500" rx="4" fill="none" stroke="#E0E0E0" stroke-width="1"/>
-  <!-- This explicitly defines the image viewing area - critical for the shadow box -->
+  <!-- This explicitly defines the image viewing area - with transparent fill so the image shows through -->
   <rect x="120" y="120" width="400" height="400" rx="2" fill="transparent" stroke="none"/>
 </svg>
