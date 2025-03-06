@@ -16,6 +16,7 @@ interface DrawingCanvasProps {
 // Separate canvas component that handles rendering
 export const DrawingCanvas = forwardRef<HTMLCanvasElement, DrawingCanvasProps>(
   ({ width, height, onMouseDown, onMouseMove, onMouseUp, onMouseLeave, onTouchStart, onTouchMove, onTouchEnd }, ref) => {
+    console.log("DrawingCanvas rendered with dimensions:", width, "x", height);
     return (
       <canvas
         ref={ref}

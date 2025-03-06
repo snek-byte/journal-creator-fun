@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Eraser } from 'lucide-react'; // Using Eraser icon instead of trash can
+import { Trash2 } from 'lucide-react'; // Using Trash2 icon instead of Eraser for clearer meaning
 
 interface ClearButtonProps {
   onClick: () => void;
@@ -10,7 +10,7 @@ export const ClearButton: React.FC<ClearButtonProps> = ({ onClick }) => {
   console.log("ClearButton rendered");
   return (
     <button
-      className="absolute top-4 right-4 bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-full shadow-md transition-colors"
+      className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full shadow-md transition-colors"
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -20,7 +20,7 @@ export const ClearButton: React.FC<ClearButtonProps> = ({ onClick }) => {
       title="Clear Canvas"
       type="button"
     >
-      <Eraser size={16} />
+      <Trash2 size={16} />
     </button>
   );
 };

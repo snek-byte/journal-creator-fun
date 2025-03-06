@@ -69,7 +69,10 @@ export const getPointFromEvent = (
   e: React.MouseEvent | React.TouchEvent,
   canvas: HTMLCanvasElement
 ): { x: number; y: number } => {
-  if (!canvas) return { x: 0, y: 0 };
+  if (!canvas) {
+    console.error("Canvas is null in getPointFromEvent");
+    return { x: 0, y: 0 };
+  }
 
   const rect = canvas.getBoundingClientRect();
   
@@ -81,6 +84,10 @@ export const getPointFromEvent = (
   
   if ('touches' in e) {
     // Touch event
+    if (e.touches.length === 0) {
+      // Handle case where touches array is empty
+      return { x: 0, y: 0 };
+    }
     clientX = e.touches[0].clientX;
     clientY = e.touches[0].clientY;
   } else {
@@ -102,5 +109,10 @@ export const canvasToDataURL = (canvas: HTMLCanvasElement): string => {
     console.error("Canvas is null in canvasToDataURL");
     return '';
   }
-  return canvas.toDataURL('image/png');
+  try {
+    return canvas.toDataURL('image/png');
+  } catch (err) {
+    console.error("Error generating data URL:", err);
+    return '';
+  }
 };
