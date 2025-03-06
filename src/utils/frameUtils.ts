@@ -1,3 +1,4 @@
+
 /**
  * Applies a frame to an image and returns the composite as a data URL
  */
@@ -44,30 +45,68 @@ export const applyFrameToImage = async (
           
           let drawWidth, drawHeight, offsetX, offsetY;
           
-          if (imgAspect > frameAspect) {
-            // Image is wider than frame
-            drawHeight = frame.height * 0.8; // Reduce padding to better fit in shadow-box
-            drawWidth = drawHeight * imgAspect;
-            offsetX = (frame.width - drawWidth) / 2;
-            offsetY = (frame.height - drawHeight) / 2;
+          // For shadow-box, we want to use specific dimensions
+          if (framePath.includes('shadow-box')) {
+            // Calculate dimensions to fit within the inner area of the shadow-box
+            // The shadow-box has a 40px padding on each side
+            const innerWidth = frame.width - 80; // 40px on each side
+            const innerHeight = frame.height - 80; // 40px on each side
+            
+            if (imgAspect > frameAspect) {
+              // Image is wider than frame
+              drawWidth = innerWidth;
+              drawHeight = drawWidth / imgAspect;
+              offsetX = 40; // Left padding
+              offsetY = (frame.height - drawHeight) / 2;
+            } else {
+              // Image is taller than frame
+              drawHeight = innerHeight;
+              drawWidth = drawHeight * imgAspect;
+              offsetX = (frame.width - drawWidth) / 2;
+              offsetY = 40; // Top padding
+            }
           } else {
-            // Image is taller than frame
-            drawWidth = frame.width * 0.8; // Reduce padding to better fit in shadow-box
-            drawHeight = drawWidth / imgAspect;
-            offsetX = (frame.width - drawWidth) / 2;
-            offsetY = (frame.height - drawHeight) / 2;
+            // Standard calculation for other frames
+            if (imgAspect > frameAspect) {
+              // Image is wider than frame
+              drawHeight = frame.height * 0.8; // Reduce padding to better fit
+              drawWidth = drawHeight * imgAspect;
+              offsetX = (frame.width - drawWidth) / 2;
+              offsetY = (frame.height - drawHeight) / 2;
+            } else {
+              // Image is taller than frame
+              drawWidth = frame.width * 0.8; // Reduce padding to better fit
+              drawHeight = drawWidth / imgAspect;
+              offsetX = (frame.width - drawWidth) / 2;
+              offsetY = (frame.height - drawHeight) / 2;
+            }
           }
-          
-          // Clear the canvas
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
           
           // Apply the user specified scale
           const scaledWidth = drawWidth * scale;
           const scaledHeight = drawHeight * scale;
           
           // Recalculate offsets for the scaled image
-          const scaledOffsetX = (frame.width - scaledWidth) / 2;
-          const scaledOffsetY = (frame.height - scaledHeight) / 2;
+          let scaledOffsetX, scaledOffsetY;
+          
+          if (framePath.includes('shadow-box')) {
+            // For shadow-box, maintain the top-left position and just scale from there
+            scaledOffsetX = offsetX;
+            scaledOffsetY = offsetY;
+          } else {
+            // For other frames, center the scaled image
+            scaledOffsetX = (frame.width - scaledWidth) / 2;
+            scaledOffsetY = (frame.height - scaledHeight) / 2;
+          }
+          
+          // Clear the canvas
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          
+          // For shadow-box specifically, render a white background first
+          if (framePath.includes('shadow-box')) {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+          }
           
           // Draw the image with transformations
           ctx.save();
@@ -92,21 +131,11 @@ export const applyFrameToImage = async (
           
           ctx.restore();
           
-          // For shadow-box specifically, adjust how the frame is rendered
+          // Draw the frame on top
           if (framePath.includes('shadow-box')) {
-            // Draw a white background first
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw the frame on top with shadow
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-            ctx.shadowBlur = 15;
-            ctx.shadowOffsetX = 5;
-            ctx.shadowOffsetY = 5;
+            // For shadow-box, the SVG already has the shadow effect
             ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
-            ctx.shadowColor = 'transparent';
           } else {
-            // Draw the frame on top for other frame types
             ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
           }
           
