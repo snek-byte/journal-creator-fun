@@ -10,6 +10,11 @@ export const configureBrushStyles = (
   color: string, 
   brushSize: number
 ) => {
+  if (!ctx) {
+    console.error("Context is null in configureBrushStyles");
+    return { tool, color, brushSize, lineWidth: brushSize, globalCompositeOperation: 'source-over', globalAlpha: 1 };
+  }
+  
   // Save the current context state
   ctx.save();
   
@@ -93,5 +98,9 @@ export const getPointFromEvent = (
 
 // Generate data URL from canvas
 export const canvasToDataURL = (canvas: HTMLCanvasElement): string => {
+  if (!canvas) {
+    console.error("Canvas is null in canvasToDataURL");
+    return '';
+  }
   return canvas.toDataURL('image/png');
 };

@@ -264,26 +264,30 @@ export function DrawingLayer({
   };
 
   const clearCanvas = () => {
+    console.log("DrawingLayer: clearCanvas called");
     const canvas = canvasRef.current;
     const ctx = ctxRef.current;
     if (!canvas || !ctx) return;
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    console.log("DrawingLayer: Canvas cleared");
     
     // Reset drawing references
     previousInitialDrawing.current = '';
     initialDrawingRef.current = '';
     
     if (onDrawingChange) {
+      console.log("DrawingLayer: Notifying parent of cleared canvas");
       onDrawingChange('');
     }
     
     if (onClear) {
+      console.log("DrawingLayer: Calling onClear callback");
       onClear();
     }
     
     toast.info("Canvas cleared");
-    console.log("DrawingLayer: Canvas cleared");
+    forceUpdate.current = true;
   };
 
   // Ensure drawing is saved when component unmounts
