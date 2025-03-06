@@ -30,9 +30,6 @@ export interface AudioTrack {
   volume: number;
   playing: boolean;
   category?: string;
-  source?: 'upload' | 'library' | 'gdrive' | 'wikimedia';
-  originalUrl?: string;
-  attribution?: string;
 }
 
 export interface Challenge {

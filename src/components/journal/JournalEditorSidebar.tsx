@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,7 @@ import { IconSelector } from './IconSelector';
 import { BackgroundImageSelector } from './BackgroundImageSelector';
 import { ImageFilterSelector } from './ImageFilterSelector';
 import { DailyChallenge } from './DailyChallenge';
-import { SoundMixer } from './sound/SoundMixer';
+import { SoundMixer } from './SoundMixer';
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";

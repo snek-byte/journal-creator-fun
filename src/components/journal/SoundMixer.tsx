@@ -12,7 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { AudioTrack } from '@/types/journal';
-import { publicDomainSounds, soundCategories } from '@/data/publicDomainSounds';
+import { publicDomainSounds, soundCategories, getAudioTroubleshootingMessage } from '@/data/publicDomainSounds';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
 
@@ -34,7 +34,6 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [driveLink, setDriveLink] = useState<string>('');
   const [showDriveLinkInput, setShowDriveLinkInput] = useState<boolean>(false);
-  const [isProcessingDriveLink, setIsProcessingDriveLink] = useState<boolean>(false);
 
   useEffect(() => {
     if (audioTrack) {
@@ -188,8 +187,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
       url,
       name,
       volume,
-      playing: true, // Start playing immediately
-      source: 'upload'
+      playing: true // Start playing immediately
     };
     
     setIsPlaying(true);
@@ -208,8 +206,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
       ...sound,
       id: sound.id || uuidv4(),
       playing: true,
-      volume: volume,
-      source: 'library'
+      volume: volume
     };
     onAudioChange(newAudioTrack);
     setIsPlaying(true);
@@ -229,27 +226,6 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
     }
   };
 
-  const extractGDriveFileId = (url: string): string | null => {
-    let fileId = null;
-    
-    let match = url.match(/\/file\/d\/([^\/]+)/);
-    if (match && match[1]) {
-      return match[1];
-    }
-    
-    match = url.match(/id=([^&]+)/);
-    if (match && match[1]) {
-      return match[1];
-    }
-    
-    match = url.match(/\/open\?id=([^&]+)/);
-    if (match && match[1]) {
-      return match[1];
-    }
-    
-    return null;
-  };
-
   const handleDriveLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDriveLink(e.target.value);
   };
@@ -265,13 +241,22 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
       return;
     }
     
-    setIsProcessingDriveLink(true);
+    let fileId = '';
     
-    const fileId = extractGDriveFileId(driveLink);
+    if (driveLink.includes('/file/d/')) {
+      const match = driveLink.match(/\/file\/d\/([^\/]+)/);
+      if (match && match[1]) {
+        fileId = match[1];
+      }
+    } else if (driveLink.includes('id=')) {
+      const match = driveLink.match(/id=([^&]+)/);
+      if (match && match[1]) {
+        fileId = match[1];
+      }
+    }
     
     if (!fileId) {
       toast.error('Could not extract file ID from the Google Drive link');
-      setIsProcessingDriveLink(false);
       return;
     }
     
@@ -283,111 +268,28 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
       name = urlParts[urlParts.length - 2] || name;
     }
     
+    setTrackName(name);
+    setLoadError(null);
+    
     const newAudioTrack: AudioTrack = {
       id: uuidv4(),
       url: directLink,
       name,
       volume,
-      playing: true,
-      source: 'gdrive',
-      originalUrl: driveLink
+      playing: true
     };
     
-    console.log("Creating audio track from Google Drive:", newAudioTrack);
-    
-    setLoadError(null);
     setIsPlaying(true);
-    setTrackName(name);
     onAudioChange(newAudioTrack);
-    
     setShowDriveLinkInput(false);
     setDriveLink('');
-    setIsProcessingDriveLink(false);
-    
     toast.success(`${name} added from Google Drive and playing`);
-  };
-
-  const handleWikimediaLinkSubmit = () => {
-    if (!driveLink) {
-      toast.error('Please enter a Wikimedia Commons link');
-      return;
-    }
-    
-    setIsProcessingDriveLink(true);
-    
-    const urlParts = driveLink.split('/');
-    const fileName = urlParts[urlParts.length - 1] || 'Wikimedia Audio';
-    
-    let directUrl = driveLink;
-    
-    if (driveLink.includes('commons.wikimedia.org/wiki/File:')) {
-      const fileNameEncoded = encodeURIComponent(fileName);
-      directUrl = `https://upload.wikimedia.org/wikipedia/commons/${fileNameEncoded}`;
-      
-      toast.info('For best results, use direct media links from Wikimedia Commons');
-    }
-    
-    const newAudioTrack: AudioTrack = {
-      id: uuidv4(),
-      url: directUrl,
-      name: fileName.replace(/_/g, ' ').replace(/\.[^/.]+$/, ""), // Remove file extension and replace underscores
-      volume: volume,
-      playing: true,
-      source: 'wikimedia',
-      originalUrl: driveLink,
-      attribution: 'Wikimedia Commons'
-    };
-    
-    console.log("Creating audio track from Wikimedia:", newAudioTrack);
-    
-    setLoadError(null);
-    setIsPlaying(true);
-    setTrackName(newAudioTrack.name);
-    onAudioChange(newAudioTrack);
-    
-    setShowDriveLinkInput(false);
-    setDriveLink('');
-    setIsProcessingDriveLink(false);
-    
-    toast.success(`${newAudioTrack.name} added from Wikimedia Commons and playing`);
   };
 
   const VolumeIcon = () => {
     if (volume === 0) return <VolumeX className="h-4 w-4" />;
     if (volume < 50) return <Volume1 className="h-4 w-4" />;
     return <Volume2 className="h-4 w-4" />;
-  };
-
-  const AudioInfo = () => {
-    if (!audioTrack?.url) return null;
-    
-    return (
-      <div className="flex items-center">
-        <span className="text-xs font-medium">{trackName || 'Untitled Track'}</span>
-        {audioTrack.source === 'gdrive' && (
-          <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-1 py-0.5 rounded">
-            Drive
-          </span>
-        )}
-        {audioTrack.source === 'wikimedia' && (
-          <span className="ml-2 text-xs bg-green-100 text-green-800 px-1 py-0.5 rounded">
-            Wikimedia
-          </span>
-        )}
-        {loadError && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <AlertCircle className="h-4 w-4 ml-2 text-red-500" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{loadError}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-      </div>
-    );
   };
 
   return (
@@ -412,8 +314,8 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
         <AlertCircle className="h-4 w-4" />
         <AlertTitle className="text-sm font-medium">Audio Source Issues</AlertTitle>
         <AlertDescription className="text-xs">
-          External audio sources may be blocked by your browser or CORS policies. 
-          <strong className="block mt-1">We recommend using Wikimedia Commons or uploading your own audio files for the best experience.</strong>
+          External audio sources (like freesound.org) may be blocked by your browser or CORS policies. 
+          <strong className="block mt-1">We strongly recommend uploading your own audio files for the best experience.</strong>
         </AlertDescription>
       </Alert>
       
@@ -427,7 +329,21 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
       {audioTrack?.url ? (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <AudioInfo />
+            <div className="flex items-center">
+              <span className="text-xs font-medium">{trackName || 'Untitled Track'}</span>
+              {loadError && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <AlertCircle className="h-4 w-4 ml-2 text-red-500" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{loadError}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
             <div className="flex items-center gap-1">
               <Button 
                 variant="ghost" 
@@ -482,38 +398,35 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
 
       <Separator className="my-2" />
       
-      <div className="text-xs p-3 bg-blue-50 text-blue-700 rounded-md mb-3 border border-blue-200">
+      <div className="text-xs p-3 bg-red-50 text-red-700 rounded-md mb-3 border border-red-200">
         <AlertCircle className="h-3 w-3 inline mr-1" />
-        <strong>Recommendation:</strong> For best results, use Wikimedia Commons, upload your own audio files, or use Google Drive links.
+        <strong>Known Issue:</strong> External audio sources from freesound.org are likely blocked by CORS policies.
+        <strong className="block mt-1">Solution:</strong> Please upload your own audio files below for the best experience.
       </div>
       
       {showDriveLinkInput && (
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
           <Label htmlFor="drive-link" className="text-xs font-medium mb-1 block">
-            Audio Link:
+            Google Drive Link:
           </Label>
           <div className="flex gap-2">
             <Input
               id="drive-link"
-              placeholder="https://commons.wikimedia.org/wiki/File:... or Google Drive link"
+              placeholder="https://drive.google.com/file/d/..."
               value={driveLink}
               onChange={handleDriveLinkChange}
               className="text-xs h-8"
-              disabled={isProcessingDriveLink}
             />
             <Button 
               size="sm" 
               className="h-8"
-              onClick={driveLink.includes('wikimedia.org') ? handleWikimediaLinkSubmit : handleDriveLinkSubmit}
-              disabled={isProcessingDriveLink}
+              onClick={handleDriveLinkSubmit}
             >
-              {isProcessingDriveLink ? "Processing..." : "Add"}
+              Add
             </Button>
           </div>
           <p className="text-xs text-blue-700 mt-1">
-            {driveLink.includes('wikimedia.org') ? 
-              "Using Wikimedia Commons audio" : 
-              "Make sure your Google Drive link is set to \"Anyone with the link can view\""}
+            Make sure your link is set to "Anyone with the link can view"
           </p>
         </div>
       )}
@@ -583,7 +496,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
       </Tabs>
       
       <div className="flex flex-col gap-2 mt-4">
-        <p className="text-xs text-muted-foreground font-medium">Add your own audio</p>
+        <p className="text-xs text-muted-foreground font-medium">Upload your own audio file (recommended)</p>
         <div className="grid grid-cols-2 gap-2">
           <Button 
             variant="outline" 
@@ -601,7 +514,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
             onClick={() => setShowDriveLinkInput(!showDriveLinkInput)}
           >
             <Link className="h-4 w-4 mr-2" />
-            {showDriveLinkInput ? 'Hide Link Form' : 'Add from Link'}
+            {showDriveLinkInput ? 'Hide Link Form' : 'Add from Drive'}
           </Button>
         </div>
         <input
