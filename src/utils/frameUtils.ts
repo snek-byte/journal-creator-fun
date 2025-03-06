@@ -1,4 +1,3 @@
-
 /**
  * Applies a frame to an image and returns the composite as a data URL
  */
@@ -45,65 +44,48 @@ export const applyFrameToImage = async (
           
           let drawWidth, drawHeight, offsetX, offsetY;
           
-          // For shadow-box, we want to use specific dimensions
-          if (framePath.includes('shadow-box')) {
-            // Calculate dimensions to fit within the inner area of the shadow-box
-            // The shadow-box has a 40px padding on each side
-            const innerWidth = frame.width - 80; // 40px on each side
-            const innerHeight = frame.height - 80; // 40px on each side
-            
-            if (imgAspect > frameAspect) {
-              // Image is wider than frame
-              drawWidth = innerWidth;
-              drawHeight = drawWidth / imgAspect;
-              offsetX = 40; // Left padding
-              offsetY = (frame.height - drawHeight) / 2;
-            } else {
-              // Image is taller than frame
-              drawHeight = innerHeight;
-              drawWidth = drawHeight * imgAspect;
-              offsetX = (frame.width - drawWidth) / 2;
-              offsetY = 40; // Top padding
-            }
-          } else {
-            // Standard calculation for other frames
-            if (imgAspect > frameAspect) {
-              // Image is wider than frame
-              drawHeight = frame.height * 0.8; // Reduce padding to better fit
-              drawWidth = drawHeight * imgAspect;
-              offsetX = (frame.width - drawWidth) / 2;
-              offsetY = (frame.height - drawHeight) / 2;
-            } else {
-              // Image is taller than frame
-              drawWidth = frame.width * 0.8; // Reduce padding to better fit
-              drawHeight = drawWidth / imgAspect;
-              offsetX = (frame.width - drawWidth) / 2;
-              offsetY = (frame.height - drawHeight) / 2;
-            }
+          // Calculate padding based on frame type
+          let padding = 40; // Default padding
+          
+          if (framePath.includes('polaroid')) {
+            padding = 80; // Polaroid has more padding at the bottom
+          } else if (framePath.includes('certificate') || framePath.includes('fancy-box')) {
+            padding = 60; // More decorative frames need more padding
           }
           
-          // Apply the user specified scale
+          // Calculate inner dimensions (the area where the image should fit)
+          const innerWidth = frame.width - (padding * 2);
+          const innerHeight = frame.height - (padding * 2);
+          
+          // Fit the image within the inner area
+          if (imgAspect > frameAspect) {
+            // Image is wider than frame - constrain width
+            drawWidth = innerWidth;
+            drawHeight = drawWidth / imgAspect;
+            offsetX = padding;
+            offsetY = (frame.height - drawHeight) / 2;
+          } else {
+            // Image is taller than frame - constrain height
+            drawHeight = innerHeight;
+            drawWidth = drawHeight * imgAspect;
+            offsetX = (frame.width - drawWidth) / 2;
+            offsetY = padding;
+          }
+          
+          // Apply user scale factor
           const scaledWidth = drawWidth * scale;
           const scaledHeight = drawHeight * scale;
           
-          // Recalculate offsets for the scaled image
-          let scaledOffsetX, scaledOffsetY;
+          // Recalculate center point after scaling
+          const centerX = frame.width / 2;
+          const centerY = frame.height / 2;
           
-          if (framePath.includes('shadow-box')) {
-            // For shadow-box, maintain the top-left position and just scale from there
-            scaledOffsetX = offsetX;
-            scaledOffsetY = offsetY;
-          } else {
-            // For other frames, center the scaled image
-            scaledOffsetX = (frame.width - scaledWidth) / 2;
-            scaledOffsetY = (frame.height - scaledHeight) / 2;
-          }
-          
-          // Clear the canvas
+          // Clear the canvas and set background for shadow-box
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           
-          // For shadow-box specifically, render a white background first
+          // For shadow-box, we need to draw it differently
           if (framePath.includes('shadow-box')) {
+            // Draw white background first
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
           }
@@ -111,11 +93,8 @@ export const applyFrameToImage = async (
           // Draw the image with transformations
           ctx.save();
           
-          // Move to the center of where the image should be drawn
-          ctx.translate(
-            scaledOffsetX + scaledWidth / 2, 
-            scaledOffsetY + scaledHeight / 2
-          );
+          // Move to the center point for rotation
+          ctx.translate(centerX, centerY);
           
           // Apply rotation
           ctx.rotate((rotation * Math.PI) / 180);
@@ -132,12 +111,7 @@ export const applyFrameToImage = async (
           ctx.restore();
           
           // Draw the frame on top
-          if (framePath.includes('shadow-box')) {
-            // For shadow-box, the SVG already has the shadow effect
-            ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
-          } else {
-            ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
-          }
+          ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
           
           // Get the final composite image as a data URL
           const compositeImage = canvas.toDataURL('image/png');
