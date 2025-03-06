@@ -57,7 +57,6 @@ export function useJournalEditor() {
     setAudio
   } = useJournalStore();
 
-  // Initialize undo/redo functionality
   const {
     state: historyState,
     setState: setHistoryState,
@@ -86,14 +85,14 @@ export function useJournalEditor() {
     textBoxes: currentEntry.textBoxes || [],
   });
   
-  // Initialize text box position
   const {
+    localPosition,
+    containerDimensions,
     isDraggingText,
     handleDragStart,
     handleDragEnd
   } = useTextBoxPosition(currentEntry.textPosition, containerRef);
 
-  // Load initial data
   useEffect(() => {
     loadChallenge();
     
@@ -104,7 +103,6 @@ export function useJournalEditor() {
     loadProgress();
   }, [loadChallenge, loadEntries, loadProgress, entries.length]);
   
-  // Update history when current entry changes
   useEffect(() => {
     setHistoryState({
       text: currentEntry.text,
@@ -146,22 +144,15 @@ export function useJournalEditor() {
     setHistoryState
   ]);
   
-  // Handler functions for various interactions
-  // (handle sticker, icon, text box interactions, etc.)
-  
   const handleStickerAdd = (sticker: Sticker) => {
     console.log("Adding sticker:", sticker);
-    // Find if sticker with this ID already exists
     const existingIndex = currentEntry.stickers.findIndex(s => s.id === sticker.id);
     
     if (existingIndex >= 0) {
-      // Update existing sticker
       const updatedStickers = [...currentEntry.stickers];
       updatedStickers[existingIndex] = sticker;
       setStickers(updatedStickers);
     } else {
-      // Add new sticker
-      console.log("Calling addSticker with:", sticker);
       addSticker(sticker);
     }
   };
@@ -253,7 +244,6 @@ export function useJournalEditor() {
       
       setText(updatedText);
       
-      // Set cursor position after emoji
       setTimeout(() => {
         if (textareaRef.current) {
           const newCursorPosition = selectionStart + emoji.length;

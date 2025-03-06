@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { TextBoxComponent } from './TextBoxComponent';
@@ -95,6 +94,9 @@ export function JournalPreview({
   const [isTextBeingDragged, setIsTextBeingDragged] = useState(false);
   const [audioMuted, setAudioMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [selectedTextBoxId, setSelectedTextBoxId] = useState<string | null>(null);
+  const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
+  const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
 
   useEffect(() => {
     if (audioRef.current && audio?.url) {
@@ -207,23 +209,23 @@ export function JournalPreview({
         }}
       >
         <DrawingLayer 
-          drawing={drawing} 
-          drawingTool={drawingTool} 
-          drawingColor={drawingColor} 
-          brushSize={brushSize} 
-          isDrawingMode={isDrawingMode}
           onDrawingChange={onDrawingChange}
+          initialDrawing={drawing}
+          tool={drawingTool}
+          color={drawingColor}
+          brushSize={brushSize}
+          isDrawingMode={isDrawingMode}
         />
         
         {textBoxes.map((textBox) => (
           <TextBoxComponent
             key={textBox.id}
             textBox={textBox}
-            selected={false} // Add required props
+            selected={textBox.id === selectedTextBoxId}
             containerRef={containerRef}
-            onUpdate={onTextBoxUpdate}
-            onRemove={onTextBoxRemove}
-            onSelect={onTextBoxSelect}
+            onUpdate={(updates) => onTextBoxUpdate(textBox.id, updates)}
+            onRemove={() => onTextBoxRemove(textBox.id)}
+            onSelect={() => onTextBoxSelect(textBox.id)}
             isDrawingMode={isDrawingMode}
           />
         ))}
@@ -232,7 +234,7 @@ export function JournalPreview({
           <StickerContainer
             key={sticker.id}
             sticker={sticker}
-            selected={false} // Add required props
+            selected={sticker.id === selectedStickerId}
             containerRef={containerRef}
             onMove={(position) => onStickerMove(sticker.id, position)}
             onSelect={() => onStickerSelect(sticker.id)}
@@ -243,7 +245,7 @@ export function JournalPreview({
           <IconContainer
             key={icon.id}
             icon={icon}
-            selected={false} // Add required props
+            selected={icon.id === selectedIconId}
             containerRef={containerRef}
             onMove={(position) => onIconMove(icon.id, position)}
             onUpdate={(updates) => onIconUpdate(icon.id, updates)}

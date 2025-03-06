@@ -14,7 +14,7 @@ export interface DrawingLayerProps {
   brushSize?: number;
   initialDrawing?: string;
   onClear?: () => void;
-  // New properties
+  // These properties directly match what's used in JournalPreview.tsx
   drawing?: string;
   drawingTool?: string;
   drawingColor?: string;

@@ -39,13 +39,13 @@ export function useUndoRedoState<T>(initialState: T) {
       console.log(`UNDO: Moving from index ${currentIndex} to ${currentIndex - 1}`);
       setCurrentIndex(prev => prev - 1);
       toast.success("Undo successful");
-      return true;
+      return states[currentIndex - 1]; // Return the previous state, not just a boolean
     } else {
       console.log("Cannot undo - at beginning of history");
       toast.info("Nothing to undo");
-      return false;
+      return null; // Return null instead of false
     }
-  }, [currentIndex]);
+  }, [currentIndex, states]);
   
   // Redo function to go forward in history
   const redo = useCallback(() => {
@@ -54,13 +54,13 @@ export function useUndoRedoState<T>(initialState: T) {
       console.log(`REDO: Moving from index ${currentIndex} to ${currentIndex + 1}`);
       setCurrentIndex(prev => prev + 1);
       toast.success("Redo successful");
-      return true;
+      return states[currentIndex + 1]; // Return the next state, not just a boolean
     } else {
       console.log("Cannot redo - at end of history");
       toast.info("Nothing to redo");
-      return false;
+      return null; // Return null instead of false
     }
-  }, [currentIndex, states.length]);
+  }, [currentIndex, states.length, states]);
   
   // Reset the history to a specific state
   const resetHistory = useCallback((state: T) => {
