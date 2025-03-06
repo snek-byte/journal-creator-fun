@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { BackgroundImageSelector } from './BackgroundImageSelector';
 import { ImageFilterSelector } from './ImageFilterSelector';
 import { DailyChallenge } from './DailyChallenge';
 import { SoundMixer } from './SoundMixer';
+import { MusicPlayer } from './MusicPlayer';
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -333,6 +335,13 @@ export function JournalEditorSidebar({
           </TabsContent>
 
           <TabsContent value="audio" className="space-y-4 pr-4 pb-8">
+            <MusicPlayer 
+              audioTrack={currentEntry.audio}
+              onAudioChange={handleAudioChange}
+            />
+            
+            <Separator className="my-4" />
+            
             <SoundMixer 
               audioTrack={currentEntry.audio}
               onAudioChange={handleAudioChange}

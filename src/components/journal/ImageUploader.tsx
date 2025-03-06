@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ImagePlus, UploadCloud, Image as ImageIcon, Loader2, File } from "lucide-react";
+import { ImagePlus, UploadCloud, Image as ImageIcon, Loader2, File, Music } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -277,10 +277,17 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
                       className="object-cover w-full h-full"
                       loading="lazy"
                     />
+                  ) : url.match(/\.(mp3|wav|ogg|m4a|flac|aac)$/i) ? (
+                    <div className="flex flex-col items-center justify-center w-full h-full bg-gray-100">
+                      <Music className="h-10 w-10 text-gray-400" />
+                      <span className="text-xs mt-2 text-gray-500 text-center px-2 truncate w-full">
+                        {url.split('/').pop()?.split('-').slice(1).join('-')}
+                      </span>
+                    </div>
                   ) : (
-                    <div className="flex items-center justify-center w-full h-full bg-gray-100">
+                    <div className="flex flex-col items-center justify-center w-full h-full bg-gray-100">
                       <File className="h-10 w-10 text-gray-400" />
-                      <span className="text-xs mt-2 text-gray-500">
+                      <span className="text-xs mt-2 text-gray-500 text-center px-2 truncate w-full">
                         {url.split('/').pop()?.split('-').slice(1).join('-')}
                       </span>
                     </div>
