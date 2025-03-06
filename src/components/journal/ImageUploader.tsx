@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -53,12 +52,10 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
     if (open) {
       fetchUserImages();
       
-      // Create the bucket if it doesn't exist
       const checkStorageBucket = async () => {
         try {
           console.log("ImageUploader: Checking storage buckets");
           
-          // First check if the bucket exists
           const { data: buckets, error: bucketsError } = await supabase
             .storage
             .listBuckets();
@@ -70,7 +67,6 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
           
           console.log("ImageUploader: Available buckets:", buckets.map(b => b.name).join(', '));
           
-          // If journal-images bucket doesn't exist, show a warning
           if (!buckets.some(bucket => bucket.name === 'journal-images')) {
             console.warn('journal-images bucket not found. Please create it in the Supabase dashboard.');
             toast.warning('Image storage not fully configured. Contact administrator.');
@@ -96,13 +92,12 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
 
     console.log("ImageUploader: File selected for upload:", file.name, file.type, file.size);
 
-    // Check file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image too large. Maximum size is 5MB.');
+    const maxFileSize = 20 * 1024 * 1024; // 20MB in bytes
+    if (file.size > maxFileSize) {
+      toast.error('Image too large. Maximum size is 20MB.');
       return;
     }
 
-    // Check file type
     if (!file.type.startsWith('image/')) {
       toast.error('Only image files are allowed.');
       return;
@@ -118,21 +113,24 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
 
       console.log("ImageUploader: Authenticated as user:", user.id);
 
-      // Generate a unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
       
       console.log("ImageUploader: Uploading with filename:", fileName);
       
-      // Upload to Supabase Storage
       const { data, error } = await supabase.storage
         .from('journal-images')
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
 
       if (error) {
         console.error("Upload error:", error);
         if (error.message.includes('bucket') || error.message.includes('not found')) {
           toast.error('Storage bucket not found. Please contact administrator.');
+        } else if (error.message.includes('timeout') || error.message.includes('aborted')) {
+          toast.error('Upload timed out. Please try with a smaller file or check your connection.');
         } else {
           toast.error(`Upload error: ${error.message}`);
         }
@@ -141,7 +139,6 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
 
       console.log("ImageUploader: Upload successful, getting public URL");
 
-      // Get the public URL
       const { data: publicUrlData } = supabase.storage
         .from('journal-images')
         .getPublicUrl(fileName);
@@ -150,7 +147,6 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
 
       console.log("ImageUploader: Public URL obtained:", publicUrlData.publicUrl);
 
-      // Store reference in database
       const { error: dbError } = await supabase
         .from('user_images')
         .insert({
@@ -164,24 +160,23 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
         throw dbError;
       }
 
-      // Update local state
       setUploadedImages(prev => [publicUrlData.publicUrl, ...prev]);
       toast.success('Image uploaded successfully!');
       console.log("ImageUploader: Image successfully uploaded and saved");
     } catch (error: any) {
       console.error('Error uploading image:', error);
       
-      // More user-friendly error messages
       if (error.message?.includes('bucket') || error.message?.includes('not found')) {
         toast.error('Storage not properly configured. Please contact administrator.');
       } else if (error.message?.includes('permission')) {
         toast.error('You don\'t have permission to upload images.');
+      } else if (error.message?.includes('size') || error.message?.includes('large')) {
+        toast.error('This file is too large to upload. Please try a smaller image.');
       } else {
         toast.error(error.message || 'Failed to upload image');
       }
     } finally {
       setIsUploading(false);
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -194,9 +189,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
     toast.success('Image selected for your journal');
   };
 
-  // Helper function to render placeholder images
   const renderPlaceholderImages = () => {
-    // Show these nice placeholders if no images are uploaded yet
     const placeholders = [
       'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=500&auto=format',
       'https://images.unsplash.com/photo-1580137189272-c9379f8864fd?w=500&auto=format',
@@ -261,7 +254,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
               ) : (
                 <>
                   <UploadCloud className="mr-2 h-4 w-4" />
-                  Upload Image
+                  Upload Image (Max 20MB)
                 </>
               )}
             </Button>
