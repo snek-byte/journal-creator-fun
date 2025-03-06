@@ -47,7 +47,7 @@ export function MemeCanvas({
 
   // Debug template changes
   useEffect(() => {
-    console.log("Template updated in MemeCanvas:", template ? template.substring(0, 30) + "..." : "empty");
+    console.log("MemeCanvas received template:", template ? "Has data (length: " + template.length + ")" : "Empty");
   }, [template]);
 
   // Text styling
@@ -71,7 +71,7 @@ export function MemeCanvas({
   };
 
   // Handle frame load
-  const handleFrameLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  const handleFrameLoad = () => {
     setFrameLoaded(true);
     setFrameError(false);
     console.log("Frame loaded successfully");
@@ -90,20 +90,20 @@ export function MemeCanvas({
     setImageError(false);
     setImageHeight(e.currentTarget.naturalHeight);
     setImageWidth(e.currentTarget.naturalWidth);
-    console.log("Image loaded successfully:", e.currentTarget.src.substring(0, 50) + "...");
+    console.log("Image loaded successfully, dimensions:", e.currentTarget.naturalWidth, "x", e.currentTarget.naturalHeight);
   };
 
   // Handle image error
-  const handleImageError = () => {
-    console.error("Error loading image template:", template ? template.substring(0, 50) + "..." : "empty");
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    console.error("Error loading image template. Image URL starts with:", template?.substring(0, 30));
     setImageError(true);
     setImageLoaded(false);
   };
 
   // Handle canvas click
   const handleCanvasClick = () => {
-    console.log("Canvas clicked, triggering template click");
-    if (onTemplateClick) {
+    if (onTemplateClick && !template) {
+      console.log("Canvas clicked, opening file selector");
       onTemplateClick();
     }
   };
@@ -111,8 +111,8 @@ export function MemeCanvas({
   // Function to handle background removal
   const handleBackgroundRemove = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering canvas click
-    console.log("Background removal triggered");
     if (onBackgroundRemove) {
+      console.log("Remove button clicked");
       onBackgroundRemove();
     }
   };
@@ -125,6 +125,7 @@ export function MemeCanvas({
     }
 
     try {
+      console.log("Starting to generate image");
       const canvas = await html2canvas(canvasRef.current, {
         allowTaint: true,
         useCORS: true,
@@ -135,6 +136,7 @@ export function MemeCanvas({
       const link = document.createElement('a');
       link.download = 'my-creation.png';
       link.href = canvas.toDataURL('image/png');
+      console.log("Image generated successfully, downloading");
       link.click();
     } catch (error) {
       console.error("Error generating image:", error);
@@ -149,12 +151,6 @@ export function MemeCanvas({
       delete (window as any).downloadMeme;
     };
   }, []);
-
-  // Special styling for specific frames
-  const isCollageFrame = frame && frame.includes('collage');
-  const isBirthdayFrame = frame && frame.includes('birthday');
-  const isInstantPhotoFrame = frame && frame.includes('instant-photo');
-  const isSocialMediaFrame = frame && frame.includes('social-media');
 
   return (
     <Card className="p-3 w-full flex justify-center bg-gray-100">
@@ -171,7 +167,7 @@ export function MemeCanvas({
             maxWidth: '100%',
             backgroundColor: backgroundColor || '#ffffff'
           }}
-          onClick={!template ? handleCanvasClick : undefined}
+          onClick={handleCanvasClick}
         >
           {/* Background or template image layer */}
           {template ? (
@@ -197,7 +193,6 @@ export function MemeCanvas({
           ) : (
             <div 
               className="absolute inset-0 flex items-center justify-center bg-gray-50 cursor-pointer"
-              onClick={handleCanvasClick}
             >
               <p className="text-gray-400 text-center p-4">Click to add your photo</p>
             </div>

@@ -28,87 +28,89 @@ export default function MemeGenerator() {
   const [selectedBackground, setSelectedBackground] = useState('#ffffff');
   const [template, setTemplate] = useState('');
   
-  // Track if we need to refresh the file input
+  // File input ref and upload state
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileInputKey, setFileInputKey] = useState(0);
   const [uploadInProgress, setUploadInProgress] = useState(false);
-  
-  // File input ref
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Log template state changes
+  // Log template state changes for debugging
   useEffect(() => {
-    console.log("MemeGenerator template state:", template ? "set" : "empty");
+    console.log("Template state updated:", template ? "Template has data" : "Template is empty");
   }, [template]);
 
   // Handle frame selection
   const handleFrameSelect = (frame: string) => {
-    console.log("Frame selected:", frame);
     setSelectedFrame(frame);
+    console.log("Frame selected:", frame);
   };
   
   // Handle background color change
   const handleBackgroundChange = (color: string) => {
     setSelectedBackground(color);
+    console.log("Background color changed:", color);
   };
 
   // Handle template click to trigger file upload
   const handleTemplateClick = () => {
-    console.log("Template click triggered, uploadInProgress:", uploadInProgress);
+    console.log("Canvas clicked, opening file dialog");
     if (fileInputRef.current && !uploadInProgress) {
-      setUploadInProgress(true); // Set flag to prevent multiple clicks
+      setUploadInProgress(true); // Prevent multiple clicks
       fileInputRef.current.click();
     }
   };
 
   // Handle background removal
   const handleBackgroundRemove = () => {
+    console.log("Removing background image");
     setTemplate('');
-    // Force the file input to re-render with a new key
+    // Reset the file input
     setFileInputKey(prevKey => prevKey + 1);
     toast.success('Background image removed');
   };
 
   // Handle file upload
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("File change triggered");
+    console.log("File input changed");
     const file = event.target.files?.[0];
     
-    // Even if no file is selected, reset upload state
-    setTimeout(() => {
-      setUploadInProgress(false);
-    }, 300);
-    
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        toast.error('Please select an image file');
-        return;
-      }
-
-      console.log("Reading file:", file.name, file.type, file.size);
-      const reader = new FileReader();
-      
-      reader.onload = (e) => {
-        console.log("File read successfully");
-        const result = e.target?.result as string;
-        if (result) {
-          console.log("Setting template to:", result.substring(0, 30) + "...");
-          setTemplate(result);
-          toast.success('Image uploaded successfully');
-        } else {
-          console.error("Result is undefined");
-          toast.error('Failed to load image');
-        }
-      };
-      
-      reader.onerror = (error) => {
-        console.error("Error reading file:", error);
-        toast.error('Error reading file');
-      };
-      
-      reader.readAsDataURL(file);
-    } else {
+    if (!file) {
       console.log("No file selected");
+      setUploadInProgress(false);
+      return;
     }
+    
+    console.log("File selected:", file.name, file.type, file.size);
+    
+    if (!file.type.startsWith('image/')) {
+      console.error("Invalid file type:", file.type);
+      toast.error('Please select an image file');
+      setUploadInProgress(false);
+      return;
+    }
+
+    const reader = new FileReader();
+      
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      if (result) {
+        console.log("File read successfully, data length:", result.length);
+        setTemplate(result);
+        toast.success('Image uploaded successfully');
+      } else {
+        console.error("FileReader result is undefined");
+        toast.error('Failed to load image');
+      }
+      setUploadInProgress(false);
+    };
+      
+    reader.onerror = (error) => {
+      console.error("FileReader error:", error);
+      toast.error('Error reading file');
+      setUploadInProgress(false);
+    };
+    
+    console.log("Starting to read file as data URL");
+    reader.readAsDataURL(file);
     
     // Clear the input value to allow selecting the same file again
     event.target.value = '';
@@ -142,8 +144,8 @@ export default function MemeGenerator() {
             accept="image/*" 
             className="hidden" 
             onChange={handleFileChange}
-            key={fileInputKey} // Use fileInputKey to force re-render of the input
-            disabled={uploadInProgress} // Disable while upload is in progress
+            key={fileInputKey}
+            disabled={uploadInProgress}
           />
         </div>
         
