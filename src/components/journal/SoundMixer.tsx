@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -43,33 +42,39 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
 
   useEffect(() => {
     if (audioRef.current && audioTrack?.url) {
+      console.log("SoundMixer: Setting audio source to", audioTrack.url);
       audioRef.current.src = audioTrack.url;
       audioRef.current.volume = volume / 100;
       audioRef.current.loop = true;
       
       if (isPlaying) {
-        console.log("Attempting to play audio in SoundMixer:", audioTrack.url);
-        const playPromise = audioRef.current.play();
-        
-        if (playPromise !== undefined) {
-          playPromise.then(() => {
-            console.log("Audio playing in mixer:", audioTrack.name);
-          }).catch(error => {
-            console.error("Error playing audio in mixer:", error);
-            setIsPlaying(false);
-            setLoadError("Couldn't play audio. Try another sound.");
+        console.log("SoundMixer: Attempting to play audio:", audioTrack.url);
+        // Use a timeout to ensure the audio has time to load
+        setTimeout(() => {
+          if (audioRef.current) {
+            const playPromise = audioRef.current.play();
             
-            onAudioChange({
-              ...audioTrack,
-              playing: false
-            });
-          });
-        }
+            if (playPromise !== undefined) {
+              playPromise.then(() => {
+                console.log("SoundMixer: Audio playing successfully:", audioTrack.name);
+              }).catch(error => {
+                console.error("SoundMixer: Error playing audio:", error);
+                setIsPlaying(false);
+                setLoadError("Couldn't play audio. Try another sound or upload your own.");
+                
+                onAudioChange({
+                  ...audioTrack,
+                  playing: false
+                });
+              });
+            }
+          }
+        }, 300);
       } else {
         audioRef.current.pause();
       }
     }
-  }, [isPlaying, volume, audioTrack?.url, audioTrack]);
+  }, [isPlaying, volume, audioTrack?.url, audioTrack, onAudioChange]);
 
   useEffect(() => {
     if (previewAudioRef.current && previewSound) {
@@ -209,7 +214,14 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
         </h3>
       </div>
       
-      <audio ref={audioRef} onLoadedData={handleAudioLoaded} onError={handleAudioError} />
+      <audio 
+        ref={audioRef} 
+        onLoadedData={handleAudioLoaded} 
+        onError={handleAudioError}
+        preload="auto"
+        className="w-full"
+        controls 
+      />
       
       {audioTrack?.url ? (
         <div className="space-y-2">

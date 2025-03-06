@@ -104,12 +104,14 @@ export function JournalPreview({
     if (!audioRef.current) return;
 
     if (audio?.url) {
+      console.log("Setting up audio:", audio);
       audioRef.current.src = audio.url;
       audioRef.current.volume = (audio.volume || 50) / 100;
       audioRef.current.muted = audioMuted;
       audioRef.current.loop = true;
       
       if (audio.playing) {
+        console.log("Attempting to play audio:", audio.url);
         const playPromise = audioRef.current.play();
         
         if (playPromise !== undefined) {
@@ -122,16 +124,20 @@ export function JournalPreview({
           });
         }
       } else {
+        console.log("Audio not set to playing, pausing");
         audioRef.current.pause();
       }
     } else {
-      audioRef.current.pause();
+      console.log("No audio URL provided");
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
     }
   }, [audio, audioMuted]);
 
   const handleAudioLoaded = () => {
-    setAudioLoaded(true);
     console.log("Audio loaded successfully:", audio?.name);
+    setAudioLoaded(true);
   };
 
   const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
@@ -140,6 +146,7 @@ export function JournalPreview({
   };
 
   const toggleMute = () => {
+    console.log("Toggling mute from", audioMuted, "to", !audioMuted);
     setAudioMuted(!audioMuted);
     if (audioRef.current) {
       audioRef.current.muted = !audioMuted;
@@ -222,7 +229,7 @@ export function JournalPreview({
     onStickerMove(id, position);
   };
 
-  // Fixed function to correctly handle the position parameter
+  // Function to handle deleting elements by moving them offscreen
   const handleDeleteByMovingOffscreen = (id: string, isIcon: boolean) => {
     const offscreenPosition = { x: -1000, y: -1000 };
     
@@ -245,6 +252,9 @@ export function JournalPreview({
             loop 
             onLoadedData={handleAudioLoaded} 
             onError={handleAudioError}
+            preload="auto"
+            controls
+            className="hidden"
           />
           <div className="absolute top-4 right-16 z-10 flex items-center gap-2">
             <span className="text-xs bg-white/80 px-2 py-1 rounded-md">

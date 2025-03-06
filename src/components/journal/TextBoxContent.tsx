@@ -1,9 +1,7 @@
 
-import React, { useEffect, useRef } from 'react';
-import { TextStyle } from '@/utils/unicodeTextStyles';
-import { getTextStyles } from '@/utils/textBoxUtils';
+import React from 'react';
 
-export interface TextBoxContentProps {
+interface TextBoxContentProps {
   isEditing: boolean;
   editValue: string;
   text: string;
@@ -12,8 +10,8 @@ export interface TextBoxContentProps {
   fontWeight: string;
   fontColor: string;
   gradient: string;
-  textStyle: string;
-  rotation: number;
+  textStyle?: string;
+  rotation?: number;
   onTextChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onBlur: () => void;
   onKeyDown: (e: React.KeyboardEvent) => void;
@@ -32,62 +30,80 @@ export function TextBoxContent({
   fontColor,
   gradient,
   textStyle,
-  rotation,
   onTextChange,
   onBlur,
   onKeyDown,
   textAreaRef,
   isPrinting,
-  style = {}
+  style
 }: TextBoxContentProps) {
-  // Get the base styles for the content
-  const contentStyles = getTextStyles(
-    font,
-    fontSize,
-    fontWeight,
-    fontColor,
-    gradient,
-    textStyle,
-    rotation
-  );
+  const usingGradient = gradient && gradient !== '';
   
-  // Merge with any additional style props
-  const mergedStyles: React.CSSProperties = {
-    ...contentStyles,
+  const textStyles: React.CSSProperties = {
     ...style,
-    // Ensure these styles for proper interaction
-    pointerEvents: isEditing ? 'auto' : 'none',
-    userSelect: isEditing ? 'text' : 'none',
+    fontFamily: font || 'sans-serif',
+    fontSize: fontSize || '16px',
+    fontWeight: fontWeight as any || 'normal',
+    padding: '1.5rem 0.5rem 0.5rem 0.5rem', // Increased top padding to accommodate drag handle
     width: '100%',
-    height: '100%'
+    height: '100%',
+    border: 'none',
+    resize: 'none',
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
+    boxSizing: 'border-box',
+    wordBreak: 'break-word',
   };
-
-  // Ref for drag handling
-  const contentRef = useRef<HTMLDivElement>(null);
-
+  
+  // Handle text style
+  if (textStyle) {
+    if (textStyle.includes('italic')) {
+      textStyles.fontStyle = 'italic';
+    }
+    
+    if (textStyle.includes('underline')) {
+      textStyles.textDecoration = 'underline';
+    }
+  }
+  
+  // Handle gradient or solid color
+  if (usingGradient) {
+    textStyles.background = gradient;
+    textStyles.WebkitBackgroundClip = 'text';
+    textStyles.WebkitTextFillColor = 'transparent';
+    textStyles.backgroundClip = 'text';
+    textStyles.color = 'transparent';
+  } else {
+    textStyles.color = fontColor || '#000000';
+  }
+  
+  if (isPrinting) {
+    return (
+      <div className="print-content" style={textStyles}>
+        {text}
+      </div>
+    );
+  }
+  
   if (isEditing) {
     return (
       <textarea
         ref={textAreaRef}
         value={editValue}
         onChange={onTextChange}
-        onKeyDown={onKeyDown}
         onBlur={onBlur}
-        style={mergedStyles}
-        className="text-box-content-edit w-full h-full resize-none focus:outline-none p-2"
-        placeholder="Enter text here..."
+        onKeyDown={onKeyDown}
+        className="focus-visible:outline-none no-drag"
+        style={textStyles}
+        placeholder="Type here..."
+        autoFocus
       />
     );
   }
-
+  
   return (
-    <div
-      ref={contentRef}
-      style={mergedStyles}
-      className="text-box-content-view w-full h-full overflow-hidden"
-      title={isPrinting ? undefined : "Double-click to edit"}
-    >
-      {text || 'Empty text box'}
+    <div className="text-content" style={textStyles}>
+      {text || "Double-click to edit"}
     </div>
   );
 }
