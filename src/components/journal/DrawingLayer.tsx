@@ -78,7 +78,7 @@ export function DrawingLayer({
       
       // Save one final time when unmounting
       if (canvas) {
-        const finalDrawing = canvas.toDataURL('image/png');
+        const finalDrawing = canvasToDataURL(canvas);
         if (onDrawingChange && finalDrawing.length > 1000) {
           console.log("DrawingLayer: Saving final drawing on unmount");
           onDrawingChange(finalDrawing);
@@ -253,7 +253,7 @@ export function DrawingLayer({
     if (!canvas || !onDrawingChange) return;
     
     // Generate dataURL from canvas
-    const dataUrl = canvas.toDataURL('image/png');
+    const dataUrl = canvasToDataURL(canvas);
     
     // Debug: check if dataUrl is not empty
     console.log("DrawingLayer: Saving drawing, data URL length:", dataUrl.length);
