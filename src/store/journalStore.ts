@@ -1,7 +1,6 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { JournalEntry, Challenge, Badge, UserProgress, Mood, Sticker, Icon, TextBox, AudioTrack } from '@/types/journal';
+import type { JournalEntry, Challenge, Mood, Sticker, Icon, TextBox, AudioTrack, Badge, UserProgress } from '@/types/journal';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -419,7 +418,7 @@ export const useJournalStore = create<JournalState>()(
         
         set({
           dailyChallenge: {
-            id: `challenge-${today}-${randomIndex}`,
+            id: Number(`${Date.now()}${randomIndex}`),
             prompt: prompts[randomIndex],
             date: today,
             xpReward: 20

@@ -81,7 +81,7 @@ export default function Dashboard() {
                   </p>
                   {entry.mood && (
                     <Badge variant="outline">
-                      Mood: {entry.mood}
+                      Mood: {entry.mood.name}
                     </Badge>
                   )}
                 </div>

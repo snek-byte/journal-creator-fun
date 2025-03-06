@@ -1,3 +1,4 @@
+
 export interface Point {
   x: number;
   y: number;
@@ -110,4 +111,27 @@ export interface AudioTrack {
   url: string;
   volume: number;
   isPlaying: boolean;
+  category?: string; // Adding category property for SoundMixer
+}
+
+// Add the missing types
+export type StickerSource = 'decorative' | 'nature' | 'food';
+
+export interface Badge {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  requirement: number;
+  type: 'streak' | 'entries' | 'challenges';
+}
+
+export interface UserProgress {
+  totalXp: number;
+  currentStreak: number;
+  longestStreak: number;
+  totalEntries: number;
+  completedChallenges: string[];
+  unlockedFeatures: string[];
+  earnedBadges: string[];
 }

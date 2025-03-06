@@ -12,7 +12,7 @@ export const publicDomainSounds: AudioTrack[] = [
     name: "Forest Ambience",
     url: "https://cdn.freesound.org/previews/573/573577_4435739-lq.mp3",
     volume: 50,
-    playing: false,
+    isPlaying: false,
     category: "ambient"
   },
   {
@@ -20,7 +20,7 @@ export const publicDomainSounds: AudioTrack[] = [
     name: "Ocean Waves",
     url: "https://cdn.freesound.org/previews/617/617306_1648170-lq.mp3",
     volume: 50,
-    playing: false,
+    isPlaying: false,
     category: "ambient"
   },
   {
@@ -28,7 +28,7 @@ export const publicDomainSounds: AudioTrack[] = [
     name: "Gentle Stream",
     url: "https://cdn.freesound.org/previews/459/459145_4435739-lq.mp3",
     volume: 50,
-    playing: false,
+    isPlaying: false,
     category: "ambient"
   },
   {
@@ -36,7 +36,7 @@ export const publicDomainSounds: AudioTrack[] = [
     name: "Rain",
     url: "https://cdn.freesound.org/previews/523/523657_7866464-lq.mp3",
     volume: 50,
-    playing: false,
+    isPlaying: false,
     category: "ambient"
   },
   
@@ -46,7 +46,7 @@ export const publicDomainSounds: AudioTrack[] = [
     name: "Lo-Fi Beat 1",
     url: "https://cdn.freesound.org/previews/653/653062_1648170-lq.mp3",
     volume: 50,
-    playing: false,
+    isPlaying: false,
     category: "music"
   },
   {
@@ -54,7 +54,7 @@ export const publicDomainSounds: AudioTrack[] = [
     name: "Lo-Fi Beat 2",
     url: "https://cdn.freesound.org/previews/553/553416_5674468-lq.mp3",
     volume: 50,
-    playing: false,
+    isPlaying: false,
     category: "music"
   },
   {
@@ -62,7 +62,7 @@ export const publicDomainSounds: AudioTrack[] = [
     name: "Piano Melody",
     url: "https://cdn.freesound.org/previews/531/531623_11471037-lq.mp3",
     volume: 50,
-    playing: false,
+    isPlaying: false,
     category: "music"
   },
   
@@ -72,7 +72,7 @@ export const publicDomainSounds: AudioTrack[] = [
     name: "White Noise",
     url: "https://cdn.freesound.org/previews/133/133099_2398403-lq.mp3",
     volume: 50,
-    playing: false,
+    isPlaying: false,
     category: "noise"
   },
   {
@@ -80,7 +80,7 @@ export const publicDomainSounds: AudioTrack[] = [
     name: "Brown Noise",
     url: "https://cdn.freesound.org/previews/252/252186_4082826-lq.mp3",
     volume: 50,
-    playing: false,
+    isPlaying: false,
     category: "noise"
   },
   {
@@ -88,7 +88,7 @@ export const publicDomainSounds: AudioTrack[] = [
     name: "Pink Noise",
     url: "https://cdn.freesound.org/previews/235/235428_4082826-lq.mp3",
     volume: 50,
-    playing: false,
+    isPlaying: false,
     category: "noise"
   },
   
@@ -98,7 +98,7 @@ export const publicDomainSounds: AudioTrack[] = [
     name: "Singing Bowl",
     url: "https://cdn.freesound.org/previews/421/421184_7552772-lq.mp3",
     volume: 50,
-    playing: false,
+    isPlaying: false,
     category: "meditation"
   },
   {
@@ -106,7 +106,7 @@ export const publicDomainSounds: AudioTrack[] = [
     name: "Gentle Chimes",
     url: "https://cdn.freesound.org/previews/411/411090_5121236-lq.mp3",
     volume: 50,
-    playing: false,
+    isPlaying: false,
     category: "meditation"
   }
 ];
