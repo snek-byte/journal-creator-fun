@@ -29,7 +29,6 @@ export function FramedImage({
     
     console.log("Loading frame from:", frame);
     
-    // Simplify - no cache busters or extra params
     fetch(frame)
       .then(response => {
         console.log("Frame fetch response status:", response.status);

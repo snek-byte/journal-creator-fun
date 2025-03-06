@@ -12,7 +12,7 @@ export const downloadMemeAsImage = async (canvasRef: React.RefObject<HTMLDivElem
     const canvas = await html2canvas(canvasRef.current, {
       allowTaint: true,
       useCORS: true,
-      logging: false,
+      logging: true, // Enable logging for debugging
       backgroundColor: null,
     });
 
