@@ -32,21 +32,16 @@ export function useTextBoxPosition(
     const resizeObserver = new ResizeObserver(updateDimensions);
     resizeObserver.observe(containerRef.current);
     
-    // Update the local position on initial load and any time the container dimensions change
-    const pixelX = (position.x / 100) * containerRef.current.offsetWidth;
-    const pixelY = (position.y / 100) * containerRef.current.offsetHeight;
-    setLocalPosition({ x: pixelX, y: pixelY });
-    
     return () => {
       if (containerRef.current) {
         resizeObserver.unobserve(containerRef.current);
       }
     };
-  }, [containerRef, position.x, position.y]);
+  }, [containerRef]);
   
-  // Convert percentage position to pixels when position changes
+  // Convert percentage position to pixels
   useEffect(() => {
-    if (containerDimensions.width && containerDimensions.height) {
+    if (containerDimensions.width && containerDimensions.height && position) {
       const pixelX = (position.x / 100) * containerDimensions.width;
       const pixelY = (position.y / 100) * containerDimensions.height;
       setLocalPosition({ x: pixelX, y: pixelY });

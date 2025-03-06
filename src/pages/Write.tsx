@@ -27,17 +27,6 @@ export default function Write() {
       }
     );
 
-    // Load interact.js once at page level to ensure it's available
-    if (!document.getElementById('interactjs-script-global')) {
-      const script = document.createElement('script');
-      script.id = 'interactjs-script-global';
-      script.src = 'https://cdn.jsdelivr.net/npm/interactjs@1.10.17/dist/interact.min.js';
-      script.async = false;
-      script.defer = false;
-      document.head.appendChild(script);
-      console.log('Interact.js script added to page');
-    }
-
     return () => {
       subscription.unsubscribe();
     };

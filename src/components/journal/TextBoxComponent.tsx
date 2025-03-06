@@ -1,7 +1,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
+import { Rnd } from 'react-rnd';
 import { TextBox } from '@/types/journal';
 import { cn } from "@/lib/utils";
+import { useTextBoxPosition } from '@/hooks/useTextBoxPosition';
 import { TextBoxControls } from './TextBoxControls';
 import { TextBoxContent } from './TextBoxContent';
 import { getPrintStyles } from '@/utils/textBoxUtils';
@@ -54,46 +56,35 @@ export function TextBoxComponent({
     setLocalPosition({ x: pixelX, y: pixelY });
   }, [position, containerRef]);
   
-  // Add interact.js script dynamically
+  // Initialize interact.js
   useEffect(() => {
-    // Remove any existing interact.js script
-    const existingScript = document.getElementById('interactjs-script');
-    if (existingScript) {
-      existingScript.remove();
-    }
-    
-    // Add new script
-    const script = document.createElement('script');
-    script.id = 'interactjs-script';
-    script.src = 'https://cdn.jsdelivr.net/npm/interactjs@1.10.17/dist/interact.min.js';
-    script.async = true;
-    script.onload = () => {
-      console.log('Interact.js loaded successfully');
-      if (boxRef.current) {
+    // Add interact.js CDN script if it doesn't exist
+    if (!document.getElementById('interactjs-script')) {
+      const script = document.createElement('script');
+      script.id = 'interactjs-script';
+      script.src = 'https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js';
+      script.async = true;
+      document.body.appendChild(script);
+      
+      script.onload = () => {
+        initializeInteract();
+      };
+      
+      return () => {
+        if (document.getElementById('interactjs-script')) {
+          document.getElementById('interactjs-script')?.remove();
+        }
+      };
+    } else {
+      // If the script is already loaded, initialize interact
+      if (window.interact) {
         initializeInteract();
       }
-    };
-    script.onerror = () => {
-      console.error('Failed to load interact.js');
-    };
-    
-    document.body.appendChild(script);
-    
-    return () => {
-      if (document.getElementById('interactjs-script')) {
-        document.getElementById('interactjs-script')?.remove();
-      }
-    };
+    }
   }, []);
   
-  // Initialize interact.js
   const initializeInteract = () => {
-    if (!boxRef.current || !window.interact) {
-      console.error('Cannot initialize interact: missing ref or interact not loaded');
-      return;
-    }
-    
-    console.log('Initializing interact.js for box', id);
+    if (!boxRef.current || !window.interact) return;
     
     if (interactInstance.current) {
       interactInstance.current.unset();
@@ -102,11 +93,15 @@ export function TextBoxComponent({
     interactInstance.current = window.interact(boxRef.current)
       .draggable({
         inertia: true,
-        modifiers: [],
-        autoScroll: true,
+        modifiers: [
+          window.interact.modifiers.restrictRect({
+            restriction: 'parent',
+            endOnly: true
+          })
+        ],
         listeners: {
           start: (event) => {
-            console.log('Dragging started', id);
+            console.log('Dragging started with interact.js');
             if (isDrawingMode || isEditing || isPrinting) return;
             onSelect(id);
           },
@@ -118,7 +113,7 @@ export function TextBoxComponent({
             const y = (parseFloat(target.getAttribute('data-y')) || localPosition.y) + event.dy;
             
             // Update the element's position
-            target.style.transform = `translate(${x}px, ${y}px) rotate(${rotation || 0}deg)`;
+            target.style.transform = `translate(${x}px, ${y}px)`;
             target.setAttribute('data-x', x);
             target.setAttribute('data-y', y);
             
@@ -127,7 +122,7 @@ export function TextBoxComponent({
           end: (event) => {
             if (isDrawingMode || isEditing || isPrinting) return;
             
-            console.log('Dragging ended', id);
+            console.log('Dragging ended with interact.js');
             const target = event.target;
             const x = parseFloat(target.getAttribute('data-x')) || localPosition.x;
             const y = parseFloat(target.getAttribute('data-y')) || localPosition.y;
@@ -140,7 +135,7 @@ export function TextBoxComponent({
               const xPercent = Math.max(0, Math.min(100, (x / containerWidth) * 100));
               const yPercent = Math.max(0, Math.min(100, (y / containerHeight) * 100));
               
-              console.log(`Updating position for ${id} to ${xPercent}%, ${yPercent}%`);
+              console.log(`interact.js: Updating position to ${xPercent}%, ${yPercent}%`);
               onUpdate(id, { position: { x: xPercent, y: yPercent } });
             }
           }
@@ -148,6 +143,10 @@ export function TextBoxComponent({
       })
       .resizable({
         edges: { left: true, right: true, bottom: true, top: true },
+        restrictEdges: {
+          outer: 'parent',
+          endOnly: true,
+        },
         inertia: true,
         listeners: {
           move: (event) => {
@@ -168,7 +167,7 @@ export function TextBoxComponent({
             x += event.deltaRect.left;
             y += event.deltaRect.top;
             
-            target.style.transform = `translate(${x}px, ${y}px) rotate(${rotation || 0}deg)`;
+            target.style.transform = `translate(${x}px, ${y}px)`;
             
             target.setAttribute('data-x', x);
             target.setAttribute('data-y', y);
@@ -199,20 +198,6 @@ export function TextBoxComponent({
         }
       });
   };
-  
-  // Update interactJS when selection, editing, or drawing mode changes
-  useEffect(() => {
-    // If we have interact.js loaded, update the dragging state
-    if (window.interact && interactInstance.current) {
-      if (isDrawingMode || isEditing || isPrinting) {
-        interactInstance.current.draggable(false);
-        interactInstance.current.resizable(false);
-      } else {
-        interactInstance.current.draggable(true);
-        interactInstance.current.resizable(selected);
-      }
-    }
-  }, [isDrawingMode, isEditing, isPrinting, selected]);
   
   // Cleanup interact instance on unmount
   useEffect(() => {
@@ -253,7 +238,7 @@ export function TextBoxComponent({
       // Add small delay before setting edit mode
       const timer = setTimeout(() => {
         setIsEditing(true);
-      }, 100);
+      }, 10);
       return () => clearTimeout(timer);
     }
   }, [selected, isDrawingMode, isPrinting]);
@@ -261,9 +246,28 @@ export function TextBoxComponent({
   // Focus textarea when editing starts
   useEffect(() => {
     if (isEditing && textAreaRef.current) {
-      textAreaRef.current.focus();
+      const timer = setTimeout(() => {
+        if (textAreaRef.current) {
+          textAreaRef.current.focus();
+        }
+      }, 10);
+      return () => clearTimeout(timer);
     }
   }, [isEditing]);
+  
+  // Update interactJS when selection, editing, or drawing mode changes
+  useEffect(() => {
+    // If we have interact.js loaded, update the dragging state
+    if (window.interact && interactInstance.current) {
+      if (isDrawingMode || isEditing || isPrinting) {
+        interactInstance.current.draggable(false);
+        interactInstance.current.resizable(false);
+      } else {
+        interactInstance.current.draggable(true);
+        interactInstance.current.resizable(selected);
+      }
+    }
+  }, [isDrawingMode, isEditing, isPrinting, selected]);
   
   // Event handlers
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -342,7 +346,6 @@ export function TextBoxComponent({
         onClick={handleSelectClick}
         data-x={localPosition.x}
         data-y={localPosition.y}
-        data-id={id}
       >
         <div 
           className={cn(
