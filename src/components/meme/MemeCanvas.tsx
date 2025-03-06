@@ -169,9 +169,15 @@ export function MemeCanvas({
           }}
           onClick={handleCanvasClick}
         >
+          {/* Background color layer - always at the bottom */}
+          <div 
+            className="absolute inset-0 z-0"
+            style={{ backgroundColor: backgroundColor || '#ffffff' }}
+          />
+          
           {/* Background or template image layer */}
           {template ? (
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center z-10">
               <img
                 src={template}
                 alt="Background template"
@@ -179,7 +185,6 @@ export function MemeCanvas({
                 onLoad={handleImageLoad}
                 onError={handleImageError}
                 crossOrigin="anonymous"
-                style={{zIndex: 1}}
               />
               {/* Remove background button */}
               <button 
@@ -192,15 +197,15 @@ export function MemeCanvas({
             </div>
           ) : (
             <div 
-              className="absolute inset-0 flex items-center justify-center bg-gray-50 cursor-pointer"
+              className="absolute inset-0 flex items-center justify-center bg-gray-50 cursor-pointer z-10"
             >
               <p className="text-gray-400 text-center p-4">Click to add your photo</p>
             </div>
           )}
 
-          {/* Frame layer */}
+          {/* Frame layer - positioned above the image */}
           {frame && (
-            <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+            <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
               <img
                 src={frame}
                 alt="Frame"
@@ -216,7 +221,7 @@ export function MemeCanvas({
             </div>
           )}
 
-          {/* Text layers */}
+          {/* Text layers - always on top */}
           <div
             className="absolute top-0 left-0 right-0 flex items-start justify-center pt-4 z-40"
             style={textStyle1}
