@@ -19,32 +19,76 @@ export const applyFrameToImage = async (
         return;
       }
       
-      // Load the base image
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
+      // Load the frame first to get its dimensions
+      const frame = new Image();
+      frame.crossOrigin = 'anonymous';
       
-      img.onload = () => {
-        // Set canvas dimensions based on the image
-        canvas.width = img.width;
-        canvas.height = img.height;
+      frame.onload = () => {
+        // Set canvas dimensions based on the frame
+        canvas.width = frame.width;
+        canvas.height = frame.height;
         
-        // Clear the canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Load the base image
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
         
-        // Draw the image with transformations
-        ctx.save();
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate((rotation * Math.PI) / 180);
-        ctx.scale(scale, scale);
-        ctx.drawImage(img, -img.width / 2, -img.height / 2, img.width, img.height);
-        ctx.restore();
-        
-        // Load the frame
-        const frame = new Image();
-        frame.crossOrigin = 'anonymous';
-        
-        frame.onload = () => {
-          // Draw the frame - resize to match the canvas dimensions
+        img.onload = () => {
+          // Calculate the scaling ratio to fit the image to the frame
+          // while maintaining aspect ratio
+          const frameAspect = frame.width / frame.height;
+          const imgAspect = img.width / img.height;
+          
+          let drawWidth, drawHeight, offsetX, offsetY;
+          
+          if (imgAspect > frameAspect) {
+            // Image is wider than frame
+            drawHeight = frame.height * 0.85; // Leave some padding
+            drawWidth = drawHeight * imgAspect;
+            offsetX = (frame.width - drawWidth) / 2;
+            offsetY = (frame.height - drawHeight) / 2;
+          } else {
+            // Image is taller than frame
+            drawWidth = frame.width * 0.85; // Leave some padding
+            drawHeight = drawWidth / imgAspect;
+            offsetX = (frame.width - drawWidth) / 2;
+            offsetY = (frame.height - drawHeight) / 2;
+          }
+          
+          // Clear the canvas
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          
+          // Apply the user specified scale
+          const scaledWidth = drawWidth * scale;
+          const scaledHeight = drawHeight * scale;
+          
+          // Recalculate offsets for the scaled image
+          const scaledOffsetX = (frame.width - scaledWidth) / 2;
+          const scaledOffsetY = (frame.height - scaledHeight) / 2;
+          
+          // Draw the image with transformations
+          ctx.save();
+          
+          // Move to the center of where the image should be drawn
+          ctx.translate(
+            scaledOffsetX + scaledWidth / 2, 
+            scaledOffsetY + scaledHeight / 2
+          );
+          
+          // Apply rotation
+          ctx.rotate((rotation * Math.PI) / 180);
+          
+          // Draw the image centered
+          ctx.drawImage(
+            img, 
+            -scaledWidth / 2, 
+            -scaledHeight / 2, 
+            scaledWidth, 
+            scaledHeight
+          );
+          
+          ctx.restore();
+          
+          // Draw the frame on top
           ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
           
           // Get the final composite image as a data URL
@@ -52,21 +96,20 @@ export const applyFrameToImage = async (
           resolve(compositeImage);
         };
         
-        frame.onerror = (error) => {
-          console.error('Frame load error:', error);
-          reject(new Error(`Failed to load frame from: ${framePath}`));
+        img.onerror = (error) => {
+          console.error('Image load error:', error);
+          reject(new Error('Failed to load the selected image'));
         };
         
-        frame.src = framePath;
+        img.src = imageDataUrl;
       };
       
-      img.onerror = (error) => {
-        console.error('Image load error:', error);
-        reject(new Error('Failed to load the selected image'));
+      frame.onerror = (error) => {
+        console.error('Frame load error:', error);
+        reject(new Error(`Failed to load frame from: ${framePath}`));
       };
       
-      img.src = imageDataUrl;
-      
+      frame.src = framePath;
     } catch (error) {
       console.error('General error in applyFrameToImage:', error);
       reject(error);
@@ -136,4 +179,3 @@ export const clipImageToFrame = (
     imageElement.style.clipPath = `url(#${clipId})`;
   }
 };
-

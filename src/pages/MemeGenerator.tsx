@@ -8,7 +8,7 @@ import { Upload, Download, Image, RotateCw, RotateCcw, ZoomIn, ZoomOut, Trash } 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import FrameTemplateSelector from "@/components/meme/FrameTemplateSelector";
-import { applyFrameToImage, getFramedImageDimensions } from "@/utils/frameUtils";
+import { applyFrameToImage } from "@/utils/frameUtils";
 
 export default function MemeGenerator() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -21,7 +21,6 @@ export default function MemeGenerator() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
-  const frameRef = useRef<HTMLImageElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,8 +51,13 @@ export default function MemeGenerator() {
   };
   
   const handleDownload = async () => {
-    if (!selectedImage || !selectedFrame) {
-      toast.error('Please select both an image and a frame');
+    if (!selectedImage) {
+      toast.error('Please select an image first');
+      return;
+    }
+    
+    if (!selectedFrame) {
+      toast.error('Please select a frame');
       return;
     }
     
@@ -89,6 +93,7 @@ export default function MemeGenerator() {
   
   const handleClearImage = () => {
     setSelectedImage(null);
+    setGeneratedImage(null);
     setRotation(0);
     setScale(1);
     toast.success('Image cleared');
@@ -125,32 +130,25 @@ export default function MemeGenerator() {
                 className="relative max-w-full max-h-full flex items-center justify-center"
               >
                 {selectedImage && selectedFrame && (
-                  <div className="relative" style={{ width: '100%', height: '100%' }}>
-                    {/* Container to properly position the image and frame */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      {/* Image with transformations */}
+                  <div className="relative w-auto h-auto">
+                    <div className="relative">
+                      {/* Base image with transformations */}
                       <img 
                         ref={imageRef}
                         src={selectedImage}
                         alt="Selected"
-                        className="max-w-full max-h-full object-contain"
+                        className="block max-w-full max-h-[460px]"
                         style={{
                           transform: `rotate(${rotation}deg) scale(${scale})`,
                           transition: 'transform 0.3s ease',
-                          position: 'relative',
-                          zIndex: 10
                         }}
                       />
                       
-                      {/* Frame as overlay */}
+                      {/* Frame overlay */}
                       <img 
-                        ref={frameRef}
                         src={selectedFrame}
                         alt="Frame"
                         className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-                        style={{
-                          zIndex: 20
-                        }}
                       />
                     </div>
                   </div>
@@ -160,7 +158,7 @@ export default function MemeGenerator() {
                   <img 
                     src={selectedImage}
                     alt="Selected"
-                    className="max-w-full max-h-full object-contain"
+                    className="max-w-full max-h-[460px] object-contain"
                     style={{
                       transform: `rotate(${rotation}deg) scale(${scale})`,
                       transition: 'transform 0.3s ease'
@@ -206,7 +204,7 @@ export default function MemeGenerator() {
               <Button variant="destructive" onClick={handleClearImage}>
                 <Trash className="h-4 w-4 mr-2" /> Clear Image
               </Button>
-              <Button onClick={handleDownload} disabled={isGenerating}>
+              <Button onClick={handleDownload} disabled={isGenerating || !selectedFrame}>
                 <Download className="h-4 w-4 mr-2" /> 
                 {isGenerating ? 'Generating...' : 'Download'}
               </Button>
