@@ -65,7 +65,7 @@ export function FrameSelector({ selectedFrame, onSelectFrame }: FrameSelectorPro
   const handleFrameClick = (frameUrl: string) => {
     console.log("Frame clicked:", frameUrl);
     
-    // Just directly select the frame without validation
+    // Select the frame
     onSelectFrame(frameUrl);
     
     // Show confirmation toast

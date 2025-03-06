@@ -29,10 +29,8 @@ export function FramedImage({
     
     console.log("Loading frame from:", frame);
     
-    // Add a cache buster to prevent caching issues
-    const frameSrc = `${frame}?t=${Date.now()}`;
-    
-    fetch(frameSrc)
+    // Simplify - no cache busters or extra params
+    fetch(frame)
       .then(response => {
         console.log("Frame fetch response status:", response.status);
         if (!response.ok) {
@@ -41,22 +39,8 @@ export function FramedImage({
         return response.text();
       })
       .then(data => {
-        if (!data || data.trim() === '') {
-          console.error("Empty SVG content received for frame:", frame);
-          throw new Error("Empty SVG content");
-        }
-        
-        console.log("Received SVG content:", data.substring(0, 100) + "...");
-        
-        // Make SVG responsive by adding viewBox if missing
-        let modifiedSvg = data;
-        if (!modifiedSvg.includes('viewBox')) {
-          modifiedSvg = modifiedSvg.replace('<svg', '<svg viewBox="0 0 640 640"');
-        }
-        
-        // Set SVG content
-        setSvgContent(modifiedSvg);
-        console.log("Frame SVG loaded and processed successfully:", frame);
+        console.log("Received SVG content successfully");
+        setSvgContent(data);
       })
       .catch(error => {
         console.error("Error loading frame SVG:", error, "Frame path:", frame);
@@ -92,37 +76,21 @@ export function FramedImage({
       
       {/* The image */}
       <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
-        {frame ? (
-          // With frame: Use a container to position both image and frame
-          <div className="relative w-full h-full">
-            {/* The template image as background */}
-            <img
-              src={template}
-              alt="Meme template"
-              className="absolute inset-0 w-full h-full object-cover"
-              onLoad={handleImageLoad}
-              onError={handleImageError}
-              crossOrigin="anonymous"
-            />
-            
-            {/* The frame overlay */}
-            {svgContent && (
-              <div 
-                className="absolute inset-0 pointer-events-none" 
-                style={{ zIndex: 30 }}
-                dangerouslySetInnerHTML={{ __html: svgContent }}
-              />
-            )}
-          </div>
-        ) : (
-          // No frame: Just show the image
-          <img
-            src={template}
-            alt="Meme template"
-            className="max-w-full max-h-full object-contain"
-            onLoad={handleImageLoad}
-            onError={handleImageError}
-            crossOrigin="anonymous"
+        {/* The template image */}
+        <img
+          src={template}
+          alt="Meme template"
+          className={frame ? "absolute inset-0 w-full h-full object-cover" : "max-w-full max-h-full object-contain"}
+          onLoad={handleImageLoad}
+          onError={handleImageError}
+          crossOrigin="anonymous"
+        />
+        
+        {/* The frame overlay */}
+        {frame && svgContent && (
+          <div 
+            className="absolute inset-0 pointer-events-none z-30"
+            dangerouslySetInnerHTML={{ __html: svgContent }}
           />
         )}
       </div>
