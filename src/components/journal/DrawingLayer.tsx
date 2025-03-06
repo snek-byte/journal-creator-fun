@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 import { Point, DrawingLayerProps } from '@/types/drawing';
 import { configureBrushStyles, getPointFromEvent, canvasToDataURL } from '@/utils/drawingUtils';
 import { drawStroke, drawDot, sprayPaint, floodFill } from './drawing/DrawingTools';
@@ -235,8 +234,11 @@ export function DrawingLayer({
       return;
     }
     
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    console.log("DrawingLayer: Canvas cleared");
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+    
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    console.log("DrawingLayer: Canvas cleared successfully");
     
     previousInitialDrawing.current = '';
     initialDrawingRef.current = '';
@@ -250,8 +252,6 @@ export function DrawingLayer({
       console.log("DrawingLayer: Calling onClear callback");
       onClear();
     }
-    
-    toast.info("Canvas cleared");
     
     forceUpdate.current = true;
     saveDrawing();
@@ -292,7 +292,10 @@ export function DrawingLayer({
         onTouchMove={draw}
         onTouchEnd={endDrawing}
       />
-      <ClearButton onClick={clearCanvas} />
+      <ClearButton onClick={() => {
+        console.log("Clear button clicked, executing clearCanvas");
+        clearCanvas();
+      }} />
     </div>
   );
 }

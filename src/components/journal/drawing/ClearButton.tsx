@@ -14,11 +14,12 @@ export const ClearButton: React.FC<ClearButtonProps> = ({ onClick }) => {
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log("ClearButton clicked");
+        console.log("ClearButton clicked - initiating canvas clear");
         onClick();
       }}
       title="Clear Canvas"
       type="button"
+      aria-label="Clear all drawing content"
     >
       <Trash2 size={16} />
     </button>
