@@ -18,3 +18,9 @@ export interface MemeTemplate {
   width: number;
   height: number;
 }
+
+export interface Frame {
+  id: string;
+  name: string;
+  src: string;
+}

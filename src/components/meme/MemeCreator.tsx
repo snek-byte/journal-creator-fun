@@ -179,7 +179,7 @@ export function MemeCreator() {
               <Button onClick={handleGenerateCaption} disabled={isGenerating}>
                 {isGenerating ? 'Generating...' : 'Generate Caption'}
               </Button>
-              <Button variant="primary" onClick={handleDownload}>Download Meme</Button>
+              <Button variant="default" onClick={handleDownload}>Download Meme</Button>
             </div>
           </div>
         </div>
