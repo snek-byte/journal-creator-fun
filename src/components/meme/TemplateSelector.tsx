@@ -1,34 +1,70 @@
 
-import React from 'react';
+import React from "react";
+import { MemeTemplate } from "@/types/meme";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { Frame } from '@/types/meme';
+import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "sonner";
 
 interface TemplateSelectorProps {
-  frames: Frame[];
-  selectedFrame: Frame | null;
-  onFrameSelect: (frame: Frame) => void;
+  templates: MemeTemplate[];
+  selectedTemplate: string;
+  onSelectTemplate: (templateUrl: string) => void;
 }
 
-export function TemplateSelector({ frames, selectedFrame, onFrameSelect }: TemplateSelectorProps) {
+export function TemplateSelector({ 
+  templates, 
+  selectedTemplate, 
+  onSelectTemplate 
+}: TemplateSelectorProps) {
+  
+  const handleTemplateSelect = (templateUrl: string) => {
+    try {
+      onSelectTemplate(templateUrl);
+    } catch (error) {
+      console.error("Error selecting template:", error);
+      toast.error("Failed to select template");
+    }
+  };
+  
   return (
-    <ScrollArea className="h-[300px] w-full rounded-md border p-4">
-      <div className="grid grid-cols-2 gap-4">
-        {frames.map((frame) => (
-          <button
-            key={frame.id}
-            onClick={() => onFrameSelect(frame)}
-            className={`relative aspect-square overflow-hidden rounded-lg border-2 transition-all hover:opacity-90 ${
-              selectedFrame?.id === frame.id ? 'border-primary' : 'border-transparent'
-            }`}
-          >
-            <img
-              src={frame.src}
-              alt={frame.name}
-              className="h-full w-full object-cover"
-            />
-          </button>
-        ))}
-      </div>
-    </ScrollArea>
+    <Card className="w-full">
+      <CardContent className="pt-4">
+        <h3 className="text-lg font-medium mb-3">Select Template</h3>
+        <ScrollArea className="h-[300px] border rounded-md p-2">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {templates.map((template) => (
+              <div
+                key={template.id}
+                className={`
+                  aspect-square overflow-hidden rounded-md border cursor-pointer transition-all
+                  ${selectedTemplate === template.url ? 'ring-2 ring-primary' : 'hover:opacity-80'}
+                `}
+                onClick={() => handleTemplateSelect(template.url)}
+                role="button"
+                tabIndex={0}
+                aria-label={`Select ${template.name} template`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleTemplateSelect(template.url);
+                  }
+                }}
+              >
+                <img
+                  src={template.url}
+                  alt={template.name}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                  onError={(e) => {
+                    console.warn(`Failed to load template image: ${template.url}`);
+                    // Replace with placeholder
+                    (e.target as HTMLImageElement).src = "https://via.placeholder.com/150?text=Image+Error";
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+      </CardContent>
+    </Card>
   );
 }
