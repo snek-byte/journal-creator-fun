@@ -4,7 +4,7 @@ import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Music, Volume2, Volume1, VolumeX, Play, Pause, Upload, Plus, Trash2, AlertCircle } from "lucide-react";
+import { Music, Volume2, Volume1, VolumeX, Play, Pause, Upload, Plus, Trash2, AlertCircle, Link } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -32,6 +32,8 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [driveLink, setDriveLink] = useState<string>('');
+  const [showDriveLinkInput, setShowDriveLinkInput] = useState<boolean>(false);
 
   useEffect(() => {
     if (audioTrack) {
@@ -224,6 +226,66 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
     }
   };
 
+  const handleDriveLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDriveLink(e.target.value);
+  };
+
+  const handleDriveLinkSubmit = () => {
+    if (!driveLink) {
+      toast.error('Please enter a Google Drive link');
+      return;
+    }
+    
+    if (!driveLink.includes('drive.google.com')) {
+      toast.error('Please enter a valid Google Drive link');
+      return;
+    }
+    
+    let fileId = '';
+    
+    if (driveLink.includes('/file/d/')) {
+      const match = driveLink.match(/\/file\/d\/([^\/]+)/);
+      if (match && match[1]) {
+        fileId = match[1];
+      }
+    } else if (driveLink.includes('id=')) {
+      const match = driveLink.match(/id=([^&]+)/);
+      if (match && match[1]) {
+        fileId = match[1];
+      }
+    }
+    
+    if (!fileId) {
+      toast.error('Could not extract file ID from the Google Drive link');
+      return;
+    }
+    
+    const directLink = `https://drive.google.com/uc?export=download&id=${fileId}`;
+    
+    let name = 'Google Drive Audio';
+    const urlParts = driveLink.split('/');
+    if (urlParts.length > 3) {
+      name = urlParts[urlParts.length - 2] || name;
+    }
+    
+    setTrackName(name);
+    setLoadError(null);
+    
+    const newAudioTrack: AudioTrack = {
+      id: uuidv4(),
+      url: directLink,
+      name,
+      volume,
+      playing: true
+    };
+    
+    setIsPlaying(true);
+    onAudioChange(newAudioTrack);
+    setShowDriveLinkInput(false);
+    setDriveLink('');
+    toast.success(`${name} added from Google Drive and playing`);
+  };
+
   const VolumeIcon = () => {
     if (volume === 0) return <VolumeX className="h-4 w-4" />;
     if (volume < 50) return <Volume1 className="h-4 w-4" />;
@@ -342,6 +404,33 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
         <strong className="block mt-1">Solution:</strong> Please upload your own audio files below for the best experience.
       </div>
       
+      {showDriveLinkInput && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+          <Label htmlFor="drive-link" className="text-xs font-medium mb-1 block">
+            Google Drive Link:
+          </Label>
+          <div className="flex gap-2">
+            <Input
+              id="drive-link"
+              placeholder="https://drive.google.com/file/d/..."
+              value={driveLink}
+              onChange={handleDriveLinkChange}
+              className="text-xs h-8"
+            />
+            <Button 
+              size="sm" 
+              className="h-8"
+              onClick={handleDriveLinkSubmit}
+            >
+              Add
+            </Button>
+          </div>
+          <p className="text-xs text-blue-700 mt-1">
+            Make sure your link is set to "Anyone with the link can view"
+          </p>
+        </div>
+      )}
+      
       <Tabs defaultValue="ambient" value={selectedCategory} onValueChange={setSelectedCategory}>
         <TabsList className="grid grid-cols-2 mb-2">
           {soundCategories.map(category => (
@@ -408,15 +497,26 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
       
       <div className="flex flex-col gap-2 mt-4">
         <p className="text-xs text-muted-foreground font-medium">Upload your own audio file (recommended)</p>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="w-full"
-          onClick={handleUploadClick}
-        >
-          <Upload className="h-4 w-4 mr-2" />
-          Upload Music
-        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full"
+            onClick={handleUploadClick}
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            Upload Audio
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full"
+            onClick={() => setShowDriveLinkInput(!showDriveLinkInput)}
+          >
+            <Link className="h-4 w-4 mr-2" />
+            {showDriveLinkInput ? 'Hide Link Form' : 'Add from Drive'}
+          </Button>
+        </div>
         <input
           type="file"
           ref={fileInputRef}
