@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { TextBoxComponent } from './TextBoxComponent';
@@ -219,6 +220,18 @@ export function JournalPreview({
     onStickerMove(id, position);
   };
 
+  // This function fixes the issue where we delete icons/stickers by moving them off-screen
+  const handleDeleteByMovingOffscreen = (id: string, isIcon: boolean) => {
+    // Create a valid position object to move the item off-screen
+    const offscreenPosition = { x: -1000, y: -1000 };
+    
+    if (isIcon) {
+      handleIconMoveFix(id, offscreenPosition);
+    } else {
+      handleStickerMoveFix(id, offscreenPosition);
+    }
+  };
+
   return (
     <div
       className={`flex-1 w-full ${showPreview ? 'flex' : 'hidden'} flex-col justify-center items-center p-4 overflow-hidden relative bg-gray-100`}
@@ -346,3 +359,4 @@ export function JournalPreview({
     </div>
   );
 }
+
