@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -46,6 +45,7 @@ export default function MemeGenerator() {
   };
   
   const handleFrameSelect = (framePath: string) => {
+    // Only update the frame, keep the image intact
     setSelectedFrame(framePath);
     toast.success('Frame selected');
   };
@@ -129,7 +129,7 @@ export default function MemeGenerator() {
                 ref={previewRef} 
                 className="relative max-w-full max-h-full flex items-center justify-center"
               >
-                {selectedImage && selectedFrame && (
+                {selectedImage && (
                   <div className="relative w-auto h-auto">
                     <div className="relative">
                       {/* Base image with transformations */}
@@ -145,25 +145,15 @@ export default function MemeGenerator() {
                       />
                       
                       {/* Frame overlay */}
-                      <img 
-                        src={selectedFrame}
-                        alt="Frame"
-                        className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-                      />
+                      {selectedFrame && (
+                        <img 
+                          src={selectedFrame}
+                          alt="Frame"
+                          className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                        />
+                      )}
                     </div>
                   </div>
-                )}
-                
-                {selectedImage && !selectedFrame && (
-                  <img 
-                    src={selectedImage}
-                    alt="Selected"
-                    className="max-w-full max-h-[460px] object-contain"
-                    style={{
-                      transform: `rotate(${rotation}deg) scale(${scale})`,
-                      transition: 'transform 0.3s ease'
-                    }}
-                  />
                 )}
               </div>
             ) : (
