@@ -4,7 +4,6 @@ import { Point, DrawingLayerProps } from '@/types/drawing';
 import { configureBrushStyles, getPointFromEvent, canvasToDataURL } from '@/utils/drawingUtils';
 import { drawStroke, drawDot, sprayPaint, floodFill } from './drawing/DrawingTools';
 import { DrawingCanvas } from './drawing/DrawingCanvas';
-import { ClearButton } from './drawing/ClearButton';
 
 export function DrawingLayer({ 
   className, 
@@ -296,10 +295,6 @@ export function DrawingLayer({
         onTouchMove={draw}
         onTouchEnd={endDrawing}
       />
-      <ClearButton onClick={() => {
-        console.log("Clear button clicked, executing clearCanvas");
-        clearCanvas();
-      }} />
     </div>
   );
 }
