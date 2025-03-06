@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect, useReducer } from 'react';
 import { useJournalStore } from '@/store/journalStore';
 import { supabase } from "@/integrations/supabase/client";
@@ -365,9 +366,12 @@ function editorReducer(state: EditorState, action: Action): EditorState {
     
     case 'RESET': {
       console.log("Resetting journal to default");
+      const freshInitialState = deepCopy(initialState);
+      console.log("Reset state:", freshInitialState);
+      
       return {
         ...state,
-        currentState: { ...initialState },
+        currentState: freshInitialState,
         history: [...state.history, deepCopy(state.currentState)],
         historyIndex: state.historyIndex + 1
       };
@@ -924,9 +928,24 @@ export function useJournalEditor() {
     console.log("Resetting journal to default");
     dispatch({ type: 'RESET' });
     
-    // Force sync with store after reset to ensure UI updates
+    // Force direct reset of store values to ensure UI updates
     setTimeout(() => {
-      syncStateToStore(initialState);
+      setStoreText('');
+      setStoreFont('sans-serif');
+      setStoreFontSize('16px');
+      setStoreFontWeight('normal');
+      setStoreFontColor('#000000');
+      setStoreGradient('');
+      setStoreMood(undefined);
+      setStoreIsPublic(false);
+      setStoreTextStyle('');
+      setStoreStickers([]);
+      setStoreIcons([]);
+      setStoreTextPosition({ x: 50, y: 50 });
+      setStoreBackgroundImage('');
+      setStoreDrawing('');
+      setStoreFilter('none');
+      setStoreTextBoxes([]);
     }, 0);
   };
 

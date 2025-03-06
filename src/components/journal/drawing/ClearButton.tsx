@@ -15,8 +15,7 @@ export const ClearButton: React.FC<ClearButtonProps> = ({ onClick }) => {
         e.preventDefault();
         e.stopPropagation();
         console.log("ClearButton clicked - initiating canvas clear");
-        // Force this to run in a new execution context
-        setTimeout(() => onClick(), 0);
+        onClick();
       }}
       title="Clear Canvas"
       type="button"
