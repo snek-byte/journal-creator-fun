@@ -100,6 +100,7 @@ export function JournalPreview({
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
   const [audioLoaded, setAudioLoaded] = useState(false);
 
+  // Set up audio when the audio prop changes
   useEffect(() => {
     if (!audioRef.current) return;
 
@@ -115,8 +116,10 @@ export function JournalPreview({
         if (playPromise !== undefined) {
           playPromise.then(() => {
             console.log("Audio started playing successfully:", audio.name);
+            setAudioLoaded(true);
           }).catch(error => {
             console.error("Error playing audio:", error, audio);
+            setAudioLoaded(false);
           });
         }
       } else {
@@ -359,4 +362,3 @@ export function JournalPreview({
     </div>
   );
 }
-

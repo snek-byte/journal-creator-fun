@@ -52,6 +52,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
       
       // Handle play/pause state
       if (isPlaying) {
+        console.log("Attempting to play audio in SoundMixer:", audioTrack.url);
         const playPromise = audioRef.current.play();
         
         if (playPromise !== undefined) {
@@ -81,6 +82,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
       previewAudioRef.current.src = previewSound.url;
       previewAudioRef.current.volume = 0.5; // Set preview volume to 50%
       
+      console.log("Attempting to play preview sound:", previewSound.url);
       const playPromise = previewAudioRef.current.play();
       
       if (playPromise !== undefined) {
@@ -175,23 +177,31 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
   };
 
   const handleSoundSelect = (sound: AudioTrack) => {
+    console.log("Selected sound:", sound);
     setLoadError(null);
-    onAudioChange({
+    // Create a new copy of the sound to ensure state updates are recognized
+    const newAudioTrack: AudioTrack = {
       ...sound,
+      id: sound.id || uuidv4(),
       playing: true,
       volume: volume
-    });
+    };
+    onAudioChange(newAudioTrack);
     setIsPlaying(true);
     setTrackName(sound.name);
     toast.success(`${sound.name} selected and playing`);
   };
 
   const handlePreviewStart = (sound: AudioTrack) => {
+    console.log("Previewing sound:", sound);
     setPreviewSound(sound);
   };
 
   const handlePreviewEnd = () => {
     setPreviewSound(null);
+    if (previewAudioRef.current) {
+      previewAudioRef.current.pause();
+    }
   };
 
   const VolumeIcon = () => {
@@ -200,57 +210,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
     return <Volume2 className="h-4 w-4" />;
   };
 
-  const categoryOptions = soundCategories.map(category => (
-    <TabsTrigger key={category.id} value={category.id}>{category.name}</TabsTrigger>
-  ));
-
-  const soundOptions = publicDomainSounds
-    .filter(sound => sound.category === selectedCategory)
-    .map(sound => (
-      <div key={sound.id} className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-md">
-        <div className="flex-1 text-sm">{sound.name}</div>
-        <div className="flex items-center gap-1">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onMouseDown={() => handlePreviewStart(sound)}
-                  onMouseUp={handlePreviewEnd}
-                  onMouseLeave={handlePreviewEnd}
-                >
-                  <Play className="h-3 w-3" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Preview sound</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => handleSoundSelect(sound)}
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Use this sound</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      </div>
-    ));
-
+  // Main render
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -260,20 +220,16 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
         </h3>
       </div>
       
-      {audioTrack?.url ? (
-        <>
-          <audio 
-            ref={audioRef} 
-            loop 
-            onLoadedData={handleAudioLoaded} 
-            onError={handleAudioError}
-          />
-          
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <span className="text-xs font-medium">{trackName || 'Untitled Track'}</span>
-                {loadError && (
+      {/* Current audio track controls */}
+      <audio ref={audioRef} onLoadedData={handleAudioLoaded} onError={handleAudioError} />
+      
+      {audio?.url ? (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <span className="text-xs font-medium">{trackName || 'Untitled Track'}</span>
+              {loadError && (
+                <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <AlertCircle className="h-4 w-4 ml-2 text-red-500" />
@@ -282,56 +238,57 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
                       <p>{loadError}</p>
                     </TooltipContent>
                   </Tooltip>
-                )}
-              </div>
-              <div className="flex items-center gap-1">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8" 
-                  onClick={handlePlayPause}
-                  disabled={!!loadError}
-                >
-                  {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-red-500 hover:text-red-600"
-                  onClick={() => {
-                    onAudioChange({
-                      id: uuidv4(),
-                      url: '',
-                      name: '',
-                      volume: 50,
-                      playing: false
-                    });
-                    setIsPlaying(false);
-                    setTrackName('');
-                    setLoadError(null);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+                </TooltipProvider>
+              )}
             </div>
-            
-            <div className="flex items-center gap-2">
-              <VolumeIcon />
-              <Slider
-                value={[volume]}
-                max={100}
-                step={1}
-                onValueChange={handleVolumeChange}
-              />
+            <div className="flex items-center gap-1">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8" 
+                onClick={handlePlayPause}
+                disabled={!!loadError}
+              >
+                {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-red-500 hover:text-red-600"
+                onClick={() => {
+                  onAudioChange({
+                    id: uuidv4(),
+                    url: '',
+                    name: '',
+                    volume: 50,
+                    playing: false
+                  });
+                  setIsPlaying(false);
+                  setTrackName('');
+                  setLoadError(null);
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
           </div>
-
-          <Separator className="my-2" />
-        </>
+          
+          <div className="flex items-center gap-2">
+            <VolumeIcon />
+            <Slider
+              value={[volume]}
+              max={100}
+              step={1}
+              onValueChange={handleVolumeChange}
+            />
+          </div>
+        </div>
       ) : null}
+
+      <Separator className="my-2" />
       
+      {/* Sound library */}
       <Tabs defaultValue="ambient" value={selectedCategory} onValueChange={setSelectedCategory}>
         <TabsList className="grid grid-cols-2 mb-2">
           {soundCategories.map(category => (
@@ -340,7 +297,9 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
         </TabsList>
         
         <ScrollArea className="h-36 border rounded-md p-1">
-          {previewSound && <audio ref={previewAudioRef} />}
+          {/* Audio element for previews */}
+          <audio ref={previewAudioRef} />
+          
           {publicDomainSounds
             .filter(sound => sound.category === selectedCategory)
             .map(sound => (
@@ -390,6 +349,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
         </ScrollArea>
       </Tabs>
       
+      {/* Upload section */}
       <div className="flex flex-col gap-2 mt-4">
         <p className="text-xs text-muted-foreground">Or upload your own audio file</p>
         <Button 
