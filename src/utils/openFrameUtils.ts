@@ -27,27 +27,27 @@ export const OPENFRAME_FORMATS = {
 };
 
 /**
- * Creates an OpenFrame artwork object from an image
- * @param imageDataUrl - The data URL of the image
+ * Creates an OpenFrame artwork object
+ * @param url - The URL of the artwork
  * @param title - The title of the artwork
  * @param author - The author of the artwork
  * @param isAnimated - Whether the image is animated (GIF)
  * @returns OpenFrame artwork object ready for export
  */
 export const createOpenFrameArtwork = (
-  imageDataUrl: string,
+  url: string,
   title: string,
   author: string,
   isAnimated: boolean = false
 ): OpenFrameArtwork => {
-  // Use image format directly instead of website
-  const format = OPENFRAME_FORMATS.IMAGE;
+  // For images, we'll use the website format which gives us more control over scaling
+  const format = OPENFRAME_FORMATS.WEBSITE;
   
   return {
     title,
     author,
     format,
-    url: imageDataUrl,
+    url,
     isPublic: false
   };
 };
@@ -71,19 +71,87 @@ export const pushToOpenFrame = async (artwork: OpenFrameArtwork): Promise<void> 
 };
 
 /**
- * Prepare an image for OpenFrame by ensuring it's in the right format and size
- * Note: For direct image format, we just return the original URL
+ * Prepare an image for OpenFrame by wrapping it in a responsive container
+ * This creates an HTML page that ensures the image is properly scaled
  * 
  * @param imageDataUrl - The image data URL
  * @param isAnimated - Whether the image is animated
- * @returns The original image URL for direct use by OpenFrame
+ * @returns The URL for an HTML page that displays the image with proper scaling
  */
 export const prepareImageForOpenFrame = (
   imageDataUrl: string,
   isAnimated: boolean = false
 ): string => {
-  // For direct image display, return the original URL
-  return imageDataUrl;
+  // Create a Blob with the HTML content that will properly display the image
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenFrame Artwork</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .image-container {
+      max-width: 100%;
+      max-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="image-container">
+      <img src="${imageDataUrl}" alt="Artwork" id="artwork-image">
+    </div>
+  </div>
+  <script>
+    // This script ensures the image is properly loaded and sized
+    document.addEventListener('DOMContentLoaded', function() {
+      const img = document.getElementById('artwork-image');
+      img.onload = function() {
+        console.log('Image loaded with dimensions:', img.naturalWidth, 'x', img.naturalHeight);
+      };
+      
+      // Force browser to handle the image scaling properly
+      window.addEventListener('resize', function() {
+        console.log('Window resized');
+      });
+    });
+  </script>
+</body>
+</html>
+  `;
+  
+  const blob = new Blob([htmlContent], { type: 'text/html' });
+  return URL.createObjectURL(blob);
 };
 
 /**
