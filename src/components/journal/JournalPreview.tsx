@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { TextBoxComponent } from './TextBoxComponent';
@@ -238,8 +239,9 @@ export function JournalPreview({
     onStickerMove(id, position);
   };
 
+  // Fixing the type error - ensure we're passing proper position object and icon updates
   const handleDeleteByMovingOffscreen = (id: string, isIcon: boolean) => {
-    const offscreenPosition: { x: number; y: number } = { 
+    const offscreenPosition = { 
       x: -1000, 
       y: -1000 
     };

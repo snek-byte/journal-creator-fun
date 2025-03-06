@@ -12,7 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { AudioTrack } from '@/types/journal';
-import { publicDomainSounds, soundCategories, getAudioTroubleshootingMessage } from '@/data/publicDomainSounds';
+import { publicDomainSounds, soundCategories } from '@/data/publicDomainSounds';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
 
@@ -34,6 +34,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [driveLink, setDriveLink] = useState<string>('');
   const [showDriveLinkInput, setShowDriveLinkInput] = useState<boolean>(false);
+  const [isProcessingDriveLink, setIsProcessingDriveLink] = useState<boolean>(false);
 
   useEffect(() => {
     if (audioTrack) {
@@ -187,7 +188,8 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
       url,
       name,
       volume,
-      playing: true // Start playing immediately
+      playing: true, // Start playing immediately
+      source: 'upload'
     };
     
     setIsPlaying(true);
@@ -206,7 +208,8 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
       ...sound,
       id: sound.id || uuidv4(),
       playing: true,
-      volume: volume
+      volume: volume,
+      source: 'library'
     };
     onAudioChange(newAudioTrack);
     setIsPlaying(true);
@@ -226,6 +229,27 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
     }
   };
 
+  const extractGDriveFileId = (url: string): string | null => {
+    let fileId = null;
+    
+    let match = url.match(/\/file\/d\/([^\/]+)/);
+    if (match && match[1]) {
+      return match[1];
+    }
+    
+    match = url.match(/id=([^&]+)/);
+    if (match && match[1]) {
+      return match[1];
+    }
+    
+    match = url.match(/\/open\?id=([^&]+)/);
+    if (match && match[1]) {
+      return match[1];
+    }
+    
+    return null;
+  };
+
   const handleDriveLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDriveLink(e.target.value);
   };
@@ -241,22 +265,13 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
       return;
     }
     
-    let fileId = '';
+    setIsProcessingDriveLink(true);
     
-    if (driveLink.includes('/file/d/')) {
-      const match = driveLink.match(/\/file\/d\/([^\/]+)/);
-      if (match && match[1]) {
-        fileId = match[1];
-      }
-    } else if (driveLink.includes('id=')) {
-      const match = driveLink.match(/id=([^&]+)/);
-      if (match && match[1]) {
-        fileId = match[1];
-      }
-    }
+    const fileId = extractGDriveFileId(driveLink);
     
     if (!fileId) {
       toast.error('Could not extract file ID from the Google Drive link');
+      setIsProcessingDriveLink(false);
       return;
     }
     
@@ -268,21 +283,27 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
       name = urlParts[urlParts.length - 2] || name;
     }
     
-    setTrackName(name);
-    setLoadError(null);
-    
     const newAudioTrack: AudioTrack = {
       id: uuidv4(),
       url: directLink,
       name,
       volume,
-      playing: true
+      playing: true,
+      source: 'gdrive',
+      originalUrl: driveLink
     };
     
+    console.log("Creating audio track from Google Drive:", newAudioTrack);
+    
+    setLoadError(null);
     setIsPlaying(true);
+    setTrackName(name);
     onAudioChange(newAudioTrack);
+    
     setShowDriveLinkInput(false);
     setDriveLink('');
+    setIsProcessingDriveLink(false);
+    
     toast.success(`${name} added from Google Drive and playing`);
   };
 
@@ -331,6 +352,11 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <span className="text-xs font-medium">{trackName || 'Untitled Track'}</span>
+              {audioTrack.source === 'gdrive' && (
+                <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-1 py-0.5 rounded">
+                  Drive
+                </span>
+              )}
               {loadError && (
                 <TooltipProvider>
                   <Tooltip>
@@ -398,10 +424,9 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
 
       <Separator className="my-2" />
       
-      <div className="text-xs p-3 bg-red-50 text-red-700 rounded-md mb-3 border border-red-200">
+      <div className="text-xs p-3 bg-blue-50 text-blue-700 rounded-md mb-3 border border-blue-200">
         <AlertCircle className="h-3 w-3 inline mr-1" />
-        <strong>Known Issue:</strong> External audio sources from freesound.org are likely blocked by CORS policies.
-        <strong className="block mt-1">Solution:</strong> Please upload your own audio files below for the best experience.
+        <strong>Recommendation:</strong> For best results, upload your own audio files or use Google Drive links.
       </div>
       
       {showDriveLinkInput && (
@@ -416,13 +441,15 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
               value={driveLink}
               onChange={handleDriveLinkChange}
               className="text-xs h-8"
+              disabled={isProcessingDriveLink}
             />
             <Button 
               size="sm" 
               className="h-8"
               onClick={handleDriveLinkSubmit}
+              disabled={isProcessingDriveLink}
             >
-              Add
+              {isProcessingDriveLink ? "Processing..." : "Add"}
             </Button>
           </div>
           <p className="text-xs text-blue-700 mt-1">
@@ -496,7 +523,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
       </Tabs>
       
       <div className="flex flex-col gap-2 mt-4">
-        <p className="text-xs text-muted-foreground font-medium">Upload your own audio file (recommended)</p>
+        <p className="text-xs text-muted-foreground font-medium">Add your own audio (recommended)</p>
         <div className="grid grid-cols-2 gap-2">
           <Button 
             variant="outline" 
