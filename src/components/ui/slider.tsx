@@ -8,14 +8,6 @@ const Slider = React.forwardRef<
   React.ElementRef<typeof SliderPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
 >(({ className, ...props }, ref) => {
-  // Add logging to help debug slider interaction
-  const handleValueChange = (values: number[]) => {
-    console.log("Slider value changed to:", values);
-    if (props.onValueChange) {
-      props.onValueChange(values);
-    }
-  };
-
   return (
     <SliderPrimitive.Root
       ref={ref}
@@ -23,7 +15,6 @@ const Slider = React.forwardRef<
         "relative flex w-full touch-none select-none items-center",
         className
       )}
-      onValueChange={handleValueChange}
       {...props}
     >
       <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-secondary">

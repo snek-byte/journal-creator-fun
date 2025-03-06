@@ -26,6 +26,18 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { to, text, mood, date }: JournalEmailRequest = await req.json();
 
+    if (!to || !text) {
+      return new Response(
+        JSON.stringify({ error: "Missing required fields: to and text" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    console.log(`Sending journal to ${to} with date ${date}`);
+
     const emailResponse = await resend.emails.send({
       from: "Journal <onboarding@resend.dev>",
       to: [to],
