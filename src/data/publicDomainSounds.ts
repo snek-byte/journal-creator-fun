@@ -3,6 +3,8 @@ import { v4 as uuidv4 } from 'uuid';
 import type { AudioTrack } from '@/types/journal';
 
 // Collection of public domain sounds
+// NOTE: These sounds are hosted on freesound.org CDN and may be blocked by CORS policies.
+// For best results, users should upload their own audio files.
 export const publicDomainSounds: AudioTrack[] = [
   // Ambient Nature
   {

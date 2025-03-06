@@ -51,7 +51,6 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
       
       if (isPlaying) {
         console.log("SoundMixer: Attempting to play audio:", audioTrack.url);
-        // Use a longer timeout to ensure the audio has time to load
         setTimeout(() => {
           if (audioRef.current) {
             const playPromise = audioRef.current.play();
@@ -75,7 +74,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
               });
             }
           }
-        }, 2000); // Increased timeout for better loading chance
+        }, 2000);
       } else {
         audioRef.current.pause();
       }
@@ -90,7 +89,6 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
       setPreviewLoadError(null);
       
       console.log("Attempting to play preview sound:", previewSound.url);
-      // Add a delay before playing to allow audio to load
       setTimeout(() => {
         if (previewAudioRef.current) {
           const playPromise = previewAudioRef.current.play();
@@ -99,10 +97,8 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
             playPromise.then(() => {
               console.log("Preview started successfully");
             }).catch(error => {
-              const errorElement = e.currentTarget as HTMLAudioElement;
-              const errorMessage = errorElement.error ? errorElement.error.message : 'The element has no supported sources';
-              console.error("Error playing preview audio:", errorMessage, e);
-              setPreviewLoadError(`Couldn't play preview (${errorMessage}). Audio sources may be unavailable.`);
+              console.error("Error playing preview audio:", error);
+              setPreviewLoadError(`Couldn't play preview (${error.message}). Audio sources may be unavailable.`);
               toast.error("Couldn't play preview. Try uploading your own audio file.", {
                 duration: 5000
               });
