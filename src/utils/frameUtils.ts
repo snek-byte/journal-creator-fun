@@ -37,38 +37,47 @@ export const applyFrameToImage = async (
         img.crossOrigin = 'anonymous';
         
         img.onload = () => {
+          // Clear the canvas and set white background
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
           // Calculate the scaling ratio to fit the image to the frame
           // while maintaining aspect ratio
           const frameAspect = frame.width / frame.height;
           const imgAspect = img.width / img.height;
           
-          let drawWidth, drawHeight, offsetX, offsetY;
-          
-          // Calculate padding based on frame type
-          let padding = 40; // Default padding
+          // Determine padding based on frame type
+          let padding = 60; // Default padding
           
           if (framePath.includes('polaroid')) {
-            padding = 80; // Polaroid has more padding at the bottom
-          } else if (framePath.includes('certificate') || framePath.includes('fancy-box')) {
-            padding = 60; // More decorative frames need more padding
+            padding = 90; // Polaroid has more padding at the bottom
+          } else if (framePath.includes('certificate') || framePath.includes('fancy')) {
+            padding = 80; // More decorative frames need more padding
+          } else if (framePath.includes('shadow-box')) {
+            padding = 70; // Shadow box needs specific padding
+          } else if (framePath.includes('taped') || framePath.includes('instant-photo')) {
+            padding = 75; // These frames need specific padding
           }
           
           // Calculate inner dimensions (the area where the image should fit)
           const innerWidth = frame.width - (padding * 2);
           const innerHeight = frame.height - (padding * 2);
+          const innerAspect = innerWidth / innerHeight;
           
-          // Fit the image within the inner area
-          if (imgAspect > frameAspect) {
-            // Image is wider than frame - constrain width
+          // Calculate drawing dimensions
+          let drawWidth, drawHeight, offsetX, offsetY;
+          
+          if (imgAspect > innerAspect) {
+            // Image is wider than inner frame - constrain by width
             drawWidth = innerWidth;
             drawHeight = drawWidth / imgAspect;
             offsetX = padding;
-            offsetY = (frame.height - drawHeight) / 2;
+            offsetY = padding + (innerHeight - drawHeight) / 2;
           } else {
-            // Image is taller than frame - constrain height
+            // Image is taller than inner frame - constrain by height
             drawHeight = innerHeight;
             drawWidth = drawHeight * imgAspect;
-            offsetX = (frame.width - drawWidth) / 2;
+            offsetX = padding + (innerWidth - drawWidth) / 2;
             offsetY = padding;
           }
           
@@ -76,42 +85,62 @@ export const applyFrameToImage = async (
           const scaledWidth = drawWidth * scale;
           const scaledHeight = drawHeight * scale;
           
-          // Recalculate center point after scaling
-          const centerX = frame.width / 2;
-          const centerY = frame.height / 2;
-          
-          // Clear the canvas and set background for shadow-box
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          // Recalculate offsets after scaling (keep image centered)
+          const centeredOffsetX = padding + (innerWidth - scaledWidth) / 2;
+          const centeredOffsetY = padding + (innerHeight - scaledHeight) / 2;
           
           // For shadow-box, we need to draw it differently
           if (framePath.includes('shadow-box')) {
-            // Draw white background first
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Draw white background for shadow box (already drawn at beginning)
+            ctx.save();
+            
+            // Move to center for rotation
+            const centerX = offsetX + drawWidth / 2;
+            const centerY = offsetY + drawHeight / 2;
+            
+            ctx.translate(centerX, centerY);
+            ctx.rotate((rotation * Math.PI) / 180);
+            
+            // Draw the image with proper offsets
+            ctx.drawImage(
+              img,
+              -scaledWidth / 2,
+              -scaledHeight / 2,
+              scaledWidth,
+              scaledHeight
+            );
+            
+            ctx.restore();
+            
+            // Draw the frame on top
+            ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+          } else {
+            // For all other frames, use standard approach
+            
+            // Draw the image with transformations
+            ctx.save();
+            
+            // Move to center point for rotation
+            const centerX = centeredOffsetX + scaledWidth / 2;
+            const centerY = centeredOffsetY + scaledHeight / 2;
+            
+            ctx.translate(centerX, centerY);
+            ctx.rotate((rotation * Math.PI) / 180);
+            
+            // Draw the image centered
+            ctx.drawImage(
+              img,
+              -scaledWidth / 2,
+              -scaledHeight / 2,
+              scaledWidth,
+              scaledHeight
+            );
+            
+            ctx.restore();
+            
+            // Draw the frame on top
+            ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
           }
-          
-          // Draw the image with transformations
-          ctx.save();
-          
-          // Move to the center point for rotation
-          ctx.translate(centerX, centerY);
-          
-          // Apply rotation
-          ctx.rotate((rotation * Math.PI) / 180);
-          
-          // Draw the image centered
-          ctx.drawImage(
-            img, 
-            -scaledWidth / 2, 
-            -scaledHeight / 2, 
-            scaledWidth, 
-            scaledHeight
-          );
-          
-          ctx.restore();
-          
-          // Draw the frame on top
-          ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
           
           // Get the final composite image as a data URL
           const compositeImage = canvas.toDataURL('image/png');
