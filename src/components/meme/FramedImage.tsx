@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface FramedImageProps {
   template: string;
@@ -18,6 +18,7 @@ export function FramedImage({
 }: FramedImageProps) {
   const [svgContent, setSvgContent] = useState<string | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const svgContainerRef = useRef<HTMLDivElement>(null);
   
   // Load frame SVG content
   useEffect(() => {
@@ -29,8 +30,8 @@ export function FramedImage({
     
     console.log("Loading frame from:", frame);
     
-    // Use a cache buster to prevent caching issues
-    const cacheBuster = `?t=${new Date().getTime()}`;
+    // Use a more aggressive cache buster
+    const cacheBuster = `?cache=${new Date().getTime()}`;
     
     fetch(`${frame}${cacheBuster}`)
       .then(response => {
@@ -44,6 +45,17 @@ export function FramedImage({
         console.log("Received SVG content, length:", data.length);
         if (data.length > 0) {
           setSvgContent(data);
+          // Force repaint after SVG content is set
+          setTimeout(() => {
+            if (svgContainerRef.current) {
+              svgContainerRef.current.style.opacity = '0.99';
+              setTimeout(() => {
+                if (svgContainerRef.current) {
+                  svgContainerRef.current.style.opacity = '1';
+                }
+              }, 10);
+            }
+          }, 10);
         } else {
           console.error("Received empty SVG content");
           setSvgContent(null);
@@ -106,9 +118,17 @@ export function FramedImage({
         {/* The frame overlay */}
         {frame && svgContent && (
           <div 
+            ref={svgContainerRef}
             className="absolute inset-0 pointer-events-none z-30"
             dangerouslySetInnerHTML={{ __html: svgContent }}
-            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+            style={{ 
+              position: 'absolute', 
+              top: 0, 
+              left: 0, 
+              width: '100%', 
+              height: '100%',
+              zIndex: 30
+            }}
           />
         )}
       </div>

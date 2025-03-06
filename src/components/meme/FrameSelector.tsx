@@ -57,6 +57,9 @@ interface FrameSelectorProps {
 }
 
 export function FrameSelector({ selectedFrame, onSelectFrame }: FrameSelectorProps) {
+  // Track if frames are loaded
+  const [framesLoaded, setFramesLoaded] = useState(false);
+  
   // Debug the current selected frame
   useEffect(() => {
     console.log("Current selected frame in FrameSelector:", selectedFrame);
@@ -65,11 +68,14 @@ export function FrameSelector({ selectedFrame, onSelectFrame }: FrameSelectorPro
   const handleFrameClick = (frameUrl: string) => {
     console.log("Frame clicked:", frameUrl);
     
-    // Ensure we're sending the correct frame path
-    const framePath = frameUrl;
+    // Select the frame - ensure absolute URL in dev and production mode
+    const baseUrl = window.location.origin;
+    const absoluteFramePath = frameUrl ? 
+      (frameUrl.startsWith('http') ? frameUrl : `${baseUrl}${frameUrl}`) : 
+      '';
     
-    // Select the frame
-    onSelectFrame(framePath);
+    console.log("Setting frame to:", absoluteFramePath);
+    onSelectFrame(absoluteFramePath);
     
     // Show confirmation toast
     const frameName = frameOptions.find(f => f.url === frameUrl)?.name || 'Custom';
@@ -78,10 +84,36 @@ export function FrameSelector({ selectedFrame, onSelectFrame }: FrameSelectorPro
 
   // Preload SVG frames
   useEffect(() => {
+    console.log("Preloading frame SVGs...");
+    let loadedCount = 0;
+    const totalToLoad = frameOptions.filter(f => f.url).length;
+    
     frameOptions.forEach(frame => {
       if (frame.url) {
         const img = new Image();
-        img.src = frame.url;
+        const baseUrl = window.location.origin;
+        const absoluteUrl = frame.url.startsWith('http') ? 
+          frame.url : 
+          `${baseUrl}${frame.url}`;
+          
+        img.onload = () => {
+          loadedCount++;
+          console.log(`Preloaded frame: ${frame.name} (${loadedCount}/${totalToLoad})`);
+          if (loadedCount === totalToLoad) {
+            console.log("All frames preloaded!");
+            setFramesLoaded(true);
+          }
+        };
+        
+        img.onerror = () => {
+          console.error(`Failed to preload frame: ${frame.name} - ${absoluteUrl}`);
+          loadedCount++;
+          if (loadedCount === totalToLoad) {
+            setFramesLoaded(true);
+          }
+        };
+        
+        img.src = absoluteUrl;
       }
     });
   }, []);
@@ -99,7 +131,7 @@ export function FrameSelector({ selectedFrame, onSelectFrame }: FrameSelectorPro
             <Card
               key={frame.id}
               className={`p-2 cursor-pointer hover:bg-accent transition-colors ${
-                selectedFrame === frame.url ? 'ring-2 ring-primary' : ''
+                selectedFrame.includes(frame.url) ? 'ring-2 ring-primary' : ''
               }`}
               onClick={() => handleFrameClick(frame.url)}
             >

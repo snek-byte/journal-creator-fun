@@ -12,23 +12,36 @@ export const downloadMemeAsImage = async (canvasRef: React.RefObject<HTMLDivElem
     
     // Force any SVG elements to render completely before capturing
     // This adds a small delay to ensure SVGs are fully loaded
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     const canvas = await html2canvas(canvasRef.current, {
       allowTaint: true,
       useCORS: true,
       logging: true, // Enable logging for debugging
       backgroundColor: null,
-      scale: 2, // Higher quality output
+      scale: 3, // Higher quality output
       onclone: (document, element) => {
         // This runs before the canvas is generated
         console.log("Preparing to capture image with html2canvas");
         
         // Make sure SVG elements are visible in the clone
         const svgElements = element.querySelectorAll('svg');
+        console.log(`Found ${svgElements.length} SVG elements`);
+        
         svgElements.forEach(svg => {
           svg.setAttribute('width', '100%');
           svg.setAttribute('height', '100%');
+          svg.style.display = 'block';
+          svg.style.visibility = 'visible';
+        });
+        
+        // Also check for frame DIVs with SVG content
+        const frameDivs = element.querySelectorAll('.pointer-events-none');
+        console.log(`Found ${frameDivs.length} frame divs`);
+        frameDivs.forEach(div => {
+          div.style.opacity = '1';
+          div.style.visibility = 'visible';
+          div.style.display = 'block';
         });
       }
     });
