@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { TextBoxComponent } from './TextBoxComponent';
@@ -98,24 +97,50 @@ export function JournalPreview({
   const [selectedTextBoxId, setSelectedTextBoxId] = useState<string | null>(null);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
+  const [audioLoaded, setAudioLoaded] = useState(false);
 
   useEffect(() => {
-    if (audioRef.current && audio?.url) {
+    if (!audioRef.current) return;
+
+    if (audio?.url) {
+      audioRef.current.src = audio.url;
       audioRef.current.volume = (audio.volume || 50) / 100;
       audioRef.current.muted = audioMuted;
+      audioRef.current.loop = true;
       
       if (audio.playing) {
-        audioRef.current.play().catch(error => {
-          console.error("Error playing audio in preview:", error);
-        });
+        const playPromise = audioRef.current.play();
+        
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            console.log("Audio started playing successfully:", audio.name);
+          }).catch(error => {
+            console.error("Error playing audio:", error, audio);
+          });
+        }
       } else {
         audioRef.current.pause();
       }
+    } else {
+      audioRef.current.pause();
     }
   }, [audio, audioMuted]);
 
+  const handleAudioLoaded = () => {
+    setAudioLoaded(true);
+    console.log("Audio loaded successfully:", audio?.name);
+  };
+
+  const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
+    console.error("Audio error:", e, audio);
+    setAudioLoaded(false);
+  };
+
   const toggleMute = () => {
     setAudioMuted(!audioMuted);
+    if (audioRef.current) {
+      audioRef.current.muted = !audioMuted;
+    }
   };
 
   const calculateTextStyle = () => {
@@ -178,23 +203,19 @@ export function JournalPreview({
     }
   };
 
-  // Fix: Properly handle textBox updates
   const handleTextBoxUpdateFix = (id: string, updates: Partial<TextBox>) => {
     onTextBoxUpdate(id, updates);
   };
 
-  // Fix: Properly handle icon position updates
-  const handleIconMoveFix = (id: string, position: { x: number, y: number }) => {
+  const handleIconMoveFix = (id: string, position: { x: number; y: number }) => {
     onIconMove(id, position);
   };
 
-  // Fix: Properly handle icon property updates
   const handleIconUpdateFix = (id: string, updates: Partial<Icon>) => {
     onIconUpdate(id, updates);
   };
 
-  // Fix: Properly handle sticker position updates
-  const handleStickerMoveFix = (id: string, position: { x: number, y: number }) => {
+  const handleStickerMoveFix = (id: string, position: { x: number; y: number }) => {
     onStickerMove(id, position);
   };
 
@@ -204,8 +225,17 @@ export function JournalPreview({
     >
       {audio?.url && (
         <>
-          <audio ref={audioRef} src={audio.url} loop />
-          <div className="absolute top-4 right-4 z-10">
+          <audio 
+            ref={audioRef} 
+            src={audio.url} 
+            loop 
+            onLoadedData={handleAudioLoaded} 
+            onError={handleAudioError}
+          />
+          <div className="absolute top-4 right-16 z-10 flex items-center gap-2">
+            <span className="text-xs bg-white/80 px-2 py-1 rounded-md">
+              {audioLoaded ? audio.name : "Loading audio..."}
+            </span>
             <Button
               variant="outline"
               size="icon"

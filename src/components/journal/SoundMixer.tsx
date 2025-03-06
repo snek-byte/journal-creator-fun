@@ -5,7 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Music, Volume2, Volume1, VolumeX, Play, Pause, Upload, Plus, Trash2 } from "lucide-react";
+import { Music, Volume2, Volume1, VolumeX, Play, Pause, Upload, Plus, Trash2, AlertCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -27,33 +27,68 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
   const [trackName, setTrackName] = useState<string>(audioTrack?.name || '');
   const [selectedCategory, setSelectedCategory] = useState<string>("ambient");
   const [previewSound, setPreviewSound] = useState<AudioTrack | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Handle current active track
+  // Initialize component state from props
   useEffect(() => {
-    if (audioRef.current) {
+    if (audioTrack) {
+      setVolume(audioTrack.volume || 50);
+      setIsPlaying(audioTrack.playing || false);
+      setTrackName(audioTrack.name || '');
+      setLoadError(null);
+    }
+  }, [audioTrack]);
+
+  // Handle current active track audio element
+  useEffect(() => {
+    if (audioRef.current && audioTrack?.url) {
+      // Set audio properties
+      audioRef.current.src = audioTrack.url;
       audioRef.current.volume = volume / 100;
+      audioRef.current.loop = true;
       
+      // Handle play/pause state
       if (isPlaying) {
-        audioRef.current.play().catch(error => {
-          console.error("Error playing audio:", error);
-          setIsPlaying(false);
-        });
+        const playPromise = audioRef.current.play();
+        
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            console.log("Audio playing in mixer:", audioTrack.name);
+          }).catch(error => {
+            console.error("Error playing audio in mixer:", error);
+            setIsPlaying(false);
+            setLoadError("Couldn't play audio. Try another sound.");
+            
+            // Update the store to reflect that playing failed
+            onAudioChange({
+              ...audioTrack,
+              playing: false
+            });
+          });
+        }
       } else {
         audioRef.current.pause();
       }
     }
-  }, [isPlaying, volume, audioTrack?.url]);
+  }, [isPlaying, volume, audioTrack?.url, audioTrack]);
 
   // Handle preview sound
   useEffect(() => {
     if (previewAudioRef.current && previewSound) {
+      previewAudioRef.current.src = previewSound.url;
       previewAudioRef.current.volume = 0.5; // Set preview volume to 50%
-      previewAudioRef.current.play().catch(error => {
-        console.error("Error playing preview audio:", error);
-      });
+      
+      const playPromise = previewAudioRef.current.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.error("Error playing preview audio:", error);
+          toast.error("Couldn't play preview. Try another sound.");
+        });
+      }
 
       return () => {
         if (previewAudioRef.current) {
@@ -63,9 +98,34 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
     }
   }, [previewSound]);
 
+  // Handle audio loading
+  const handleAudioLoaded = () => {
+    console.log("Audio loaded successfully in mixer:", audioTrack?.name);
+    setLoadError(null);
+  };
+
+  // Handle audio errors
+  const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
+    console.error("Audio error in mixer:", e);
+    setLoadError("Error loading audio. Try another sound.");
+    setIsPlaying(false);
+    
+    // Update store to reflect the error
+    if (audioTrack) {
+      onAudioChange({
+        ...audioTrack,
+        playing: false
+      });
+    }
+  };
+
   const handleVolumeChange = (value: number[]) => {
     const newVolume = value[0];
     setVolume(newVolume);
+    
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume / 100;
+    }
     
     if (audioTrack) {
       onAudioChange({
@@ -95,16 +155,19 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
     const name = file.name.replace(/\.[^/.]+$/, ""); // Remove file extension
     
     setTrackName(name);
+    setLoadError(null);
     
     const newAudioTrack: AudioTrack = {
       id: uuidv4(),
       url,
       name,
       volume,
-      playing: false
+      playing: true // Start playing immediately
     };
     
+    setIsPlaying(true);
     onAudioChange(newAudioTrack);
+    toast.success(`${name} uploaded and playing`);
   };
 
   const handleUploadClick = () => {
@@ -112,6 +175,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
   };
 
   const handleSoundSelect = (sound: AudioTrack) => {
+    setLoadError(null);
     onAudioChange({
       ...sound,
       playing: true,
@@ -119,7 +183,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
     });
     setIsPlaying(true);
     setTrackName(sound.name);
-    toast.success(`${sound.name} selected`);
+    toast.success(`${sound.name} selected and playing`);
   };
 
   const handlePreviewStart = (sound: AudioTrack) => {
@@ -198,17 +262,35 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
       
       {audioTrack?.url ? (
         <>
-          <audio ref={audioRef} src={audioTrack.url} loop />
+          <audio 
+            ref={audioRef} 
+            loop 
+            onLoadedData={handleAudioLoaded} 
+            onError={handleAudioError}
+          />
           
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium">{trackName || 'Untitled Track'}</span>
+              <div className="flex items-center">
+                <span className="text-xs font-medium">{trackName || 'Untitled Track'}</span>
+                {loadError && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <AlertCircle className="h-4 w-4 ml-2 text-red-500" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{loadError}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
               <div className="flex items-center gap-1">
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   className="h-8 w-8" 
                   onClick={handlePlayPause}
+                  disabled={!!loadError}
                 >
                   {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                 </Button>
@@ -227,6 +309,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
                     });
                     setIsPlaying(false);
                     setTrackName('');
+                    setLoadError(null);
                   }}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -237,7 +320,7 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
             <div className="flex items-center gap-2">
               <VolumeIcon />
               <Slider
-                defaultValue={[volume]}
+                value={[volume]}
                 max={100}
                 step={1}
                 onValueChange={handleVolumeChange}
@@ -251,12 +334,59 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
       
       <Tabs defaultValue="ambient" value={selectedCategory} onValueChange={setSelectedCategory}>
         <TabsList className="grid grid-cols-2 mb-2">
-          {categoryOptions}
+          {soundCategories.map(category => (
+            <TabsTrigger key={category.id} value={category.id}>{category.name}</TabsTrigger>
+          ))}
         </TabsList>
         
         <ScrollArea className="h-36 border rounded-md p-1">
-          {previewSound && <audio ref={previewAudioRef} src={previewSound.url} />}
-          {soundOptions}
+          {previewSound && <audio ref={previewAudioRef} />}
+          {publicDomainSounds
+            .filter(sound => sound.category === selectedCategory)
+            .map(sound => (
+              <div key={sound.id} className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-md">
+                <div className="flex-1 text-sm">{sound.name}</div>
+                <div className="flex items-center gap-1">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onMouseDown={() => handlePreviewStart(sound)}
+                          onMouseUp={handlePreviewEnd}
+                          onMouseLeave={handlePreviewEnd}
+                        >
+                          <Play className="h-3 w-3" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Preview sound</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => handleSoundSelect(sound)}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Use this sound</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
+            ))}
         </ScrollArea>
       </Tabs>
       
