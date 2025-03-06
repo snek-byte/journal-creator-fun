@@ -10,15 +10,14 @@ import { ClearButton } from './drawing/ClearButton';
 
 export function DrawingLayer({ 
   className, 
-  width = 800, 
-  height = 600, 
+  width, 
+  height, 
   onDrawingChange,
   tool = 'pen',
   color = '#000000',
   brushSize = 3,
   initialDrawing,
-  onClear,
-  isDrawingMode = false,
+  onClear
 }: DrawingLayerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -78,14 +77,14 @@ export function DrawingLayer({
       
       // Save one final time when unmounting
       if (canvas) {
-        const finalDrawing = canvasToDataURL(canvas);
+        const finalDrawing = canvas.toDataURL('image/png');
         if (onDrawingChange && finalDrawing.length > 1000) {
           console.log("DrawingLayer: Saving final drawing on unmount");
           onDrawingChange(finalDrawing);
         }
       }
     };
-  }, [width, height, initialDrawing, onDrawingChange]);
+  }, [width, height]);
 
   // Helper function to load drawing to canvas
   const loadDrawingToCanvas = (drawingDataUrl: string) => {
@@ -148,9 +147,6 @@ export function DrawingLayer({
   };
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
-    // Skip if drawing mode is disabled
-    if (!isDrawingMode) return;
-    
     e.preventDefault();
     e.stopPropagation();
     
@@ -200,9 +196,6 @@ export function DrawingLayer({
   };
 
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
-    // Skip if drawing mode is disabled
-    if (!isDrawingMode) return;
-    
     if (!isDrawing || !lastPoint) return;
     
     e.preventDefault();
@@ -253,7 +246,7 @@ export function DrawingLayer({
     if (!canvas || !onDrawingChange) return;
     
     // Generate dataURL from canvas
-    const dataUrl = canvasToDataURL(canvas);
+    const dataUrl = canvas.toDataURL('image/png');
     
     // Debug: check if dataUrl is not empty
     console.log("DrawingLayer: Saving drawing, data URL length:", dataUrl.length);
@@ -330,7 +323,7 @@ export function DrawingLayer({
         onTouchMove={draw}
         onTouchEnd={endDrawing}
       />
-      {isDrawingMode && <ClearButton onClick={clearCanvas} />}
+      <ClearButton onClick={clearCanvas} />
     </div>
   );
 }
