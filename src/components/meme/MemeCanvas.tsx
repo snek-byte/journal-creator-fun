@@ -1,3 +1,4 @@
+
 import { useRef, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import html2canvas from 'html2canvas';
@@ -148,7 +149,7 @@ export function MemeCanvas({
         style={{ maxWidth: '100%' }}
       >
         <div 
-          className="bg-white relative overflow-hidden"
+          className="relative overflow-hidden"
           style={{ 
             width: '640px', 
             height: '640px',
@@ -157,62 +158,65 @@ export function MemeCanvas({
           }}
           onClick={handleCanvasClick}
         >
+          {/* Background color layer */}
           <div 
             className="absolute inset-0"
-            style={{ 
-              backgroundColor: backgroundColor || '#ffffff',
-              zIndex: 1
-            }}
+            style={{ backgroundColor: backgroundColor || '#ffffff', zIndex: 1 }}
           />
           
-          {template ? (
-            <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 10 }}>
-              <img
-                src={template}
-                alt="Background template"
-                className="max-w-full max-h-full object-contain"
-                onLoad={handleImageLoad}
-                onError={handleImageError}
-                crossOrigin="anonymous"
-              />
-              <button 
-                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors"
-                onClick={handleBackgroundRemove}
-                title="Remove background"
-                style={{ zIndex: 50 }}
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          ) : (
-            <div 
-              className="absolute inset-0 flex items-center justify-center bg-gray-50 cursor-pointer"
-              style={{ zIndex: 10 }}
-            >
-              <p className="text-gray-400 text-center p-4">Click to add your photo</p>
-            </div>
-          )}
+          {/* Main content container with either template or placeholder */}
+          <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 10 }}>
+            {template ? (
+              <>
+                <img
+                  src={template}
+                  alt="Background template"
+                  className="max-w-full max-h-full object-contain"
+                  style={{ 
+                    position: 'relative',
+                    zIndex: 15
+                  }}
+                  onLoad={handleImageLoad}
+                  onError={handleImageError}
+                  crossOrigin="anonymous"
+                />
+                
+                <button 
+                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors"
+                  onClick={handleBackgroundRemove}
+                  title="Remove background"
+                  style={{ zIndex: 50 }}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </>
+            ) : (
+              <div className="text-gray-400 text-center p-4 cursor-pointer">
+                Click to add your photo
+              </div>
+            )}
+          </div>
 
+          {/* Frame layer - now correctly positioned over the image */}
           {frame && (
             <div 
               className="absolute inset-0 flex items-center justify-center pointer-events-none" 
               style={{ zIndex: 20 }}
             >
-              <img
-                src={frame}
-                alt="Frame"
-                className="max-w-full max-h-full object-contain"
-                onLoad={handleFrameLoad}
-                onError={handleFrameError}
-                crossOrigin="anonymous"
-                style={{ 
-                  mixBlendMode: 'normal',
-                  opacity: 1
-                }}
-              />
+              <div className="relative w-full h-full">
+                <img
+                  src={frame}
+                  alt="Frame"
+                  className="absolute inset-0 w-full h-full object-fill"
+                  onLoad={handleFrameLoad}
+                  onError={handleFrameError}
+                  crossOrigin="anonymous"
+                />
+              </div>
             </div>
           )}
 
+          {/* Text layers - positioned above everything else */}
           <div
             className="absolute top-0 left-0 right-0 flex items-start justify-center pt-4"
             style={{
