@@ -1,4 +1,3 @@
-
 /**
  * Applies a frame to an image and returns the composite as a data URL
  */
@@ -42,7 +41,7 @@ export const applyFrameToImage = async (
           ctx.fillStyle = 'white';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           
-          // Calculate frame-specific padding
+          // Calculate frame-specific padding - special case for shadow-box
           let padding = calculatePadding(framePath);
           
           // Calculate inner dimensions (the area where the image should fit)
@@ -70,42 +69,44 @@ export const applyFrameToImage = async (
             offsetY = padding;
           }
           
-          // Apply user scale factor
-          const scaledWidth = drawWidth * scale;
-          const scaledHeight = drawHeight * scale;
+          // Apply user scale factor - make sure not to scale too much for shadow-box
+          let scaleFactor = scale;
+          if (framePath.includes('shadow-box')) {
+            // Limit scale factor for shadow-box to prevent overflow
+            scaleFactor = Math.min(scale, 0.85);
+          }
+          
+          const scaledWidth = drawWidth * scaleFactor;
+          const scaledHeight = drawHeight * scaleFactor;
           
           // Recalculate offsets after scaling (keep image centered)
           const centeredOffsetX = padding + (innerWidth - scaledWidth) / 2;
           const centeredOffsetY = padding + (innerHeight - scaledHeight) / 2;
           
-          // For shadow-box, draw everything in correct order
+          // Special handling for shadow-box
           if (framePath.includes('shadow-box')) {
             // First draw a white background for the shadow box
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Then draw the image centered in the frame's inner area
-            ctx.save();
-            
             // Move to center for rotation
+            ctx.save();
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
             
             ctx.translate(centerX, centerY);
             ctx.rotate((rotation * Math.PI) / 180);
             
-            // Calculate the properly scaled image dimensions
-            const imageSize = Math.min(scaledWidth, scaledHeight);
-            const scaledImageWidth = imgAspect >= 1 ? imageSize : imageSize * imgAspect;
-            const scaledImageHeight = imgAspect >= 1 ? imageSize / imgAspect : imageSize;
+            // Draw the image with the correct dimensions
+            const imageWidth = Math.min(innerWidth * scaleFactor, innerWidth * 0.85);
+            const imageHeight = imageWidth / imgAspect;
             
-            // Draw the image centered
             ctx.drawImage(
               img,
-              -scaledImageWidth / 2,
-              -scaledImageHeight / 2,
-              scaledImageWidth,
-              scaledImageHeight
+              -imageWidth / 2,
+              -imageHeight / 2,
+              imageWidth,
+              imageHeight
             );
             
             ctx.restore();
@@ -171,7 +172,7 @@ export const applyFrameToImage = async (
  */
 const calculatePadding = (framePath: string): number => {
   if (framePath.includes('shadow-box')) {
-    return 95; // Increased padding for shadow box
+    return 120; // Increased padding for shadow box to ensure image fits properly
   } else if (framePath.includes('polaroid')) {
     return 90; // Polaroid has more padding at the bottom
   } else if (framePath.includes('certificate') || framePath.includes('fancy')) {

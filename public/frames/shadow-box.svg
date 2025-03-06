@@ -10,6 +10,6 @@
   <rect x="70" y="70" width="500" height="500" rx="4" fill="white" filter="url(#shadow)"/>
   <!-- This is the border -->
   <rect x="70" y="70" width="500" height="500" rx="4" fill="none" stroke="#E0E0E0" stroke-width="1"/>
-  <!-- This is the image area - transparent so image shows through -->
+  <!-- This is the image area - explicitly set to transparent -->
   <rect x="95" y="95" width="450" height="450" rx="2" fill="transparent"/>
 </svg>

@@ -121,7 +121,7 @@ export default function FrameTemplateSelector({ onSelect, selectedFrame }: Frame
   const getFramePreviewStyle = (framePath: string) => {
     // Different frames need different padding for the preview image
     if (framePath.includes('shadow-box')) {
-      return { margin: '25%' }; // Shadow box needs more padding
+      return { margin: '25%', maxWidth: '50%', maxHeight: '50%' }; // Shadow box needs smaller image preview
     } else if (framePath.includes('polaroid')) {
       return { margin: '20% 15% 35% 15%' }; // Polaroid has more padding at bottom
     } else if (framePath.includes('taped')) {
