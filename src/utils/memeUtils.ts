@@ -31,17 +31,19 @@ export const downloadMemeAsImage = async (canvasRef: React.RefObject<HTMLDivElem
         svgElements.forEach(svg => {
           svg.setAttribute('width', '100%');
           svg.setAttribute('height', '100%');
-          svg.style.display = 'block';
-          svg.style.visibility = 'visible';
+          // Cast to HTMLElement which has the style property
+          (svg as HTMLElement).style.display = 'block';
+          (svg as HTMLElement).style.visibility = 'visible';
         });
         
         // Also check for frame DIVs with SVG content
         const frameDivs = element.querySelectorAll('.pointer-events-none');
         console.log(`Found ${frameDivs.length} frame divs`);
         frameDivs.forEach(div => {
-          div.style.opacity = '1';
-          div.style.visibility = 'visible';
-          div.style.display = 'block';
+          // Cast to HTMLElement which has the style property
+          (div as HTMLElement).style.opacity = '1';
+          (div as HTMLElement).style.visibility = 'visible';
+          (div as HTMLElement).style.display = 'block';
         });
       }
     });
