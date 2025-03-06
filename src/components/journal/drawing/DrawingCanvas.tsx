@@ -19,6 +19,8 @@ export const DrawingCanvas = forwardRef<HTMLCanvasElement, DrawingCanvasProps>(
     return (
       <canvas
         ref={ref}
+        width={width}
+        height={height}
         className="cursor-crosshair"
         style={{ 
           width: '100%', 

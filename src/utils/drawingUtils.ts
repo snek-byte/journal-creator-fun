@@ -10,6 +10,8 @@ export const configureBrushStyles = (
   color: string, 
   brushSize: number
 ) => {
+  if (!ctx) return null;
+  
   // Save the current context state
   ctx.save();
   
