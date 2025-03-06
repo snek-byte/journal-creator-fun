@@ -98,6 +98,7 @@ export function JournalPreview({
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
   const [audioLoaded, setAudioLoaded] = useState(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!audioRef.current) return;
@@ -111,17 +112,23 @@ export function JournalPreview({
       
       if (audio.playing) {
         console.log("Attempting to play audio:", audio.url);
-        const playPromise = audioRef.current.play();
-        
-        if (playPromise !== undefined) {
-          playPromise.then(() => {
-            console.log("Audio started playing successfully:", audio.name);
-            setAudioLoaded(true);
-          }).catch(error => {
-            console.error("Error playing audio:", error, audio);
-            setAudioLoaded(false);
-          });
-        }
+        setTimeout(() => {
+          if (audioRef.current) {
+            const playPromise = audioRef.current.play();
+            
+            if (playPromise !== undefined) {
+              playPromise.then(() => {
+                console.log("Audio started playing successfully:", audio.name);
+                setAudioLoaded(true);
+                setAudioError(null);
+              }).catch(error => {
+                console.error("Error playing audio:", error, audio);
+                setAudioLoaded(false);
+                setAudioError(`Couldn't play audio: ${error.message}. Try uploading your own audio file.`);
+              });
+            }
+          }
+        }, 2000);
       } else {
         console.log("Audio not set to playing, pausing");
         audioRef.current.pause();
@@ -137,11 +144,14 @@ export function JournalPreview({
   const handleAudioLoaded = () => {
     console.log("Audio loaded successfully:", audio?.name);
     setAudioLoaded(true);
+    setAudioError(null);
   };
 
   const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
-    console.error("Audio error:", e, audio);
+    const errorMessage = (e.currentTarget as HTMLAudioElement).error?.message || "Unknown error";
+    console.error("Audio error:", errorMessage, e, audio);
     setAudioLoaded(false);
+    setAudioError(`Couldn't play audio: ${errorMessage}. External audio sources may be unavailable. Try uploading your own.`);
   };
 
   const toggleMute = () => {
@@ -228,22 +238,17 @@ export function JournalPreview({
     onStickerMove(id, position);
   };
 
-  // Fixed function to handle deleting elements by moving them offscreen
   const handleDeleteByMovingOffscreen = (id: string, isIcon: boolean) => {
-    // Create a proper position object
     const offscreenPosition = { x: -1000, y: -1000 };
     
     if (isIcon) {
-      // Pass the position object to the move function
       handleIconMoveFix(id, offscreenPosition);
       
-      // For icons, we may also want to update other properties
       const iconUpdates: Partial<Icon> = {
-        size: 0 // Make it invisible
+        size: 0
       };
       handleIconUpdateFix(id, iconUpdates);
     } else {
-      // For stickers, just move them offscreen
       handleStickerMoveFix(id, offscreenPosition);
     }
   };
@@ -261,12 +266,13 @@ export function JournalPreview({
             onLoadedData={handleAudioLoaded} 
             onError={handleAudioError}
             preload="auto"
+            className="absolute top-0 left-0 w-full z-20" 
             controls
-            className="absolute top-0 left-0 w-48 z-20"  // Make controls visible for debugging
+            style={{ opacity: 0.8 }}
           />
-          <div className="absolute top-4 right-16 z-10 flex items-center gap-2">
-            <span className="text-xs bg-white/80 px-2 py-1 rounded-md">
-              {audioLoaded ? audio.name : "Loading audio..."}
+          <div className="absolute top-4 right-16 z-30 flex items-center gap-2">
+            <span className={`text-xs px-2 py-1 rounded-md ${audioError ? 'bg-red-100 text-red-700' : 'bg-white/80'}`}>
+              {audioError ? audioError : (audioLoaded ? audio.name : "Loading audio...")}
             </span>
             <Button
               variant="outline"
@@ -375,6 +381,17 @@ export function JournalPreview({
           <X className="h-4 w-4" />
         </Button>
       </div>
+      
+      {audioError && (
+        <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-md text-sm text-amber-700 max-w-md mx-auto">
+          <p className="font-medium">Audio Troubleshooting:</p>
+          <ul className="list-disc pl-5 text-xs mt-1 space-y-1">
+            <li>External sound sources may be blocked by your browser</li>
+            <li>Try uploading your own audio file for better results</li>
+            <li>Check your system volume and browser permissions</li>
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

@@ -44,7 +44,7 @@ export function TextBoxContent({
     fontFamily: font || 'sans-serif',
     fontSize: fontSize || '16px',
     fontWeight: fontWeight as any || 'normal',
-    padding: '2.5rem 0.5rem 0.5rem 0.5rem', // Increased top padding more to avoid overlap with drag handle
+    padding: '3rem 0.5rem 0.5rem 0.5rem', // Increased top padding to 3rem to avoid overlap with drag handle
     width: '100%',
     height: '100%',
     border: 'none',

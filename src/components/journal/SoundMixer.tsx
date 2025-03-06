@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -11,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { AudioTrack } from '@/types/journal';
 import { publicDomainSounds, soundCategories } from '@/data/publicDomainSounds';
 import { v4 as uuidv4 } from 'uuid';
@@ -62,16 +62,20 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
               }).catch(error => {
                 console.error("SoundMixer: Error playing audio:", error);
                 setIsPlaying(false);
-                setLoadError(`Couldn't play audio (${error.message}). Try another sound or upload your own.`);
+                setLoadError(`Couldn't play audio (${error.message}). External audio sources may be unavailable.`);
                 
                 onAudioChange({
                   ...audioTrack,
                   playing: false
                 });
+                
+                toast.error("Audio couldn't be played. Try uploading your own audio file.", {
+                  duration: 5000
+                });
               });
             }
           }
-        }, 1000); // Increased timeout for better loading chance
+        }, 2000); // Increased timeout for better loading chance
       } else {
         audioRef.current.pause();
       }
@@ -95,13 +99,17 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
             playPromise.then(() => {
               console.log("Preview started successfully");
             }).catch(error => {
-              console.error("Error playing preview audio:", error);
-              setPreviewLoadError(`Couldn't play preview (${error.message}). Audio sources may be unavailable.`);
-              toast.error("Couldn't play preview. Try uploading your own audio file.");
+              const errorElement = e.currentTarget as HTMLAudioElement;
+              const errorMessage = errorElement.error ? errorElement.error.message : 'The element has no supported sources';
+              console.error("Error playing preview audio:", errorMessage, e);
+              setPreviewLoadError(`Couldn't play preview (${errorMessage}). Audio sources may be unavailable.`);
+              toast.error("Couldn't play preview. Try uploading your own audio file.", {
+                duration: 5000
+              });
             });
           }
         }
-      }, 500);
+      }, 1000);
 
       return () => {
         if (previewAudioRef.current) {
@@ -117,8 +125,10 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
   };
 
   const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
-    console.error("Audio error in mixer:", e);
-    setLoadError("Error loading audio. The source may be unavailable. Try uploading your own audio file.");
+    const errorElement = e.currentTarget as HTMLAudioElement;
+    const errorMessage = errorElement.error ? errorElement.error.message : 'The element has no supported sources';
+    console.error("Audio error in mixer:", errorMessage, e);
+    setLoadError(`Error loading audio: ${errorMessage}. The source may be unavailable or blocked by your browser.`);
     setIsPlaying(false);
     
     if (audioTrack) {
@@ -130,8 +140,10 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
   };
 
   const handlePreviewAudioError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
-    console.error("Preview audio error:", e);
-    setPreviewLoadError("Error loading preview. The source may be unavailable. Try uploading your own audio file.");
+    const errorElement = e.currentTarget as HTMLAudioElement;
+    const errorMessage = errorElement.error ? errorElement.error.message : 'The element has no supported sources';
+    console.error("Preview audio error:", errorMessage, e);
+    setPreviewLoadError(`Error loading preview: ${errorMessage}. The source may be unavailable or blocked by your browser.`);
   };
 
   const handleVolumeChange = (value: number[]) => {
@@ -240,6 +252,15 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
         controls
       />
       
+      <Alert variant="destructive" className="bg-amber-50 text-amber-800 border-amber-200 mb-4">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle className="text-sm font-medium">Audio Source Issues</AlertTitle>
+        <AlertDescription className="text-xs">
+          External audio sources (like freesound.org) may be blocked by your browser or CORS policies. 
+          <strong className="block mt-1">We strongly recommend uploading your own audio files for the best experience.</strong>
+        </AlertDescription>
+      </Alert>
+      
       {previewLoadError && (
         <div className="text-xs text-red-500 mt-1 p-2 bg-red-50 rounded-md">
           <AlertCircle className="h-3 w-3 inline mr-1" />
@@ -319,8 +340,10 @@ export function SoundMixer({ audioTrack, onAudioChange }: SoundMixerProps) {
 
       <Separator className="my-2" />
       
-      <div className="text-xs p-2 bg-amber-50 text-amber-700 rounded-md mb-2">
-        Note: External audio sources may be unavailable. We recommend uploading your own audio files for the best experience.
+      <div className="text-xs p-3 bg-red-50 text-red-700 rounded-md mb-3 border border-red-200">
+        <AlertCircle className="h-3 w-3 inline mr-1" />
+        <strong>Known Issue:</strong> External audio sources from freesound.org are likely blocked by CORS policies.
+        <strong className="block mt-1">Solution:</strong> Please upload your own audio files below for the best experience.
       </div>
       
       <Tabs defaultValue="ambient" value={selectedCategory} onValueChange={setSelectedCategory}>
