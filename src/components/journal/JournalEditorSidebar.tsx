@@ -10,15 +10,16 @@ import { IconSelector } from './IconSelector';
 import { BackgroundImageSelector } from './BackgroundImageSelector';
 import { ImageFilterSelector } from './ImageFilterSelector';
 import { DailyChallenge } from './DailyChallenge';
+import { SoundMixer } from './SoundMixer';
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { RotateCcw, RotateCw, Save, Printer, Send, ChevronDown, Undo, Redo } from "lucide-react";
+import { RotateCcw, RotateCw, Save, Printer, Send, ChevronDown, Undo, Redo, Music } from "lucide-react";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import type { EmojiClickData } from 'emoji-picker-react';
-import type { JournalEntry, Challenge } from '@/types/journal';
+import type { JournalEntry, Challenge, AudioTrack } from '@/types/journal';
 import { ImageUploader } from './ImageUploader';
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -64,6 +65,7 @@ interface JournalEditorSidebarProps {
   isDrawingMode: boolean;
   onDrawingModeToggle: (enabled: boolean) => void;
   onCreateTextBox?: () => void;
+  onAudioChange?: (audio: AudioTrack) => void;
 }
 
 export function JournalEditorSidebar({
@@ -107,7 +109,8 @@ export function JournalEditorSidebar({
   canRedo,
   isDrawingMode,
   onDrawingModeToggle,
-  onCreateTextBox
+  onCreateTextBox,
+  onAudioChange
 }: JournalEditorSidebarProps) {
   const [selectedTab, setSelectedTab] = useState('write');
   
@@ -117,6 +120,12 @@ export function JournalEditorSidebar({
   
   const handleImageSelect = (url: string) => {
     onBackgroundSelect(url);
+  };
+
+  const handleAudioChange = (audio: AudioTrack) => {
+    if (onAudioChange) {
+      onAudioChange(audio);
+    }
   };
   
   return (
@@ -176,10 +185,11 @@ export function JournalEditorSidebar({
         onValueChange={setSelectedTab}
         className="space-y-4"
       >
-        <TabsList className="grid grid-cols-3">
+        <TabsList className="grid grid-cols-4">
           <TabsTrigger value="write">Write</TabsTrigger>
           <TabsTrigger value="style">Style</TabsTrigger>
           <TabsTrigger value="draw">Draw</TabsTrigger>
+          <TabsTrigger value="audio">Audio</TabsTrigger>
         </TabsList>
         
         <ScrollArea className="h-[calc(100vh-150px)]">
@@ -320,6 +330,13 @@ export function JournalEditorSidebar({
               <h3 className="text-xs font-semibold tracking-tight">Upload Image</h3>
               <ImageUploader onImageSelect={handleImageSelect} />
             </div>
+          </TabsContent>
+
+          <TabsContent value="audio" className="space-y-4 pr-4 pb-8">
+            <SoundMixer 
+              audioTrack={currentEntry.audio}
+              onAudioChange={handleAudioChange}
+            />
           </TabsContent>
         </ScrollArea>
       </Tabs>

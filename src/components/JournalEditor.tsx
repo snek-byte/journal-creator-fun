@@ -1,10 +1,11 @@
+
 import { useJournalEditor } from '@/hooks/useJournalEditor';
 import { JournalEditorSidebar } from './journal/JournalEditorSidebar';
 import { JournalPreview } from './journal/JournalPreview';
 import { EmailDialog } from './journal/EmailDialog';
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import type { Sticker, Icon, TextBox } from '@/types/journal';
+import type { Sticker, Icon, TextBox, AudioTrack } from '@/types/journal';
 
 export function JournalEditor() {
   const {
@@ -43,6 +44,7 @@ export function JournalEditor() {
     handleFontColorChange,
     handleGradientChange,
     handleTextStyleChange,
+    handleAudioChange,
     setShowEmailDialog,
     setEmailAddress,
     setMood,
@@ -168,6 +170,12 @@ export function JournalEditor() {
     }
   };
 
+  const handleAudioUpdate = (audio: AudioTrack) => {
+    if (handleAudioChange) {
+      handleAudioChange(audio);
+    }
+  };
+
   const fullEntry = {
     ...currentEntry,
     id: 0,
@@ -218,6 +226,7 @@ export function JournalEditor() {
         isDrawingMode={isDrawingMode}
         onDrawingModeToggle={handleDrawingModeToggle}
         onCreateTextBox={handleCreateTextBox}
+        onAudioChange={handleAudioUpdate}
       />
 
       <EmailDialog
@@ -246,6 +255,7 @@ export function JournalEditor() {
         backgroundImage={currentEntry.backgroundImage}
         drawing={currentEntry.drawing}
         filter={currentEntry.filter}
+        audio={currentEntry.audio}
         onStickerAdd={handleStickerAdd}
         onIconAdd={handleIconAdd}
         onStickerMove={handleStickerMove}

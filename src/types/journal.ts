@@ -1,4 +1,3 @@
-
 export interface JournalEntry {
   id: number;
   date: string;
@@ -20,6 +19,14 @@ export interface JournalEntry {
   drawing?: string;
   filter?: string;
   textBoxes: TextBox[];
+  audio?: AudioTrack;
+}
+
+export interface AudioTrack {
+  url: string;
+  name: string;
+  volume: number;
+  playing: boolean;
 }
 
 export interface Challenge {
@@ -123,5 +130,4 @@ export interface HistoryEntry {
   textBoxes: TextBox[];
 }
 
-// Adding the missing StickerSource type
 export type StickerSource = 'decorative' | 'nature' | 'food';

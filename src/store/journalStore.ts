@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { JournalEntry, Challenge, Badge, UserProgress, Mood, Sticker, Icon, TextBox } from '@/types/journal';
+import type { JournalEntry, Challenge, Badge, UserProgress, Mood, Sticker, Icon, TextBox, AudioTrack } from '@/types/journal';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -24,6 +24,7 @@ interface JournalState {
     drawing?: string;
     filter?: string;
     textBoxes: TextBox[];
+    audio?: AudioTrack;
   };
   entries: JournalEntry[];
   dailyChallenge: Challenge | null;
@@ -62,6 +63,7 @@ interface JournalState {
   addTextBox: (textBox: TextBox) => void;
   updateTextBox: (id: string, updates: Partial<TextBox>) => void;
   removeTextBox: (id: string) => void;
+  setAudio: (audio?: AudioTrack) => void;
 }
 
 export const useJournalStore = create<JournalState>()(
@@ -82,7 +84,8 @@ export const useJournalStore = create<JournalState>()(
         backgroundImage: undefined,
         drawing: undefined,
         filter: 'none',
-        textBoxes: []
+        textBoxes: [],
+        audio: undefined
       },
       entries: [],
       dailyChallenge: null,
@@ -175,6 +178,9 @@ export const useJournalStore = create<JournalState>()(
       })),
       setTextBoxes: (textBoxes) => set((state) => ({
         currentEntry: { ...state.currentEntry, textBoxes }
+      })),
+      setAudio: (audio) => set((state) => ({
+        currentEntry: { ...state.currentEntry, audio }
       })),
       addTextBox: (textBox) => set((state) => ({
         currentEntry: { 
@@ -277,7 +283,8 @@ export const useJournalStore = create<JournalState>()(
               background_image: state.currentEntry.backgroundImage || null,
               drawing: state.currentEntry.drawing || null,
               filter: state.currentEntry.filter || 'none',
-              text_boxes: state.currentEntry.textBoxes
+              text_boxes: state.currentEntry.textBoxes,
+              audio: state.currentEntry.audio || null
             });
 
           if (entryError) throw entryError;
@@ -298,7 +305,8 @@ export const useJournalStore = create<JournalState>()(
               backgroundImage: undefined,
               drawing: undefined,
               filter: 'none',
-              textBoxes: []
+              textBoxes: [],
+              audio: undefined
             }
           }));
 
@@ -351,7 +359,8 @@ export const useJournalStore = create<JournalState>()(
           backgroundImage: entry.background_image as string | undefined,
           drawing: entry.drawing as string | undefined,
           filter: entry.filter as string | undefined,
-          textBoxes: entry.text_boxes as TextBox[] || []
+          textBoxes: entry.text_boxes as TextBox[] || [],
+          audio: entry.audio as AudioTrack | undefined
         }));
 
         set({ entries });
