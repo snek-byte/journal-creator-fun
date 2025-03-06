@@ -87,8 +87,8 @@ export default function MemeGenerator() {
     // Reset the file input value before clicking it
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+      fileInputRef.current.click();
     }
-    fileInputRef.current?.click();
   };
   
   const handleClearImage = () => {
@@ -129,32 +129,30 @@ export default function MemeGenerator() {
                 ref={previewRef} 
                 className="relative max-w-full max-h-full flex items-center justify-center"
               >
-                {selectedImage && (
-                  <div className="relative w-auto h-auto">
-                    <div className="relative">
-                      {/* Base image with transformations */}
+                <div className="relative w-auto h-auto">
+                  <div className="relative inline-block">
+                    {/* Base image with transformations */}
+                    <img 
+                      ref={imageRef}
+                      src={selectedImage}
+                      alt="Selected"
+                      className="block max-w-full max-h-[460px]"
+                      style={{
+                        transform: `rotate(${rotation}deg) scale(${scale})`,
+                        transition: 'transform 0.3s ease',
+                      }}
+                    />
+                    
+                    {/* Frame overlay */}
+                    {selectedFrame && (
                       <img 
-                        ref={imageRef}
-                        src={selectedImage}
-                        alt="Selected"
-                        className="block max-w-full max-h-[460px]"
-                        style={{
-                          transform: `rotate(${rotation}deg) scale(${scale})`,
-                          transition: 'transform 0.3s ease',
-                        }}
+                        src={selectedFrame}
+                        alt="Frame"
+                        className="absolute inset-0 w-full h-full object-contain pointer-events-none"
                       />
-                      
-                      {/* Frame overlay */}
-                      {selectedFrame && (
-                        <img 
-                          src={selectedFrame}
-                          alt="Frame"
-                          className="absolute inset-0 w-full h-full object-contain pointer-events-none"
-                        />
-                      )}
-                    </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
             ) : (
               <div className="text-center p-8">

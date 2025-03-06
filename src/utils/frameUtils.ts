@@ -23,6 +23,11 @@ export const applyFrameToImage = async (
       const frame = new Image();
       frame.crossOrigin = 'anonymous';
       
+      // Handle SVG frame loading from jsDelivr CDN if needed
+      const frameUrl = framePath.startsWith('http') 
+        ? framePath 
+        : `${window.location.origin}${framePath}`;
+      
       frame.onload = () => {
         // Set canvas dimensions based on the frame
         canvas.width = frame.width;
@@ -109,7 +114,7 @@ export const applyFrameToImage = async (
         reject(new Error(`Failed to load frame from: ${framePath}`));
       };
       
-      frame.src = framePath;
+      frame.src = frameUrl;
     } catch (error) {
       console.error('General error in applyFrameToImage:', error);
       reject(error);
