@@ -126,7 +126,7 @@ export default function FrameTemplateSelector({ onSelect, selectedFrame }: Frame
         margin: '0',
         width: '60%', 
         height: '60%',
-        position: 'absolute' as const, // Type assertion to make TypeScript happy
+        position: 'absolute' as const, // Type assertion needed for position
         top: '20%',
         left: '20%'
       };
