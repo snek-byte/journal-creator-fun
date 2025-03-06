@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { TextBoxComponent } from './TextBoxComponent';
@@ -6,6 +7,7 @@ import { IconContainer } from './IconContainer';
 import { DrawingLayer } from './DrawingLayer';
 import { X, Volume2, VolumeX, AlertCircle } from 'lucide-react';
 import type { Mood, Sticker, Icon, TextBox, AudioTrack } from '@/types/journal';
+import { formatJournalText } from '@/utils/formattedTextUtils';
 
 interface JournalPreviewProps {
   showPreview: boolean;
@@ -222,22 +224,6 @@ export function JournalPreview({
     }
   };
 
-  const handleTextBoxUpdateFix = (id: string, updates: Partial<TextBox>) => {
-    onTextBoxUpdate(id, updates);
-  };
-
-  const handleIconMoveFix = (id: string, position: { x: number; y: number }) => {
-    onIconMove(id, position);
-  };
-
-  const handleIconUpdateFix = (id: string, updates: Partial<Icon>) => {
-    onIconUpdate(id, updates);
-  };
-
-  const handleStickerMoveFix = (id: string, position: { x: number; y: number }) => {
-    onStickerMove(id, position);
-  };
-
   const handleDeleteByMovingOffscreen = (id: string, isIcon: boolean) => {
     const offscreenPosition: { x: number; y: number } = { 
       x: -1000, 
@@ -245,14 +231,14 @@ export function JournalPreview({
     };
     
     if (isIcon) {
-      handleIconMoveFix(id, offscreenPosition);
+      onIconMove(id, offscreenPosition);
       
       const iconUpdates: Partial<Icon> = {
         size: 0
       };
-      handleIconUpdateFix(id, iconUpdates);
+      onIconUpdate(id, iconUpdates);
     } else {
-      handleStickerMoveFix(id, offscreenPosition);
+      onStickerMove(id, offscreenPosition);
     }
   };
 
@@ -315,7 +301,7 @@ export function JournalPreview({
             textBox={textBox}
             selected={textBox.id === selectedTextBoxId}
             containerRef={containerRef}
-            onUpdate={(updates) => handleTextBoxUpdateFix(textBox.id, updates)}
+            onUpdate={(updates) => onTextBoxUpdate(textBox.id, updates)}
             onRemove={() => onTextBoxRemove(textBox.id)}
             onSelect={() => onTextBoxSelect(textBox.id)}
             isDrawingMode={isDrawingMode}
@@ -328,7 +314,7 @@ export function JournalPreview({
             sticker={sticker}
             selected={sticker.id === selectedStickerId}
             containerRef={containerRef}
-            onMove={(position) => handleStickerMoveFix(sticker.id, position)}
+            onMove={(position) => onStickerMove(sticker.id, position)}
             onSelect={() => onStickerSelect(sticker.id)}
           />
         ))}
@@ -339,8 +325,8 @@ export function JournalPreview({
             icon={icon}
             selected={icon.id === selectedIconId}
             containerRef={containerRef}
-            onMove={(position) => handleIconMoveFix(icon.id, position)}
-            onUpdate={(updates) => handleIconUpdateFix(icon.id, updates)}
+            onMove={(position) => onIconMove(icon.id, position)}
+            onUpdate={(updates) => onIconUpdate(icon.id, updates)}
             onSelect={() => onIconSelect(icon.id)}
           />
         ))}
