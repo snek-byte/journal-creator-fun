@@ -3,6 +3,7 @@ import { useRef, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import html2canvas from 'html2canvas';
 import { X } from 'lucide-react';
+import { FramedImage } from './FramedImage';
 
 interface MemeCanvasProps {
   template: string;
@@ -42,35 +43,10 @@ export function MemeCanvas({
   const [imageError, setImageError] = useState(false);
   const [imageHeight, setImageHeight] = useState(0);
   const [imageWidth, setImageWidth] = useState(0);
-  const [frameLoaded, setFrameLoaded] = useState(false);
-  const [frameError, setFrameError] = useState(false);
-  const [svgContent, setSvgContent] = useState<string | null>(null);
 
   useEffect(() => {
     console.log("MemeCanvas received template:", template ? "Has data (length: " + template.length + ")" : "Empty");
   }, [template]);
-
-  useEffect(() => {
-    // Fetch SVG content when frame changes
-    if (frame) {
-      fetch(frame)
-        .then(response => response.text())
-        .then(data => {
-          setSvgContent(data);
-          setFrameLoaded(true);
-          setFrameError(false);
-          console.log("Frame SVG loaded successfully");
-        })
-        .catch(error => {
-          console.error("Error loading frame SVG:", error);
-          setFrameError(true);
-          setFrameLoaded(false);
-          setSvgContent(null);
-        });
-    } else {
-      setSvgContent(null);
-    }
-  }, [frame]);
 
   const textStyle1 = {
     fontFamily: font,
@@ -91,15 +67,15 @@ export function MemeCanvas({
     backgroundClip: gradient ? 'text' : 'border-box'
   };
 
-  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  const handleImageLoadSuccess = (dimensions: { width: number, height: number }) => {
     setImageLoaded(true);
     setImageError(false);
-    setImageHeight(e.currentTarget.naturalHeight);
-    setImageWidth(e.currentTarget.naturalWidth);
-    console.log("Image loaded successfully, dimensions:", e.currentTarget.naturalWidth, "x", e.currentTarget.naturalHeight);
+    setImageHeight(dimensions.height);
+    setImageWidth(dimensions.width);
+    console.log("Image loaded successfully, dimensions:", dimensions.width, "x", dimensions.height);
   };
 
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  const handleImageLoadError = () => {
     console.error("Error loading image template. Image URL starts with:", template?.substring(0, 30));
     setImageError(true);
     setImageLoaded(false);
@@ -164,55 +140,42 @@ export function MemeCanvas({
           style={{ 
             width: '640px', 
             height: '640px',
-            maxWidth: '100%',
-            backgroundColor: backgroundColor || '#ffffff'
+            maxWidth: '100%'
           }}
           onClick={handleCanvasClick}
         >
-          {/* Background color layer */}
-          <div 
-            className="absolute inset-0"
-            style={{ backgroundColor: backgroundColor || '#ffffff' }}
-          />
+          {/* Background color and template image with frame */}
+          {template ? (
+            <div className="absolute inset-0">
+              <FramedImage
+                template={template}
+                frame={frame || undefined}
+                backgroundColor={backgroundColor}
+                onImageLoad={handleImageLoadSuccess}
+                onError={handleImageLoadError}
+              />
+              
+              <button 
+                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors z-50"
+                onClick={handleBackgroundRemove}
+                title="Remove background"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Background color layer when no image */}
+              <div 
+                className="absolute inset-0"
+                style={{ backgroundColor: backgroundColor || '#ffffff' }}
+              />
 
-          {/* Smart image - frame with image inside */}
-          {template && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              {/* The template image */}
-              <div className="relative w-full h-full flex items-center justify-center">
-                <img
-                  src={template}
-                  alt="Background template"
-                  className="max-w-full max-h-full object-contain"
-                  onLoad={handleImageLoad}
-                  onError={handleImageError}
-                  crossOrigin="anonymous"
-                />
-                
-                <button 
-                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors z-50"
-                  onClick={handleBackgroundRemove}
-                  title="Remove background"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+              {/* Placeholder if no image */}
+              <div className="absolute inset-0 flex items-center justify-center cursor-pointer z-10">
+                <p className="text-gray-400 text-center p-4">Click to add your photo</p>
               </div>
-            </div>
-          )}
-
-          {/* Frame layer as an overlay */}
-          {svgContent && (
-            <div 
-              className="absolute inset-0 pointer-events-none z-30"
-              dangerouslySetInnerHTML={{ __html: svgContent }}
-            />
-          )}
-
-          {/* Placeholder if no image */}
-          {!template && (
-            <div className="absolute inset-0 flex items-center justify-center cursor-pointer z-10">
-              <p className="text-gray-400 text-center p-4">Click to add your photo</p>
-            </div>
+            </>
           )}
 
           {/* Text layers - positioned above everything else */}
