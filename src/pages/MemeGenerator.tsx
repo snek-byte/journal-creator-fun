@@ -3,11 +3,18 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
-import { Upload, Download, Image, RotateCw, RotateCcw, ZoomIn, ZoomOut, Trash } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Upload, Download, Image, RotateCw, RotateCcw, ZoomIn, ZoomOut, Trash, ExternalLink } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import FrameTemplateSelector from "@/components/meme/FrameTemplateSelector";
 import { applyFrameWithClaidApi } from "@/utils/claidApi";
+import { 
+  createOpenFrameArtwork, 
+  pushToOpenFrame, 
+  prepareImageForOpenFrame,
+  isAnimatedImage 
+} from "@/utils/openFrameUtils";
 
 export default function MemeGenerator() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -16,6 +23,9 @@ export default function MemeGenerator() {
   const [rotation, setRotation] = useState(0);
   const [scale, setScale] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [artworkTitle, setArtworkTitle] = useState('My Framed Image');
+  const [artworkAuthor, setArtworkAuthor] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
@@ -80,6 +90,37 @@ export default function MemeGenerator() {
       toast.error('Failed to generate image. Please try again.');
     } finally {
       setIsGenerating(false);
+    }
+  };
+  
+  const handleExportToOpenFrame = async () => {
+    if (!generatedImage) {
+      toast.error('Please generate an image first');
+      return;
+    }
+    
+    try {
+      setIsExporting(true);
+      toast.info('Preparing for OpenFrame export...', { duration: 2000 });
+      
+      const animated = isAnimatedImage(generatedImage);
+      const preparedImage = prepareImageForOpenFrame(generatedImage, animated);
+      
+      const artwork = createOpenFrameArtwork(
+        preparedImage,
+        artworkTitle,
+        artworkAuthor || 'Anonymous',
+        animated
+      );
+      
+      await pushToOpenFrame(artwork);
+      
+      toast.success('Successfully exported to OpenFrame!');
+    } catch (error) {
+      console.error('Error exporting to OpenFrame:', error);
+      toast.error('Failed to export to OpenFrame. Please try again.');
+    } finally {
+      setIsExporting(false);
     }
   };
   
@@ -220,6 +261,7 @@ export default function MemeGenerator() {
           <Tabs defaultValue="frames">
             <TabsList className="w-full mb-4">
               <TabsTrigger value="frames" className="flex-1">Frames</TabsTrigger>
+              <TabsTrigger value="export" className="flex-1">Export</TabsTrigger>
             </TabsList>
             <TabsContent value="frames" className="mt-0">
               <Label htmlFor="frame" className="text-sm font-medium mb-2 block">
@@ -228,6 +270,46 @@ export default function MemeGenerator() {
               <ScrollArea className="h-[400px] pr-4">
                 <FrameTemplateSelector onSelect={handleFrameSelect} selectedFrame={selectedFrame} />
               </ScrollArea>
+            </TabsContent>
+            <TabsContent value="export" className="mt-0">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="title" className="text-sm font-medium mb-2 block">
+                    Artwork Title
+                  </Label>
+                  <Input
+                    id="title"
+                    value={artworkTitle}
+                    onChange={(e) => setArtworkTitle(e.target.value)}
+                    placeholder="My Framed Image"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="author" className="text-sm font-medium mb-2 block">
+                    Artist Name
+                  </Label>
+                  <Input
+                    id="author"
+                    value={artworkAuthor}
+                    onChange={(e) => setArtworkAuthor(e.target.value)}
+                    placeholder="Your name"
+                  />
+                </div>
+                <div className="pt-4">
+                  <Button 
+                    onClick={handleExportToOpenFrame} 
+                    disabled={isExporting || !generatedImage}
+                    className="w-full"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" /> 
+                    {isExporting ? 'Exporting...' : 'Export to OpenFrame'}
+                  </Button>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Export your framed image to OpenFrame for digital display. 
+                    Generate an image first by selecting a frame and clicking Download.
+                  </p>
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
         </Card>
