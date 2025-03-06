@@ -22,9 +22,18 @@ export function MoodSelector({
         <Select 
           value={selectedMood?.id} 
           onValueChange={(value) => {
-            // Find the mood object by id
-            const mood = moodOptions.find(option => option.value === value)?.mood;
-            if (mood) onMoodSelect(mood);
+            // Find the mood option with the selected value
+            const selectedOption = moodOptions.find(option => option.value === value);
+            if (selectedOption) {
+              // Create a Mood object from the selected option
+              const mood: Mood = {
+                id: selectedOption.value,
+                name: selectedOption.label,
+                icon: selectedOption.icon,
+                color: '#' + Math.floor(Math.random()*16777215).toString(16) // random color
+              };
+              onMoodSelect(mood);
+            }
           }}
         >
           <SelectTrigger className="w-36">
