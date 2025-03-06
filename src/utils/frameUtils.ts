@@ -41,79 +41,112 @@ export const applyFrameToImage = async (
           ctx.fillStyle = 'white';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           
-          // Calculate frame-specific padding - special case for shadow-box
-          let padding = calculatePadding(framePath);
-          
-          // Calculate inner dimensions (the area where the image should fit)
-          const innerWidth = frame.width - (padding * 2);
-          const innerHeight = frame.height - (padding * 2);
-          
-          // Calculate image aspect ratio
-          const imgAspect = img.width / img.height;
-          const innerAspect = innerWidth / innerHeight;
-          
-          // Calculate drawing dimensions to fit image within padding
-          let drawWidth, drawHeight, offsetX, offsetY;
-          
-          if (imgAspect > innerAspect) {
-            // Image is wider than inner frame - constrain by width
-            drawWidth = innerWidth;
-            drawHeight = drawWidth / imgAspect;
-            offsetX = padding;
-            offsetY = padding + (innerHeight - drawHeight) / 2;
-          } else {
-            // Image is taller than inner frame - constrain by height
-            drawHeight = innerHeight;
-            drawWidth = drawHeight * imgAspect;
-            offsetX = padding + (innerWidth - drawWidth) / 2;
-            offsetY = padding;
-          }
-          
-          // Apply user scale factor - make sure not to scale too much for shadow-box
-          let scaleFactor = scale;
+          // Special handling for shadow-box frame
           if (framePath.includes('shadow-box')) {
-            // Limit scale factor for shadow-box to prevent overflow
-            scaleFactor = Math.min(scale, 0.85);
-          }
-          
-          const scaledWidth = drawWidth * scaleFactor;
-          const scaledHeight = drawHeight * scaleFactor;
-          
-          // Recalculate offsets after scaling (keep image centered)
-          const centeredOffsetX = padding + (innerWidth - scaledWidth) / 2;
-          const centeredOffsetY = padding + (innerHeight - scaledHeight) / 2;
-          
-          // Special handling for shadow-box
-          if (framePath.includes('shadow-box')) {
-            // First draw a white background for the shadow box
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Move to center for rotation
-            ctx.save();
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            
-            ctx.translate(centerX, centerY);
-            ctx.rotate((rotation * Math.PI) / 180);
-            
-            // Draw the image with the correct dimensions
-            const imageWidth = Math.min(innerWidth * scaleFactor, innerWidth * 0.85);
-            const imageHeight = imageWidth / imgAspect;
-            
-            ctx.drawImage(
-              img,
-              -imageWidth / 2,
-              -imageHeight / 2,
-              imageWidth,
-              imageHeight
-            );
-            
-            ctx.restore();
-            
-            // Now draw the frame on top
+            // Draw the white background and frame first
             ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+            
+            // Calculate dimensions for the inner area of the shadow box (fixed for this frame)
+            const innerX = 120;  // Matches the clipPath in the SVG
+            const innerY = 120;
+            const innerWidth = 400;  // Matches the clipPath in the SVG
+            const innerHeight = 400;
+            
+            // Calculate scaling to fit the image properly within the inner area
+            const imgAspect = img.width / img.height;
+            const innerAspect = innerWidth / innerHeight;
+            
+            let drawWidth, drawHeight, offsetX, offsetY;
+            
+            if (imgAspect > innerAspect) {
+              // Image is wider - constrain by width
+              drawWidth = innerWidth * 0.9; // Use only 90% to ensure margin
+              drawHeight = drawWidth / imgAspect;
+              offsetX = innerX + (innerWidth - drawWidth) / 2;
+              offsetY = innerY + (innerHeight - drawHeight) / 2;
+            } else {
+              // Image is taller - constrain by height
+              drawHeight = innerHeight * 0.9; // Use only 90% to ensure margin
+              drawWidth = drawHeight * imgAspect;
+              offsetX = innerX + (innerWidth - drawWidth) / 2;
+              offsetY = innerY + (innerHeight - drawHeight) / 2;
+            }
+            
+            // Apply rotation if needed
+            if (rotation !== 0) {
+              const centerX = innerX + innerWidth / 2;
+              const centerY = innerY + innerHeight / 2;
+              
+              ctx.save();
+              ctx.translate(centerX, centerY);
+              ctx.rotate((rotation * Math.PI) / 180);
+              
+              // Apply user scale (limited for shadow box)
+              const safeScale = Math.min(scale, 1.2); // Limit scale to prevent overflow
+              
+              // Draw the image centered and properly scaled
+              ctx.drawImage(
+                img,
+                -drawWidth * safeScale / 2,
+                -drawHeight * safeScale / 2,
+                drawWidth * safeScale,
+                drawHeight * safeScale
+              );
+              
+              ctx.restore();
+            } else {
+              // No rotation, apply scale directly
+              const safeScale = Math.min(scale, 1.2); // Limit scale to prevent overflow
+              const scaledWidth = drawWidth * safeScale;
+              const scaledHeight = drawHeight * safeScale;
+              
+              // Recalculate position to keep centered
+              const centeredX = innerX + (innerWidth - scaledWidth) / 2;
+              const centeredY = innerY + (innerHeight - scaledHeight) / 2;
+              
+              // Draw the image
+              ctx.drawImage(img, centeredX, centeredY, scaledWidth, scaledHeight);
+            }
           } else {
+            // For all other frames, use original approach
+            // ... keep existing code (for handling other frame types)
+            
+            // Calculate frame-specific padding
+            let padding = calculatePadding(framePath);
+            
+            // Calculate inner dimensions (the area where the image should fit)
+            const innerWidth = frame.width - (padding * 2);
+            const innerHeight = frame.height - (padding * 2);
+            
+            // Calculate image aspect ratio
+            const imgAspect = img.width / img.height;
+            const innerAspect = innerWidth / innerHeight;
+            
+            // Calculate drawing dimensions to fit image within padding
+            let drawWidth, drawHeight, offsetX, offsetY;
+            
+            if (imgAspect > innerAspect) {
+              // Image is wider than inner frame - constrain by width
+              drawWidth = innerWidth;
+              drawHeight = drawWidth / imgAspect;
+              offsetX = padding;
+              offsetY = padding + (innerHeight - drawHeight) / 2;
+            } else {
+              // Image is taller than inner frame - constrain by height
+              drawHeight = innerHeight;
+              drawWidth = drawHeight * imgAspect;
+              offsetX = padding + (innerWidth - drawWidth) / 2;
+              offsetY = padding;
+            }
+            
+            // Apply user scale factor
+            const scaledWidth = drawWidth * scale;
+            const scaledHeight = drawHeight * scale;
+            
+            // Recalculate offsets after scaling (keep image centered)
+            const centeredOffsetX = padding + (innerWidth - scaledWidth) / 2;
+            const centeredOffsetY = padding + (innerHeight - scaledHeight) / 2;
+            
             // For all other frames, use standard approach
             
             // Draw the image with transformations
