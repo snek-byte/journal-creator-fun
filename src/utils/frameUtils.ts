@@ -1,3 +1,4 @@
+
 /**
  * Applies a frame to an image and returns the composite as a data URL
  */
@@ -41,30 +42,18 @@ export const applyFrameToImage = async (
           ctx.fillStyle = 'white';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           
-          // Calculate the scaling ratio to fit the image to the frame
-          // while maintaining aspect ratio
-          const frameAspect = frame.width / frame.height;
-          const imgAspect = img.width / img.height;
-          
-          // Determine padding based on frame type
-          let padding = 60; // Default padding
-          
-          if (framePath.includes('polaroid')) {
-            padding = 90; // Polaroid has more padding at the bottom
-          } else if (framePath.includes('certificate') || framePath.includes('fancy')) {
-            padding = 80; // More decorative frames need more padding
-          } else if (framePath.includes('shadow-box')) {
-            padding = 70; // Shadow box needs specific padding
-          } else if (framePath.includes('taped') || framePath.includes('instant-photo')) {
-            padding = 75; // These frames need specific padding
-          }
+          // Calculate frame-specific padding
+          let padding = calculatePadding(framePath);
           
           // Calculate inner dimensions (the area where the image should fit)
           const innerWidth = frame.width - (padding * 2);
           const innerHeight = frame.height - (padding * 2);
+          
+          // Calculate image aspect ratio
+          const imgAspect = img.width / img.height;
           const innerAspect = innerWidth / innerHeight;
           
-          // Calculate drawing dimensions
+          // Calculate drawing dimensions to fit image within padding
           let drawWidth, drawHeight, offsetX, offsetY;
           
           if (imgAspect > innerAspect) {
@@ -89,19 +78,18 @@ export const applyFrameToImage = async (
           const centeredOffsetX = padding + (innerWidth - scaledWidth) / 2;
           const centeredOffsetY = padding + (innerHeight - scaledHeight) / 2;
           
-          // For shadow-box, we need to draw it differently
           if (framePath.includes('shadow-box')) {
-            // Draw white background for shadow box (already drawn at beginning)
+            // Draw the image first
             ctx.save();
             
             // Move to center for rotation
-            const centerX = offsetX + drawWidth / 2;
-            const centerY = offsetY + drawHeight / 2;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
             
             ctx.translate(centerX, centerY);
             ctx.rotate((rotation * Math.PI) / 180);
             
-            // Draw the image with proper offsets
+            // Draw the image centered
             ctx.drawImage(
               img,
               -scaledWidth / 2,
@@ -112,7 +100,7 @@ export const applyFrameToImage = async (
             
             ctx.restore();
             
-            // Draw the frame on top
+            // Now draw the frame on top
             ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
           } else {
             // For all other frames, use standard approach
@@ -166,6 +154,25 @@ export const applyFrameToImage = async (
       reject(error);
     }
   });
+};
+
+/**
+ * Calculate appropriate padding based on frame type
+ */
+const calculatePadding = (framePath: string): number => {
+  if (framePath.includes('shadow-box')) {
+    return 90; // Increased padding for shadow box
+  } else if (framePath.includes('polaroid')) {
+    return 90; // Polaroid has more padding at the bottom
+  } else if (framePath.includes('certificate') || framePath.includes('fancy')) {
+    return 80; // More decorative frames need more padding
+  } else if (framePath.includes('taped') || framePath.includes('instant-photo')) {
+    return 75; // These frames need specific padding
+  } else if (framePath.includes('rounded') || framePath.includes('basic-border')) {
+    return 40; // Simple frames need less padding
+  } else {
+    return 60; // Default padding for other frames
+  }
 };
 
 /**

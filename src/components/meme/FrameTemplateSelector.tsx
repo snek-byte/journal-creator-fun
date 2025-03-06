@@ -134,8 +134,8 @@ export default function FrameTemplateSelector({ onSelect, selectedFrame }: Frame
               >
                 <div className="aspect-square bg-gray-50 rounded flex items-center justify-center overflow-hidden">
                   <div className="relative w-full h-full flex items-center justify-center">
-                    {/* Sample image to show how the frame looks with an image */}
-                    <div className="absolute inset-0 bg-gray-300 m-2 rounded-sm"></div>
+                    {/* Sample image square in the center of the frame */}
+                    <div className="absolute inset-0 m-6 bg-gray-300 rounded-sm"></div>
                     <img 
                       src={frame} 
                       alt={`Frame ${index + 1}`} 

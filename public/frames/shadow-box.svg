@@ -2,10 +2,10 @@
 <svg width="640" height="640" viewBox="0 0 640 640" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="10" stdDeviation="15" flood-opacity="0.25"/>
+      <feDropShadow dx="0" dy="10" stdDeviation="15" flood-opacity="0.3"/>
     </filter>
   </defs>
   <rect width="640" height="640" fill="transparent"/>
-  <rect x="40" y="40" width="560" height="560" rx="4" fill="white" filter="url(#shadow)"/>
-  <rect x="40" y="40" width="560" height="560" rx="4" fill="none" stroke="#E0E0E0" stroke-width="1"/>
+  <rect x="70" y="70" width="500" height="500" rx="4" fill="white" filter="url(#shadow)"/>
+  <rect x="70" y="70" width="500" height="500" rx="4" fill="none" stroke="#E0E0E0" stroke-width="1"/>
 </svg>
