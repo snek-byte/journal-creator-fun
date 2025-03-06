@@ -105,7 +105,10 @@ export function JournalPreview({
 
   // Handle audio setup and play/pause when audioTrack changes
   useEffect(() => {
+    // Don't try to do anything if we don't have an audio ref
     if (!audioRef.current) return;
+    
+    console.log("Audio effect triggered with audio:", audio);
     
     // Clean up function to handle component unmount
     const cleanupAudio = () => {
@@ -118,52 +121,68 @@ export function JournalPreview({
       }
     };
 
+    // Reset states if no audio URL is provided
     if (!audio?.url) {
       cleanupAudio();
       setAudioLoaded(false);
       setIsAudioPlaying(false);
+      setAudioError(null);
       return cleanupAudio;
     }
 
-    console.log("Setting up audio in preview:", audio);
     const audioElement = audioRef.current;
     
     try {
+      // Explicitly create a new Audio element to avoid stale refs
       audioElement.src = audio.url;
       audioElement.volume = (audio.volume || 50) / 100;
       audioElement.muted = audioMuted;
       audioElement.loop = true;
       setAudioError(null);
+
+      console.log("Audio set up with URL:", audio.url, "playing:", audio.playing);
       
+      // Handle playback based on the audio.playing property
       if (audio.playing) {
-        console.log("Audio set to play in preview:", audio.url);
-        // Try to play audio with a small delay to ensure it's loaded
-        setTimeout(() => {
+        // Delay playback to ensure the audio element is ready
+        const playbackTimer = setTimeout(() => {
           if (!audioRef.current) return;
           
           try {
+            console.log("Attempting to play audio...");
             const playPromise = audioRef.current.play();
+            
             if (playPromise !== undefined) {
-              playPromise.then(() => {
-                console.log("Audio playback started in preview");
-                setIsAudioPlaying(true);
-                setAudioLoaded(true);
-                setAudioError(null);
-              }).catch(error => {
-                console.error("Error playing audio in preview:", error);
-                setIsAudioPlaying(false);
-                setAudioLoaded(false);
-                setAudioError(`Couldn't play audio: ${error.message}. Try uploading your own audio file.`);
-              });
+              playPromise
+                .then(() => {
+                  console.log("Audio playback started successfully");
+                  setIsAudioPlaying(true);
+                  setAudioLoaded(true);
+                  setAudioError(null);
+                })
+                .catch(error => {
+                  console.error("Error playing audio:", error);
+                  setIsAudioPlaying(false);
+                  // Show more user-friendly error
+                  setAudioLoaded(false);
+                  setAudioError(`Couldn't play audio: ${error.message || "Unknown error"}. Try clicking the audio button or upload your own file.`);
+                });
             }
           } catch (err) {
-            console.error("Exception during play attempt:", err);
+            console.error("Exception during audio play attempt:", err);
             setIsAudioPlaying(false);
             setAudioError("Playback failed. Try uploading a different audio file.");
           }
-        }, 300);
+        }, 500); // Increased delay to give more time for loading
+        
+        // Clean up the timer if the component unmounts
+        return () => {
+          clearTimeout(playbackTimer);
+          cleanupAudio();
+        };
       } else {
-        console.log("Audio not set to playing in preview");
+        // Audio should not be playing
+        console.log("Audio not set to play");
         try {
           audioElement.pause();
           setIsAudioPlaying(false);
@@ -181,14 +200,34 @@ export function JournalPreview({
   }, [audio, audioMuted]);
 
   const handleAudioLoaded = () => {
-    console.log("Audio loaded successfully in preview:", audio?.name);
+    console.log("Audio loaded successfully:", audio?.name);
     setAudioLoaded(true);
     setAudioError(null);
+    
+    // Try to play if it should be playing but isn't yet
+    if (audio?.playing && !isAudioPlaying && audioRef.current) {
+      try {
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              setIsAudioPlaying(true);
+            })
+            .catch(err => {
+              console.error("Failed to play on load:", err);
+            });
+        }
+      } catch (e) {
+        console.error("Error playing on load:", e);
+      }
+    }
   };
 
   const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
-    const errorMessage = (e.currentTarget as HTMLAudioElement).error?.message || "Unknown error";
-    console.error("Audio error in preview:", errorMessage, e, audio);
+    const audioElem = e.currentTarget as HTMLAudioElement;
+    const errorMessage = audioElem.error?.message || "Unknown error";
+    console.error("Audio error:", errorMessage, e, audio);
+    
     setAudioLoaded(false);
     setAudioError(`Couldn't play audio: ${errorMessage}. External audio sources may be unavailable. Try uploading your own.`);
     setIsAudioPlaying(false);
@@ -280,10 +319,13 @@ export function JournalPreview({
     }
   };
 
+  // Render a minimal fallback if showPreview is false
+  if (!showPreview) {
+    return null;
+  }
+
   return (
-    <div
-      className={`flex-1 w-full ${showPreview ? 'flex' : 'hidden'} flex-col justify-center items-center p-4 overflow-hidden relative bg-gray-100`}
-    >
+    <div className="flex-1 w-full flex flex-col justify-center items-center p-4 overflow-hidden relative bg-gray-100">
       {audio?.url && (
         <>
           <audio 
@@ -292,6 +334,7 @@ export function JournalPreview({
             onError={handleAudioError}
             preload="auto"
             className="hidden" 
+            controls={false}
           />
           <div className="absolute top-4 right-16 z-30 flex items-center gap-2">
             <span className={`text-xs px-2 py-1 rounded-md ${audioError ? 'bg-red-100 text-red-700' : 'bg-white/80'}`}>
