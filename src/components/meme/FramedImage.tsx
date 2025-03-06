@@ -38,7 +38,7 @@ export function FramedImage({
         return response.text();
       })
       .then(data => {
-        console.log("Received SVG content successfully");
+        console.log("Received SVG content, length:", data.length);
         setSvgContent(data);
       })
       .catch(error => {
@@ -64,6 +64,15 @@ export function FramedImage({
     }
     console.error("Error loading image in FramedImage");
   };
+  
+  // Debug rendering
+  useEffect(() => {
+    console.log("Frame rendering state:", { 
+      hasFrame: Boolean(frame), 
+      hasSvgContent: Boolean(svgContent),
+      svgContentLength: svgContent ? svgContent.length : 0
+    });
+  }, [frame, svgContent]);
   
   return (
     <div className="relative w-full h-full">

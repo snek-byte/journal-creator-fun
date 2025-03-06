@@ -14,6 +14,7 @@ export const downloadMemeAsImage = async (canvasRef: React.RefObject<HTMLDivElem
       useCORS: true,
       logging: true, // Enable logging for debugging
       backgroundColor: null,
+      scale: 2, // Higher quality output
     });
 
     const link = document.createElement('a');
