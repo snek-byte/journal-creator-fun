@@ -1,5 +1,5 @@
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { MemeCanvas, downloadMeme } from '@/components/meme/MemeCanvas';
 import { MemeControls } from '@/components/meme/MemeControls';
 import { FrameSelector } from '@/components/meme/FrameSelector';
@@ -35,6 +35,11 @@ export default function MemeGenerator() {
   // File input ref
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Log template state changes
+  useEffect(() => {
+    console.log("MemeGenerator template state:", template ? "set" : "empty");
+  }, [template]);
+
   // Handle frame selection
   const handleFrameSelect = (frame: string) => {
     console.log("Frame selected:", frame);
@@ -50,6 +55,7 @@ export default function MemeGenerator() {
   const handleTemplateClick = () => {
     console.log("Template click triggered, uploadInProgress:", uploadInProgress);
     if (fileInputRef.current && !uploadInProgress) {
+      setUploadInProgress(true); // Set flag to prevent multiple clicks
       fileInputRef.current.click();
     }
   };
@@ -66,16 +72,21 @@ export default function MemeGenerator() {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     console.log("File change triggered");
     const file = event.target.files?.[0];
+    
+    // Even if no file is selected, reset upload state
+    setTimeout(() => {
+      setUploadInProgress(false);
+    }, 300);
+    
     if (file) {
       if (!file.type.startsWith('image/')) {
         toast.error('Please select an image file');
         return;
       }
-      
-      // Set upload in progress to prevent dialog reopening
-      setUploadInProgress(true);
 
+      console.log("Reading file:", file.name, file.type, file.size);
       const reader = new FileReader();
+      
       reader.onload = (e) => {
         console.log("File read successfully");
         const result = e.target?.result as string;
@@ -84,25 +95,19 @@ export default function MemeGenerator() {
           setTemplate(result);
           toast.success('Image uploaded successfully');
         } else {
+          console.error("Result is undefined");
           toast.error('Failed to load image');
         }
-        
-        // Reset upload state after upload completes
-        setTimeout(() => {
-          setUploadInProgress(false);
-        }, 200);
       };
       
-      reader.onerror = () => {
-        console.error("Error reading file");
+      reader.onerror = (error) => {
+        console.error("Error reading file:", error);
         toast.error('Error reading file');
-        setUploadInProgress(false);
       };
       
       reader.readAsDataURL(file);
     } else {
-      // If no file was selected, reset upload state
-      setUploadInProgress(false);
+      console.log("No file selected");
     }
     
     // Clear the input value to allow selecting the same file again
