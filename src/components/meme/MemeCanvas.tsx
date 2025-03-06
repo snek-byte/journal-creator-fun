@@ -46,7 +46,8 @@ export function MemeCanvas({
 
   useEffect(() => {
     console.log("MemeCanvas received template:", template ? "Has data (length: " + template.length + ")" : "Empty");
-  }, [template]);
+    console.log("MemeCanvas received frame:", frame || "No frame");
+  }, [template, frame]);
 
   const textStyle1 = {
     fontFamily: font,

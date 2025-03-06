@@ -62,38 +62,15 @@ export function FrameSelector({ selectedFrame, onSelectFrame }: FrameSelectorPro
     console.log("Current selected frame in FrameSelector:", selectedFrame);
   }, [selectedFrame]);
 
-  // Check if frame exists in the public folder
-  const validateFrame = (frameUrl: string) => {
-    if (!frameUrl) return true; // No frame is valid
-    
-    // For SVG validation, we'll use a fetch to check if it exists
-    fetch(frameUrl)
-      .then(response => {
-        if (!response.ok) {
-          console.error(`Frame does not exist or cannot be loaded: ${frameUrl}`);
-          toast.error(`Could not load frame: ${frameUrl.split('/').pop()}`);
-          return false;
-        }
-        return true;
-      })
-      .catch(error => {
-        console.error(`Error validating frame: ${frameUrl}`, error);
-        return false;
-      });
-      
-    return true;
-  };
-
   const handleFrameClick = (frameUrl: string) => {
     console.log("Frame clicked:", frameUrl);
-    if (validateFrame(frameUrl)) {
-      console.log("Frame validated, setting selected frame to:", frameUrl);
-      onSelectFrame(frameUrl);
-      
-      // Show confirmation toast
-      const frameName = frameOptions.find(f => f.url === frameUrl)?.name || 'Custom';
-      toast.success(`${frameName} frame selected`);
-    }
+    
+    // Just directly select the frame without validation
+    onSelectFrame(frameUrl);
+    
+    // Show confirmation toast
+    const frameName = frameOptions.find(f => f.url === frameUrl)?.name || 'Custom';
+    toast.success(`${frameName} frame selected`);
   };
 
   return (

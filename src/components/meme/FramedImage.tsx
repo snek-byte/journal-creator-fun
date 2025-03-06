@@ -18,20 +18,21 @@ export function FramedImage({
 }: FramedImageProps) {
   const [svgContent, setSvgContent] = useState<string | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [frameLoaded, setFrameLoaded] = useState(false);
   
   // Load frame SVG content
   useEffect(() => {
     if (!frame) {
       setSvgContent(null);
-      setFrameLoaded(false);
       console.log("No frame selected, cleared frame content");
       return;
     }
     
     console.log("Loading frame from:", frame);
     
-    fetch(frame)
+    // Add a cache buster to prevent caching issues
+    const frameSrc = `${frame}?t=${Date.now()}`;
+    
+    fetch(frameSrc)
       .then(response => {
         console.log("Frame fetch response status:", response.status);
         if (!response.ok) {
@@ -40,21 +41,26 @@ export function FramedImage({
         return response.text();
       })
       .then(data => {
+        if (!data || data.trim() === '') {
+          console.error("Empty SVG content received for frame:", frame);
+          throw new Error("Empty SVG content");
+        }
+        
+        console.log("Received SVG content:", data.substring(0, 100) + "...");
+        
         // Make SVG responsive by adding viewBox if missing
         let modifiedSvg = data;
         if (!modifiedSvg.includes('viewBox')) {
           modifiedSvg = modifiedSvg.replace('<svg', '<svg viewBox="0 0 640 640"');
         }
         
-        // Set SVG content and mark as loaded
+        // Set SVG content
         setSvgContent(modifiedSvg);
-        setFrameLoaded(true);
         console.log("Frame SVG loaded and processed successfully:", frame);
       })
       .catch(error => {
         console.error("Error loading frame SVG:", error, "Frame path:", frame);
         setSvgContent(null);
-        setFrameLoaded(false);
       });
   }, [frame]);
   
@@ -70,7 +76,6 @@ export function FramedImage({
   };
   
   const handleImageError = () => {
-    setImageLoaded(false);
     if (onError) {
       onError();
     }

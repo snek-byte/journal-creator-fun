@@ -23,7 +23,7 @@ export default function MemeGenerator() {
   const [textStyle, setTextStyle] = useState('normal');
   const [gradient, setGradient] = useState('');
   
-  // Frame states
+  // Frame and background states
   const [selectedFrame, setSelectedFrame] = useState('');
   const [selectedBackground, setSelectedBackground] = useState('#ffffff');
   const [template, setTemplate] = useState('');
