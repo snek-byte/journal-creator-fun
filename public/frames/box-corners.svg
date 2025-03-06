@@ -1,8 +1,0 @@
-
-<svg width="640" height="640" viewBox="0 0 640 640" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="640" height="640" fill="transparent"/>
-  <path d="M120 80 L80 80 L80 120" stroke="#333333" stroke-width="4" fill="transparent"/>
-  <path d="M520 80 L560 80 L560 120" stroke="#333333" stroke-width="4" fill="transparent"/>
-  <path d="M120 560 L80 560 L80 520" stroke="#333333" stroke-width="4" fill="transparent"/>
-  <path d="M520 560 L560 560 L560 520" stroke="#333333" stroke-width="4" fill="transparent"/>
-</svg>

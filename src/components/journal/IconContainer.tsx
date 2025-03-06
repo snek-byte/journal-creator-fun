@@ -7,8 +7,8 @@ interface IconContainerProps {
   icon: Icon;
   selected: boolean;
   onSelect: (id: string) => void;
-  onMove: (position: { x: number, y: number }) => void;
-  onUpdate: (updates: Partial<Icon>) => void;
+  onMove: (id: string, position: { x: number, y: number }) => void;
+  onUpdate: (id: string, updates: Partial<Icon>) => void;
   containerRef: React.RefObject<HTMLDivElement>;
   style?: React.CSSProperties;
 }
@@ -47,34 +47,34 @@ export function IconContainer({
       switch (e.key) {
         case 'ArrowLeft':
           e.preventDefault();
-          onMove({ x: x - STEP, y });
+          onMove(icon.id, { x: x - STEP, y });
           break;
         case 'ArrowRight':
           e.preventDefault();
-          onMove({ x: x + STEP, y });
+          onMove(icon.id, { x: x + STEP, y });
           break;
         case 'ArrowUp':
           e.preventDefault();
-          onMove({ x, y: y - STEP });
+          onMove(icon.id, { x, y: y - STEP });
           break;
         case 'ArrowDown':
           e.preventDefault();
-          onMove({ x, y: y + STEP });
+          onMove(icon.id, { x, y: y + STEP });
           break;
         case 'Delete':
         case 'Backspace':
           e.preventDefault();
           // Move the icon far off-screen to trigger deletion
-          onMove({ x: -1000, y: -1000 });
+          onMove(icon.id, { x: -1000, y: -1000 });
           break;
         case '+':
         case '=':
           e.preventDefault();
-          onUpdate({ size: (icon.size || 48) + 5 });
+          onUpdate(icon.id, { size: (icon.size || 48) + 5 });
           break;
         case '-':
           e.preventDefault();
-          onUpdate({ size: Math.max(10, (icon.size || 48) - 5) });
+          onUpdate(icon.id, { size: Math.max(10, (icon.size || 48) - 5) });
           break;
       }
     };
@@ -125,7 +125,7 @@ export function IconContainer({
       const newY = startPositionY + deltaYPercent;
       
       // Update icon position
-      onMove({ x: newX, y: newY });
+      onMove(icon.id, { x: newX, y: newY });
     };
     
     const handleMouseUp = () => {
@@ -181,7 +181,7 @@ export function IconContainer({
       const newY = startPositionY + deltaYPercent;
       
       // Update icon position
-      onMove({ x: newX, y: newY });
+      onMove(icon.id, { x: newX, y: newY });
     };
     
     const handleTouchEnd = () => {
@@ -197,7 +197,7 @@ export function IconContainer({
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    onMove({ x: -1000, y: -1000 });
+    onMove(icon.id, { x: -1000, y: -1000 });
   };
   
   // Determine if the icon is an SVG from react-icons or a URL
@@ -267,7 +267,7 @@ export function IconContainer({
           onClick={handleDelete}
           onTouchEnd={(e) => {
             e.stopPropagation();
-            onMove({ x: -1000, y: -1000 });
+            onMove(icon.id, { x: -1000, y: -1000 });
           }}
           aria-label="Delete icon"
         >

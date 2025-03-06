@@ -11,7 +11,7 @@ interface TextBoxComponentProps {
   selected: boolean;
   containerRef: React.RefObject<HTMLDivElement>;
   onSelect: (id: string) => void;
-  onUpdate: (updates: Partial<TextBox>) => void;
+  onUpdate: (id: string, updates: Partial<TextBox>) => void;
   onRemove: (id: string) => void;
   isDrawingMode: boolean;
   style?: React.CSSProperties;
@@ -49,24 +49,24 @@ export function TextBoxComponent({
     const containerWidth = containerRef.current.offsetWidth;
     const containerHeight = containerRef.current.offsetHeight;
     
-    const pixelPos = percentToPixels(textBox.position, containerWidth, containerHeight);
+    const pixelPos = percentToPixels(position, containerWidth, containerHeight);
     
-    console.log(`Converting position for ${textBox.id}: 
-      percent: (${textBox.position.x}%, ${textBox.position.y}%), 
+    console.log(`Converting position for ${id}: 
+      percent: (${position.x}%, ${position.y}%), 
       container: ${containerWidth}x${containerHeight}, 
       pixels: (${pixelPos.x}px, ${pixelPos.y}px)`);
     
     setPositionPx(pixelPos);
     
     if (boxRef.current) {
-      setTransform(boxRef.current, pixelPos.x, pixelPos.y, textBox.rotation || 0);
+      setTransform(boxRef.current, pixelPos.x, pixelPos.y, rotation || 0);
     }
-  }, [textBox.id, textBox.position.x, textBox.position.y, containerRef, textBox.rotation]);
+  }, [id, position.x, position.y, containerRef, rotation]);
   
   // Initialize interact.js for dragging and resizing
   useEffect(() => {
     if (!boxRef.current || isDrawingMode || isPrinting || !window.interact) {
-      console.log(`Cannot initialize interact.js for box ${textBox.id}:`, {
+      console.log(`Cannot initialize interact.js for box ${id}:`, {
         boxRefExists: !!boxRef.current,
         isDrawingMode,
         isPrinting,
@@ -75,7 +75,7 @@ export function TextBoxComponent({
       return;
     }
     
-    console.log(`Initializing interact.js for TextBox ${textBox.id}`);
+    console.log(`Initializing interact.js for TextBox ${id}`);
     
     // Clean up any previous interact instance for the box
     try {
@@ -111,9 +111,9 @@ export function TextBoxComponent({
             return;
           }
           
-          console.log(`Drag start for box ${textBox.id}`);
+          console.log(`Drag start for box ${id}`);
           setIsDragging(true);
-          onSelect(textBox.id);
+          onSelect(id);
         },
         move: (event) => {
           if (isDrawingMode || isEditing || isPrinting) return;
@@ -128,7 +128,7 @@ export function TextBoxComponent({
           const newX = x + event.dx;
           const newY = y + event.dy;
           
-          console.log(`Dragging box ${textBox.id}: dx=${event.dx}, dy=${event.dy}, newX=${newX}, newY=${newY}`);
+          console.log(`Dragging box ${id}: dx=${event.dx}, dy=${event.dy}, newX=${newX}, newY=${newY}`);
           
           // Update element transform
           setTransform(target, newX, newY, rotation || 0);
@@ -145,7 +145,7 @@ export function TextBoxComponent({
           const x = parseFloat(target.getAttribute('data-x') || '0');
           const y = parseFloat(target.getAttribute('data-y') || '0');
           
-          console.log(`Drag end for box ${textBox.id}: finalX=${x}, finalY=${y}`);
+          console.log(`Drag end for box ${id}: finalX=${x}, finalY=${y}`);
           
           if (containerRef.current) {
             const containerWidth = containerRef.current.offsetWidth;
@@ -154,8 +154,8 @@ export function TextBoxComponent({
             // Convert pixels to percentage
             const percentPos = pixelsToPercent({ x, y }, containerWidth, containerHeight);
             
-            console.log(`Updating position for box ${textBox.id}: xPercent=${percentPos.x}, yPercent=${percentPos.y}`);
-            onUpdate({ position: { x: percentPos.x, y: percentPos.y } });
+            console.log(`Updating position for box ${id}: xPercent=${percentPos.x}, yPercent=${percentPos.y}`);
+            onUpdate(id, { position: { x: percentPos.x, y: percentPos.y } });
           }
         }
       }
@@ -184,9 +184,9 @@ export function TextBoxComponent({
           start: (event) => {
             if (isDrawingMode || isEditing || isPrinting) return;
             
-            console.log(`Handle drag start for box ${textBox.id}`);
+            console.log(`Handle drag start for box ${id}`);
             setIsDragging(true);
-            onSelect(textBox.id);
+            onSelect(id);
           },
           move: (event) => {
             if (isDrawingMode || isEditing || isPrinting) return;
@@ -202,7 +202,7 @@ export function TextBoxComponent({
             const newX = x + event.dx;
             const newY = y + event.dy;
             
-            console.log(`Handle dragging box ${textBox.id}: dx=${event.dx}, dy=${event.dy}, newX=${newX}, newY=${newY}`);
+            console.log(`Handle dragging box ${id}: dx=${event.dx}, dy=${event.dy}, newX=${newX}, newY=${newY}`);
             
             // Update element transform
             setTransform(box, newX, newY, rotation || 0);
@@ -221,7 +221,7 @@ export function TextBoxComponent({
             const x = parseFloat(box.getAttribute('data-x') || '0');
             const y = parseFloat(box.getAttribute('data-y') || '0');
             
-            console.log(`Handle drag end for box ${textBox.id}: finalX=${x}, finalY=${y}`);
+            console.log(`Handle drag end for box ${id}: finalX=${x}, finalY=${y}`);
             
             const containerWidth = containerRef.current.offsetWidth;
             const containerHeight = containerRef.current.offsetHeight;
@@ -229,8 +229,8 @@ export function TextBoxComponent({
             // Convert pixels to percentage
             const percentPos = pixelsToPercent({ x, y }, containerWidth, containerHeight);
             
-            console.log(`Updating position for box ${textBox.id}: xPercent=${percentPos.x}, yPercent=${percentPos.y}`);
-            onUpdate({ position: { x: percentPos.x, y: percentPos.y } });
+            console.log(`Updating position for box ${id}: xPercent=${percentPos.x}, yPercent=${percentPos.y}`);
+            onUpdate(id, { position: { x: percentPos.x, y: percentPos.y } });
           }
         }
       });
@@ -253,7 +253,7 @@ export function TextBoxComponent({
             x += event.deltaRect.left;
             y += event.deltaRect.top;
             
-            console.log(`Resize move for box ${textBox.id}: width=${event.rect.width}, height=${event.rect.height}, x=${x}, y=${y}`);
+            console.log(`Resize move for box ${id}: width=${event.rect.width}, height=${event.rect.height}, x=${x}, y=${y}`);
             
             // Update element size
             target.style.width = `${event.rect.width}px`;
@@ -269,10 +269,10 @@ export function TextBoxComponent({
           end: (event) => {
             if (isDrawingMode || isEditing || isPrinting) return;
             
-            console.log(`Resize end for box ${textBox.id}: final width=${event.rect.width}, height=${event.rect.height}`);
+            console.log(`Resize end for box ${id}: final width=${event.rect.width}, height=${event.rect.height}`);
             
             // Update size in parent
-            onUpdate({ 
+            onUpdate(id, { 
               width: event.rect.width, 
               height: event.rect.height 
             });
@@ -288,8 +288,8 @@ export function TextBoxComponent({
               
               const percentPos = pixelsToPercent({ x, y }, containerWidth, containerHeight);
               
-              console.log(`Updating position for box ${textBox.id} after resize: xPercent=${percentPos.x}, yPercent=${percentPos.y}`);
-              onUpdate({ position: { x: percentPos.x, y: percentPos.y } });
+              console.log(`Updating position for box ${id} after resize: xPercent=${percentPos.x}, yPercent=${percentPos.y}`);
+              onUpdate(id, { position: { x: percentPos.x, y: percentPos.y } });
             }
           }
         },
@@ -305,19 +305,19 @@ export function TextBoxComponent({
       try {
         if (boxInteractable) {
           boxInteractable.unset();
-          console.log(`Cleaned up interact for box ${textBox.id}`);
+          console.log(`Cleaned up interact for box ${id}`);
         }
         
         if (handleRef.current) {
           window.interact(handleRef.current).unset();
-          console.log(`Cleaned up interact for handle of box ${textBox.id}`);
+          console.log(`Cleaned up interact for handle of box ${id}`);
         }
       } catch (e) {
-        console.error(`Error cleaning up interact for box ${textBox.id}:`, e);
+        console.error(`Error cleaning up interact for box ${id}:`, e);
       }
     };
   }, [
-    textBox.id, 
+    id, 
     isDrawingMode, 
     isEditing, 
     isPrinting, 
@@ -377,7 +377,7 @@ export function TextBoxComponent({
   
   const handleSaveText = () => {
     setIsEditing(false);
-    onUpdate({ text: editValue });
+    onUpdate(id, { text: editValue });
   };
   
   const handleBlur = () => {
@@ -406,21 +406,21 @@ export function TextBoxComponent({
   const handleSelectClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!isEditing) {
-      console.log(`Box ${textBox.id} clicked, selecting`);
-      onSelect(textBox.id);
+      console.log(`Box ${id} clicked, selecting`);
+      onSelect(id);
     }
   };
   
   const handleRotate = (e: React.MouseEvent) => {
     e.stopPropagation();
     const newRotation = ((rotation || 0) + 15) % 360;
-    onUpdate({ rotation: newRotation });
+    onUpdate(id, { rotation: newRotation });
   };
   
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    onRemove(textBox.id);
+    onRemove(id);
   };
   
   // Controls visibility
@@ -429,28 +429,27 @@ export function TextBoxComponent({
   // Style with position and rotation
   const boxStyle: React.CSSProperties = {
     ...style,
-    width: `${textBox.width}px`,
-    height: `${textBox.height}px`,
-    transform: `translate(${positionPx.x}px, ${positionPx.y}px) rotate(${textBox.rotation || 0}deg)`,
-    zIndex: selected ? textBox.zIndex + 10 : textBox.zIndex,
+    width: `${size.width}px`,
+    height: `${size.height}px`,
+    transform: `translate(${positionPx.x}px, ${positionPx.y}px) rotate(${rotation || 0}deg)`,
+    zIndex: selected ? zIndex + 10 : zIndex,
     pointerEvents: isDrawingMode ? 'none' : 'auto',
-    opacity: isPrinting && !textBox.text ? 0 : 1,
+    opacity: isPrinting && !text ? 0 : 1,
     position: 'absolute',
     touchAction: 'none',
     cursor: isEditing ? 'text' : isDragging ? 'grabbing' : 'grab',
-    marginTop: '10px'
   };
   
   // Setup event handlers for HTML5 draggable
   const handleDragStart = (e: React.DragEvent) => {
     if (isDrawingMode || isEditing || isPrinting) return;
     
-    console.log(`Drag start for box ${textBox.id}`);
+    console.log(`Drag start for box ${id}`);
     setIsDragging(true);
-    onSelect(textBox.id);
+    onSelect(id);
     
     // Set the data that will be dragged
-    e.dataTransfer.setData('text/plain', textBox.id);
+    e.dataTransfer.setData('text/plain', id);
     
     // Set the drag image to the current element
     if (boxRef.current) {
@@ -505,7 +504,7 @@ export function TextBoxComponent({
       const x = parseFloat(boxRef.current.getAttribute('data-x') || '0');
       const y = parseFloat(boxRef.current.getAttribute('data-y') || '0');
       
-      console.log(`Drag end for box ${textBox.id}: finalX=${x}, finalY=${y}`);
+      console.log(`Drag end for box ${id}: finalX=${x}, finalY=${y}`);
       
       const containerWidth = containerRef.current.offsetWidth;
       const containerHeight = containerRef.current.offsetHeight;
@@ -513,8 +512,8 @@ export function TextBoxComponent({
       // Convert pixels to percentage
       const percentPos = pixelsToPercent({ x, y }, containerWidth, containerHeight);
       
-      console.log(`Updating position for box ${textBox.id}: xPercent=${percentPos.x}, yPercent=${percentPos.y}`);
-      onUpdate({ position: { x: percentPos.x, y: percentPos.y } });
+      console.log(`Updating position for box ${id}: xPercent=${percentPos.x}, yPercent=${percentPos.y}`);
+      onUpdate(id, { position: { x: percentPos.x, y: percentPos.y } });
     }
   };
   
@@ -531,8 +530,8 @@ export function TextBoxComponent({
         onClick={handleSelectClick}
         data-x={positionPx.x}
         data-y={positionPx.y}
-        data-id={textBox.id}
-        data-rotation={textBox.rotation || 0}
+        data-id={id}
+        data-rotation={rotation || 0}
         draggable={!isEditing && !isPrinting && !isDrawingMode}
         onDragStart={handleDragStart}
         onDrag={handleDrag}
@@ -546,8 +545,8 @@ export function TextBoxComponent({
             onMouseDown={(e) => {
               if (!isEditing) {
                 e.stopPropagation();
-                console.log(`Drag handle mousedown for box ${textBox.id}, selecting`);
-                onSelect(textBox.id);
+                console.log(`Drag handle mousedown for box ${id}, selecting`);
+                onSelect(id);
               }
             }}
           >
@@ -571,14 +570,14 @@ export function TextBoxComponent({
           <TextBoxContent
             isEditing={isEditing}
             editValue={editValue}
-            text={textBox.text}
-            font={textBox.font}
-            fontSize={textBox.fontSize}
-            fontWeight={textBox.fontWeight}
-            fontColor={textBox.fontColor}
-            gradient={textBox.gradient}
-            textStyle={textBox.textStyle}
-            rotation={textBox.rotation}
+            text={text}
+            font={font}
+            fontSize={fontSize}
+            fontWeight={fontWeight}
+            fontColor={fontColor}
+            gradient={gradient}
+            textStyle={textStyle}
+            rotation={rotation}
             onTextChange={handleTextChange}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}

@@ -6,8 +6,7 @@ export type TextStyle = 'normal' | 'mathematical' | 'gothic' | 'cursive' | 'doub
   'strikethrough' | 'underline' | 'bubbles' | 'squares' | 'medieval' | 'old-english' |
   'handwriting' | 'vintage' | 'cute' | 'dotted' | 'parenthesized' | 'boxed';
 
-// Export the unicodeMap so it can be used by other modules
-export const unicodeMap = {
+const unicodeMap = {
   mathematical: {
     A: '𝔸', B: '𝔹', C: 'ℂ', D: '𝔻', E: '𝔼', F: '𝔽', G: '𝔾', H: 'ℍ', I: '𝕀', J: '𝕁',
     K: '𝕂', L: '𝕃', M: '𝕄', N: 'ℕ', O: '𝕆', P: 'ℙ', Q: 'ℚ', R: 'ℝ', S: '𝕊', T: '𝕋',

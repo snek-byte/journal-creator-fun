@@ -4,9 +4,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useJournalStore } from "@/store/journalStore";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Image as ImageIcon } from "lucide-react";
 
 export default function Write() {
   const { loadEntries, loadProgress } = useJournalStore();
@@ -102,16 +99,6 @@ export default function Write() {
 
   return (
     <div className="min-h-screen">
-      {/* Add Meme Generator Access Button */}
-      <div className="fixed top-4 right-4 z-50">
-        <Link to="/meme">
-          <Button variant="secondary" className="flex items-center gap-2">
-            <ImageIcon className="w-4 h-4" />
-            <span>Frame Photos</span>
-          </Button>
-        </Link>
-      </div>
-
       {interactJsLoaded ? (
         <JournalEditor />
       ) : (

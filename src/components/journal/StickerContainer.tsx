@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import { Sticker } from '@/types/journal';
 import { X } from 'lucide-react';
@@ -6,7 +7,7 @@ interface StickerContainerProps {
   sticker: Sticker;
   selected: boolean;
   onSelect: (id: string) => void;
-  onMove: (position: { x: number, y: number }) => void;
+  onMove: (id: string, position: { x: number, y: number }) => void;
   onResize?: (id: string, size: number) => void;
   containerRef: React.RefObject<HTMLDivElement>;
   style?: React.CSSProperties;
@@ -30,6 +31,7 @@ export function StickerContainer({
   const width = sticker.width || 100;
   const height = sticker.height || 100;
   
+  // Detect when the page is being printed
   useEffect(() => {
     const handleBeforePrint = () => {
       setIsPrinting(true);
@@ -48,42 +50,46 @@ export function StickerContainer({
     };
   }, []);
   
+  // Handle keyboard navigation when sticker is selected
   useEffect(() => {
     if (!selected || !stickerRef.current) return;
     
+    // Make the sticker focusable when selected
     stickerRef.current.tabIndex = 0;
     stickerRef.current.focus();
     
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!selected) return;
       
-      const STEP = 1;
+      const STEP = 1; // movement step in percentage
       const container = containerRef.current;
       if (!container) return;
       
+      // Get current position
       const { x, y } = sticker.position;
       
       switch (e.key) {
         case 'ArrowLeft':
           e.preventDefault();
-          onMove({ x: x - STEP, y });
+          onMove(sticker.id, { x: x - STEP, y });
           break;
         case 'ArrowRight':
           e.preventDefault();
-          onMove({ x: x + STEP, y });
+          onMove(sticker.id, { x: x + STEP, y });
           break;
         case 'ArrowUp':
           e.preventDefault();
-          onMove({ x, y: y - STEP });
+          onMove(sticker.id, { x, y: y - STEP });
           break;
         case 'ArrowDown':
           e.preventDefault();
-          onMove({ x, y: y + STEP });
+          onMove(sticker.id, { x, y: y + STEP });
           break;
         case 'Delete':
         case 'Backspace':
           e.preventDefault();
-          onMove({ x: -1000, y: -1000 });
+          // Move the sticker far off-screen to trigger deletion
+          onMove(sticker.id, { x: -1000, y: -1000 });
           break;
         case '+':
         case '=':
@@ -101,6 +107,7 @@ export function StickerContainer({
       }
     };
     
+    // Add event listener for keyboard navigation
     stickerRef.current.addEventListener('keydown', handleKeyDown);
     
     return () => {
@@ -116,13 +123,16 @@ export function StickerContainer({
     setIsDragging(true);
     onSelect(sticker.id);
     
+    // Get container dimensions for percentage calculations
     const container = containerRef.current;
     if (!container) return;
     const containerRect = container.getBoundingClientRect();
     
+    // Initial mouse position
     const startX = e.clientX;
     const startY = e.clientY;
     
+    // Initial sticker position
     const startPositionX = sticker.position.x;
     const startPositionY = sticker.position.y;
     
@@ -130,16 +140,20 @@ export function StickerContainer({
       e.preventDefault();
       e.stopPropagation();
       
+      // Calculate the move delta in pixels
       const deltaX = e.clientX - startX;
       const deltaY = e.clientY - startY;
       
+      // Convert to percentage of container
       const deltaXPercent = (deltaX / containerRect.width) * 100;
       const deltaYPercent = (deltaY / containerRect.height) * 100;
       
+      // New position
       const newX = startPositionX + deltaXPercent;
       const newY = startPositionY + deltaYPercent;
       
-      onMove({ x: newX, y: newY });
+      // Update sticker position
+      onMove(sticker.id, { x: newX, y: newY });
     };
     
     const handleMouseUp = (e: MouseEvent) => {
@@ -155,6 +169,7 @@ export function StickerContainer({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+  // Touch event handlers for mobile devices
   const handleTouchStart = (e: React.TouchEvent) => {
     e.stopPropagation();
     if (e.touches.length !== 1) return;
@@ -162,14 +177,17 @@ export function StickerContainer({
     onSelect(sticker.id);
     setIsTouching(true);
     
+    // Get container dimensions for percentage calculations
     const container = containerRef.current;
     if (!container) return;
     const containerRect = container.getBoundingClientRect();
     
+    // Initial touch position
     const touch = e.touches[0];
     const startX = touch.clientX;
     const startY = touch.clientY;
     
+    // Initial sticker position
     const startPositionX = sticker.position.x;
     const startPositionY = sticker.position.y;
     
@@ -181,16 +199,20 @@ export function StickerContainer({
       
       const touch = e.touches[0];
       
+      // Calculate the move delta in pixels
       const deltaX = touch.clientX - startX;
       const deltaY = touch.clientY - startY;
       
+      // Convert to percentage of container
       const deltaXPercent = (deltaX / containerRect.width) * 100;
       const deltaYPercent = (deltaY / containerRect.height) * 100;
       
+      // New position
       const newX = startPositionX + deltaXPercent;
       const newY = startPositionY + deltaYPercent;
       
-      onMove({ x: newX, y: newY });
+      // Update sticker position
+      onMove(sticker.id, { x: newX, y: newY });
     };
     
     const handleTouchEnd = () => {
@@ -208,19 +230,24 @@ export function StickerContainer({
     e.stopPropagation();
     setIsResizing(true);
     
+    // Initial mouse position
     const startX = e.clientX;
     const startY = e.clientY;
     
+    // Initial size
     const startWidth = width;
     
     const handleMouseMove = (e: MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
       
+      // Calculate the resize delta
       const deltaX = e.clientX - startX;
       
+      // New size (width and height are the same for square stickers)
       const newSize = Math.max(20, startWidth + deltaX);
       
+      // Update sticker size if the callback exists
       if (onResize) {
         onResize(sticker.id, newSize);
       }
@@ -242,9 +269,10 @@ export function StickerContainer({
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    onMove({ x: -1000, y: -1000 });
+    onMove(sticker.id, { x: -1000, y: -1000 });
   };
   
+  // CSS for print mode
   const printStyles = `
     @media print {
       .sticker-control {
@@ -288,13 +316,14 @@ export function StickerContainer({
           style={{ pointerEvents: 'none' }}
         />
         
+        {/* Delete button - shown when selected but not when printing */}
         {selected && !isPrinting && (
           <button
             className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg sticker-control"
             onClick={handleDelete}
             onTouchEnd={(e) => {
               e.stopPropagation();
-              onMove({ x: -1000, y: -1000 });
+              onMove(sticker.id, { x: -1000, y: -1000 });
             }}
             aria-label="Delete sticker"
           >
@@ -302,6 +331,7 @@ export function StickerContainer({
           </button>
         )}
         
+        {/* Resize handle - not shown when printing */}
         {selected && onResize && !isDragging && !isResizing && !isPrinting && (
           <div
             className="absolute bottom-0 right-0 w-5 h-5 bg-white border border-gray-300 rounded-full cursor-se-resize transform translate-x-1/3 translate-y-1/3 flex items-center justify-center sticker-control"

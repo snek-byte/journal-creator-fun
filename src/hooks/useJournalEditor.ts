@@ -1,486 +1,975 @@
-
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useReducer } from 'react';
 import { useJournalStore } from '@/store/journalStore';
-import { toast } from 'sonner';
-import { useUndoRedoState } from './useUndoRedoState';
-import type { Sticker, Icon, TextBox, HistoryEntry } from '@/types/journal';
-import type { EmojiClickData } from 'emoji-picker-react';
 import { supabase } from "@/integrations/supabase/client";
-import { useTextBoxPosition } from './useTextBoxPosition';
-import { useScreenshot } from 'use-react-screenshot';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+import type { Mood, Sticker, Icon, HistoryEntry, TextBox } from '@/types/journal';
+import { EmojiClickData } from 'emoji-picker-react';
+import { v4 as uuidv4 } from 'uuid';
 
-export function useJournalEditor() {
-  const [emailAddress, setEmailAddress] = useState('');
-  const [showEmailDialog, setShowEmailDialog] = useState(false);
-  const [isSending, setIsSending] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
-  const [selectedTextBoxId, setSelectedTextBoxId] = useState<string | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+// Define initial state
+const initialState = {
+  text: '',
+  font: 'sans-serif',
+  fontSize: '16px',
+  fontWeight: 'normal',
+  fontColor: '#000000',
+  gradient: '',
+  mood: undefined as Mood | undefined,
+  isPublic: false,
+  textStyle: '',
+  stickers: [] as Sticker[],
+  icons: [] as Icon[],
+  textPosition: { x: 50, y: 50 },
+  backgroundImage: '',
+  drawing: '',
+  filter: 'none',
+  textBoxes: [] as TextBox[]
+};
+
+// We use this type for both the state and the history entries
+type JournalState = typeof initialState;
+
+// Action types
+type Action = 
+  | { type: 'SET_STATE'; payload: JournalState }
+  | { type: 'SET_TEXT'; payload: string }
+  | { type: 'SET_FONT'; payload: string }
+  | { type: 'SET_FONT_SIZE'; payload: string }
+  | { type: 'SET_FONT_WEIGHT'; payload: string }
+  | { type: 'SET_FONT_COLOR'; payload: string }
+  | { type: 'SET_GRADIENT'; payload: string }
+  | { type: 'SET_MOOD'; payload: Mood | undefined }
+  | { type: 'SET_IS_PUBLIC'; payload: boolean }
+  | { type: 'SET_TEXT_STYLE'; payload: string }
+  | { type: 'SET_STICKERS'; payload: Sticker[] }
+  | { type: 'SET_ICONS'; payload: Icon[] }
+  | { type: 'SET_TEXT_POSITION'; payload: { x: number, y: number } }
+  | { type: 'SET_BACKGROUND_IMAGE'; payload: string }
+  | { type: 'SET_DRAWING'; payload: string }
+  | { type: 'SET_FILTER'; payload: string }
+  | { type: 'SET_TEXT_BOXES'; payload: TextBox[] }
+  | { type: 'ADD_TEXT_BOX'; payload: TextBox }
+  | { type: 'UPDATE_TEXT_BOX'; payload: { id: string, updates: Partial<TextBox> } }
+  | { type: 'REMOVE_TEXT_BOX'; payload: string }
+  | { type: 'RESET' }
+  | { type: 'UNDO' }
+  | { type: 'REDO' };
+
+interface EditorState {
+  currentState: JournalState;
+  history: JournalState[];
+  historyIndex: number;
+}
+
+// Initialize the editor state
+const initialEditorState: EditorState = {
+  currentState: { ...initialState },
+  history: [],
+  historyIndex: -1
+};
+
+// Create a deep copy function
+const deepCopy = <T>(obj: T): T => {
+  return JSON.parse(JSON.stringify(obj));
+};
+
+// Editor reducer
+function editorReducer(state: EditorState, action: Action): EditorState {
+  console.log("REDUCER ACTION:", action.type);
   
+  // Helper to add current state to history
+  const addToHistory = (currentState: JournalState) => {
+    // Get a copy of the current history up to the current index
+    const newHistory = state.history.slice(0, state.historyIndex + 1);
+    // Add the current state to history
+    return [...newHistory, deepCopy(currentState)];
+  };
+  
+  switch (action.type) {
+    case 'SET_STATE': {
+      return {
+        ...state,
+        currentState: action.payload,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'SET_TEXT': {
+      const newState = {
+        ...state.currentState,
+        text: action.payload
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'SET_FONT': {
+      const newState = {
+        ...state.currentState,
+        font: action.payload
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'SET_FONT_SIZE': {
+      const newState = {
+        ...state.currentState,
+        fontSize: action.payload
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'SET_FONT_WEIGHT': {
+      const newState = {
+        ...state.currentState,
+        fontWeight: action.payload
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'SET_FONT_COLOR': {
+      const newState = {
+        ...state.currentState,
+        fontColor: action.payload
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'SET_GRADIENT': {
+      const newState = {
+        ...state.currentState,
+        gradient: action.payload
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'SET_MOOD': {
+      const newState = {
+        ...state.currentState,
+        mood: action.payload
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'SET_IS_PUBLIC': {
+      const newState = {
+        ...state.currentState,
+        isPublic: action.payload
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'SET_TEXT_STYLE': {
+      const newState = {
+        ...state.currentState,
+        textStyle: action.payload
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'SET_STICKERS': {
+      const newState = {
+        ...state.currentState,
+        stickers: action.payload
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'SET_ICONS': {
+      const newState = {
+        ...state.currentState,
+        icons: action.payload
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'SET_TEXT_POSITION': {
+      const newState = {
+        ...state.currentState,
+        textPosition: action.payload
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'SET_BACKGROUND_IMAGE': {
+      const newState = {
+        ...state.currentState,
+        backgroundImage: action.payload
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'SET_DRAWING': {
+      const newState = {
+        ...state.currentState,
+        drawing: action.payload
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'SET_FILTER': {
+      const newState = {
+        ...state.currentState,
+        filter: action.payload
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'SET_TEXT_BOXES': {
+      const newState = {
+        ...state.currentState,
+        textBoxes: action.payload
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'ADD_TEXT_BOX': {
+      const newState = {
+        ...state.currentState,
+        textBoxes: [...state.currentState.textBoxes, action.payload]
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'UPDATE_TEXT_BOX': {
+      const { id, updates } = action.payload;
+      const newState = {
+        ...state.currentState,
+        textBoxes: state.currentState.textBoxes.map(box => 
+          box.id === id ? { ...box, ...updates } : box
+        )
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'REMOVE_TEXT_BOX': {
+      const newState = {
+        ...state.currentState,
+        textBoxes: state.currentState.textBoxes.filter(box => box.id !== action.payload)
+      };
+      
+      return {
+        ...state,
+        currentState: newState,
+        history: addToHistory(state.currentState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'RESET': {
+      return {
+        ...state,
+        currentState: { ...initialState },
+        history: [...state.history, deepCopy(state.currentState)],
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    case 'UNDO': {
+      console.log("UNDO: historyIndex =", state.historyIndex);
+      // Can't undo if we're at the beginning or have no history
+      if (state.historyIndex < 0 || state.history.length === 0) {
+        console.log("Cannot undo - no history or at beginning");
+        return state;
+      }
+      
+      const previousState = state.history[state.historyIndex];
+      console.log("UNDO: Previous state =", previousState);
+      
+      return {
+        ...state,
+        currentState: deepCopy(previousState),
+        historyIndex: state.historyIndex - 1
+      };
+    }
+    
+    case 'REDO': {
+      console.log("REDO: historyIndex =", state.historyIndex);
+      // Can't redo if we're at the end of the history
+      if (state.historyIndex >= state.history.length - 1) {
+        console.log("Cannot redo - at end of history");
+        return state;
+      }
+      
+      const nextState = state.history[state.historyIndex + 1];
+      console.log("REDO: Next state =", nextState);
+      
+      return {
+        ...state,
+        currentState: deepCopy(nextState),
+        historyIndex: state.historyIndex + 1
+      };
+    }
+    
+    default:
+      return state;
+  }
+}
+
+// Main hook
+export function useJournalEditor() {
   const {
-    currentEntry,
-    entries,
-    dailyChallenge,
+    currentEntry: storeEntry,
     showPreview,
-    setText,
-    setFont,
-    setFontSize,
-    setFontWeight,
-    setFontColor,
-    setGradient,
-    setMood,
-    setIsPublic,
-    setTextStyle,
-    setStickers,
-    setIcons,
-    setTextPosition,
-    setBackgroundImage,
-    setDrawing,
-    setFilter,
-    addSticker,
-    removeSticker,
-    addIcon,
-    removeIcon,
-    updateIcon,
+    dailyChallenge,
+    setText: setStoreText,
+    setFont: setStoreFont,
+    setFontSize: setStoreFontSize,
+    setFontWeight: setStoreFontWeight,
+    setFontColor: setStoreFontColor,
+    setGradient: setStoreGradient,
+    setMood: setStoreMood,
+    setIsPublic: setStoreIsPublic,
+    setTextStyle: setStoreTextStyle,
+    setStickers: setStoreStickers,
+    setIcons: setStoreIcons,
+    setTextPosition: setStoreTextPosition,
+    setBackgroundImage: setStoreBackgroundImage,
+    setDrawing: setStoreDrawing,
+    setFilter: setStoreFilter,
+    setTextBoxes: setStoreTextBoxes,
     togglePreview,
-    saveEntry,
-    loadEntries,
-    loadProgress,
+    saveEntry: storeSaveEntry,
     loadChallenge,
     applyChallenge,
-    setTextBoxes,
-    addTextBox,
-    updateTextBox,
-    removeTextBox
   } = useJournalStore();
 
-  const {
-    state: historyState,
-    setState: setHistoryState,
-    undo,
-    redo,
-    canUndo,
-    canRedo,
-    resetHistory
-  } = useUndoRedoState<HistoryEntry>({
-    text: currentEntry.text,
-    font: currentEntry.font,
-    fontSize: currentEntry.fontSize,
-    fontWeight: currentEntry.fontWeight,
-    fontColor: currentEntry.fontColor,
-    gradient: currentEntry.gradient,
-    mood: currentEntry.mood,
-    moodNote: currentEntry.moodNote,
-    isPublic: currentEntry.isPublic,
-    textStyle: currentEntry.textStyle || 'normal',
-    stickers: currentEntry.stickers || [],
-    icons: currentEntry.icons || [],
-    textPosition: currentEntry.textPosition,
-    backgroundImage: currentEntry.backgroundImage,
-    drawing: currentEntry.drawing,
-    filter: currentEntry.filter,
-    textBoxes: currentEntry.textBoxes || [],
-  });
-  
-  const {
-    localPosition,
-    containerDimensions,
-    isDraggingText,
-    handleDragStart,
-    handleDragEnd
-  } = useTextBoxPosition(currentEntry.textPosition, containerRef);
+  // Initialize state with values from the store
+  const initialStateFromStore = {
+    ...initialState,
+    ...storeEntry,
+    textBoxes: storeEntry.textBoxes || []
+  };
 
+  // Set up reducer
+  const [editorState, dispatch] = useReducer(editorReducer, {
+    ...initialEditorState,
+    currentState: initialStateFromStore
+  });
+
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [emailAddress, setEmailAddress] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isDraggingText, setIsDraggingText] = useState(false);
+  const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
+  const [selectedTextBoxId, setSelectedTextBoxId] = useState<string | null>(null);
+  
+  // Initialize data
   useEffect(() => {
     loadChallenge();
-    
-    if (entries.length === 0) {
-      loadEntries();
-    }
-    
-    loadProgress();
-  }, [loadChallenge, loadEntries, loadProgress, entries.length]);
-  
-  useEffect(() => {
-    setHistoryState({
-      text: currentEntry.text,
-      font: currentEntry.font,
-      fontSize: currentEntry.fontSize,
-      fontWeight: currentEntry.fontWeight,
-      fontColor: currentEntry.fontColor,
-      gradient: currentEntry.gradient,
-      mood: currentEntry.mood,
-      moodNote: currentEntry.moodNote,
-      isPublic: currentEntry.isPublic,
-      textStyle: currentEntry.textStyle || 'normal',
-      stickers: currentEntry.stickers || [],
-      icons: currentEntry.icons || [],
-      textPosition: currentEntry.textPosition,
-      backgroundImage: currentEntry.backgroundImage,
-      drawing: currentEntry.drawing,
-      filter: currentEntry.filter,
-      textBoxes: currentEntry.textBoxes || [],
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.email) {
+        setEmailAddress(user.email);
+      }
     });
-  }, [
-    currentEntry.text,
-    currentEntry.font,
-    currentEntry.fontSize,
-    currentEntry.fontWeight,
-    currentEntry.fontColor,
-    currentEntry.gradient,
-    currentEntry.mood,
-    currentEntry.moodNote,
-    currentEntry.isPublic,
-    currentEntry.textStyle,
-    currentEntry.stickers,
-    currentEntry.icons,
-    currentEntry.textPosition,
-    currentEntry.backgroundImage,
-    currentEntry.drawing,
-    currentEntry.filter,
-    currentEntry.textBoxes,
-    setHistoryState
-  ]);
+  }, []);
+
+  // Sync current state to store
+  useEffect(() => {
+    syncStateToStore(editorState.currentState);
+  }, [editorState.currentState]);
+
+  // Function to sync state to store
+  const syncStateToStore = (state: JournalState) => {
+    console.log("Syncing state to store:", state);
+    setStoreText(state.text);
+    setStoreFont(state.font);
+    setStoreFontSize(state.fontSize);
+    setStoreFontWeight(state.fontWeight);
+    setStoreFontColor(state.fontColor);
+    setStoreGradient(state.gradient);
+    setStoreMood(state.mood);
+    setStoreIsPublic(state.isPublic);
+    setStoreTextStyle(state.textStyle);
+    setStoreStickers(state.stickers);
+    setStoreIcons(state.icons);
+    setStoreTextPosition(state.textPosition);
+    setStoreBackgroundImage(state.backgroundImage);
+    setStoreDrawing(state.drawing);
+    setStoreFilter(state.filter);
+    setStoreTextBoxes(state.textBoxes);
+  };
+
+  // Print function
+  const handlePrint = () => {
+    window.print();
+  };
+
+  // Entry update functions using dispatch
+  const setText = (text: string) => {
+    dispatch({ type: 'SET_TEXT', payload: text });
+  };
+
+  const setFont = (font: string) => {
+    dispatch({ type: 'SET_FONT', payload: font });
+  };
+
+  const setFontSize = (fontSize: string) => {
+    dispatch({ type: 'SET_FONT_SIZE', payload: fontSize });
+  };
+
+  const setFontWeight = (fontWeight: string) => {
+    dispatch({ type: 'SET_FONT_WEIGHT', payload: fontWeight });
+  };
+
+  const setFontColor = (fontColor: string) => {
+    dispatch({ type: 'SET_FONT_COLOR', payload: fontColor });
+  };
+
+  const setGradient = (gradient: string) => {
+    dispatch({ type: 'SET_GRADIENT', payload: gradient });
+  };
+
+  const setMood = (mood: Mood) => {
+    dispatch({ type: 'SET_MOOD', payload: mood });
+  };
+
+  const setIsPublic = (isPublic: boolean) => {
+    dispatch({ type: 'SET_IS_PUBLIC', payload: isPublic });
+  };
+
+  const setTextStyle = (textStyle: string) => {
+    dispatch({ type: 'SET_TEXT_STYLE', payload: textStyle });
+  };
+
+  const setStickers = (stickers: Sticker[]) => {
+    dispatch({ type: 'SET_STICKERS', payload: stickers });
+  };
+
+  const setIcons = (icons: Icon[]) => {
+    dispatch({ type: 'SET_ICONS', payload: icons });
+  };
+
+  const setTextPosition = (textPosition: { x: number, y: number }) => {
+    dispatch({ type: 'SET_TEXT_POSITION', payload: textPosition });
+  };
+
+  const setBackgroundImage = (backgroundImage: string) => {
+    dispatch({ type: 'SET_BACKGROUND_IMAGE', payload: backgroundImage });
+  };
+
+  const setDrawing = (drawing: string) => {
+    dispatch({ type: 'SET_DRAWING', payload: drawing });
+  };
+
+  const setFilter = (filter: string) => {
+    dispatch({ type: 'SET_FILTER', payload: filter });
+  };
   
+  const setTextBoxes = (textBoxes: TextBox[]) => {
+    dispatch({ type: 'SET_TEXT_BOXES', payload: textBoxes });
+  };
+  
+  const addTextBox = (textBox: TextBox) => {
+    dispatch({ type: 'ADD_TEXT_BOX', payload: textBox });
+  };
+  
+  const updateTextBox = (id: string, updates: Partial<TextBox>) => {
+    dispatch({ type: 'UPDATE_TEXT_BOX', payload: { id, updates } });
+  };
+  
+  const removeTextBox = (id: string) => {
+    dispatch({ type: 'REMOVE_TEXT_BOX', payload: id });
+  };
+
+  // Helper functions
+  const addSticker = (sticker: Sticker) => {
+    if (sticker.id && editorState.currentState.stickers.some(s => s.id === sticker.id)) {
+      setStickers(
+        editorState.currentState.stickers.map(s => s.id === sticker.id ? sticker : s)
+      );
+    } else {
+      setStickers([...editorState.currentState.stickers, sticker]);
+    }
+  };
+
+  const addIcon = (icon: Icon) => {
+    setIcons([...editorState.currentState.icons, icon]);
+  };
+
+  const updateIcon = (iconId: string, updates: Partial<Icon>) => {
+    setIcons(
+      editorState.currentState.icons.map(icon => 
+        icon.id === iconId ? { ...icon, ...updates } : icon
+      )
+    );
+  };
+
+  const removeIcon = (iconId: string) => {
+    setIcons(editorState.currentState.icons.filter(i => i.id !== iconId));
+  };
+
+  // Handler functions
   const handleStickerAdd = (sticker: Sticker) => {
-    console.log("Adding sticker:", sticker);
-    const existingIndex = currentEntry.stickers.findIndex(s => s.id === sticker.id);
-    
-    if (existingIndex >= 0) {
-      const updatedStickers = [...currentEntry.stickers];
-      updatedStickers[existingIndex] = sticker;
-      setStickers(updatedStickers);
-    } else {
+    try {
+      console.log("Adding sticker to journal:", sticker);
       addSticker(sticker);
+    } catch (error) {
+      console.error("Error adding/updating sticker:", error);
     }
   };
-  
+
   const handleIconAdd = (icon: Icon) => {
-    console.log("Adding icon:", icon);
-    const existingIndex = currentEntry.icons.findIndex(i => i.id === icon.id);
-    
-    if (existingIndex >= 0) {
-      const updatedIcons = [...currentEntry.icons];
-      updatedIcons[existingIndex] = icon;
-      setIcons(updatedIcons);
-    } else {
-      addIcon(icon);
+    try {
+      console.log("Adding icon with ID:", icon.id, "and URL:", icon.url);
+      const completeIcon: Icon = {
+        id: icon.id,
+        url: icon.url,
+        position: icon.position || { x: 50, y: 50 },
+        size: icon.size || 48,
+        color: icon.color || '#000000',
+        style: icon.style || 'outline'
+      };
+      
+      addIcon(completeIcon);
+    } catch (error) {
+      console.error("Error adding icon:", error);
     }
-  };
-  
-  const handleStickerMove = (id: string, position: { x: number; y: number }) => {
-    const updatedStickers = currentEntry.stickers.map(sticker => 
-      sticker.id === id ? { ...sticker, position } : sticker
-    );
-    setStickers(updatedStickers);
-  };
-  
-  const handleIconMove = (id: string, position: { x: number; y: number }) => {
-    const updatedIcons = currentEntry.icons.map(icon => 
-      icon.id === id ? { ...icon, position } : icon
-    );
-    setIcons(updatedIcons);
-  };
-  
-  const handleIconUpdate = (id: string, updates: Partial<Icon>) => {
-    updateIcon(id, updates);
-  };
-  
-  const handleIconSelect = (id: string | null) => {
-    setSelectedIconId(id);
   };
   
   const handleTextBoxAdd = (textBox: TextBox) => {
-    addTextBox(textBox);
+    try {
+      console.log("Adding text box:", textBox);
+      addTextBox(textBox);
+    } catch (error) {
+      console.error("Error adding text box:", error);
+    }
   };
   
   const handleTextBoxUpdate = (id: string, updates: Partial<TextBox>) => {
-    updateTextBox(id, updates);
+    try {
+      console.log(`Updating text box ${id} with:`, updates);
+      updateTextBox(id, updates);
+    } catch (error) {
+      console.error("Error updating text box:", error);
+    }
   };
   
   const handleTextBoxRemove = (id: string) => {
-    removeTextBox(id);
+    try {
+      console.log("Removing text box with ID:", id);
+      removeTextBox(id);
+      if (selectedTextBoxId === id) {
+        setSelectedTextBoxId(null);
+      }
+    } catch (error) {
+      console.error("Error removing text box:", error);
+    }
+  };
+
+  const handleStickerMove = (stickerId: string, position: { x: number, y: number }) => {
+    try {
+      if (position.x < -900 || position.y < -900) {
+        console.log("Removing sticker with ID:", stickerId);
+        setStickers(
+          (editorState.currentState.stickers || []).filter(s => s.id !== stickerId)
+        );
+      } else {
+        setStickers(
+          (editorState.currentState.stickers || []).map(s => 
+            s.id === stickerId ? { ...s, position } : s
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error moving sticker:", error);
+    }
+  };
+
+  const handleIconMove = (iconId: string, position: { x: number, y: number }) => {
+    try {
+      console.log("Moving icon:", iconId, "to position:", position);
+      if (position.x < -900 || position.y < -900) {
+        console.log("Removing icon with ID:", iconId);
+        removeIcon(iconId);
+        setSelectedIconId(null);
+      } else {
+        const updatedIcons = (editorState.currentState.icons || []).map(i => 
+          i.id === iconId ? { ...i, position } : i
+        );
+        
+        console.log("Updated icons:", updatedIcons);
+        setIcons(updatedIcons);
+      }
+    } catch (error) {
+      console.error("Error moving/removing icon:", error);
+    }
+  };
+
+  const handleIconUpdate = (iconId: string, updates: Partial<Icon>) => {
+    try {
+      console.log(`Updating icon ${iconId} with:`, updates);
+      updateIcon(iconId, updates);
+    } catch (error) {
+      console.error("Error updating icon:", error);
+    }
+  };
+
+  const handleIconSelect = (iconId: string | null) => {
+    setSelectedIconId(iconId);
+    setSelectedTextBoxId(null);
+    console.log("Selected icon ID:", iconId);
   };
   
   const handleTextBoxSelect = (id: string | null) => {
     setSelectedTextBoxId(id);
+    setSelectedIconId(null);
+    console.log("Selected text box ID:", id);
   };
-  
-  const handleTextMove = (position: { x: number; y: number }) => {
-    setTextPosition(position);
-  };
-  
+
   const handleTextDragStart = () => {
-    handleDragStart();
+    console.log("Text drag started");
+    setIsDraggingText(true);
   };
-  
+
   const handleTextDragEnd = () => {
-    handleDragEnd();
+    console.log("Text drag ended");
+    setIsDraggingText(false);
   };
-  
-  const handleBackgroundSelect = (url: string) => {
-    setBackgroundImage(url);
+
+  const handleTextMove = (position: { x: number, y: number }) => {
+    try {
+      console.log("Moving text to:", position);
+      setTextPosition(position);
+    } catch (error) {
+      console.error("Error moving text:", error);
+    }
   };
-  
-  const handleDrawingChange = (drawing: string) => {
-    setDrawing(drawing);
+
+  const handleBackgroundSelect = (imageUrl: string) => {
+    try {
+      console.log("Setting background image to:", imageUrl);
+      setBackgroundImage(imageUrl);
+    } catch (error) {
+      console.error("Error selecting background:", error);
+    }
   };
-  
-  const handleFilterChange = (filter: string) => {
-    setFilter(filter);
+
+  const handleDrawingChange = (dataUrl: string) => {
+    try {
+      setDrawing(dataUrl);
+    } catch (error) {
+      console.error("Error updating drawing:", error);
+    }
   };
-  
+
+  const handleFilterChange = (filterId: string) => {
+    try {
+      setFilter(filterId);
+    } catch (error) {
+      console.error("Error applying filter:", error);
+    }
+  };
+
   const handleEmojiSelect = (emojiData: EmojiClickData) => {
-    if (textareaRef.current) {
-      const { selectionStart, selectionEnd, value } = textareaRef.current;
-      const emoji = (emojiData as any).native || emojiData.emoji;
+    try {
+      if (!textareaRef.current) return;
+
+      const start = textareaRef.current.selectionStart;
+      const end = textareaRef.current.selectionEnd;
+      const text = editorState.currentState.text;
       
-      const updatedText = 
-        value.substring(0, selectionStart) + 
-        emoji + 
-        value.substring(selectionEnd);
+      const newText = text.substring(0, start) + emojiData.emoji + text.substring(end);
       
-      setText(updatedText);
+      setText(newText);
       
       setTimeout(() => {
         if (textareaRef.current) {
-          const newCursorPosition = selectionStart + emoji.length;
+          const newCursorPos = start + emojiData.emoji.length;
+          textareaRef.current.selectionStart = newCursorPos;
+          textareaRef.current.selectionEnd = newCursorPos;
           textareaRef.current.focus();
-          textareaRef.current.setSelectionRange(newCursorPosition, newCursorPosition);
         }
       }, 0);
+    } catch (error) {
+      console.error("Error selecting emoji:", error);
+    }
+  };
+
+  // Handler for font size that adjusts icon size when needed
+  const handleFontSizeChange = (size: string) => {
+    if (selectedIconId) {
+      console.log("Setting size for icon:", selectedIconId, "to:", size);
+      const sizeValue = parseInt(size);
+      if (!isNaN(sizeValue)) {
+        handleIconUpdate(selectedIconId, { size: sizeValue });
+      }
+    } else if (selectedTextBoxId) {
+      console.log("Setting font size for text box:", selectedTextBoxId, "to:", size);
+      handleTextBoxUpdate(selectedTextBoxId, { fontSize: size });
     } else {
-      const emoji = (emojiData as any).native || emojiData.emoji;
-      setText(currentEntry.text + emoji);
+      setFontSize(size);
     }
   };
-  
-  const handleUndo = () => {
-    const previousState = undo();
-    if (previousState) {
-      setText(previousState.text);
-      setFont(previousState.font);
-      setFontSize(previousState.fontSize);
-      setFontWeight(previousState.fontWeight);
-      setFontColor(previousState.fontColor);
-      setGradient(previousState.gradient);
-      setMood(previousState.mood);
-      setIsPublic(previousState.isPublic);
-      setTextStyle(previousState.textStyle);
-      setStickers(previousState.stickers);
-      setIcons(previousState.icons);
-      setTextPosition(previousState.textPosition);
-      setBackgroundImage(previousState.backgroundImage || '');
-      setDrawing(previousState.drawing || '');
-      setFilter(previousState.filter || 'none');
-      setTextBoxes(previousState.textBoxes);
+
+  const handleFontWeightChange = (weight: string) => {
+    if (selectedTextBoxId) {
+      console.log("Setting font weight for text box:", selectedTextBoxId, "to:", weight);
+      handleTextBoxUpdate(selectedTextBoxId, { fontWeight: weight });
+    } else if (!selectedIconId) {
+      setFontWeight(weight);
     }
   };
-  
-  const handleRedo = () => {
-    const nextState = redo();
-    if (nextState) {
-      setText(nextState.text);
-      setFont(nextState.font);
-      setFontSize(nextState.fontSize);
-      setFontWeight(nextState.fontWeight);
-      setFontColor(nextState.fontColor);
-      setGradient(nextState.gradient);
-      setMood(nextState.mood);
-      setIsPublic(nextState.isPublic);
-      setTextStyle(nextState.textStyle);
-      setStickers(nextState.stickers);
-      setIcons(nextState.icons);
-      setTextPosition(nextState.textPosition);
-      setBackgroundImage(nextState.backgroundImage || '');
-      setDrawing(nextState.drawing || '');
-      setFilter(nextState.filter || 'none');
-      setTextBoxes(nextState.textBoxes);
+
+  const handleFontChange = (font: string) => {
+    if (selectedTextBoxId) {
+      console.log("Setting font for text box:", selectedTextBoxId, "to:", font);
+      handleTextBoxUpdate(selectedTextBoxId, { font });
+    } else if (!selectedIconId) {
+      setFont(font);
     }
   };
-  
-  const handleResetToDefault = () => {
-    setText('');
-    setFont('inter');
-    setFontSize('16px');
-    setFontWeight('normal');
-    setFontColor('#000000');
-    setGradient('none');
-    setMood(undefined);
-    setIsPublic(false);
-    setTextStyle('normal');
-    setStickers([]);
-    setIcons([]);
-    setTextPosition({ x: 50, y: 50 });
-    setBackgroundImage('');
-    setDrawing('');
-    setFilter('none');
-    setTextBoxes([]);
-    resetHistory({
-      text: '',
-      font: 'inter',
-      fontSize: '16px',
-      fontWeight: 'normal',
-      fontColor: '#000000',
-      gradient: 'none',
-      mood: undefined,
-      moodNote: undefined,
-      isPublic: false,
-      textStyle: 'normal',
-      stickers: [],
-      icons: [],
-      textPosition: { x: 50, y: 50 },
-      backgroundImage: undefined,
-      drawing: undefined,
-      filter: 'none',
-      textBoxes: [],
-    });
-    toast.success('Reset to default settings');
+
+  const handleFontColorChange = (color: string) => {
+    if (selectedIconId) {
+      console.log("Setting color for icon:", selectedIconId, "to:", color);
+      handleIconUpdate(selectedIconId, { color });
+    } else if (selectedTextBoxId) {
+      console.log("Setting font color for text box:", selectedTextBoxId, "to:", color);
+      handleTextBoxUpdate(selectedTextBoxId, { fontColor: color });
+    } else {
+      setFontColor(color);
+    }
   };
-  
-  const handlePrint = async () => {
-    try {
-      const element = document.querySelector('.max-w-2xl');
-      if (!element) {
-        toast.error('Could not find journal element');
+
+  const handleGradientChange = (gradient: string) => {
+    if (selectedTextBoxId) {
+      console.log("Setting gradient for text box:", selectedTextBoxId, "to:", gradient);
+      handleTextBoxUpdate(selectedTextBoxId, { gradient });
+    } else if (!selectedIconId) {
+      console.log("Setting gradient to:", gradient);
+      setGradient(gradient);
+    }
+  };
+
+  const handleTextStyleChange = (style: string) => {
+    if (selectedTextBoxId) {
+      console.log("Setting text style for text box:", selectedTextBoxId, "to:", style);
+      handleTextBoxUpdate(selectedTextBoxId, { textStyle: style });
+    } else if (!selectedIconId) {
+      setTextStyle(style);
+    }
+  };
+
+  const handleImageUpload = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      if (!file.type.startsWith('image/')) {
+        reject(new Error('Please upload an image file'));
         return;
       }
-      
-      toast.info('Preparing PDF...');
-      
-      const canvas = await html2canvas(element as HTMLElement, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: null,
-      });
-      
-      const imgData = canvas.toDataURL('image/png');
-      
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
-      
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save('journal-entry.pdf');
-      
-      toast.success('PDF downloaded');
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      toast.error('Failed to generate PDF');
-    }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (typeof e.target?.result === 'string') {
+          resolve(e.target.result);
+        } else {
+          reject(new Error('Failed to read image'));
+        }
+      };
+      reader.onerror = () => {
+        reject(new Error('Failed to read image'));
+      };
+      reader.readAsDataURL(file);
+    });
   };
-  
+
   const handleSendEmail = async () => {
     if (!emailAddress) {
-      toast.error('Please enter an email address');
       return;
     }
-    
+
+    if (!editorState.currentState.text.trim()) {
+      return;
+    }
+
     setIsSending(true);
-    
     try {
-      const element = document.querySelector('.max-w-2xl');
-      if (!element) {
-        toast.error('Could not find journal element');
-        setIsSending(false);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
         return;
       }
-      
-      const canvas = await html2canvas(element as HTMLElement, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: null,
-      });
-      
-      const imageDataUrl = canvas.toDataURL('image/png');
-      
-      const { error } = await supabase.functions.invoke('send-journal', {
+
+      const response = await supabase.functions.invoke('send-journal', {
         body: {
-          email: emailAddress,
-          imageData: imageDataUrl,
-          text: currentEntry.text
-        }
+          to: emailAddress,
+          text: editorState.currentState.text,
+          mood: editorState.currentState.mood,
+          date: new Date().toISOString(),
+        },
       });
-      
-      if (error) throw error;
-      
-      toast.success('Journal sent to your email');
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
       setShowEmailDialog(false);
-    } catch (error) {
-      console.error('Error sending email:', error);
-      toast.error('Failed to send email');
+    } catch (error: any) {
+      console.error("Error sending email:", error);
     } finally {
       setIsSending(false);
     }
   };
-  
-  const handleImageUpload = async (file: File): Promise<string> => {
+
+  // Reset function
+  const handleResetToDefault = () => {
+    console.log("Resetting journal to default");
+    dispatch({ type: 'RESET' });
+  };
+
+  // Undo function
+  const handleUndo = () => {
     try {
-      const fileName = `${Date.now()}-${file.name}`;
-      const { data, error } = await supabase.storage
-        .from('journal-images')
-        .upload(`public/${fileName}`, file);
-      
-      if (error) throw error;
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from('journal-images')
-        .getPublicUrl(`public/${fileName}`);
-      
-      return publicUrl;
+      console.log("Attempting UNDO - History index:", editorState.historyIndex, "History length:", editorState.history.length);
+      dispatch({ type: 'UNDO' });
+      return true;
     } catch (error) {
-      console.error('Error uploading image:', error);
-      toast.error('Failed to upload image');
-      return '';
+      console.error("Error during undo:", error);
+      return false;
     }
   };
-  
-  const handleFontChange = (font: string) => {
-    setFont(font);
+
+  // Redo function
+  const handleRedo = () => {
+    try {
+      console.log("Attempting REDO - History index:", editorState.historyIndex, "History length:", editorState.history.length);
+      dispatch({ type: 'REDO' });
+      return true;
+    } catch (error) {
+      console.error("Error during redo:", error);
+      return false;
+    }
   };
-  
-  const handleFontSizeChange = (size: string) => {
-    setFontSize(size);
+
+  // Save function
+  const saveEntry = async () => {
+    try {
+      syncStateToStore(editorState.currentState);
+      await storeSaveEntry();
+      dispatch({ type: 'RESET' });
+    } catch (error) {
+      console.error("Error saving entry:", error);
+    }
   };
-  
-  const handleFontWeightChange = (weight: string) => {
-    setFontWeight(weight);
-  };
-  
-  const handleFontColorChange = (color: string) => {
-    setFontColor(color);
-  };
-  
-  const handleGradientChange = (gradient: string) => {
-    setGradient(gradient);
-  };
-  
-  const handleTextStyleChange = (style: string) => {
-    setTextStyle(style);
-  };
-  
+
   return {
-    currentEntry,
-    entries,
+    currentEntry: editorState.currentState,
     showPreview,
     dailyChallenge,
     showEmailDialog,
     emailAddress,
     isSending,
     textareaRef,
+    isDraggingText,
     selectedIconId,
     selectedTextBoxId,
-    containerRef,
     handlePrint,
     handleStickerAdd,
     handleIconAdd,
@@ -519,7 +1008,7 @@ export function useJournalEditor() {
     handleUndo,
     handleRedo,
     handleResetToDefault,
-    canUndo,
-    canRedo,
+    canUndo: editorState.historyIndex >= 0,
+    canRedo: editorState.historyIndex < editorState.history.length - 1,
   };
 }

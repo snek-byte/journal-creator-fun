@@ -1,7 +1,0 @@
-
-<svg width="640" height="640" viewBox="0 0 640 640" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="640" height="640" fill="transparent"/>
-  <path d="M40 100 C100 60, 140 140, 200 100 C260 60, 300 140, 360 100 C420 60, 460 140, 520 100 C580 60, 620 140, 640 100 
-           L640 540 C580 580, 540 500, 480 540 C420 580, 380 500, 320 540 C260 580, 220 500, 160 540 C100 580, 60 500, 0 540 L0 100 Z" 
-        stroke="#2a9d8f" stroke-width="3" fill="transparent"/>
-</svg>

@@ -31,7 +31,6 @@ const App = () => {
               <Route path="/write" element={<Write />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/journal" element={<Write />} /> {/* Explicit journal route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
             <ToastViewport />
@@ -41,6 +40,6 @@ const App = () => {
       </QueryClientProvider>
     </BrowserRouter>
   );
-}
+};
 
 export default App;

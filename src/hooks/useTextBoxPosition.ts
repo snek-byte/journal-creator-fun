@@ -12,7 +12,6 @@ export function useTextBoxPosition(
 ) {
   const [localPosition, setLocalPosition] = useState<Position>({ x: 0, y: 0 });
   const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
-  const [isDraggingText, setIsDraggingText] = useState(false);
 
   // Track container dimensions
   useEffect(() => {
@@ -54,20 +53,5 @@ export function useTextBoxPosition(
     }
   }, [position, containerDimensions]);
 
-  // Add drag handling functions
-  const handleDragStart = () => {
-    setIsDraggingText(true);
-  };
-
-  const handleDragEnd = () => {
-    setIsDraggingText(false);
-  };
-
-  return { 
-    localPosition, 
-    containerDimensions, 
-    isDraggingText, 
-    handleDragStart, 
-    handleDragEnd 
-  };
+  return { localPosition, containerDimensions };
 }

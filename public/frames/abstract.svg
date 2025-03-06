@@ -1,9 +1,0 @@
-
-<svg width="640" height="640" viewBox="0 0 640 640" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="640" height="640" fill="transparent"/>
-  <path d="M40 320 C40 165, 165 40, 320 40 C475 40, 600 165, 600 320 C600 475, 475 600, 320 600 C165 600, 40 475, 40 320 Z" 
-        stroke="#333" stroke-width="5" fill="transparent"/>
-  <path d="M320 80 L580 320 L320 560 L60 320 Z" stroke="#333" stroke-width="3" fill="transparent"/>
-  <path d="M140 140 C140 140, 200 180, 320 140 C440 100, 500 140, 500 140" stroke="#333" stroke-width="2" fill="transparent"/>
-  <path d="M140 500 C140 500, 200 460, 320 500 C440 540, 500 500, 500 500" stroke="#333" stroke-width="2" fill="transparent"/>
-</svg>

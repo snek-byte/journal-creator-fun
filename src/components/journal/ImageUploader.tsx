@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ImagePlus, UploadCloud, Image as ImageIcon, Loader2, File, Music } from "lucide-react";
+import { ImagePlus, UploadCloud, Image as ImageIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -53,10 +53,12 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
     if (open) {
       fetchUserImages();
       
+      // Create the bucket if it doesn't exist
       const checkStorageBucket = async () => {
         try {
           console.log("ImageUploader: Checking storage buckets");
           
+          // First check if the bucket exists
           const { data: buckets, error: bucketsError } = await supabase
             .storage
             .listBuckets();
@@ -68,6 +70,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
           
           console.log("ImageUploader: Available buckets:", buckets.map(b => b.name).join(', '));
           
+          // If journal-images bucket doesn't exist, show a warning
           if (!buckets.some(bucket => bucket.name === 'journal-images')) {
             console.warn('journal-images bucket not found. Please create it in the Supabase dashboard.');
             toast.warning('Image storage not fully configured. Contact administrator.');
@@ -93,9 +96,15 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
 
     console.log("ImageUploader: File selected for upload:", file.name, file.type, file.size);
 
-    const maxFileSize = 20 * 1024 * 1024; // 20MB in bytes
-    if (file.size > maxFileSize) {
-      toast.error('File too large. Maximum size is 20MB.');
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image too large. Maximum size is 5MB.');
+      return;
+    }
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Only image files are allowed.');
       return;
     }
 
@@ -103,30 +112,27 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error('Please sign in to upload files');
+        toast.error('Please sign in to upload images');
         return;
       }
 
       console.log("ImageUploader: Authenticated as user:", user.id);
 
+      // Generate a unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
       
       console.log("ImageUploader: Uploading with filename:", fileName);
       
+      // Upload to Supabase Storage
       const { data, error } = await supabase.storage
         .from('journal-images')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false,
-        });
+        .upload(fileName, file);
 
       if (error) {
         console.error("Upload error:", error);
         if (error.message.includes('bucket') || error.message.includes('not found')) {
           toast.error('Storage bucket not found. Please contact administrator.');
-        } else if (error.message.includes('timeout') || error.message.includes('aborted')) {
-          toast.error('Upload timed out. Please try with a smaller file or check your connection.');
         } else {
           toast.error(`Upload error: ${error.message}`);
         }
@@ -135,6 +141,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
 
       console.log("ImageUploader: Upload successful, getting public URL");
 
+      // Get the public URL
       const { data: publicUrlData } = supabase.storage
         .from('journal-images')
         .getPublicUrl(fileName);
@@ -143,6 +150,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
 
       console.log("ImageUploader: Public URL obtained:", publicUrlData.publicUrl);
 
+      // Store reference in database
       const { error: dbError } = await supabase
         .from('user_images')
         .insert({
@@ -156,23 +164,24 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
         throw dbError;
       }
 
+      // Update local state
       setUploadedImages(prev => [publicUrlData.publicUrl, ...prev]);
-      toast.success('File uploaded successfully!');
-      console.log("ImageUploader: File successfully uploaded and saved");
+      toast.success('Image uploaded successfully!');
+      console.log("ImageUploader: Image successfully uploaded and saved");
     } catch (error: any) {
-      console.error('Error uploading file:', error);
+      console.error('Error uploading image:', error);
       
+      // More user-friendly error messages
       if (error.message?.includes('bucket') || error.message?.includes('not found')) {
         toast.error('Storage not properly configured. Please contact administrator.');
       } else if (error.message?.includes('permission')) {
-        toast.error('You don\'t have permission to upload files.');
-      } else if (error.message?.includes('size') || error.message?.includes('large')) {
-        toast.error('This file is too large to upload. Please try a smaller file.');
+        toast.error('You don\'t have permission to upload images.');
       } else {
-        toast.error(error.message || 'Failed to upload file');
+        toast.error(error.message || 'Failed to upload image');
       }
     } finally {
       setIsUploading(false);
+      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -182,10 +191,12 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
   const handleImageSelect = (url: string) => {
     onImageSelect(url);
     setOpen(false);
-    toast.success('File selected for your journal');
+    toast.success('Image selected for your journal');
   };
 
+  // Helper function to render placeholder images
   const renderPlaceholderImages = () => {
+    // Show these nice placeholders if no images are uploaded yet
     const placeholders = [
       'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=500&auto=format',
       'https://images.unsplash.com/photo-1580137189272-c9379f8864fd?w=500&auto=format',
@@ -225,14 +236,14 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
           variant="ghost" 
           size="icon" 
           className="hover:bg-accent hover:text-accent-foreground"
-          title="Upload or select file"
+          title="Upload or select image"
         >
           <ImagePlus className="w-4 h-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Your Journal Files</DialogTitle>
+          <DialogTitle>Your Journal Images</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
@@ -250,7 +261,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
               ) : (
                 <>
                   <UploadCloud className="mr-2 h-4 w-4" />
-                  Upload File (Max 20MB)
+                  Upload Image
                 </>
               )}
             </Button>
@@ -258,6 +269,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
               type="file"
               ref={fileInputRef}
               onChange={handleFileChange}
+              accept="image/*"
               className="hidden"
             />
           </div>
@@ -270,28 +282,12 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
                   className="relative aspect-square overflow-hidden border rounded-md cursor-pointer hover:opacity-90 transition-opacity"
                   onClick={() => handleImageSelect(url)}
                 >
-                  {url.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) ? (
-                    <img 
-                      src={url} 
-                      alt={`Uploaded file ${index + 1}`} 
-                      className="object-cover w-full h-full"
-                      loading="lazy"
-                    />
-                  ) : url.match(/\.(mp3|wav|ogg|m4a|flac|aac)$/i) ? (
-                    <div className="flex flex-col items-center justify-center w-full h-full bg-gray-100">
-                      <Music className="h-10 w-10 text-gray-400" />
-                      <span className="text-xs mt-2 text-gray-500 text-center px-2 truncate w-full">
-                        {url.split('/').pop()?.split('-').slice(1).join('-')}
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center w-full h-full bg-gray-100">
-                      <File className="h-10 w-10 text-gray-400" />
-                      <span className="text-xs mt-2 text-gray-500 text-center px-2 truncate w-full">
-                        {url.split('/').pop()?.split('-').slice(1).join('-')}
-                      </span>
-                    </div>
-                  )}
+                  <img 
+                    src={url} 
+                    alt={`Uploaded image ${index + 1}`} 
+                    className="object-cover w-full h-full"
+                    loading="lazy"
+                  />
                 </div>
               ))}
             </div>
@@ -299,7 +295,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
             <div className="space-y-4">
               <div className="text-center py-4 text-muted-foreground">
                 <ImageIcon className="mx-auto h-12 w-12 opacity-20" />
-                <p className="mt-2">No uploaded files yet</p>
+                <p className="mt-2">No uploaded images yet</p>
               </div>
               
               {renderPlaceholderImages()}

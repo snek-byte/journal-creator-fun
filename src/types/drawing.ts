@@ -6,17 +6,12 @@ export interface Point {
 
 export interface DrawingLayerProps {
   className?: string;
-  width?: number;
-  height?: number;
+  width: number;
+  height: number;
   onDrawingChange?: (dataUrl: string) => void;
   tool?: string;
   color?: string;
   brushSize?: number;
   initialDrawing?: string;
   onClear?: () => void;
-  // These properties directly match what's used in JournalPreview.tsx
-  drawing?: string;
-  drawingTool?: string;
-  drawingColor?: string;
-  isDrawingMode?: boolean;
 }

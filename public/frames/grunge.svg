@@ -1,6 +1,0 @@
-
-<svg width="640" height="640" viewBox="0 0 640 640" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="640" height="640" fill="transparent"/>
-  <path d="M40 40 L60 35 L70 45 L80 30 L100 40 L600 40 L605 60 L595 70 L610 80 L600 100 L600 600 L580 605 L570 595 L560 610 L540 600 L40 600 L35 580 L45 570 L30 560 L40 540 L40 40 Z" stroke="#555" stroke-width="4" fill="transparent"/>
-  <path d="M60 60 L580 60 L580 580 L60 580 L60 60 Z" stroke="#555" stroke-width="2" fill="transparent"/>
-</svg>
