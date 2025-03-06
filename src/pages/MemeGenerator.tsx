@@ -49,6 +49,12 @@ export default function MemeGenerator() {
     }
   };
 
+  // Handle background removal
+  const handleBackgroundRemove = () => {
+    setTemplate('');
+    toast.success('Background image removed');
+  };
+
   // Handle file upload
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -87,6 +93,7 @@ export default function MemeGenerator() {
             frame={selectedFrame}
             backgroundColor={selectedBackground}
             onTemplateClick={handleTemplateClick}
+            onBackgroundRemove={handleBackgroundRemove}
           />
           <input 
             type="file" 

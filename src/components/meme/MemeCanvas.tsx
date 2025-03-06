@@ -2,6 +2,7 @@
 import { useRef, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import html2canvas from 'html2canvas';
+import { X } from 'lucide-react';
 
 interface MemeCanvasProps {
   template: string;
@@ -17,6 +18,7 @@ interface MemeCanvasProps {
   frame?: string;
   backgroundColor?: string;
   onTemplateClick?: () => void;
+  onBackgroundRemove?: () => void;
 }
 
 export function MemeCanvas({
@@ -32,7 +34,8 @@ export function MemeCanvas({
   gradient,
   frame = '',
   backgroundColor = '#ffffff',
-  onTemplateClick
+  onTemplateClick,
+  onBackgroundRemove
 }: MemeCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -136,6 +139,15 @@ export function MemeCanvas({
   const isCollageFrame = frame && frame.includes('collage');
   const isBirthdayFrame = frame && frame.includes('birthday');
   const isInstantPhotoFrame = frame && frame.includes('instant-photo');
+  const isSocialMediaFrame = frame && frame.includes('social-media');
+
+  // Function to handle background removal
+  const handleBackgroundRemove = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering canvas click
+    if (onBackgroundRemove) {
+      onBackgroundRemove();
+    }
+  };
 
   return (
     <Card className="p-3 w-full flex justify-center bg-gray-100">
@@ -153,15 +165,27 @@ export function MemeCanvas({
             backgroundColor: backgroundColor || '#ffffff'
           }}
         >
+          {/* Background or template image layer */}
           {template ? (
-            <img
-              src={template}
-              alt="Background template"
-              className="absolute inset-0 w-full h-full object-cover"
-              onLoad={handleImageLoad}
-              onError={handleImageError}
-              crossOrigin="anonymous"
-            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <img
+                src={template}
+                alt="Background template"
+                className="max-w-full max-h-full object-contain"
+                onLoad={handleImageLoad}
+                onError={handleImageError}
+                crossOrigin="anonymous"
+                style={{zIndex: 1}}
+              />
+              {/* Remove background button */}
+              <button 
+                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors z-50"
+                onClick={handleBackgroundRemove}
+                title="Remove background"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           ) : (
             <div 
               className="absolute inset-0 flex items-center justify-center bg-gray-50 cursor-pointer"
@@ -171,34 +195,38 @@ export function MemeCanvas({
             </div>
           )}
 
+          {/* Frame layer */}
+          {frame && (
+            <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+              <img
+                src={frame}
+                alt="Frame"
+                className="max-w-full max-h-full object-contain"
+                onLoad={handleFrameLoad}
+                onError={handleFrameError}
+                crossOrigin="anonymous"
+                style={{ 
+                  mixBlendMode: 'normal',
+                  opacity: 1
+                }}
+              />
+            </div>
+          )}
+
+          {/* Text layers */}
           <div
-            className="absolute top-0 left-0 right-0 flex items-start justify-center pt-4 z-10"
+            className="absolute top-0 left-0 right-0 flex items-start justify-center pt-4 z-40"
             style={textStyle1}
           >
             {topText}
           </div>
           
           <div
-            className="absolute bottom-0 left-0 right-0 flex items-end justify-center pb-4 z-10"
+            className="absolute bottom-0 left-0 right-0 flex items-end justify-center pb-4 z-40"
             style={textStyle1}
           >
             {bottomText}
           </div>
-
-          {frame && (
-            <img
-              src={frame}
-              alt="Frame"
-              className="absolute inset-0 w-full h-full object-contain z-20 pointer-events-none"
-              onLoad={handleFrameLoad}
-              onError={handleFrameError}
-              crossOrigin="anonymous"
-              style={{ 
-                mixBlendMode: 'normal',
-                opacity: 1
-              }}
-            />
-          )}
         </div>
       </div>
     </Card>
