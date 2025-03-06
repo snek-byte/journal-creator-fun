@@ -117,6 +117,24 @@ export default function FrameTemplateSelector({ onSelect, selectedFrame }: Frame
     return framePath.split('/').pop()?.replace('.svg', '').replace(/-/g, ' ') || '';
   };
   
+  // Function to calculate correct positioning for the preview image inside each frame
+  const getFramePreviewStyle = (framePath: string) => {
+    // Different frames need different padding for the preview image
+    if (framePath.includes('shadow-box')) {
+      return { margin: '25%' }; // Shadow box needs more padding
+    } else if (framePath.includes('polaroid')) {
+      return { margin: '20% 15% 35% 15%' }; // Polaroid has more padding at bottom
+    } else if (framePath.includes('taped')) {
+      return { margin: '22%' }; // Taped frame
+    } else if (framePath.includes('photo-frame')) {
+      return { margin: '15%' }; // Photo frame
+    } else if (framePath.includes('rounded') || framePath.includes('basic-border')) {
+      return { margin: '10%' }; // Simple frames
+    }
+    // Default for other frames
+    return { margin: '18%' };
+  };
+  
   return (
     <div className="space-y-6">
       {Object.entries(categories).map(([category, categoryFrames]) => (
@@ -134,8 +152,11 @@ export default function FrameTemplateSelector({ onSelect, selectedFrame }: Frame
               >
                 <div className="aspect-square bg-gray-50 rounded flex items-center justify-center overflow-hidden">
                   <div className="relative w-full h-full flex items-center justify-center">
-                    {/* Sample image square in the center of the frame */}
-                    <div className="absolute inset-0 m-6 bg-gray-300 rounded-sm"></div>
+                    {/* Sample image square that properly fits inside the frame */}
+                    <div 
+                      className="absolute bg-gray-300 rounded-sm"
+                      style={getFramePreviewStyle(frame)}
+                    ></div>
                     <img 
                       src={frame} 
                       alt={`Frame ${index + 1}`} 

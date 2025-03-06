@@ -78,8 +78,13 @@ export const applyFrameToImage = async (
           const centeredOffsetX = padding + (innerWidth - scaledWidth) / 2;
           const centeredOffsetY = padding + (innerHeight - scaledHeight) / 2;
           
+          // For shadow-box, draw everything in correct order
           if (framePath.includes('shadow-box')) {
-            // Draw the image first
+            // First draw a white background for the shadow box
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Then draw the image centered in the frame's inner area
             ctx.save();
             
             // Move to center for rotation
@@ -89,13 +94,18 @@ export const applyFrameToImage = async (
             ctx.translate(centerX, centerY);
             ctx.rotate((rotation * Math.PI) / 180);
             
+            // Calculate the properly scaled image dimensions
+            const imageSize = Math.min(scaledWidth, scaledHeight);
+            const scaledImageWidth = imgAspect >= 1 ? imageSize : imageSize * imgAspect;
+            const scaledImageHeight = imgAspect >= 1 ? imageSize / imgAspect : imageSize;
+            
             // Draw the image centered
             ctx.drawImage(
               img,
-              -scaledWidth / 2,
-              -scaledHeight / 2,
-              scaledWidth,
-              scaledHeight
+              -scaledImageWidth / 2,
+              -scaledImageHeight / 2,
+              scaledImageWidth,
+              scaledImageHeight
             );
             
             ctx.restore();
@@ -161,7 +171,7 @@ export const applyFrameToImage = async (
  */
 const calculatePadding = (framePath: string): number => {
   if (framePath.includes('shadow-box')) {
-    return 90; // Increased padding for shadow box
+    return 95; // Increased padding for shadow box
   } else if (framePath.includes('polaroid')) {
     return 90; // Polaroid has more padding at the bottom
   } else if (framePath.includes('certificate') || framePath.includes('fancy')) {

@@ -1,11 +1,15 @@
 
 <svg width="640" height="640" viewBox="0 0 640 640" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="10" stdDeviation="15" flood-opacity="0.3"/>
     </filter>
   </defs>
   <rect width="640" height="640" fill="transparent"/>
+  <!-- This is the shadow box container -->
   <rect x="70" y="70" width="500" height="500" rx="4" fill="white" filter="url(#shadow)"/>
+  <!-- This is the border -->
   <rect x="70" y="70" width="500" height="500" rx="4" fill="none" stroke="#E0E0E0" stroke-width="1"/>
+  <!-- This is the image area - transparent so image shows through -->
+  <rect x="95" y="95" width="450" height="450" rx="2" fill="transparent"/>
 </svg>
