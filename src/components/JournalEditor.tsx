@@ -1,4 +1,3 @@
-
 import { useJournalEditor } from '@/hooks/useJournalEditor';
 import { JournalEditorSidebar } from './journal/JournalEditorSidebar';
 import { JournalPreview } from './journal/JournalPreview';
@@ -173,6 +172,32 @@ export function JournalEditor() {
   const handleAudioUpdate = (audio: AudioTrack) => {
     if (handleAudioChange) {
       handleAudioChange(audio);
+    }
+  };
+
+  const handleStickerMove = (id: string, position: { x: number; y: number }) => {
+    if (id && position && typeof position.x === 'number' && typeof position.y === 'number') {
+      const stickers = currentEntry.stickers || [];
+      const updatedStickers = stickers.map(sticker => 
+        sticker.id === id ? { ...sticker, position } : sticker
+      );
+      handleStickerAdd({
+        ...stickers.find(s => s.id === id),
+        position
+      } as Sticker);
+    }
+  };
+
+  const handleIconMove = (id: string, position: { x: number; y: number }) => {
+    if (id && position && typeof position.x === 'number' && typeof position.y === 'number') {
+      const icons = currentEntry.icons || [];
+      const icon = icons.find(i => i.id === id);
+      if (icon) {
+        handleIconAdd({
+          ...icon,
+          position
+        });
+      }
     }
   };
 

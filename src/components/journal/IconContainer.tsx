@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { Icon } from '@/types/journal';
 import { X } from 'lucide-react';
@@ -7,8 +6,8 @@ interface IconContainerProps {
   icon: Icon;
   selected: boolean;
   onSelect: (id: string) => void;
-  onMove: (id: string, position: { x: number, y: number }) => void;
-  onUpdate: (id: string, updates: Partial<Icon>) => void;
+  onMove: (position: { x: number, y: number }) => void;
+  onUpdate: (updates: Partial<Icon>) => void;
   containerRef: React.RefObject<HTMLDivElement>;
   style?: React.CSSProperties;
 }
@@ -47,25 +46,25 @@ export function IconContainer({
       switch (e.key) {
         case 'ArrowLeft':
           e.preventDefault();
-          onMove(icon.id, { x: x - STEP, y });
+          onMove({ x: x - STEP, y });
           break;
         case 'ArrowRight':
           e.preventDefault();
-          onMove(icon.id, { x: x + STEP, y });
+          onMove({ x: x + STEP, y });
           break;
         case 'ArrowUp':
           e.preventDefault();
-          onMove(icon.id, { x, y: y - STEP });
+          onMove({ x, y: y - STEP });
           break;
         case 'ArrowDown':
           e.preventDefault();
-          onMove(icon.id, { x, y: y + STEP });
+          onMove({ x, y: y + STEP });
           break;
         case 'Delete':
         case 'Backspace':
           e.preventDefault();
           // Move the icon far off-screen to trigger deletion
-          onMove(icon.id, { x: -1000, y: -1000 });
+          onMove({ x: -1000, y: -1000 });
           break;
         case '+':
         case '=':
@@ -125,7 +124,7 @@ export function IconContainer({
       const newY = startPositionY + deltaYPercent;
       
       // Update icon position
-      onMove(icon.id, { x: newX, y: newY });
+      onMove({ x: newX, y: newY });
     };
     
     const handleMouseUp = () => {
@@ -181,7 +180,7 @@ export function IconContainer({
       const newY = startPositionY + deltaYPercent;
       
       // Update icon position
-      onMove(icon.id, { x: newX, y: newY });
+      onMove({ x: newX, y: newY });
     };
     
     const handleTouchEnd = () => {
@@ -197,7 +196,7 @@ export function IconContainer({
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    onMove(icon.id, { x: -1000, y: -1000 });
+    onMove({ x: -1000, y: -1000 });
   };
   
   // Determine if the icon is an SVG from react-icons or a URL
@@ -267,7 +266,7 @@ export function IconContainer({
           onClick={handleDelete}
           onTouchEnd={(e) => {
             e.stopPropagation();
-            onMove(icon.id, { x: -1000, y: -1000 });
+            onMove({ x: -1000, y: -1000 });
           }}
           aria-label="Delete icon"
         >
