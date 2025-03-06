@@ -364,14 +364,11 @@ function editorReducer(state: EditorState, action: Action): EditorState {
     }
     
     case 'RESET': {
-      console.log("Resetting journal to default");
-      const freshState = deepCopy(initialState);
-      console.log("Fresh reset state:", freshState);
-      
       return {
-        currentState: freshState,
-        history: [],
-        historyIndex: -1
+        ...state,
+        currentState: { ...initialState },
+        history: [...state.history, deepCopy(state.currentState)],
+        historyIndex: state.historyIndex + 1
       };
     }
     
@@ -923,30 +920,8 @@ export function useJournalEditor() {
 
   // Reset function
   const handleResetToDefault = () => {
-    console.log("Starting reset to default");
-    
-    // First reset through the reducer
+    console.log("Resetting journal to default");
     dispatch({ type: 'RESET' });
-    
-    // Immediately reset all store values
-    setStoreText('');
-    setStoreFont('sans-serif');
-    setStoreFontSize('16px');
-    setStoreFontWeight('normal');
-    setStoreFontColor('#000000');
-    setStoreGradient('');
-    setStoreMood(undefined);
-    setStoreIsPublic(false);
-    setStoreTextStyle('');
-    setStoreStickers([]);
-    setStoreIcons([]);
-    setStoreTextPosition({ x: 50, y: 50 });
-    setStoreBackgroundImage('');
-    setStoreDrawing('');
-    setStoreFilter('none');
-    setStoreTextBoxes([]);
-    
-    console.log("Reset completed");
   };
 
   // Undo function
