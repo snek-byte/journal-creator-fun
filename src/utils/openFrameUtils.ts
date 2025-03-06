@@ -80,61 +80,105 @@ export const prepareImageForOpenFrame = (
   imageDataUrl: string,
   isAnimated: boolean = false
 ): string => {
-  // Create an HTML wrapper that ensures the image fits properly within the frame
-  // Using CSS to enforce proper scaling and positioning
+  // Provide a robust wrapper with image sizing controls
+  // The key is to use CSS that will absolutely force the image to fit within constraints
   const htmlWrapper = `
     <!DOCTYPE html>
     <html>
       <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>OpenFrame Artwork</title>
         <style>
+          /* Reset and core styles */
           body, html {
             margin: 0;
             padding: 0;
-            height: 100vh;
-            width: 100vw;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
-            background: black;
+            background-color: #000000;
+          }
+          
+          /* Main display container */
+          .frame-display {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
           }
+          
+          /* Image container - this is sized to match the selected frame */
           .frame-container {
-            width: 90%;
-            height: 90%;
+            position: relative;
+            width: 85%;  /* Size within the viewport */
+            height: 85%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          
+          /* This ensures the image fits inside the frame */
+          .image-container {
+            width: 100%;
+            height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
           }
-          .image-wrapper {
-            max-width: 100%;
-            max-height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
+          
+          /* Image-specific styling */
           img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
+            max-width: 95%;  /* Slightly smaller than container for padding effect */
+            max-height: 95%;
+            object-fit: contain; /* This maintains aspect ratio */
             display: block;
+          }
+
+          /* For SVG frames (if used in the future) */
+          .frame-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
           }
         </style>
       </head>
       <body>
-        <div class="frame-container">
-          <div class="image-wrapper">
-            <img src="${imageDataUrl}" alt="OpenFrame Artwork" />
+        <div class="frame-display">
+          <div class="frame-container">
+            <div class="image-container">
+              <img src="${imageDataUrl}" alt="Framed Artwork" id="artwork-image" />
+            </div>
           </div>
         </div>
+        
         <script>
-          // This script ensures the image is properly scaled on load
           document.addEventListener('DOMContentLoaded', function() {
-            const img = document.querySelector('img');
+            const img = document.getElementById('artwork-image');
+            
+            // Force image to reload and trigger sizing calculations
             img.onload = function() {
-              // Additional resize handling if needed
-              console.log('Image loaded with dimensions:', img.width, 'x', img.height);
+              console.log('Image loaded with dimensions:', img.naturalWidth, 'x', img.naturalHeight);
+              
+              // Additional resizing logic can be added here if needed
+              // This ensures we have a chance to make adjustments after the image loads
             };
+            
+            // Force reload
+            const src = img.src;
+            img.src = '';
+            setTimeout(() => {
+              img.src = src;
+            }, 10);
           });
         </script>
       </body>
