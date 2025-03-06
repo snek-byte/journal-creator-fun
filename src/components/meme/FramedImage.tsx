@@ -25,12 +25,18 @@ export function FramedImage({
     if (!frame) {
       setSvgContent(null);
       setFrameLoaded(false);
+      console.log("No frame selected, cleared frame content");
       return;
     }
+    
+    console.log("Loading frame from:", frame);
     
     fetch(frame)
       .then(response => {
         console.log("Frame fetch response status:", response.status);
+        if (!response.ok) {
+          throw new Error(`Failed to load frame: ${response.status}`);
+        }
         return response.text();
       })
       .then(data => {
@@ -43,10 +49,10 @@ export function FramedImage({
         // Set SVG content and mark as loaded
         setSvgContent(modifiedSvg);
         setFrameLoaded(true);
-        console.log("Frame SVG loaded and processed successfully");
+        console.log("Frame SVG loaded and processed successfully:", frame);
       })
       .catch(error => {
-        console.error("Error loading frame SVG:", error);
+        console.error("Error loading frame SVG:", error, "Frame path:", frame);
         setSvgContent(null);
         setFrameLoaded(false);
       });

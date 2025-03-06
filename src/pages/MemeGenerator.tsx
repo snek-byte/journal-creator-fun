@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { MemeCanvas, downloadMeme } from '@/components/meme/MemeCanvas';
 import { MemeControls } from '@/components/meme/MemeControls';
@@ -32,14 +33,18 @@ export default function MemeGenerator() {
   const [fileInputKey, setFileInputKey] = useState(0);
   const [uploadInProgress, setUploadInProgress] = useState(false);
 
-  // Log template state changes for debugging
+  // Log state changes for debugging
   useEffect(() => {
     console.log("Template state updated:", template ? "Template has data" : "Template is empty");
   }, [template]);
+  
+  useEffect(() => {
+    console.log("Selected frame updated:", selectedFrame || "No frame");
+  }, [selectedFrame]);
 
   // Handle frame selection
   const handleFrameSelect = (frame: string) => {
-    console.log("Frame selected:", frame);
+    console.log("Frame selected in MemeGenerator:", frame);
     setSelectedFrame(frame);
   };
   
