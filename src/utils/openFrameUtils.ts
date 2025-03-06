@@ -40,8 +40,8 @@ export const createOpenFrameArtwork = (
   author: string,
   isAnimated: boolean = false
 ): OpenFrameArtwork => {
-  // Always use website format for better control over image positioning and scaling
-  const format = OPENFRAME_FORMATS.WEBSITE;
+  // Use image format directly instead of website
+  const format = OPENFRAME_FORMATS.IMAGE;
   
   return {
     title,
@@ -72,121 +72,18 @@ export const pushToOpenFrame = async (artwork: OpenFrameArtwork): Promise<void> 
 
 /**
  * Prepare an image for OpenFrame by ensuring it's in the right format and size
+ * Note: For direct image format, we just return the original URL
+ * 
  * @param imageDataUrl - The image data URL
  * @param isAnimated - Whether the image is animated
- * @returns Processed image URL ready for OpenFrame
+ * @returns The original image URL for direct use by OpenFrame
  */
 export const prepareImageForOpenFrame = (
   imageDataUrl: string,
   isAnimated: boolean = false
 ): string => {
-  // Provide a robust wrapper with image sizing controls
-  // The key is to use CSS that will absolutely force the image to fit within constraints
-  const htmlWrapper = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>OpenFrame Artwork</title>
-        <style>
-          /* Reset and core styles */
-          body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #000000;
-          }
-          
-          /* Main display container */
-          .frame-display {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-          
-          /* Image container - this is sized to match the selected frame */
-          .frame-container {
-            position: relative;
-            width: 85%;  /* Size within the viewport */
-            height: 85%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-          
-          /* This ensures the image fits inside the frame */
-          .image-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-          }
-          
-          /* Image-specific styling */
-          img {
-            max-width: 95%;  /* Slightly smaller than container for padding effect */
-            max-height: 95%;
-            object-fit: contain; /* This maintains aspect ratio */
-            display: block;
-          }
-
-          /* For SVG frames (if used in the future) */
-          .frame-svg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-            pointer-events: none;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="frame-display">
-          <div class="frame-container">
-            <div class="image-container">
-              <img src="${imageDataUrl}" alt="Framed Artwork" id="artwork-image" />
-            </div>
-          </div>
-        </div>
-        
-        <script>
-          document.addEventListener('DOMContentLoaded', function() {
-            const img = document.getElementById('artwork-image');
-            
-            // Force image to reload and trigger sizing calculations
-            img.onload = function() {
-              console.log('Image loaded with dimensions:', img.naturalWidth, 'x', img.naturalHeight);
-              
-              // Additional resizing logic can be added here if needed
-              // This ensures we have a chance to make adjustments after the image loads
-            };
-            
-            // Force reload
-            const src = img.src;
-            img.src = '';
-            setTimeout(() => {
-              img.src = src;
-            }, 10);
-          });
-        </script>
-      </body>
-    </html>
-  `;
-  
-  // Return the HTML as a data URL
-  return `data:text/html;charset=utf-8,${encodeURIComponent(htmlWrapper)}`;
+  // For direct image display, return the original URL
+  return imageDataUrl;
 };
 
 /**

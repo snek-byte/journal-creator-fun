@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,7 +12,6 @@ import { applyFrameWithClaidApi } from "@/utils/claidApi";
 import { 
   createOpenFrameArtwork, 
   pushToOpenFrame, 
-  prepareImageForOpenFrame,
   isAnimatedImage 
 } from "@/utils/openFrameUtils";
 
@@ -107,12 +105,10 @@ export default function MemeGenerator() {
       // Check if the image is animated
       const animated = isAnimatedImage(generatedImage);
       
-      // Always prepare the image for proper display in OpenFrame
-      // The image needs to be wrapped in HTML for proper positioning
-      const preparedImage = prepareImageForOpenFrame(generatedImage, animated);
-      
+      // Create the artwork directly from the generated image
+      // We're no longer using prepareImageForOpenFrame since we want to use the direct image format
       const artwork = createOpenFrameArtwork(
-        preparedImage,
+        generatedImage,
         artworkTitle,
         artworkAuthor || 'Anonymous',
         animated
