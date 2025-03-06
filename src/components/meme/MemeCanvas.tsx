@@ -1,4 +1,3 @@
-
 import { useRef, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import html2canvas from 'html2canvas';
@@ -45,12 +44,10 @@ export function MemeCanvas({
   const [frameLoaded, setFrameLoaded] = useState(false);
   const [frameError, setFrameError] = useState(false);
 
-  // Debug template changes
   useEffect(() => {
     console.log("MemeCanvas received template:", template ? "Has data (length: " + template.length + ")" : "Empty");
   }, [template]);
 
-  // Text styling
   const textStyle1 = {
     fontFamily: font,
     fontSize: `${fontSize}px`,
@@ -70,21 +67,18 @@ export function MemeCanvas({
     backgroundClip: gradient ? 'text' : 'border-box'
   };
 
-  // Handle frame load
   const handleFrameLoad = () => {
     setFrameLoaded(true);
     setFrameError(false);
     console.log("Frame loaded successfully");
   };
 
-  // Handle frame error
   const handleFrameError = () => {
     console.error("Error loading frame:", frame);
     setFrameError(true);
     setFrameLoaded(false);
   };
 
-  // Handle image load and size
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     setImageLoaded(true);
     setImageError(false);
@@ -93,14 +87,12 @@ export function MemeCanvas({
     console.log("Image loaded successfully, dimensions:", e.currentTarget.naturalWidth, "x", e.currentTarget.naturalHeight);
   };
 
-  // Handle image error
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     console.error("Error loading image template. Image URL starts with:", template?.substring(0, 30));
     setImageError(true);
     setImageLoaded(false);
   };
 
-  // Handle canvas click
   const handleCanvasClick = () => {
     if (onTemplateClick && !template) {
       console.log("Canvas clicked, opening file selector");
@@ -108,16 +100,14 @@ export function MemeCanvas({
     }
   };
 
-  // Function to handle background removal
   const handleBackgroundRemove = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent triggering canvas click
+    e.stopPropagation();
     if (onBackgroundRemove) {
       console.log("Remove button clicked");
       onBackgroundRemove();
     }
   };
 
-  // Download function (exposed to parent via ref)
   const downloadMeme = async () => {
     if (!canvasRef.current) {
       console.error("Canvas not ready");
@@ -143,9 +133,7 @@ export function MemeCanvas({
     }
   };
 
-  // Expose download function to parent
   useEffect(() => {
-    // Make downloadMeme available on the window for the parent component
     (window as any).downloadMeme = downloadMeme;
     return () => {
       delete (window as any).downloadMeme;
@@ -160,7 +148,7 @@ export function MemeCanvas({
         style={{ maxWidth: '100%' }}
       >
         <div 
-          className="bg-white relative"
+          className="bg-white relative overflow-hidden"
           style={{ 
             width: '640px', 
             height: '640px',
@@ -169,15 +157,16 @@ export function MemeCanvas({
           }}
           onClick={handleCanvasClick}
         >
-          {/* Background color layer - always at the bottom */}
           <div 
-            className="absolute inset-0 z-0"
-            style={{ backgroundColor: backgroundColor || '#ffffff' }}
+            className="absolute inset-0"
+            style={{ 
+              backgroundColor: backgroundColor || '#ffffff',
+              zIndex: 1
+            }}
           />
           
-          {/* Background or template image layer */}
           {template ? (
-            <div className="absolute inset-0 flex items-center justify-center z-10">
+            <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 10 }}>
               <img
                 src={template}
                 alt="Background template"
@@ -186,26 +175,29 @@ export function MemeCanvas({
                 onError={handleImageError}
                 crossOrigin="anonymous"
               />
-              {/* Remove background button */}
               <button 
-                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors z-50"
+                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors"
                 onClick={handleBackgroundRemove}
                 title="Remove background"
+                style={{ zIndex: 50 }}
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
           ) : (
             <div 
-              className="absolute inset-0 flex items-center justify-center bg-gray-50 cursor-pointer z-10"
+              className="absolute inset-0 flex items-center justify-center bg-gray-50 cursor-pointer"
+              style={{ zIndex: 10 }}
             >
               <p className="text-gray-400 text-center p-4">Click to add your photo</p>
             </div>
           )}
 
-          {/* Frame layer - positioned above the image */}
           {frame && (
-            <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+            <div 
+              className="absolute inset-0 flex items-center justify-center pointer-events-none" 
+              style={{ zIndex: 20 }}
+            >
               <img
                 src={frame}
                 alt="Frame"
@@ -221,17 +213,22 @@ export function MemeCanvas({
             </div>
           )}
 
-          {/* Text layers - always on top */}
           <div
-            className="absolute top-0 left-0 right-0 flex items-start justify-center pt-4 z-40"
-            style={textStyle1}
+            className="absolute top-0 left-0 right-0 flex items-start justify-center pt-4"
+            style={{
+              ...textStyle1,
+              zIndex: 30
+            }}
           >
             {topText}
           </div>
           
           <div
-            className="absolute bottom-0 left-0 right-0 flex items-end justify-center pb-4 z-40"
-            style={textStyle1}
+            className="absolute bottom-0 left-0 right-0 flex items-end justify-center pb-4"
+            style={{
+              ...textStyle1,
+              zIndex: 30
+            }}
           >
             {bottomText}
           </div>
@@ -241,7 +238,6 @@ export function MemeCanvas({
   );
 }
 
-// Make the download function accessible
 export function downloadMeme() {
   if (typeof window !== 'undefined' && (window as any).downloadMeme) {
     (window as any).downloadMeme();
