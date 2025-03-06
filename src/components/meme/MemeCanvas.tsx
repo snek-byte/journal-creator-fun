@@ -85,12 +85,12 @@ export function MemeCanvas({
     setImageError(false);
     setImageHeight(e.currentTarget.naturalHeight);
     setImageWidth(e.currentTarget.naturalWidth);
-    console.log("Image loaded successfully");
+    console.log("Image loaded successfully:", e.currentTarget.src.substring(0, 50) + "...");
   };
 
   // Handle image error
   const handleImageError = () => {
-    console.error("Error loading image template:", template);
+    console.error("Error loading image template:", template ? template.substring(0, 50) + "..." : "empty");
     setImageError(true);
     setImageLoaded(false);
   };
@@ -99,6 +99,14 @@ export function MemeCanvas({
   const handleCanvasClick = () => {
     if (onTemplateClick) {
       onTemplateClick();
+    }
+  };
+
+  // Function to handle background removal
+  const handleBackgroundRemove = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering canvas click
+    if (onBackgroundRemove) {
+      onBackgroundRemove();
     }
   };
 
@@ -140,14 +148,6 @@ export function MemeCanvas({
   const isBirthdayFrame = frame && frame.includes('birthday');
   const isInstantPhotoFrame = frame && frame.includes('instant-photo');
   const isSocialMediaFrame = frame && frame.includes('social-media');
-
-  // Function to handle background removal
-  const handleBackgroundRemove = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent triggering canvas click
-    if (onBackgroundRemove) {
-      onBackgroundRemove();
-    }
-  };
 
   return (
     <Card className="p-3 w-full flex justify-center bg-gray-100">

@@ -28,6 +28,9 @@ export default function MemeGenerator() {
   const [selectedBackground, setSelectedBackground] = useState('#ffffff');
   const [template, setTemplate] = useState('');
   
+  // Track if we need to refresh the file input
+  const [fileInputKey, setFileInputKey] = useState(0);
+  
   // File input ref
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -52,6 +55,8 @@ export default function MemeGenerator() {
   // Handle background removal
   const handleBackgroundRemove = () => {
     setTemplate('');
+    // Force the file input to re-render with a new key
+    setFileInputKey(prevKey => prevKey + 1);
     toast.success('Background image removed');
   };
 
@@ -67,13 +72,20 @@ export default function MemeGenerator() {
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
-        setTemplate(result);
-        toast.success('Image uploaded successfully');
-        
-        // Reset the file input so the same file can be selected again
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
+        if (result) {
+          setTemplate(result);
+          toast.success('Image uploaded successfully');
+        } else {
+          toast.error('Failed to load image');
         }
+        
+        // Reset the file input 
+        if (event.target) {
+          event.target.value = '';
+        }
+      };
+      reader.onerror = () => {
+        toast.error('Error reading file');
       };
       reader.readAsDataURL(file);
     }
@@ -107,7 +119,7 @@ export default function MemeGenerator() {
             accept="image/*" 
             className="hidden" 
             onChange={handleFileChange}
-            key={template} // Add key to force re-render when template changes
+            key={fileInputKey} // Use fileInputKey to force re-render of the input
           />
         </div>
         
