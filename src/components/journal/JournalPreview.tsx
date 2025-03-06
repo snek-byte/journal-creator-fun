@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { TextBoxComponent } from './TextBoxComponent';
@@ -221,6 +222,7 @@ export function JournalPreview({
     onStickerMove(id, position);
   };
 
+  // Fixed function to correctly handle the position parameter
   const handleDeleteByMovingOffscreen = (id: string, isIcon: boolean) => {
     const offscreenPosition = { x: -1000, y: -1000 };
     
