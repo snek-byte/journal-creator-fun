@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { TextBoxComponent } from './TextBoxComponent';
@@ -100,59 +101,97 @@ export function JournalPreview({
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
   const [audioLoaded, setAudioLoaded] = useState(false);
   const [audioError, setAudioError] = useState<string | null>(null);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
 
+  // Handle audio setup and play/pause when audioTrack changes
   useEffect(() => {
     if (!audioRef.current) return;
+    
+    // Clean up function to handle component unmount
+    const cleanupAudio = () => {
+      if (audioRef.current) {
+        try {
+          audioRef.current.pause();
+        } catch (err) {
+          console.error("Error pausing audio on cleanup:", err);
+        }
+      }
+    };
 
-    if (audio?.url) {
-      console.log("Setting up audio:", audio);
-      audioRef.current.src = audio.url;
-      audioRef.current.volume = (audio.volume || 50) / 100;
-      audioRef.current.muted = audioMuted;
-      audioRef.current.loop = true;
+    if (!audio?.url) {
+      cleanupAudio();
+      setAudioLoaded(false);
+      setIsAudioPlaying(false);
+      return cleanupAudio;
+    }
+
+    console.log("Setting up audio in preview:", audio);
+    const audioElement = audioRef.current;
+    
+    try {
+      audioElement.src = audio.url;
+      audioElement.volume = (audio.volume || 50) / 100;
+      audioElement.muted = audioMuted;
+      audioElement.loop = true;
+      setAudioError(null);
       
       if (audio.playing) {
-        console.log("Attempting to play audio:", audio.url);
+        console.log("Audio set to play in preview:", audio.url);
+        // Try to play audio with a small delay to ensure it's loaded
         setTimeout(() => {
-          if (audioRef.current) {
+          if (!audioRef.current) return;
+          
+          try {
             const playPromise = audioRef.current.play();
-            
             if (playPromise !== undefined) {
               playPromise.then(() => {
-                console.log("Audio started playing successfully:", audio.name);
+                console.log("Audio playback started in preview");
+                setIsAudioPlaying(true);
                 setAudioLoaded(true);
                 setAudioError(null);
               }).catch(error => {
-                console.error("Error playing audio:", error, audio);
+                console.error("Error playing audio in preview:", error);
+                setIsAudioPlaying(false);
                 setAudioLoaded(false);
                 setAudioError(`Couldn't play audio: ${error.message}. Try uploading your own audio file.`);
               });
             }
+          } catch (err) {
+            console.error("Exception during play attempt:", err);
+            setIsAudioPlaying(false);
+            setAudioError("Playback failed. Try uploading a different audio file.");
           }
-        }, 2000);
+        }, 300);
       } else {
-        console.log("Audio not set to playing, pausing");
-        audioRef.current.pause();
+        console.log("Audio not set to playing in preview");
+        try {
+          audioElement.pause();
+          setIsAudioPlaying(false);
+        } catch (err) {
+          console.error("Error pausing audio:", err);
+        }
       }
-    } else {
-      console.log("No audio URL provided");
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+    } catch (err) {
+      console.error("Error setting up audio:", err);
+      setAudioError("Could not set up audio playback");
+      setIsAudioPlaying(false);
     }
+    
+    return cleanupAudio;
   }, [audio, audioMuted]);
 
   const handleAudioLoaded = () => {
-    console.log("Audio loaded successfully:", audio?.name);
+    console.log("Audio loaded successfully in preview:", audio?.name);
     setAudioLoaded(true);
     setAudioError(null);
   };
 
   const handleAudioError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
     const errorMessage = (e.currentTarget as HTMLAudioElement).error?.message || "Unknown error";
-    console.error("Audio error:", errorMessage, e, audio);
+    console.error("Audio error in preview:", errorMessage, e, audio);
     setAudioLoaded(false);
     setAudioError(`Couldn't play audio: ${errorMessage}. External audio sources may be unavailable. Try uploading your own.`);
+    setIsAudioPlaying(false);
   };
 
   const toggleMute = () => {
@@ -249,14 +288,10 @@ export function JournalPreview({
         <>
           <audio 
             ref={audioRef} 
-            src={audio.url} 
-            loop 
             onLoadedData={handleAudioLoaded} 
             onError={handleAudioError}
             preload="auto"
-            className="absolute top-0 left-0 w-full z-20" 
-            controls
-            style={{ opacity: 0.8 }}
+            className="hidden" 
           />
           <div className="absolute top-4 right-16 z-30 flex items-center gap-2">
             <span className={`text-xs px-2 py-1 rounded-md ${audioError ? 'bg-red-100 text-red-700' : 'bg-white/80'}`}>
@@ -267,6 +302,7 @@ export function JournalPreview({
               size="icon"
               className="h-8 w-8 bg-white"
               onClick={toggleMute}
+              disabled={!!audioError}
             >
               {audioMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
             </Button>
@@ -382,4 +418,51 @@ export function JournalPreview({
       )}
     </div>
   );
+  
+  function calculateFilterStyle() {
+    switch (filter) {
+      case 'sepia':
+        return 'sepia(100%)';
+      case 'grayscale':
+        return 'grayscale(100%)';
+      case 'blur':
+        return 'blur(3px)';
+      case 'brightness':
+        return 'brightness(150%)';
+      case 'contrast':
+        return 'contrast(200%)';
+      case 'hue-rotate':
+        return 'hue-rotate(90deg)';
+      case 'invert':
+        return 'invert(80%)';
+      case 'saturate':
+        return 'saturate(200%)';
+      default:
+        return 'none';
+    }
+  }
+
+  function handleTextPointerDown() {
+    setIsTextBeingDragged(true);
+    onTextDragStart();
+  }
+
+  function handleTextPointerUp() {
+    setIsTextBeingDragged(false);
+    onTextDragEnd();
+  }
+
+  function handleTextPointerMove(e: React.PointerEvent) {
+    if (!isTextBeingDragged || !containerRef.current) return;
+
+    const container = containerRef.current;
+    const containerRect = container.getBoundingClientRect();
+    const x = e.clientX - containerRect.left;
+    const y = e.clientY - containerRect.top;
+
+    const newX = Math.max(0, Math.min(x, containerRect.width));
+    const newY = Math.max(0, Math.min(y, containerRect.height));
+
+    onTextMove({ x: newX, y: newY });
+  }
 }

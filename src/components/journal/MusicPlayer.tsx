@@ -33,6 +33,7 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
   const [trackName, setTrackName] = useState<string>(audioTrack?.name || 'No track selected');
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [audioError, setAudioError] = useState<string | null>(null);
 
   // Update component state when audioTrack prop changes
   useEffect(() => {
@@ -45,28 +46,49 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
 
   // Handle audio element events and state
   useEffect(() => {
-    if (!audioRef.current || !audioTrack?.url) return;
-
+    if (!audioRef.current) return;
+    
     const audio = audioRef.current;
     
-    // Set up audio source and parameters
-    audio.src = audioTrack.url;
-    audio.volume = volume / 100;
-    audio.muted = isMuted;
+    // Set up audio source and parameters if URL exists
+    if (audioTrack?.url) {
+      console.log("Setting up audio source:", audioTrack.url);
+      audio.src = audioTrack.url;
+      audio.volume = volume / 100;
+      audio.muted = isMuted;
+    } else {
+      // Clear audio source if no URL
+      audio.src = '';
+      return;
+    }
     
     // Set up event listeners
     const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
     const handleLoadedMetadata = () => {
+      console.log("Audio metadata loaded:", audio.duration);
       setDuration(audio.duration);
       setIsLoading(false);
+      setAudioError(null);
     };
     const handleEnded = () => setIsPlaying(false);
-    const handlePlay = () => console.log("Audio playing:", audioTrack.name);
+    const handlePlay = () => {
+      console.log("Audio playing:", audioTrack.name);
+      setAudioError(null);
+    };
     const handleError = (e: ErrorEvent) => {
       console.error("Audio error:", e);
       setIsLoading(false);
       setIsPlaying(false);
-      toast.error("Error playing audio file");
+      setAudioError("Error playing audio file");
+      
+      if (onAudioChange && audioTrack) {
+        onAudioChange({
+          ...audioTrack,
+          playing: false
+        });
+      }
+      
+      toast.error("Error playing audio file. Try uploading a different format.");
     };
     
     audio.addEventListener('timeupdate', handleTimeUpdate);
@@ -78,21 +100,54 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
     // Play or pause based on isPlaying state
     if (isPlaying) {
       setIsLoading(true);
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            setIsLoading(false);
-          })
-          .catch(error => {
-            console.error("Play error:", error);
-            setIsPlaying(false);
-            setIsLoading(false);
-            toast.error("Couldn't play audio. Try uploading your own audio file.");
-          });
-      }
+      
+      // Small delay to ensure the audio element is properly set up
+      setTimeout(() => {
+        if (!audioRef.current) return;
+        
+        try {
+          const playPromise = audioRef.current.play();
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                console.log("Audio playback started successfully");
+                setIsLoading(false);
+              })
+              .catch(error => {
+                console.error("Play error:", error);
+                setIsPlaying(false);
+                setIsLoading(false);
+                setAudioError(`Couldn't play audio: ${error.message}`);
+                
+                if (onAudioChange && audioTrack) {
+                  onAudioChange({
+                    ...audioTrack,
+                    playing: false
+                  });
+                }
+                
+                toast.error("Couldn't play audio. Try uploading your own audio file.");
+              });
+          }
+        } catch (err) {
+          console.error("Error in play attempt:", err);
+          setIsPlaying(false);
+          setIsLoading(false);
+          
+          if (onAudioChange && audioTrack) {
+            onAudioChange({
+              ...audioTrack,
+              playing: false
+            });
+          }
+        }
+      }, 300);
     } else {
-      audio.pause();
+      try {
+        audio.pause();
+      } catch (err) {
+        console.error("Error pausing audio:", err);
+      }
     }
     
     // Clean up event listeners
@@ -102,19 +157,26 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('play', handlePlay);
       audio.removeEventListener('error', handleError as EventListener);
+      
+      // Always pause audio when component unmounts
+      try {
+        audio.pause();
+      } catch (err) {
+        console.error("Error pausing audio on cleanup:", err);
+      }
     };
-  }, [audioTrack?.url, isPlaying, volume, isMuted, audioTrack?.name]);
+  }, [audioTrack?.url, isPlaying, volume, isMuted, audioTrack, onAudioChange]);
 
   // Update the audioTrack when play state changes
   useEffect(() => {
-    if (audioTrack && onAudioChange) {
+    if (audioTrack && onAudioChange && !audioError) {
       onAudioChange({
         ...audioTrack,
         playing: isPlaying,
         volume: volume
       });
     }
-  }, [isPlaying, volume, audioTrack, onAudioChange]);
+  }, [isPlaying, volume, audioTrack, onAudioChange, audioError]);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -160,26 +222,47 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
     const file = e.target.files?.[0];
     if (!file) return;
     
+    // Reset any previous errors
+    setAudioError(null);
     setIsLoading(true);
-    const url = URL.createObjectURL(file);
-    const name = file.name.replace(/\.[^/.]+$/, ""); // Remove file extension
     
-    const newAudioTrack: AudioTrack = {
-      id: uuidv4(),
-      url,
-      name,
-      volume,
-      playing: true
-    };
-    
-    setTrackName(name);
-    setIsPlaying(true);
-    
-    if (onAudioChange) {
-      onAudioChange(newAudioTrack);
+    try {
+      const url = URL.createObjectURL(file);
+      const name = file.name.replace(/\.[^/.]+$/, ""); // Remove file extension
+      
+      const newAudioTrack: AudioTrack = {
+        id: uuidv4(),
+        url,
+        name,
+        volume,
+        playing: false // Start paused to avoid immediate playback issues
+      };
+      
+      setTrackName(name);
+      // Set playing to false initially 
+      setIsPlaying(false);
+      
+      if (onAudioChange) {
+        onAudioChange(newAudioTrack);
+        
+        // Wait a short period for the audio to load before attempting playback
+        setTimeout(() => {
+          if (onAudioChange) {
+            onAudioChange({
+              ...newAudioTrack,
+              playing: true
+            });
+            setIsPlaying(true);
+          }
+        }, 500);
+      }
+      
+      toast.success(`${name} loaded successfully`);
+    } catch (error) {
+      console.error("Error loading audio file:", error);
+      toast.error("Error loading audio file");
+      setIsLoading(false);
     }
-    
-    toast.success(`${name} loaded and playing`);
   };
 
   return (
@@ -211,6 +294,11 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
         
         <div className="text-sm font-medium truncate">
           {trackName || 'No track selected'}
+          {audioError && (
+            <span className="text-xs text-red-500 ml-2">
+              (Error: {audioError})
+            </span>
+          )}
         </div>
         
         <div className="flex items-center space-x-2">
@@ -220,7 +308,7 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
             max={duration || 100}
             step={0.1}
             onValueChange={handleSeek}
-            disabled={!audioTrack?.url}
+            disabled={!audioTrack?.url || isLoading || !!audioError}
             className="flex-1"
           />
           <span className="text-xs">{formatTime(duration || 0)}</span>
@@ -231,7 +319,7 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
             <Button
               variant="ghost"
               size="icon"
-              disabled={!audioTrack?.url}
+              disabled={!audioTrack?.url || isLoading || !!audioError}
               className="h-8 w-8"
               onClick={() => {
                 if (audioRef.current) {
@@ -245,7 +333,7 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
             <Button
               variant="default"
               size="icon"
-              disabled={!audioTrack?.url}
+              disabled={!audioTrack?.url || !!audioError}
               className="h-10 w-10 rounded-full"
               onClick={handlePlayPause}
             >
@@ -261,7 +349,7 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
             <Button
               variant="ghost"
               size="icon"
-              disabled={!audioTrack?.url}
+              disabled={!audioTrack?.url || isLoading || !!audioError}
               className="h-8 w-8"
               onClick={() => {
                 if (audioRef.current && duration) {
@@ -279,7 +367,7 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
               size="icon"
               className="h-8 w-8"
               onClick={handleMuteToggle}
-              disabled={!audioTrack?.url}
+              disabled={!audioTrack?.url || isLoading || !!audioError}
             >
               {isMuted ? (
                 <VolumeX className="h-4 w-4" />
@@ -293,7 +381,7 @@ export function MusicPlayer({ audioTrack, onAudioChange }: MusicPlayerProps) {
               max={100}
               step={1}
               onValueChange={handleVolumeChange}
-              disabled={!audioTrack?.url}
+              disabled={!audioTrack?.url || isLoading || !!audioError}
               className="w-24"
             />
           </div>
