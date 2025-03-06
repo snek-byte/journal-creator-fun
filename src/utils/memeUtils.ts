@@ -31,9 +31,9 @@ export const downloadMemeAsImage = async (canvasRef: React.RefObject<HTMLDivElem
         svgElements.forEach(svg => {
           svg.setAttribute('width', '100%');
           svg.setAttribute('height', '100%');
-          // Cast to HTMLElement which has the style property
-          (svg as HTMLElement).style.display = 'block';
-          (svg as HTMLElement).style.visibility = 'visible';
+          // Cast to unknown first, then to HTMLElement for TypeScript compatibility
+          ((svg as unknown) as HTMLElement).style.display = 'block';
+          ((svg as unknown) as HTMLElement).style.visibility = 'visible';
         });
         
         // Also check for frame DIVs with SVG content
