@@ -44,10 +44,33 @@ export function MemeCanvas({
   const [imageWidth, setImageWidth] = useState(0);
   const [frameLoaded, setFrameLoaded] = useState(false);
   const [frameError, setFrameError] = useState(false);
+  const [svgContent, setSvgContent] = useState<string | null>(null);
 
   useEffect(() => {
     console.log("MemeCanvas received template:", template ? "Has data (length: " + template.length + ")" : "Empty");
   }, [template]);
+
+  useEffect(() => {
+    // Fetch SVG content when frame changes
+    if (frame) {
+      fetch(frame)
+        .then(response => response.text())
+        .then(data => {
+          setSvgContent(data);
+          setFrameLoaded(true);
+          setFrameError(false);
+          console.log("Frame SVG loaded successfully");
+        })
+        .catch(error => {
+          console.error("Error loading frame SVG:", error);
+          setFrameError(true);
+          setFrameLoaded(false);
+          setSvgContent(null);
+        });
+    } else {
+      setSvgContent(null);
+    }
+  }, [frame]);
 
   const textStyle1 = {
     fontFamily: font,
@@ -66,18 +89,6 @@ export function MemeCanvas({
     WebkitBackgroundClip: gradient ? 'text' : 'border-box',
     WebkitTextFillColor: gradient ? 'transparent' : fontColor,
     backgroundClip: gradient ? 'text' : 'border-box'
-  };
-
-  const handleFrameLoad = () => {
-    setFrameLoaded(true);
-    setFrameError(false);
-    console.log("Frame loaded successfully");
-  };
-
-  const handleFrameError = () => {
-    console.error("Error loading frame:", frame);
-    setFrameError(true);
-    setFrameLoaded(false);
   };
 
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -161,78 +172,60 @@ export function MemeCanvas({
           {/* Background color layer */}
           <div 
             className="absolute inset-0"
-            style={{ backgroundColor: backgroundColor || '#ffffff', zIndex: 1 }}
+            style={{ backgroundColor: backgroundColor || '#ffffff' }}
           />
-          
-          {/* Main content container with either template or placeholder */}
-          <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 10 }}>
-            {template ? (
-              <>
+
+          {/* Smart image - frame with image inside */}
+          {template && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              {/* The template image */}
+              <div className="relative w-full h-full flex items-center justify-center">
                 <img
                   src={template}
                   alt="Background template"
                   className="max-w-full max-h-full object-contain"
-                  style={{ 
-                    position: 'relative',
-                    zIndex: 15
-                  }}
                   onLoad={handleImageLoad}
                   onError={handleImageError}
                   crossOrigin="anonymous"
                 />
                 
                 <button 
-                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors"
+                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors z-50"
                   onClick={handleBackgroundRemove}
                   title="Remove background"
-                  style={{ zIndex: 50 }}
                 >
                   <X className="w-4 h-4" />
                 </button>
-              </>
-            ) : (
-              <div className="text-gray-400 text-center p-4 cursor-pointer">
-                Click to add your photo
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* Frame layer - now correctly positioned over the image */}
-          {frame && (
+          {/* Frame layer as an overlay */}
+          {svgContent && (
             <div 
-              className="absolute inset-0 flex items-center justify-center pointer-events-none" 
-              style={{ zIndex: 20 }}
-            >
-              <div className="relative w-full h-full">
-                <img
-                  src={frame}
-                  alt="Frame"
-                  className="absolute inset-0 w-full h-full object-fill"
-                  onLoad={handleFrameLoad}
-                  onError={handleFrameError}
-                  crossOrigin="anonymous"
-                />
-              </div>
+              className="absolute inset-0 pointer-events-none z-30"
+              dangerouslySetInnerHTML={{ __html: svgContent }}
+            />
+          )}
+
+          {/* Placeholder if no image */}
+          {!template && (
+            <div className="absolute inset-0 flex items-center justify-center cursor-pointer z-10">
+              <p className="text-gray-400 text-center p-4">Click to add your photo</p>
             </div>
           )}
 
           {/* Text layers - positioned above everything else */}
           <div
-            className="absolute top-0 left-0 right-0 flex items-start justify-center pt-4"
-            style={{
-              ...textStyle1,
-              zIndex: 30
-            }}
+            className="absolute top-0 left-0 right-0 flex items-start justify-center pt-4 z-40"
+            style={textStyle1}
           >
             {topText}
           </div>
           
           <div
-            className="absolute bottom-0 left-0 right-0 flex items-end justify-center pb-4"
-            style={{
-              ...textStyle1,
-              zIndex: 30
-            }}
+            className="absolute bottom-0 left-0 right-0 flex items-end justify-center pb-4 z-40"
+            style={textStyle1}
           >
             {bottomText}
           </div>
