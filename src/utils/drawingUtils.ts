@@ -76,6 +76,10 @@ export const getPointFromEvent = (
   
   if ('touches' in e) {
     // Touch event
+    if (e.touches.length === 0) {
+      // Handle case where touches array is empty
+      return { x: 0, y: 0 };
+    }
     clientX = e.touches[0].clientX;
     clientY = e.touches[0].clientY;
   } else {
@@ -93,5 +97,6 @@ export const getPointFromEvent = (
 
 // Generate data URL from canvas
 export const canvasToDataURL = (canvas: HTMLCanvasElement): string => {
+  if (!canvas) return '';
   return canvas.toDataURL('image/png');
 };

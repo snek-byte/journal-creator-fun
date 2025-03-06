@@ -25,6 +25,8 @@ export const DrawingCanvas = forwardRef<HTMLCanvasElement, DrawingCanvasProps>(
           height: '100%',
           touchAction: 'none'
         }}
+        width={width}
+        height={height}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
