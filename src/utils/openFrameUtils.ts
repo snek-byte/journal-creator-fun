@@ -40,11 +40,10 @@ export const createOpenFrameArtwork = (
   author: string,
   isAnimated: boolean = false
 ): OpenFrameArtwork => {
-  // Determine the correct format based on image type
-  const format = isAnimated ? OPENFRAME_FORMATS.WEBSITE : OPENFRAME_FORMATS.IMAGE;
+  // For animated GIFs or complex frames, we should use website format
+  // to properly display with HTML/CSS for better control
+  const format = isAnimated ? OPENFRAME_FORMATS.WEBSITE : OPENFRAME_FORMATS.VLC;
   
-  // For animated content, we'd need to host the content on a web server
-  // and provide the URL. For this demo, we'll just use the data URL
   return {
     title,
     author,
@@ -82,45 +81,49 @@ export const prepareImageForOpenFrame = (
   imageDataUrl: string,
   isAnimated: boolean = false
 ): string => {
-  if (isAnimated) {
-    // For animated GIFs, we'd need to wrap in HTML for OpenFrame Website format
-    // This is a simplified version - in reality you'd host this HTML somewhere
-    const htmlWrapper = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            body, html {
-              margin: 0;
-              padding: 0;
-              height: 100%;
-              width: 100%;
-              overflow: hidden;
-              background: black;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-            img {
-              max-width: 100%;
-              max-height: 100%;
-              object-fit: contain;
-            }
-          </style>
-        </head>
-        <body>
+  // For all images, we'll wrap in HTML to ensure proper positioning
+  // This gives us better control over how the image displays
+  const htmlWrapper = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <style>
+          body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .frame-container {
+            width: 80%;
+            height: 80%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="frame-container">
           <img src="${imageDataUrl}" alt="OpenFrame Artwork" />
-        </body>
-      </html>
-    `;
-    
-    // In a real implementation, you'd host this HTML and return the URL
-    // For now, we'll just return a data URL with the HTML
-    return `data:text/html;charset=utf-8,${encodeURIComponent(htmlWrapper)}`;
-  }
+        </div>
+      </body>
+    </html>
+  `;
   
-  // For static images, just return the original data URL
-  return imageDataUrl;
+  // Return the HTML as a data URL
+  return `data:text/html;charset=utf-8,${encodeURIComponent(htmlWrapper)}`;
 };
 
 /**

@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -103,7 +104,11 @@ export default function MemeGenerator() {
       setIsExporting(true);
       toast.info('Preparing for OpenFrame export...', { duration: 2000 });
       
+      // Check if the image is animated
       const animated = isAnimatedImage(generatedImage);
+      
+      // Always prepare the image for proper display in OpenFrame
+      // The image needs to be wrapped in HTML for proper positioning
       const preparedImage = prepareImageForOpenFrame(generatedImage, animated);
       
       const artwork = createOpenFrameArtwork(
