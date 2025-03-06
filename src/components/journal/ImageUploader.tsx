@@ -1,7 +1,8 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ImagePlus, UploadCloud, Image as ImageIcon, Loader2 } from "lucide-react";
+import { ImagePlus, UploadCloud, Image as ImageIcon, Loader2, File } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -94,12 +95,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
 
     const maxFileSize = 20 * 1024 * 1024; // 20MB in bytes
     if (file.size > maxFileSize) {
-      toast.error('Image too large. Maximum size is 20MB.');
-      return;
-    }
-
-    if (!file.type.startsWith('image/')) {
-      toast.error('Only image files are allowed.');
+      toast.error('File too large. Maximum size is 20MB.');
       return;
     }
 
@@ -107,7 +103,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error('Please sign in to upload images');
+        toast.error('Please sign in to upload files');
         return;
       }
 
@@ -161,19 +157,19 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
       }
 
       setUploadedImages(prev => [publicUrlData.publicUrl, ...prev]);
-      toast.success('Image uploaded successfully!');
-      console.log("ImageUploader: Image successfully uploaded and saved");
+      toast.success('File uploaded successfully!');
+      console.log("ImageUploader: File successfully uploaded and saved");
     } catch (error: any) {
-      console.error('Error uploading image:', error);
+      console.error('Error uploading file:', error);
       
       if (error.message?.includes('bucket') || error.message?.includes('not found')) {
         toast.error('Storage not properly configured. Please contact administrator.');
       } else if (error.message?.includes('permission')) {
-        toast.error('You don\'t have permission to upload images.');
+        toast.error('You don\'t have permission to upload files.');
       } else if (error.message?.includes('size') || error.message?.includes('large')) {
-        toast.error('This file is too large to upload. Please try a smaller image.');
+        toast.error('This file is too large to upload. Please try a smaller file.');
       } else {
-        toast.error(error.message || 'Failed to upload image');
+        toast.error(error.message || 'Failed to upload file');
       }
     } finally {
       setIsUploading(false);
@@ -186,7 +182,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
   const handleImageSelect = (url: string) => {
     onImageSelect(url);
     setOpen(false);
-    toast.success('Image selected for your journal');
+    toast.success('File selected for your journal');
   };
 
   const renderPlaceholderImages = () => {
@@ -229,14 +225,14 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
           variant="ghost" 
           size="icon" 
           className="hover:bg-accent hover:text-accent-foreground"
-          title="Upload or select image"
+          title="Upload or select file"
         >
           <ImagePlus className="w-4 h-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Your Journal Images</DialogTitle>
+          <DialogTitle>Your Journal Files</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
@@ -254,7 +250,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
               ) : (
                 <>
                   <UploadCloud className="mr-2 h-4 w-4" />
-                  Upload Image (Max 20MB)
+                  Upload File (Max 20MB)
                 </>
               )}
             </Button>
@@ -262,7 +258,6 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
               type="file"
               ref={fileInputRef}
               onChange={handleFileChange}
-              accept="image/*"
               className="hidden"
             />
           </div>
@@ -275,12 +270,21 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
                   className="relative aspect-square overflow-hidden border rounded-md cursor-pointer hover:opacity-90 transition-opacity"
                   onClick={() => handleImageSelect(url)}
                 >
-                  <img 
-                    src={url} 
-                    alt={`Uploaded image ${index + 1}`} 
-                    className="object-cover w-full h-full"
-                    loading="lazy"
-                  />
+                  {url.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) ? (
+                    <img 
+                      src={url} 
+                      alt={`Uploaded file ${index + 1}`} 
+                      className="object-cover w-full h-full"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center w-full h-full bg-gray-100">
+                      <File className="h-10 w-10 text-gray-400" />
+                      <span className="text-xs mt-2 text-gray-500">
+                        {url.split('/').pop()?.split('-').slice(1).join('-')}
+                      </span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -288,7 +292,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
             <div className="space-y-4">
               <div className="text-center py-4 text-muted-foreground">
                 <ImageIcon className="mx-auto h-12 w-12 opacity-20" />
-                <p className="mt-2">No uploaded images yet</p>
+                <p className="mt-2">No uploaded files yet</p>
               </div>
               
               {renderPlaceholderImages()}
