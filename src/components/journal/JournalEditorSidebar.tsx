@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -56,6 +55,7 @@ interface JournalEditorSidebarProps {
   currentStickerSize?: number;
   onIconAdd: (icon: { url: string, style: 'outline' | 'color' }) => void;
   onBackgroundSelect: (url: string) => void;
+  currentBackground?: string;
   onFilterChange: (filter: string) => void;
   handleUndo: () => void;
   handleRedo: () => void;
@@ -100,6 +100,7 @@ export function JournalEditorSidebar({
   currentStickerSize,
   onIconAdd,
   onBackgroundSelect,
+  currentBackground,
   onFilterChange,
   handleUndo,
   handleRedo,
@@ -269,7 +270,10 @@ export function JournalEditorSidebar({
             
             <Separator className="my-4" />
             
-            <BackgroundImageSelector onBackgroundSelect={onBackgroundSelect} />
+            <BackgroundImageSelector 
+              onBackgroundSelect={onBackgroundSelect} 
+              currentBackground={currentBackground}
+            />
             
             <Separator className="my-4" />
             

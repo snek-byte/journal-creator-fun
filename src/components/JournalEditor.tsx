@@ -1,3 +1,4 @@
+
 import { useJournalEditor } from '@/hooks/useJournalEditor';
 import { JournalEditorSidebar } from './journal/JournalEditorSidebar';
 import { JournalPreview } from './journal/JournalPreview';
@@ -213,6 +214,7 @@ export function JournalEditor() {
         currentStickerSize={stickerSize}
         onIconAdd={handleIconAddWithId}
         onBackgroundSelect={handleBackgroundSelect}
+        currentBackground={currentEntry.backgroundImage}
         onFilterChange={handleFilterChange}
         handleUndo={handleUndo}
         handleRedo={handleRedo}

@@ -4,16 +4,22 @@ import { ImageUploader } from './image-uploader/ImageUploader';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { X } from "lucide-react";
+import { X, ImageOff } from "lucide-react";
 
 interface BackgroundImageSelectorProps {
   onBackgroundSelect: (imageUrl: string) => void;
+  currentBackground?: string;
 }
 
-export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageSelectorProps) {
+export function BackgroundImageSelector({ onBackgroundSelect, currentBackground }: BackgroundImageSelectorProps) {
   const [activeTab, setActiveTab] = useState("papers");
   const [showMorePapers, setShowMorePapers] = useState<number>(1);
   const [showMorePatterns, setShowMorePatterns] = useState<number>(1);
+  const [hasBackground, setHasBackground] = useState<boolean>(false);
+  
+  useEffect(() => {
+    setHasBackground(!!currentBackground);
+  }, [currentBackground]);
   
   const paperBackgrounds = [
     { name: "Vintage Parchment", url: "https://www.transparenttextures.com/patterns/old-map.png", bgColor: '#e8dcb5' },
@@ -210,6 +216,12 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     } else {
       onBackgroundSelect(url);
     }
+    setHasBackground(true);
+  };
+
+  const handleClearBackground = () => {
+    onBackgroundSelect("");
+    setHasBackground(false);
   };
 
   const getPatternBackgroundStyle = (url: string, bgColor: string = '#faf9f6') => {
@@ -338,7 +350,21 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
   
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold tracking-tight">Background Images & Patterns</h3>
+      <div className="flex justify-between items-center">
+        <h3 className="text-sm font-semibold tracking-tight">Background Images & Patterns</h3>
+        {hasBackground && (
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={handleClearBackground}
+            className="h-7 gap-1 text-xs text-destructive hover:text-destructive"
+            title="Remove Background"
+          >
+            <ImageOff className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Remove Background</span>
+          </Button>
+        )}
+      </div>
       
       <Tabs defaultValue="papers" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-5 mb-2">
@@ -408,15 +434,6 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
         </ScrollArea>
         
         <Separator className="my-2" />
-        
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleBackgroundSelect("")}
-          className="w-full mt-2 text-xs"
-        >
-          Clear Background
-        </Button>
       </Tabs>
     </div>
   );
