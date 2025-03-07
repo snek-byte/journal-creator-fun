@@ -63,12 +63,13 @@ export function WordArtStyles({ onWordArtStyleSelect }: WordArtStylesProps) {
       name: 'Golden', 
       className: 'font-extrabold',
       style: { 
-        backgroundImage: 'linear-gradient(to bottom, #FFD700, #FFF8B8, #F8D848, #FFC926, #FFDC73, #FFD700)',
+        color: '#FFD700',
+        textShadow: '0px 2px 3px rgba(0,0,0,0.2)',
+        background: 'linear-gradient(to bottom, #FFD700, #FBF6A8, #D4AF37, #FFD700)',
         backgroundClip: 'text',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
-        textShadow: '0px 2px 2px rgba(100,84,0,0.3)',
-        filter: 'drop-shadow(1px 1px 1px rgba(227,186,0,0.5))'
+        filter: 'drop-shadow(1px 1px 1px rgba(227,190,0,0.3))'
       }
     },
     { 

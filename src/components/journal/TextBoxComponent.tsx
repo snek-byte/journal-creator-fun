@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Trash2, Move, Check } from 'lucide-react';
 import { TextBox } from '@/types/journal';
@@ -113,14 +112,14 @@ export function TextBoxComponent({
         styles.filter = 'drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.3))';
         break;
       case 'golden':
-        styles.backgroundImage = 'linear-gradient(to bottom, #FFD700, #FFF8B8, #F8D848, #FFC926, #FFDC73, #FFD700)';
+        styles.color = '#FFD700';
+        styles.textShadow = '0px 2px 3px rgba(0,0,0,0.2)';
+        styles.background = 'linear-gradient(to bottom, #FFD700, #FBF6A8, #D4AF37, #FFD700)';
+        styles.backgroundClip = 'text';
         styles.WebkitBackgroundClip = 'text';
         styles.WebkitTextFillColor = 'transparent';
-        styles.backgroundClip = 'text';
         styles.fontWeight = '800';
-        styles.letterSpacing = '0.03em';
-        styles.textShadow = '0px 2px 2px rgba(100, 84, 0, 0.3)';
-        styles.filter = 'drop-shadow(1px 1px 1px rgba(227, 186, 0, 0.5))';
+        styles.filter = 'drop-shadow(1px 1px 1px rgba(227,190,0,0.3))';
         break;
       case 'bubble':
         styles.color = '#60a5fa';
@@ -170,7 +169,6 @@ export function TextBoxComponent({
           }}
           onDoubleClick={handleDoubleClick}
         >
-          {/* Apply the text style transformation if it's a Unicode style, but skip for wordart */}
           {textBox.textStyle && !textBox.textStyle.startsWith('wordart:') ?
             applyTextStyle(textBox.text, textBox.textStyle as TextStyle) :
             textBox.text
@@ -178,7 +176,6 @@ export function TextBoxComponent({
         </div>
       </div>
 
-      {/* Only show controls when the text box is selected */}
       {selected && (
         <TextBoxControls
           textBox={textBox}
