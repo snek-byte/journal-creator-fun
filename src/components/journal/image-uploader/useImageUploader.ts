@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export function useImageUploader(onDialogOpenChange: (open: boolean) => void) {
+export function useImageUploader(onDialogOpenChange: ((open: boolean) => void) | null) {
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState<Record<string, boolean>>({});
   const [uploadedImages, setUploadedImages] = useState<Array<{url: string, filename?: string}>>([]);

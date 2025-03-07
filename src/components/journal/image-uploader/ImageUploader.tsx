@@ -1,7 +1,6 @@
 
 import React, { useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ImagePlus } from "lucide-react";
 import { useImageUploader } from './useImageUploader';
 import { ImageGallery } from './ImageGallery';
@@ -14,7 +13,6 @@ interface ImageUploaderProps {
 }
 
 export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
-  const [open, setOpen] = React.useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const {
@@ -25,14 +23,12 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
     checkStorageBucket,
     uploadImage,
     deleteImage
-  } = useImageUploader(setOpen);
+  } = useImageUploader(null);
 
   useEffect(() => {
-    if (open) {
-      fetchUserImages();
-      checkStorageBucket();
-    }
-  }, [open]);
+    fetchUserImages();
+    checkStorageBucket();
+  }, []);
 
   const handleFileSelect = () => {
     if (fileInputRef.current) {
@@ -54,56 +50,37 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
 
   const handleImageSelect = (url: string) => {
     onImageSelect(url);
-    setOpen(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="xs" 
-          className="hover:bg-accent hover:text-accent-foreground w-5 h-5 p-0"
-          title="Upload or select image"
-        >
-          <ImagePlus className="w-3 h-3" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-[250px] p-2">
-        <DialogHeader className="p-0 mb-1">
-          <DialogTitle className="text-xs">Your Images</DialogTitle>
-        </DialogHeader>
-        
+    <div className="space-y-2">
+      <div>
+        <UploadButton
+          isUploading={isUploading}
+          onClick={handleFileSelect}
+        />
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          accept="image/*"
+          className="hidden"
+        />
+      </div>
+      
+      {uploadedImages.length > 0 ? (
+        <ImageGallery
+          images={uploadedImages}
+          onImageSelect={handleImageSelect}
+          onDeleteImage={deleteImage}
+          isDeleting={isDeleting}
+        />
+      ) : (
         <div className="space-y-1">
-          <div>
-            <UploadButton
-              isUploading={isUploading}
-              onClick={handleFileSelect}
-            />
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept="image/*"
-              className="hidden"
-            />
-          </div>
-          
-          {uploadedImages.length > 0 ? (
-            <ImageGallery
-              images={uploadedImages}
-              onImageSelect={handleImageSelect}
-              onDeleteImage={deleteImage}
-              isDeleting={isDeleting}
-            />
-          ) : (
-            <div className="space-y-1">
-              <NoImagesPlaceholder />
-              <PlaceholderGallery onImageSelect={handleImageSelect} />
-            </div>
-          )}
+          <NoImagesPlaceholder />
+          <PlaceholderGallery onImageSelect={handleImageSelect} />
         </div>
-      </DialogContent>
-    </Dialog>
+      )}
+    </div>
   );
 }
