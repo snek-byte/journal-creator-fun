@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -69,12 +68,12 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
           <ImagePlus className="w-4 h-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[400px] p-4">
-        <DialogHeader className="pb-2">
-          <DialogTitle className="text-base">Your Images</DialogTitle>
+      <DialogContent className="max-w-[300px] p-3">
+        <DialogHeader className="pb-1">
+          <DialogTitle className="text-sm">Your Images</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-3">
+        <div className="space-y-2">
           <div>
             <UploadButton
               isUploading={isUploading}
@@ -97,7 +96,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
               isDeleting={isDeleting}
             />
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               <NoImagesPlaceholder />
               <PlaceholderGallery onImageSelect={handleImageSelect} />
             </div>
