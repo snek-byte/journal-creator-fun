@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Trash2, Move, Check } from 'lucide-react';
 import { TextBox } from '@/types/journal';
@@ -29,19 +30,22 @@ export function TextBoxComponent({
   const textBoxRef = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState(textBox.text);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     setText(textBox.text);
   }, [textBox.text]);
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
     if (!isDrawingMode) {
+      e.stopPropagation();
       onSelect(textBox.id);
     }
   };
 
-  const handleDoubleClick = () => {
+  const handleDoubleClick = (e: React.MouseEvent) => {
     if (!isDrawingMode) {
+      e.stopPropagation();
       setIsEditing(true);
     }
   };
@@ -60,6 +64,107 @@ export function TextBoxComponent({
       e.preventDefault();
       handleBlur();
     }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (isDrawingMode || isEditing) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    onSelect(textBox.id);
+    setIsDragging(true);
+    
+    const startX = e.clientX;
+    const startY = e.clientY;
+    
+    const containerRect = containerRef.current?.getBoundingClientRect();
+    if (!containerRect) return;
+    
+    const containerWidth = containerRect.width;
+    const containerHeight = containerRect.height;
+    
+    const initialPosition = { ...textBox.position };
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      
+      e.preventDefault();
+      
+      const deltaX = e.clientX - startX;
+      const deltaY = e.clientY - startY;
+      
+      const deltaXPercent = (deltaX / containerWidth) * 100;
+      const deltaYPercent = (deltaY / containerHeight) * 100;
+      
+      const newX = Math.max(10, Math.min(90, initialPosition.x + deltaXPercent));
+      const newY = Math.max(10, Math.min(90, initialPosition.y + deltaYPercent));
+      
+      onUpdate(textBox.id, { position: { x: newX, y: newY } });
+    };
+    
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (isDrawingMode || isEditing) return;
+    
+    e.stopPropagation();
+    if (e.touches.length !== 1) return;
+    
+    onSelect(textBox.id);
+    setIsDragging(true);
+    
+    const touch = e.touches[0];
+    const startX = touch.clientX;
+    const startY = touch.clientY;
+    
+    const containerRect = containerRef.current?.getBoundingClientRect();
+    if (!containerRect) return;
+    
+    const containerWidth = containerRect.width;
+    const containerHeight = containerRect.height;
+    
+    const initialPosition = { ...textBox.position };
+    
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isDragging) return;
+      
+      e.preventDefault();
+      
+      if (e.touches.length !== 1) return;
+      
+      const touch = e.touches[0];
+      
+      const deltaX = touch.clientX - startX;
+      const deltaY = touch.clientY - startY;
+      
+      const deltaXPercent = (deltaX / containerWidth) * 100;
+      const deltaYPercent = (deltaY / containerHeight) * 100;
+      
+      const newX = Math.max(10, Math.min(90, initialPosition.x + deltaXPercent));
+      const newY = Math.max(10, Math.min(90, initialPosition.y + deltaYPercent));
+      
+      onUpdate(textBox.id, { position: { x: newX, y: newY } });
+    };
+    
+    const handleTouchEnd = () => {
+      setIsDragging(false);
+      
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+    
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
   };
 
   const getWordArtStyle = (textStyleValue: string): React.CSSProperties => {
@@ -134,7 +239,7 @@ export function TextBoxComponent({
   return (
     <div
       ref={textBoxRef}
-      className="absolute cursor-move"
+      className={`absolute ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
       style={{
         left: `${textBox.position.x}%`,
         top: `${textBox.position.y}%`,
@@ -143,11 +248,13 @@ export function TextBoxComponent({
         height: textBox.height,
         zIndex: textBox.zIndex || 10,
         ...style,
-        pointerEvents: isDrawingMode ? 'none' : 'auto'
+        pointerEvents: isDrawingMode ? 'none' : 'auto',
+        touchAction: 'none'
       }}
       onClick={handleClick}
-      onMouseDown={handleClick}
-      onTouchStart={handleClick}
+      onMouseDown={handleMouseDown}
+      onTouchStart={handleTouchStart}
+      onDoubleClick={handleDoubleClick}
     >
       <div 
         className={`w-full h-full p-2 flex items-center justify-center bg-transparent rounded ${
@@ -166,7 +273,6 @@ export function TextBoxComponent({
             backgroundClip: textBox.gradient ? 'text' : 'border-box',
             ...getWordArtStyle(textBox.textStyle)
           }}
-          onDoubleClick={handleDoubleClick}
         >
           {textBox.textStyle && !textBox.textStyle.startsWith('wordart:') ?
             applyTextStyle(textBox.text, textBox.textStyle as TextStyle) :
