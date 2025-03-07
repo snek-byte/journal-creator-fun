@@ -37,11 +37,26 @@ export function JournalStylingControls({
   onTextStyleChange
 }: JournalStylingControlsProps) {
   const [activeTab, setActiveTab] = useState('style');
-  const [showAllStyles, setShowAllStyles] = useState(false);
+  const [styleChunkIndex, setStyleChunkIndex] = useState(0);
   
-  // Get the first 18 styles to display initially (changed from 9 to 18)
-  const initialStyles = textStyles.slice(0, 18);
-  const displayStyles = showAllStyles ? textStyles : initialStyles;
+  // Define chunks of styles to display with "more" buttons
+  const chunkSize = 9;
+  const styleChunks = [
+    textStyles.slice(0, chunkSize),                   // First chunk: 0-8 (9 items)
+    textStyles.slice(chunkSize, chunkSize * 2),       // Second chunk: 9-17 (9 items)
+    textStyles.slice(chunkSize * 2, chunkSize * 3),   // Third chunk: 18-26 (9 items)
+    textStyles.slice(chunkSize * 3, chunkSize * 4),   // Fourth chunk: 27-35 (9 items)
+    textStyles.slice(chunkSize * 4),                  // Remaining styles
+  ];
+  
+  // Calculate which chunks to display based on current index
+  const visibleStyles = textStyles.slice(0, chunkSize * (styleChunkIndex + 1));
+  const hasMoreStyles = styleChunkIndex < styleChunks.length - 1;
+  
+  // Handle "more" button click
+  const handleShowMoreStyles = () => {
+    setStyleChunkIndex(prev => Math.min(prev + 1, styleChunks.length - 1));
+  };
   
   return (
     <div className="space-y-4">
@@ -69,7 +84,7 @@ export function JournalStylingControls({
           <div className="space-y-2 pt-2">
             <span className="text-xs">Text Style</span>
             <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto">
-              {displayStyles.map((style) => (
+              {visibleStyles.map((style) => (
                 <button
                   key={style.value}
                   onClick={() => onTextStyleChange(style.value)}
@@ -79,9 +94,9 @@ export function JournalStylingControls({
                 </button>
               ))}
               
-              {!showAllStyles && (
+              {hasMoreStyles && (
                 <button
-                  onClick={() => setShowAllStyles(true)}
+                  onClick={handleShowMoreStyles}
                   className="text-xs px-2 py-1.5 bg-muted hover:bg-muted/80 rounded text-center font-medium text-blue-500"
                 >
                   more...
