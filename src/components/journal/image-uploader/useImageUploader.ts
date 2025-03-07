@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 export function useImageUploader(onDialogOpenChange: ((open: boolean) => void) | null) {
   const [isUploading, setIsUploading] = useState(false);
@@ -60,7 +59,6 @@ export function useImageUploader(onDialogOpenChange: ((open: boolean) => void) |
       // If journal-images bucket doesn't exist, show a warning
       if (!buckets.some(bucket => bucket.name === 'journal-images')) {
         console.warn('journal-images bucket not found. Please create it in the Supabase dashboard.');
-        toast.warning('Image storage not fully configured. Contact administrator.');
       }
     } catch (error) {
       console.error('Error in bucket check:', error);
@@ -72,13 +70,13 @@ export function useImageUploader(onDialogOpenChange: ((open: boolean) => void) |
 
     // Check file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image too large. Maximum size is 5MB.');
+      console.error('Image too large. Maximum size is 5MB.');
       return null;
     }
 
     // Check file type
     if (!file.type.startsWith('image/')) {
-      toast.error('Only image files are allowed.');
+      console.error('Only image files are allowed.');
       return null;
     }
 
@@ -86,7 +84,7 @@ export function useImageUploader(onDialogOpenChange: ((open: boolean) => void) |
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error('Please sign in to upload images');
+        console.error('Please sign in to upload images');
         return null;
       }
 
@@ -105,11 +103,6 @@ export function useImageUploader(onDialogOpenChange: ((open: boolean) => void) |
 
       if (error) {
         console.error("Upload error:", error);
-        if (error.message.includes('bucket') || error.message.includes('not found')) {
-          toast.error('Storage bucket not found. Please contact administrator.');
-        } else {
-          toast.error(`Upload error: ${error.message}`);
-        }
         throw error;
       }
 
@@ -140,21 +133,11 @@ export function useImageUploader(onDialogOpenChange: ((open: boolean) => void) |
 
       // Update local state
       setUploadedImages(prev => [{url: publicUrlData.publicUrl, filename: fileName}, ...prev]);
-      toast.success('Image uploaded successfully!');
       console.log("ImageUploader: Image successfully uploaded and saved");
       
       return publicUrlData.publicUrl;
     } catch (error: any) {
       console.error('Error uploading image:', error);
-      
-      // More user-friendly error messages
-      if (error.message?.includes('bucket') || error.message?.includes('not found')) {
-        toast.error('Storage not properly configured. Please contact administrator.');
-      } else if (error.message?.includes('permission')) {
-        toast.error('You don\'t have permission to upload images.');
-      } else {
-        toast.error(error.message || 'Failed to upload image');
-      }
       return null;
     } finally {
       setIsUploading(false);
@@ -163,7 +146,7 @@ export function useImageUploader(onDialogOpenChange: ((open: boolean) => void) |
 
   const deleteImage = async (url: string, filename?: string) => {
     if (!filename) {
-      toast.error('Cannot delete this image - missing filename information');
+      console.error('Cannot delete this image - missing filename information');
       return;
     }
 
@@ -172,7 +155,7 @@ export function useImageUploader(onDialogOpenChange: ((open: boolean) => void) |
       
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error('Please sign in to delete images');
+        console.error('Please sign in to delete images');
         return;
       }
 
@@ -202,10 +185,8 @@ export function useImageUploader(onDialogOpenChange: ((open: boolean) => void) |
 
       // Update local state
       setUploadedImages(prev => prev.filter(img => img.url !== url));
-      toast.success('Image deleted successfully');
     } catch (error: any) {
       console.error('Error deleting image:', error);
-      toast.error(error.message || 'Failed to delete image');
     } finally {
       setIsDeleting(prev => ({ ...prev, [url]: false }));
     }

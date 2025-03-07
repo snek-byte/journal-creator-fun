@@ -16,7 +16,6 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HexColorPicker } from "react-colorful";
-import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -88,22 +87,15 @@ export function DrawingTools({
   const handleToolClick = (toolId: string) => {
     console.log("Tool selected:", toolId);
     onToolSelect(toolId);
-    toast.info(`${toolId.charAt(0).toUpperCase() + toolId.slice(1)} tool selected`);
     
     // If a tool is selected but drawing mode is not enabled, enable it
     if (!isDrawingMode) {
       onDrawingModeToggle(true);
-      toast.info("Drawing mode enabled");
     }
   };
   
   const handleDrawingModeToggle = (checked: boolean) => {
     onDrawingModeToggle(checked);
-    if (checked) {
-      toast.info("Drawing mode enabled. Other interactions are disabled while drawing.");
-    } else {
-      toast.info("Drawing mode disabled. You can now interact with text and stickers.");
-    }
   };
   
   // Define common color presets
@@ -262,10 +254,7 @@ export function DrawingTools({
       <Button
         variant="destructive"
         size="sm"
-        onClick={() => {
-          onClear();
-          toast.info("Drawing cleared");
-        }}
+        onClick={onClear}
         className="w-full"
       >
         <Trash2 className="h-4 w-4 mr-2" />

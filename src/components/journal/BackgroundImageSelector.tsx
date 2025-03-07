@@ -1,11 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageUploader } from './image-uploader/ImageUploader';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
 import { X } from "lucide-react";
 
 interface BackgroundImageSelectorProps {
@@ -170,7 +168,6 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     { name: "Terracotta Ikat", url: "https://www.transparenttextures.com/patterns/classy-fabric.png", bgColor: '#C87547' },
     { name: "Powder Dot", url: "https://www.transparenttextures.com/patterns/white-diamond-dark.png", bgColor: '#9AB2CE' },
     
-    // 30 more distinct patterns with clear visual designs
     { name: "Maroon Tartan", url: "https://www.transparenttextures.com/patterns/tartan.png", bgColor: '#800020' },
     { name: "Navy Pinstripe", url: "https://www.transparenttextures.com/patterns/pinstripe-light.png", bgColor: '#0A2463' },
     { name: "Crimson Quatrefoil", url: "https://www.transparenttextures.com/patterns/connected.png", bgColor: '#DC143C' },
@@ -213,7 +210,6 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     } else {
       onBackgroundSelect(url);
     }
-    toast.info(`Background ${url ? 'applied' : 'cleared'}`);
   };
 
   const getPatternBackgroundStyle = (url: string, bgColor: string = '#faf9f6') => {
