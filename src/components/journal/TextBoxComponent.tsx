@@ -71,7 +71,7 @@ export function TextBoxComponent({
     
     switch (wordArtStyle) {
       case 'rainbow':
-        styles.background = 'linear-gradient(to right, #ea384c, #F97316, #FACC15, #22c55e, #0EA5E9, #8B5CF6, #D946EF)';
+        styles.background = 'linear-gradient(to right, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #4B0082, #8B00FF)';
         styles.WebkitBackgroundClip = 'text';
         styles.WebkitTextFillColor = 'transparent';
         styles.backgroundClip = 'text';
@@ -103,7 +103,7 @@ export function TextBoxComponent({
         styles.borderBottom = '3px solid #78350f';
         break;
       case 'metallic':
-        styles.backgroundImage = 'linear-gradient(180deg, #f9fafb, #9ca3af, #4b5563, #9ca3af, #f9fafb)';
+        styles.backgroundImage = 'linear-gradient(180deg, #FFFFFF, #E8E8E8, #B0B0B0, #707070, #B0B0B0, #E8E8E8, #FFFFFF)';
         styles.WebkitBackgroundClip = 'text';
         styles.WebkitTextFillColor = 'transparent';
         styles.backgroundClip = 'text';
@@ -113,7 +113,7 @@ export function TextBoxComponent({
         styles.filter = 'drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.3))';
         break;
       case 'golden':
-        styles.backgroundImage = 'linear-gradient(to bottom, #f59e0b, #fbbf24, #fcd34d, #fbbf24, #f59e0b)';
+        styles.backgroundImage = 'linear-gradient(to bottom, #FFD700, #FFF8B8, #F8D848, #FFC926, #FFDC73, #FFD700)';
         styles.WebkitBackgroundClip = 'text';
         styles.WebkitTextFillColor = 'transparent';
         styles.backgroundClip = 'text';
