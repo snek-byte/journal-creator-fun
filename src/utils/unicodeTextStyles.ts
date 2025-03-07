@@ -1,3 +1,4 @@
+
 export type TextStyle = 'normal' | 'mathematical' | 'gothic' | 'cursive' | 
   'bold' | 'italic' | 'boldItalic' | 'script' | 'boldScript' | 'fraktur' | 'boldFraktur' | 
   'sansSerif' | 'sansSerifBold' | 'sansSerifItalic' | 'sansSerifBoldItalic' | 'monospace' |
@@ -191,4 +192,115 @@ const unicodeMap = {
   },
   bubbles: {
     a: 'ⓐ', b: 'ⓑ', c: 'ⓒ', d: 'ⓓ', e: 'ⓔ', f: 'ⓕ', g: 'ⓖ', h: 'ⓗ', i: 'ⓘ', j: 'ⓙ', 
-    k: 'ⓚ', l: 'ⓛ', m: 'ⓜ', n: 'ⓝ', o: 'ⓞ', p: 'ⓟ', q: 'ⓠ', r: 'ⓡ', s: '
+    k: 'ⓚ', l: 'ⓛ', m: 'ⓜ', n: 'ⓝ', o: 'ⓞ', p: 'ⓟ', q: 'ⓠ', r: 'ⓡ', s: 'ⓢ', t: 'ⓣ',
+    u: 'ⓤ', v: 'ⓥ', w: 'ⓦ', x: 'ⓧ', y: 'ⓨ', z: 'ⓩ',
+    A: 'Ⓐ', B: 'Ⓑ', C: 'Ⓒ', D: 'Ⓓ', E: 'Ⓔ', F: 'Ⓕ', G: 'Ⓖ', H: 'Ⓗ', I: 'Ⓘ', J: 'Ⓙ',
+    K: 'Ⓚ', L: 'Ⓛ', M: 'Ⓜ', N: 'Ⓝ', O: 'Ⓞ', P: 'Ⓟ', Q: 'Ⓠ', R: 'Ⓡ', S: 'Ⓢ', T: 'Ⓣ',
+    U: 'Ⓤ', V: 'Ⓥ', W: 'Ⓦ', X: 'Ⓧ', Y: 'Ⓨ', Z: 'Ⓩ',
+    '0': '⓪', '1': '①', '2': '②', '3': '③', '4': '④', '5': '⑤', '6': '⑥', '7': '⑦', '8': '⑧', '9': '⑨'
+  },
+  medieval: {
+    a: '𝖆', b: '𝖇', c: '𝖈', d: '𝖉', e: '𝖊', f: '𝖋', g: '𝖌', h: '𝖍', i: '𝖎', j: '𝖏',
+    k: '𝖐', l: '𝖑', m: '𝖒', n: '𝖓', o: '𝖔', p: '𝖕', q: '𝖖', r: '𝖗', s: '𝖘', t: '𝖙',
+    u: '𝖚', v: '𝖛', w: '𝖜', x: '𝖝', y: '𝖞', z: '𝖟',
+    A: '𝕬', B: '𝕭', C: '𝕮', D: '𝕯', E: '𝕰', F: '𝕱', G: '𝕲', H: '𝕳', I: '𝕴', J: '𝕵',
+    K: '𝕶', L: '𝕷', M: '𝕸', N: '𝕹', O: '𝕺', P: '𝕻', Q: '𝕼', R: '𝕽', S: '𝕾', T: '𝕿',
+    U: '𝖀', V: '𝖁', W: '𝖂', X: '𝖃', Y: '𝖄', Z: '𝖅'
+  },
+  'old-english': {
+    a: '𝔞', b: '𝔟', c: '𝔠', d: '𝔡', e: '𝔢', f: '𝔣', g: '𝔤', h: '𝔥', i: '𝔦', j: '𝔧',
+    k: '𝔨', l: '𝔩', m: '𝔪', n: '𝔫', o: '𝔬', p: '𝔭', q: '𝔮', r: '𝔯', s: '𝔰', t: '𝔱',
+    u: '𝔲', v: '𝔳', w: '𝔴', x: '𝔵', y: '𝔶', z: '𝔷',
+    A: '𝔄', B: '𝔅', C: 'ℭ', D: '𝔇', E: '𝔈', F: '𝔉', G: '𝔊', H: 'ℌ', I: 'ℑ', J: '𝔍',
+    K: '𝔎', L: '𝔏', M: '𝔐', N: '𝔑', O: '𝔒', P: '𝔓', Q: '𝔔', R: 'ℜ', S: '𝔖', T: '𝔗',
+    U: '𝔘', V: '𝔙', W: '𝔚', X: '𝔛', Y: '𝔜', Z: 'ℨ'
+  },
+  handwriting: {
+    a: '𝓪', b: '𝓫', c: '𝓬', d: '𝓭', e: '𝓮', f: '𝓯', g: '𝓰', h: '𝓱', i: '𝓲', j: '𝓳',
+    k: '𝓴', l: '𝓵', m: '𝓶', n: '𝓷', o: '𝓸', p: '𝓹', q: '𝓺', r: '𝓻', s: '𝓼', t: '𝓽',
+    u: '𝓾', v: '𝓿', w: '𝔀', x: '𝔁', y: '𝔂', z: '𝔃',
+    A: '𝓐', B: '𝓑', C: '𝓒', D: '𝓓', E: '𝓔', F: '𝓕', G: '𝓖', H: '𝓗', I: '𝓘', J: '𝓙',
+    K: '𝓚', L: '𝓛', M: '𝓜', N: '𝓝', O: '𝓞', P: '𝓟', Q: '𝓠', R: '𝓡', S: '𝓢', T: '𝓣',
+    U: '𝓤', V: '𝓥', W: '𝓦', X: '𝓧', Y: '𝓨', Z: '𝓩'
+  },
+  cute: {
+    a: 'α', b: 'в', c: '¢', d: '∂', e: 'є', f: 'ƒ', g: 'g', h: 'н', i: 'ι', j: 'נ',
+    k: 'к', l: 'ℓ', m: 'м', n: 'η', o: 'σ', p: 'ρ', q: 'q', r: 'я', s: 'ѕ', t: 'т',
+    u: 'υ', v: 'ν', w: 'ω', x: 'χ', y: 'у', z: 'z',
+    A: 'Α', B: 'В', C: 'Ç', D: 'D', E: 'Ξ', F: 'Ƒ', G: 'G', H: 'H', I: 'Ι', J: 'J',
+    K: 'Κ', L: 'L', M: 'M', N: 'N', O: 'Ο', P: 'P', Q: 'Q', R: 'R', S: 'S', T: 'T',
+    U: 'U', V: 'V', W: 'W', X: 'X', Y: 'Y', Z: 'Z'
+  },
+  dotted: {
+    a: 'ä', b: 'ḅ', c: 'ċ', d: 'ḍ', e: 'ë', f: 'ḟ', g: 'ġ', h: 'ḥ', i: 'ï', j: 'j̈',
+    k: 'ḳ', l: 'ḷ', m: 'ṃ', n: 'ṇ', o: 'ö', p: 'ṗ', q: 'q̇', r: 'ṛ', s: 'ṡ', t: 'ṭ',
+    u: 'ü', v: 'ṿ', w: 'ẇ', x: 'ẋ', y: 'ÿ', z: 'ż',
+    A: 'Ä', B: 'Ḅ', C: 'Ċ', D: 'Ḍ', E: 'Ë', F: 'Ḟ', G: 'Ġ', H: 'Ḥ', I: 'Ï', J: 'J̈',
+    K: 'Ḳ', L: 'Ḷ', M: 'Ṃ', N: 'Ṇ', O: 'Ö', P: 'Ṗ', Q: 'Q̇', R: 'Ṛ', S: 'Ṡ', T: 'Ṭ',
+    U: 'Ü', V: 'Ṿ', W: 'Ẇ', X: 'Ẋ', Y: 'Ÿ', Z: 'Ż'
+  },
+  parenthesized: {
+    a: '⒜', b: '⒝', c: '⒞', d: '⒟', e: '⒠', f: '⒡', g: '⒢', h: '⒣', i: '⒤', j: '⒥',
+    k: '⒦', l: '⒧', m: '⒨', n: '⒩', o: '⒪', p: '⒫', q: '⒬', r: '⒭', s: '⒮', t: '⒯',
+    u: '⒰', v: '⒱', w: '⒲', x: '⒳', y: '⒴', z: '⒵',
+    '1': '⑴', '2': '⑵', '3': '⑶', '4': '⑷', '5': '⑸', '6': '⑹', '7': '⑺', '8': '⑻', '9': '⑼', '0': '⑽'
+  },
+  boxed: {
+    a: '🄰', b: '🄱', c: '🄲', d: '🄳', e: '🄴', f: '🄵', g: '🄶', h: '🄷', i: '🄸', j: '🄹',
+    k: '🄺', l: '🄻', m: '🄼', n: '🄽', o: '🄾', p: '🄿', q: '🅀', r: '🅁', s: '🅂', t: '🅃',
+    u: '🅄', v: '🅅', w: '🅆', x: '🅇', y: '🅈', z: '🅉',
+    A: '🄰', B: '🄱', C: '🄲', D: '🄳', E: '🄴', F: '🄵', G: '🄶', H: '🄷', I: '🄸', J: '🄹',
+    K: '🄺', L: '🄻', M: '🄼', N: '🄽', O: '🄾', P: '🄿', Q: '🅀', R: '🅁', S: '🅂', T: '🅃',
+    U: '🅄', V: '🅅', W: '🅆', X: '🅇', Y: '🅈', Z: '🅉'
+  }
+};
+
+export const textStyles = [
+  { value: 'normal', label: 'Normal' },
+  { value: 'mathematical', label: 'Mathematical' },
+  { value: 'gothic', label: 'Gothic' },
+  { value: 'cursive', label: 'Cursive' },
+  { value: 'bold', label: 'Bold' },
+  { value: 'italic', label: 'Italic' },
+  { value: 'boldItalic', label: 'Bold Italic' },
+  { value: 'boldScript', label: 'Bold Script' },
+  { value: 'fraktur', label: 'Fraktur' },
+  { value: 'boldFraktur', label: 'Bold Fraktur' },
+  { value: 'sansSerif', label: 'Sans Serif' },
+  { value: 'sansSerifBold', label: 'Sans Serif Bold' },
+  { value: 'sansSerifItalic', label: 'Sans Serif Italic' },
+  { value: 'sansSerifBoldItalic', label: 'Sans Serif Bold Italic' },
+  { value: 'monospace', label: 'Monospace' },
+  { value: 'fullWidth', label: 'Full Width' },
+  { value: 'smallCaps', label: 'Small Caps' },
+  { value: 'subscript', label: 'Subscript' },
+  { value: 'superscript', label: 'Superscript' },
+  { value: 'inverted', label: 'Inverted' },
+  { value: 'reversed', label: 'Reversed' },
+  { value: 'strikethrough', label: 'Strikethrough' },
+  { value: 'underline', label: 'Underline' },
+  { value: 'bubbles', label: 'Bubbles' },
+  { value: 'medieval', label: 'Medieval' },
+  { value: 'old-english', label: 'Old English' },
+  { value: 'handwriting', label: 'Handwriting' },
+  { value: 'cute', label: 'Cute' },
+  { value: 'dotted', label: 'Dotted' },
+  { value: 'parenthesized', label: 'Parenthesized' },
+  { value: 'boxed', label: 'Boxed' }
+];
+
+export function applyTextStyle(text: string, style: TextStyle): string {
+  if (style === 'normal') {
+    return text;
+  }
+
+  const map = unicodeMap[style];
+  if (!map) {
+    return text;
+  }
+
+  return text.split('').map(char => {
+    const transformedChar = map[char];
+    return transformedChar !== undefined ? transformedChar : char;
+  }).join('');
+}
