@@ -20,7 +20,7 @@ import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import type { EmojiClickData } from 'emoji-picker-react';
 import type { JournalEntry, Challenge } from '@/types/journal';
-import { ImageUploader } from './journal/ImageUploader';
+import { ImageUploader } from './journal/image-uploader/ImageUploader';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { useJournalStore } from '@/store/journalStore';
