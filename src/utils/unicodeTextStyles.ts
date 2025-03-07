@@ -1,9 +1,9 @@
 
-export type TextStyle = 'normal' | 'mathematical' | 'gothic' | 'cursive' | 'double' | 'circle' | 
+export type TextStyle = 'normal' | 'mathematical' | 'gothic' | 'cursive' | 
   'bold' | 'italic' | 'boldItalic' | 'script' | 'boldScript' | 'fraktur' | 'boldFraktur' | 
   'sansSerif' | 'sansSerifBold' | 'sansSerifItalic' | 'sansSerifBoldItalic' | 'monospace' |
   'fullWidth' | 'smallCaps' | 'subscript' | 'superscript' | 'inverted' | 'reversed' | 
-  'strikethrough' | 'underline' | 'bubbles' | 'squares' | 'medieval' | 'old-english' |
+  'strikethrough' | 'underline' | 'bubbles' | 'medieval' | 'old-english' |
   'handwriting' | 'vintage' | 'cute' | 'dotted' | 'parenthesized' | 'boxed';
 
 const unicodeMap = {
@@ -32,24 +32,6 @@ const unicodeMap = {
     k: '𝓀', l: '𝓁', m: '𝓂', n: '𝓃', o: 'ℴ', p: '𝓅', q: '𝓆', r: '𝓇', s: '𝓈', t: '𝓉',
     u: '𝓊', v: '𝓋', w: '𝓌', x: '𝓍', y: '𝓎', z: '𝓏'
   },
-  double: {
-    A: '𝔸', B: '𝔹', C: 'ℂ', D: '𝔻', E: '𝔼', F: '𝔽', G: '𝔾', H: 'ℍ', I: '𝕀', J: '𝕁',
-    K: '𝕂', L: '𝕃', M: '𝕄', N: 'ℕ', O: '𝕆', P: 'ℙ', Q: 'ℚ', R: 'ℝ', S: '𝕊', T: '𝕋',
-    U: '𝕌', V: '𝕍', W: '𝕎', X: '𝕏', Y: '𝕐', Z: 'ℤ',
-    a: '𝕒', b: '𝕓', c: '𝕔', d: '𝕕', e: '𝕖', f: '𝕗', g: '𝕘', h: '𝕙', i: '𝕚', j: '𝕛',
-    k: '𝕜', l: '𝕝', m: '𝕞', n: '𝕟', o: '𝕠', p: '𝕡', q: '𝕢', r: '𝕣', s: '𝕤', t: '𝕥',
-    u: '𝕦', v: '𝕧', w: '𝕨', x: '𝕩', y: '𝕪', z: '𝕫',
-    '0': '𝟘', '1': '𝟙', '2': '𝟚', '3': '𝟛', '4': '𝟜', '5': '𝟝', '6': '𝟞', '7': '𝟟', '8': '𝟠', '9': '𝟡'
-  },
-  circle: {
-    A: 'Ⓐ', B: 'Ⓑ', C: 'Ⓒ', D: 'Ⓓ', E: 'Ⓔ', F: 'Ⓕ', G: 'Ⓖ', H: 'Ⓗ', I: 'Ⓘ', J: 'Ⓙ',
-    K: 'Ⓚ', L: 'Ⓛ', M: 'Ⓜ', N: 'Ⓝ', O: 'Ⓞ', P: 'Ⓟ', Q: 'Ⓠ', R: 'Ⓡ', S: 'Ⓢ', T: 'Ⓣ',
-    U: 'Ⓤ', V: 'Ⓥ', W: 'Ⓦ', X: 'Ⓧ', Y: 'Ⓨ', Z: 'Ⓩ',
-    a: 'ⓐ', b: 'ⓑ', c: 'ⓒ', d: 'ⓓ', e: 'ⓔ', f: 'ⓕ', g: 'ⓖ', h: 'ⓗ', i: 'ⓘ', j: 'ⓙ',
-    k: 'ⓚ', l: 'ⓛ', m: 'ⓜ', n: 'ⓝ', o: 'ⓞ', p: 'ⓟ', q: 'ⓠ', r: 'ⓡ', s: 'ⓢ', t: 'ⓣ',
-    u: 'ⓤ', v: 'ⓥ', w: 'ⓦ', x: 'ⓧ', y: 'ⓨ', z: 'ⓩ',
-    '0': '⓪', '1': '①', '2': '②', '3': '③', '4': '④', '5': '⑤', '6': '⑥', '7': '⑦', '8': '⑧', '9': '⑨'
-  },
   bold: {
     A: '𝐀', B: '𝐁', C: '𝐂', D: '𝐃', E: '𝐄', F: '𝐅', G: '𝐆', H: '𝐇', I: '𝐈', J: '𝐉',
     K: '𝐊', L: '𝐋', M: '𝐌', N: '𝐍', O: '𝐎', P: '𝐏', Q: '𝐐', R: '𝐑', S: '𝐒', T: '𝐓',
@@ -74,14 +56,6 @@ const unicodeMap = {
     a: '𝒂', b: '𝒃', c: '𝒄', d: '𝒅', e: '𝒆', f: '𝒇', g: '𝒈', h: '𝒉', i: '𝒊', j: '𝒋',
     k: '𝒌', l: '𝒍', m: '𝒎', n: '𝒏', o: '𝒐', p: '𝒑', q: '𝒒', r: '𝒓', s: '𝒔', t: '𝒕',
     u: '𝒖', v: '𝒗', w: '𝒘', x: '𝒙', y: '𝒚', z: '𝒛'
-  },
-  script: {
-    A: '𝒜', B: 'ℬ', C: '𝒞', D: '𝒟', E: 'ℰ', F: 'ℱ', G: '𝒢', H: 'ℋ', I: 'ℐ', J: '𝒥',
-    K: '𝒦', L: 'ℒ', M: 'ℳ', N: '𝒩', O: '𝒪', P: '𝒫', Q: '𝒬', R: 'ℛ', S: '𝒮', T: '𝒯',
-    U: '𝒰', V: '𝒱', W: '𝒲', X: '𝒳', Y: '𝒴', Z: '𝒵',
-    a: '𝒶', b: '𝒷', c: '𝒸', d: '𝒹', e: 'ℯ', f: '𝒻', g: 'ℊ', h: '𝒽', i: '𝒾', j: '𝒿',
-    k: '𝓀', l: '𝓁', m: '𝓂', n: '𝓃', o: 'ℴ', p: '𝓅', q: '𝓆', r: '𝓇', s: '𝓈', t: '𝓉',
-    u: '𝓊', v: '𝓋', w: '𝓌', x: '𝓍', y: '𝓎', z: '𝓏'
   },
   boldScript: {
     A: '𝓐', B: '𝓑', C: '𝓒', D: '𝓓', E: '𝓔', F: '𝓕', G: '𝓖', H: '𝓗', I: '𝓘', J: '𝓙',
@@ -216,7 +190,7 @@ const unicodeMap = {
     u: 'u̲', v: 'v̲', w: 'w̲', x: 'x̲', y: 'y̲', z: 'z̲',
     '0': '0̲', '1': '1̲', '2': '2̲', '3': '3̲', '4': '4̲', '5': '5̲', '6': '6̲', '7': '7̲', '8': '8̲', '9': '9̲'
   },
-  // New text styles
+  // Retained bubbles style (removed circles as duplicate)
   bubbles: {
     a: 'ⓐ', b: 'ⓑ', c: 'ⓒ', d: 'ⓓ', e: 'ⓔ', f: 'ⓕ', g: 'ⓖ', h: 'ⓗ', i: 'ⓘ', j: 'ⓙ', 
     k: 'ⓚ', l: 'ⓛ', m: 'ⓜ', n: 'ⓝ', o: 'ⓞ', p: 'ⓟ', q: 'ⓠ', r: 'ⓡ', s: 'ⓢ', t: 'ⓣ',
@@ -226,13 +200,14 @@ const unicodeMap = {
     U: 'Ⓤ', V: 'Ⓥ', W: 'Ⓦ', X: 'Ⓧ', Y: 'Ⓨ', Z: 'Ⓩ',
     '0': '⓪', '1': '①', '2': '②', '3': '③', '4': '④', '5': '⑤', '6': '⑥', '7': '⑦', '8': '⑧', '9': '⑨'
   },
-  squares: {
-    a: '🄰', b: '🄱', c: '🄲', d: '🄳', e: '🄴', f: '🄵', g: '🄶', h: '🄷', i: '🄸', j: '🄹',
-    k: '🄺', l: '🄻', m: '🄼', n: '🄽', o: '🄾', p: '🄿', q: '🅀', r: '🅁', s: '🅂', t: '🅃',
-    u: '🅄', v: '🅅', w: '🅆', x: '🅇', y: '🅈', z: '🅉',
+  // Retained boxed style (removed squares as duplicate)
+  boxed: {
     A: '🄰', B: '🄱', C: '🄲', D: '🄳', E: '🄴', F: '🄵', G: '🄶', H: '🄷', I: '🄸', J: '🄹',
     K: '🄺', L: '🄻', M: '🄼', N: '🄽', O: '🄾', P: '🄿', Q: '🅀', R: '🅁', S: '🅂', T: '🅃',
     U: '🅄', V: '🅅', W: '🅆', X: '🅇', Y: '🅈', Z: '🅉',
+    a: '🄰', b: '🄱', c: '🄲', d: '🄳', e: '🄴', f: '🄵', g: '🄶', h: '🄷', i: '🄸', j: '🄹',
+    k: '🄺', l: '🄻', m: '🄼', n: '🄽', o: '🄾', p: '🄿', q: '🅀', r: '🅁', s: '🅂', t: '🅃',
+    u: '🅄', v: '🅅', w: '🅆', x: '🅇', y: '🅈', z: '🅉',
     '0': '0', '1': '1', '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7', '8': '8', '9': '9'
   },
   medieval: {
@@ -251,6 +226,7 @@ const unicodeMap = {
     k: 'ꀗ', l: '꒒', m: 'ꂵ', n: 'ꋊ', o: 'ꄲ', p: 'ꉣ', q: 'ꋠ', r: 'ꋪ', s: 'ꇙ', t: '꓄',
     u: 'ꀎ', v: 'ᐯ', w: 'ꅐ', x: '꒾', y: 'ꌩ', z: 'ꁴ'
   },
+  // Retained handwriting style (removed script as duplicate)
   handwriting: {
     A: '𝓐', B: '𝓑', C: '𝓒', D: '𝓓', E: '𝓔', F: '𝓕', G: '𝓖', H: '𝓗', I: '𝓘', J: '𝓙',
     K: '𝓚', L: '𝓛', M: '𝓜', N: '𝓝', O: '𝓞', P: '𝓟', Q: '𝓠', R: '𝓡', S: '𝓢', T: '𝓣',
@@ -280,7 +256,7 @@ const unicodeMap = {
     K: 'K̈', L: 'L̈', M: 'M̈', N: 'N̈', O: 'Ö', P: 'P̈', Q: 'Q̈', R: 'R̈', S: 'S̈', T: 'T̈',
     U: 'Ü', V: 'V̈', W: 'Ẅ', X: 'Ẍ', Y: 'Ÿ', Z: 'Z̈',
     a: 'ä', b: 'b̈', c: 'c̈', d: 'd̈', e: 'ë', f: 'f̈', g: 'g̈', h: 'ḧ', i: 'ï', j: 'j̈',
-    k: 'k̈', l: 'l̈', m: 'm̈', n: 'n̈', o: 'ö', p: 'p̈', q: 'q̈', r: 'r̈', s: 's̈', t: 'ẗ',
+    k: 'k̈', l: 'l̈', m: 'm̈', n: 'n̈', o: 'ö', p: 'p̈', q: 'q̈', r: 'r̈', s: 's̈', t: 'ẗ',
     u: 'ü', v: 'v̈', w: 'ẅ', x: 'ẍ', y: 'ÿ', z: 'z̈'
   },
   parenthesized: {
@@ -291,28 +267,18 @@ const unicodeMap = {
     k: '⒦', l: '⒧', m: '⒨', n: '⒩', o: '⒪', p: '⒫', q: '⒬', r: '⒭', s: '⒮', t: '⒯',
     u: '⒰', v: '⒱', w: '⒲', x: '⒳', y: '⒴', z: '⒵',
     '1': '⑴', '2': '⑵', '3': '⑶', '4': '⑷', '5': '⑸', '6': '⑹', '7': '⑺', '8': '⑻', '9': '⑼', '0': '⑽'
-  },
-  boxed: {
-    A: '🄰', B: '🄱', C: '🄲', D: '🄳', E: '🄴', F: '🄵', G: '🄶', H: '🄷', I: '🄸', J: '🄹',
-    K: '🄺', L: '🄻', M: '🄼', N: '🄽', O: '🄾', P: '🄿', Q: '🅀', R: '🅁', S: '🅂', T: '🅃',
-    U: '🅄', V: '🅅', W: '🅆', X: '🅇', Y: '🅈', Z: '🅉',
-    a: '🄰', b: '🄱', c: '🄲', d: '🄳', e: '🄴', f: '🄵', g: '🄶', h: '🄷', i: '🄸', j: '🄹',
-    k: '🄺', l: '🄻', m: '🄼', n: '🄽', o: '🄾', p: '🄿', q: '🅀', r: '🅁', s: '🅂', t: '🅃',
-    u: '🅄', v: '🅅', w: '🅆', x: '🅇', y: '🅈', z: '🅉'
   }
 };
 
+// Updated text styles array with duplicates removed
 export const textStyles: { value: TextStyle; label: string }[] = [
   { value: 'normal', label: 'Normal Text' },
   { value: 'mathematical', label: 'Mathematical' },
   { value: 'gothic', label: 'Gothic' },
-  { value: 'cursive', label: 'Cursive' },
-  { value: 'double', label: 'Double Struck' },
-  { value: 'circle', label: 'Circled' },
+  { value: 'cursive', label: 'Cursive/Script' },
   { value: 'bold', label: 'Bold' },
   { value: 'italic', label: 'Italic' },
   { value: 'boldItalic', label: 'Bold Italic' },
-  { value: 'script', label: 'Script' },
   { value: 'boldScript', label: 'Bold Script' },
   { value: 'fraktur', label: 'Fraktur' },
   { value: 'boldFraktur', label: 'Bold Fraktur' },
@@ -329,17 +295,15 @@ export const textStyles: { value: TextStyle; label: string }[] = [
   { value: 'reversed', label: 'Reversed' },
   { value: 'strikethrough', label: 'Strikethrough' },
   { value: 'underline', label: 'Underline' },
-  // New styles
-  { value: 'bubbles', label: 'Bubbles' },
-  { value: 'squares', label: 'Squares' },
+  { value: 'bubbles', label: 'Bubbles/Circles' },
+  { value: 'boxed', label: 'Boxed/Squares' },
   { value: 'medieval', label: 'Medieval' },
   { value: 'old-english', label: 'Old English' },
   { value: 'handwriting', label: 'Handwriting' },
   { value: 'vintage', label: 'Vintage' },
   { value: 'cute', label: 'Cute' },
   { value: 'dotted', label: 'Dotted' },
-  { value: 'parenthesized', label: 'Parenthesized' },
-  { value: 'boxed', label: 'Boxed' }
+  { value: 'parenthesized', label: 'Parenthesized' }
 ];
 
 export function applyTextStyle(text: string, style: TextStyle): string {
@@ -353,3 +317,4 @@ export function applyTextStyle(text: string, style: TextStyle): string {
     return styleMap[char] || char;
   }).join('');
 }
+
