@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageUploader } from './image-uploader/ImageUploader';
@@ -5,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { X } from "lucide-react";
 
 interface BackgroundImageSelectorProps {
   onBackgroundSelect: (imageUrl: string) => void;
@@ -12,6 +14,8 @@ interface BackgroundImageSelectorProps {
 
 export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageSelectorProps) {
   const [activeTab, setActiveTab] = useState("papers");
+  const [showMorePapers, setShowMorePapers] = useState<number>(1);
+  const [showMorePatterns, setShowMorePatterns] = useState<number>(1);
   
   const paperBackgrounds = [
     { name: "Vintage Parchment", url: "https://www.transparenttextures.com/patterns/old-map.png", bgColor: '#e8dcb5' },
@@ -134,9 +138,42 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     { name: "Diagonal Lines", url: "https://www.transparenttextures.com/patterns/diagonal-lines.png", bgColor: '#e0e0e0' },
     { name: "Carbon Fiber", url: "https://www.transparenttextures.com/patterns/carbon-fibre.png", bgColor: '#282828' },
     { name: "Cubes", url: "https://www.transparenttextures.com/patterns/3px-tile.png", bgColor: '#e0e0e0' },
+    
+    // Adding 30 more patterns
     { name: "Waves", url: "https://www.transparenttextures.com/patterns/asfalt.png", bgColor: '#d6d6d6' },
     { name: "Diamonds", url: "https://www.transparenttextures.com/patterns/diamond-upholstery.png", bgColor: '#e0e0e0' },
-    { name: "Wood", url: "https://www.transparenttextures.com/patterns/wood-pattern.png", bgColor: '#d2bc9b' }
+    { name: "Wood", url: "https://www.transparenttextures.com/patterns/wood-pattern.png", bgColor: '#d2bc9b' },
+    { name: "Argyle", url: "https://www.transparenttextures.com/patterns/argyle.png", bgColor: '#e8e8e8' },
+    { name: "Basket Weave", url: "https://www.transparenttextures.com/patterns/basket-weave.png", bgColor: '#e0e0e0' },
+    { name: "Black Linen", url: "https://www.transparenttextures.com/patterns/black-linen.png", bgColor: '#333333' },
+    { name: "Black Orchid", url: "https://www.transparenttextures.com/patterns/black-orchid.png", bgColor: '#2d2d2d' },
+    { name: "Broken Glass", url: "https://www.transparenttextures.com/patterns/broken-noise.png", bgColor: '#e6e6e6' },
+    { name: "Brushed Alum", url: "https://www.transparenttextures.com/patterns/brushed-alum-dark.png", bgColor: '#333333' },
+    
+    { name: "Cartographer", url: "https://www.transparenttextures.com/patterns/cartographer.png", bgColor: '#e8e8e8' },
+    { name: "Circles", url: "https://www.transparenttextures.com/patterns/circles.png", bgColor: '#e6e6e6' },
+    { name: "Clean Textile", url: "https://www.transparenttextures.com/patterns/clean-textile.png", bgColor: '#e8e8e8' },
+    { name: "Climpek", url: "https://www.transparenttextures.com/patterns/climpek.png", bgColor: '#d9d9d9' },
+    { name: "Crosshatch", url: "https://www.transparenttextures.com/patterns/crosshatch.png", bgColor: '#e0e0e0' },
+    { name: "Cubes Pattern", url: "https://www.transparenttextures.com/patterns/cubes.png", bgColor: '#d9d9d9' },
+    { name: "Crosses", url: "https://www.transparenttextures.com/patterns/diagmonds.png", bgColor: '#e8e8e8' },
+    { name: "Diamond Eyes", url: "https://www.transparenttextures.com/patterns/diamond-eyes.png", bgColor: '#e0e0e0' },
+    { name: "Dimension", url: "https://www.transparenttextures.com/patterns/dimension.png", bgColor: '#dddddd' },
+    
+    { name: "Fancy Tiles", url: "https://www.transparenttextures.com/patterns/egg-shell.png", bgColor: '#e6e6e6' },
+    { name: "Embossed", url: "https://www.transparenttextures.com/patterns/embossed-paper.png", bgColor: '#f0f0f0' },
+    { name: "Fabric Plaid", url: "https://www.transparenttextures.com/patterns/fabric-plaid.png", bgColor: '#e0e0e0' },
+    { name: "Graphy Dark", url: "https://www.transparenttextures.com/patterns/graphy-dark.png", bgColor: '#333333' },
+    { name: "Gplay", url: "https://www.transparenttextures.com/patterns/gplay.png", bgColor: '#e0e0e0' },
+    { name: "Grid Noise", url: "https://www.transparenttextures.com/patterns/grid-noise.png", bgColor: '#e6e6e6' },
+    { name: "Grunge Wall", url: "https://www.transparenttextures.com/patterns/grunge-wall.png", bgColor: '#cccccc' },
+    { name: "Houndstooth", url: "https://www.transparenttextures.com/patterns/houndstooth.png", bgColor: '#e0e0e0' },
+    { name: "Knitted Sweater", url: "https://www.transparenttextures.com/patterns/knitted-sweater.png", bgColor: '#e8e8e8' },
+    
+    { name: "Micro Carbon", url: "https://www.transparenttextures.com/patterns/micro-carbon.png", bgColor: '#333333' },
+    { name: "Moroccan", url: "https://www.transparenttextures.com/patterns/moroccan-flower.png", bgColor: '#e0e0e0' },
+    { name: "Otis Redding", url: "https://www.transparenttextures.com/patterns/otis-redding.png", bgColor: '#d9d9d9' },
+    { name: "Pixel Weave", url: "https://www.transparenttextures.com/patterns/pixel-weave.png", bgColor: '#e6e6e6' }
   ];
   
   const handleBackgroundSelect = (url: string, bgColor?: string) => {
@@ -160,6 +197,120 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     };
   };
   
+  const renderPaperBackgrounds = () => {
+    const chunks = [];
+    const itemsPerChunk = 9;
+    
+    for (let i = 0; i < paperBackgrounds.length; i += itemsPerChunk) {
+      const chunk = paperBackgrounds.slice(i, i + itemsPerChunk);
+      const chunkIndex = Math.floor(i / itemsPerChunk) + 1;
+      
+      if (chunkIndex <= showMorePapers) {
+        chunks.push(
+          <div key={`paper-chunk-${chunkIndex}`} className="space-y-2">
+            <div className="grid grid-cols-3 gap-2">
+              {chunk.map((bg, index) => (
+                <button
+                  key={index}
+                  className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-20"
+                  onClick={() => handleBackgroundSelect(bg.url, bg.bgColor)}
+                  type="button"
+                  title={bg.name}
+                >
+                  <div 
+                    className="w-full h-full"
+                    style={getPatternBackgroundStyle(bg.url, bg.bgColor)}
+                  />
+                </button>
+              ))}
+            </div>
+            
+            {chunkIndex < Math.ceil(paperBackgrounds.length / itemsPerChunk) && chunkIndex === showMorePapers && (
+              <Button 
+                variant="subtle" 
+                size="sm" 
+                onClick={() => setShowMorePapers(prev => prev + 1)}
+                className="w-full text-xs"
+              >
+                Show More Paper Textures
+              </Button>
+            )}
+            
+            {chunkIndex > 1 && chunkIndex === showMorePapers && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowMorePapers(1)}
+                className="w-full text-xs mt-1 flex items-center justify-center"
+              >
+                <X className="mr-1 h-3 w-3" /> Close
+              </Button>
+            )}
+          </div>
+        );
+      }
+    }
+    
+    return chunks;
+  };
+  
+  const renderPatternBackgrounds = () => {
+    const chunks = [];
+    const itemsPerChunk = 9;
+    
+    for (let i = 0; i < patternBackgrounds.length; i += itemsPerChunk) {
+      const chunk = patternBackgrounds.slice(i, i + itemsPerChunk);
+      const chunkIndex = Math.floor(i / itemsPerChunk) + 1;
+      
+      if (chunkIndex <= showMorePatterns) {
+        chunks.push(
+          <div key={`pattern-chunk-${chunkIndex}`} className="space-y-2">
+            <div className="grid grid-cols-3 gap-2">
+              {chunk.map((bg, index) => (
+                <button
+                  key={index}
+                  className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-20"
+                  onClick={() => handleBackgroundSelect(bg.url, bg.bgColor)}
+                  type="button"
+                  title={bg.name}
+                >
+                  <div 
+                    className="w-full h-full"
+                    style={getPatternBackgroundStyle(bg.url, bg.bgColor)}
+                  />
+                </button>
+              ))}
+            </div>
+            
+            {chunkIndex < Math.ceil(patternBackgrounds.length / itemsPerChunk) && chunkIndex === showMorePatterns && (
+              <Button 
+                variant="subtle" 
+                size="sm" 
+                onClick={() => setShowMorePatterns(prev => prev + 1)}
+                className="w-full text-xs"
+              >
+                Show More Patterns
+              </Button>
+            )}
+            
+            {chunkIndex > 1 && chunkIndex === showMorePatterns && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowMorePatterns(1)}
+                className="w-full text-xs mt-1 flex items-center justify-center"
+              >
+                <X className="mr-1 h-3 w-3" /> Close
+              </Button>
+            )}
+          </div>
+        );
+      }
+    }
+    
+    return chunks;
+  };
+  
   return (
     <div className="space-y-3">
       <h3 className="text-sm font-semibold tracking-tight">Background Images & Patterns</h3>
@@ -175,22 +326,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
         
         <ScrollArea className="h-[220px]">
           <TabsContent value="papers" className="mt-0 space-y-4">
-            <div className="grid grid-cols-3 gap-2">
-              {paperBackgrounds.map((bg, index) => (
-                <button
-                  key={index}
-                  className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-20"
-                  onClick={() => handleBackgroundSelect(bg.url, bg.bgColor)}
-                  type="button"
-                  title={bg.name}
-                >
-                  <div 
-                    className="w-full h-full"
-                    style={getPatternBackgroundStyle(bg.url, bg.bgColor)}
-                  />
-                </button>
-              ))}
-            </div>
+            {renderPaperBackgrounds()}
           </TabsContent>
           
           <TabsContent value="nature" className="mt-0 space-y-4">
@@ -217,22 +353,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
           </TabsContent>
           
           <TabsContent value="patterns" className="mt-0 space-y-4">
-            <div className="grid grid-cols-3 gap-2">
-              {patternBackgrounds.map((bg, index) => (
-                <button
-                  key={index}
-                  className="bg-white rounded overflow-hidden border border-gray-200 hover:border-primary/50 h-20"
-                  onClick={() => handleBackgroundSelect(bg.url, bg.bgColor)}
-                  type="button"
-                  title={bg.name}
-                >
-                  <div 
-                    className="w-full h-full"
-                    style={getPatternBackgroundStyle(bg.url, bg.bgColor)}
-                  />
-                </button>
-              ))}
-            </div>
+            {renderPatternBackgrounds()}
           </TabsContent>
           
           <TabsContent value="gradients" className="mt-0 space-y-4">
