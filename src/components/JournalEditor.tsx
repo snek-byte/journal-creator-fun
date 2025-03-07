@@ -5,6 +5,7 @@ import { EmailDialog } from './journal/EmailDialog';
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Sticker, Icon, TextBox } from '@/types/journal';
+import { useJournalStore } from '@/store/journalStore';
 
 export function JournalEditor() {
   const {
@@ -67,6 +68,8 @@ export function JournalEditor() {
   const [stickerSize, setStickerSize] = useState(100);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
 
+  const clearBackground = useJournalStore(state => state.clearBackground);
+
   useEffect(() => {
     if (selectedStickerId) {
       const sticker = currentEntry.stickers.find(s => s.id === selectedStickerId);
@@ -83,6 +86,7 @@ export function JournalEditor() {
 
   const handleClearDrawing = () => {
     handleDrawingChange('');
+    clearBackground();
   };
 
   const handleStickerAddFromUrl = (stickerUrl: string) => {

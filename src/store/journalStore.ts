@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { JournalEntry, Challenge, Badge, UserProgress, Mood, Sticker, Icon, TextBox } from '@/types/journal';
@@ -62,6 +61,7 @@ interface JournalState {
   addTextBox: (textBox: TextBox) => void;
   updateTextBox: (id: string, updates: Partial<TextBox>) => void;
   removeTextBox: (id: string) => void;
+  clearBackground: () => void;
 }
 
 export const useJournalStore = create<JournalState>()(
@@ -463,7 +463,13 @@ export const useJournalStore = create<JournalState>()(
         }));
 
         toast.success(`Earned ${amount} XP!`);
-      }
+      },
+      clearBackground: () => set((state) => ({
+        currentEntry: {
+          ...state.currentEntry,
+          backgroundImage: undefined
+        }
+      }))
     }),
     {
       name: 'journal-storage'
