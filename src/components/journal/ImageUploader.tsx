@@ -165,8 +165,8 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
         throw dbError;
       }
 
-      // Update local state
-      setUploadedImages(prev => [publicUrlData.publicUrl, ...prev]);
+      // Update local state - FIX: Ensure we're adding an object with the correct structure
+      setUploadedImages(prev => [{url: publicUrlData.publicUrl, filename: fileName}, ...prev]);
       toast.success('Image uploaded successfully!');
       console.log("ImageUploader: Image successfully uploaded and saved");
     } catch (error: any) {
