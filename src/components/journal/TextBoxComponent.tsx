@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Trash2, Move, Check } from 'lucide-react';
 import { TextBox } from '@/types/journal';
@@ -170,17 +171,20 @@ export function TextBoxComponent({
         </div>
       </div>
 
-      <TextBoxControls
-        textBox={textBox}
-        onRemove={onRemove}
-        onUpdate={onUpdate}
-        isEditing={isEditing}
-        setIsEditing={setIsEditing}
-        text={text}
-        handleChange={handleChange}
-        handleBlur={handleBlur}
-        handleKeyDown={handleKeyDown}
-      />
+      {/* Only show controls when the text box is selected */}
+      {selected && (
+        <TextBoxControls
+          textBox={textBox}
+          onRemove={onRemove}
+          onUpdate={onUpdate}
+          isEditing={isEditing}
+          setIsEditing={setIsEditing}
+          text={text}
+          handleChange={handleChange}
+          handleBlur={handleBlur}
+          handleKeyDown={handleKeyDown}
+        />
+      )}
     </div>
   );
 }
