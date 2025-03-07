@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ImagePlus, UploadCloud, Image as ImageIcon, Loader2 } from "lucide-react";
+import { ImagePlus, UploadCloud, Image as ImageIcon, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -12,7 +12,8 @@ interface ImageUploaderProps {
 
 export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [isDeleting, setIsDeleting] = useState<Record<string, boolean>>({});
+  const [uploadedImages, setUploadedImages] = useState<Array<{url: string, filename?: string}>>([]);
   const [open, setOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -29,7 +30,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
       
       const { data, error } = await supabase
         .from('user_images')
-        .select('url')
+        .select('url, filename')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -40,7 +41,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
       
       if (data && data.length) {
         console.log("ImageUploader: Loaded", data.length, "user images");
-        setUploadedImages(data.map(item => item.url));
+        setUploadedImages(data.map(item => ({ url: item.url, filename: item.filename })));
       } else {
         console.log("ImageUploader: No user images found");
       }
@@ -194,6 +195,56 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
     toast.success('Image selected for your journal');
   };
 
+  const handleDeleteImage = async (url: string, filename?: string) => {
+    if (!filename) {
+      toast.error('Cannot delete this image - missing filename information');
+      return;
+    }
+
+    try {
+      setIsDeleting(prev => ({ ...prev, [url]: true }));
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please sign in to delete images');
+        return;
+      }
+
+      console.log("ImageUploader: Deleting image:", filename);
+
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from('journal-images')
+        .remove([filename]);
+
+      if (storageError) {
+        console.error("Storage delete error:", storageError);
+        throw storageError;
+      }
+
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from('user_images')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('filename', filename);
+
+      if (dbError) {
+        console.error("Database delete error:", dbError);
+        throw dbError;
+      }
+
+      // Update local state
+      setUploadedImages(prev => prev.filter(img => img.url !== url));
+      toast.success('Image deleted successfully');
+    } catch (error: any) {
+      console.error('Error deleting image:', error);
+      toast.error(error.message || 'Failed to delete image');
+    } finally {
+      setIsDeleting(prev => ({ ...prev, [url]: false }));
+    }
+  };
+
   // Helper function to render placeholder images
   const renderPlaceholderImages = () => {
     // Show these nice placeholders if no images are uploaded yet
@@ -276,18 +327,35 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
           
           {uploadedImages.length > 0 ? (
             <div className="grid grid-cols-3 gap-2">
-              {uploadedImages.map((url, index) => (
+              {uploadedImages.map((img, index) => (
                 <div 
                   key={index} 
-                  className="relative aspect-square overflow-hidden border rounded-md cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => handleImageSelect(url)}
+                  className="relative aspect-square overflow-hidden border rounded-md group"
                 >
                   <img 
-                    src={url} 
+                    src={img.url} 
                     alt={`Uploaded image ${index + 1}`} 
-                    className="object-cover w-full h-full"
+                    className="object-cover w-full h-full cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => handleImageSelect(img.url)}
                     loading="lazy"
                   />
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteImage(img.url, img.filename);
+                    }}
+                    disabled={isDeleting[img.url]}
+                    title="Delete image"
+                  >
+                    {isDeleting[img.url] ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-3 w-3" />
+                    )}
+                  </Button>
                 </div>
               ))}
             </div>
