@@ -35,21 +35,23 @@ export function TextBoxContent({
   }
 
   return (
-    <div
-      style={getTextStyles(
-        textBox.font,
-        textBox.fontSize,
-        textBox.fontWeight,
-        textBox.fontColor,
-        textBox.gradient,
-        textBox.textStyle,
-        textBox.rotation || 0
-      )}
-    >
-      {textBox.textStyle && !textBox.textStyle.startsWith('wordart:') ?
-        applyTextStyle(textBox.text, textBox.textStyle as TextStyle) :
-        textBox.text
-      }
+    <div className="w-full h-full overflow-hidden whitespace-pre-wrap">
+      <div
+        style={getTextStyles(
+          textBox.font,
+          textBox.fontSize,
+          textBox.fontWeight,
+          textBox.fontColor,
+          textBox.gradient,
+          textBox.textStyle,
+          textBox.rotation || 0
+        )}
+      >
+        {textBox.textStyle && !textBox.textStyle.startsWith('wordart:') ?
+          applyTextStyle(textBox.text, textBox.textStyle as TextStyle) :
+          textBox.text
+        }
+      </div>
     </div>
   );
 }

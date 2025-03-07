@@ -131,12 +131,12 @@ export function JournalEditor() {
       position: position,
       width: 200,
       height: 100,
-      font: currentEntry.font,
-      fontSize: currentEntry.fontSize,
-      fontWeight: currentEntry.fontWeight,
-      fontColor: currentEntry.fontColor,
-      gradient: currentEntry.gradient,
-      textStyle: currentEntry.textStyle,
+      font: currentEntry.font || 'sans-serif',
+      fontSize: currentEntry.fontSize || '16px',
+      fontWeight: currentEntry.fontWeight || 'normal',
+      fontColor: currentEntry.fontColor || '#000000',
+      gradient: currentEntry.gradient || '',
+      textStyle: currentEntry.textStyle || '',
       rotation: 0,
       zIndex: zIndex
     };

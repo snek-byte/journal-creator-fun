@@ -1,5 +1,6 @@
 
 // Import necessary dependencies
+import React from 'react';
 import { TextBox } from '@/types/journal';
 
 // Function to generate a z-index for a new text box
@@ -73,7 +74,10 @@ export const getTextStyles = (
     maxHeight: '100%',
     width: '100%',
     height: '100%',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
   };
 
   // Handle specialized WordArt styles
