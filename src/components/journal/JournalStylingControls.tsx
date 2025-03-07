@@ -39,8 +39,8 @@ export function JournalStylingControls({
   const [activeTab, setActiveTab] = useState('style');
   const [showAllStyles, setShowAllStyles] = useState(false);
   
-  // Get the first 9 styles to display initially
-  const initialStyles = textStyles.slice(0, 9);
+  // Get the first 18 styles to display initially (changed from 9 to 18)
+  const initialStyles = textStyles.slice(0, 18);
   const displayStyles = showAllStyles ? textStyles : initialStyles;
   
   return (
