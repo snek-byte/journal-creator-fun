@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -63,13 +62,13 @@ export function WordArtStyles({ onWordArtStyleSelect }: WordArtStylesProps) {
       name: 'Golden', 
       className: 'font-extrabold',
       style: { 
-        background: 'linear-gradient(to bottom, #FFDF00, #FFF0A0, #FFD700, #FFDD33, #FFC800, #FFD700)',
+        background: 'linear-gradient(to bottom, #E6B800, #FFC926, #E6B800, #D4AF37, #B8860B, #D4AF37)',
         backgroundClip: 'text',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         fontWeight: '800',
-        textShadow: '0px 1px 0px rgba(255,255,255,0.5), 0px 2px 2px rgba(144, 107, 0, 0.3)',
-        filter: 'drop-shadow(2px 2px 3px rgba(255, 215, 0, 0.5))'
+        textShadow: '0px 1px 1px rgba(255,255,255,0.3), 0px 2px 3px rgba(120, 80, 0, 0.5)',
+        filter: 'drop-shadow(1px 2px 2px rgba(160, 120, 0, 0.6))'
       }
     },
     { 
