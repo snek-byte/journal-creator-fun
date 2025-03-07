@@ -437,6 +437,8 @@ export function JournalPreview({
   const getCssFilter = () => {
     if (!filter || filter === 'none') return undefined;
     
+    if (filter === 'vignette') return undefined;
+    
     if (filter.includes('(')) {
       return filter;
     }
@@ -548,12 +550,14 @@ export function JournalPreview({
     }
   `;
 
+  const showVignette = filter === 'vignette';
+
   return (
     <div className={cn("relative flex-1 overflow-auto bg-gray-50", className)}>
       <style>{printStyles}</style>
       <ScrollArea className="h-full w-full">
         <div className="flex items-center justify-center p-4 min-h-screen" onClick={handlePageClick}>
-          <div style={journalPageStyle} className="journal-page w-full max-w-4xl" onClick={handlePageClick}>
+          <div style={journalPageStyle} className={cn("journal-page w-full max-w-4xl", showVignette ? 'journal-page-vignette' : '')} onClick={handlePageClick}>
             {backgroundImage && (
               <div 
                 style={{
@@ -570,7 +574,7 @@ export function JournalPreview({
               />
             )}
 
-            {!backgroundImage && filter && filter !== 'none' && (
+            {!backgroundImage && filter && filter !== 'none' && filter !== 'vignette' && (
               <div 
                 style={{
                   position: 'absolute',
