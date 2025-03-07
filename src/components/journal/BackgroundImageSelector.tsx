@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageUploader } from './image-uploader/ImageUploader';
@@ -14,7 +13,7 @@ interface BackgroundImageSelectorProps {
 export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageSelectorProps) {
   const [activeTab, setActiveTab] = useState("papers");
   
-  // Paper backgrounds with actual paper textures - improved with higher contrast options
+  // Expanded paper backgrounds with richer textures and more variety
   const paperBackgrounds = [
     { name: "Plain White Paper", url: "https://www.transparenttextures.com/patterns/white-paper.png", bgColor: '#ffffff' },
     { name: "Lined Paper", url: "https://www.transparenttextures.com/patterns/lined-paper.png", bgColor: '#f8f8f8' },
@@ -24,7 +23,26 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     { name: "Notebook Paper", url: "https://www.transparenttextures.com/patterns/notebook.png", bgColor: '#f0f0f0' },
     { name: "Rice Paper", url: "https://www.transparenttextures.com/patterns/rice-paper.png", bgColor: '#f8f6ee' },
     { name: "Cardboard", url: "https://www.transparenttextures.com/patterns/cardboard.png", bgColor: '#d9c7a0' },
-    { name: "Sandpaper", url: "https://www.transparenttextures.com/patterns/sandpaper.png", bgColor: '#e2d9c8' }
+    { name: "Sandpaper", url: "https://www.transparenttextures.com/patterns/sandpaper.png", bgColor: '#e2d9c8' },
+    
+    { name: "Parchment", url: "https://www.transparenttextures.com/patterns/parchment.png", bgColor: '#f0e9d2' },
+    { name: "Recycled Paper", url: "https://www.transparenttextures.com/patterns/recycled-paper.png", bgColor: '#f2efe6' },
+    { name: "Stationery", url: "https://www.transparenttextures.com/patterns/stationery.png", bgColor: '#fcfcfa' },
+    { name: "Kraft Paper", url: "https://www.transparenttextures.com/patterns/kraft-paper.png", bgColor: '#d3c7a3' },
+    { name: "Brown Paper", url: "https://www.transparenttextures.com/patterns/brown-paper.png", bgColor: '#c9b18d' },
+    { name: "Watercolor Paper", url: "https://www.transparenttextures.com/patterns/exclusive-paper.png", bgColor: '#f9f6f0' },
+    { name: "Japanese Paper", url: "https://www.transparenttextures.com/patterns/japanese-paper.png", bgColor: '#f1ebde' },
+    { name: "Wrinkled Paper", url: "https://www.transparenttextures.com/patterns/wrinkled-paper.png", bgColor: '#edeae0' },
+    { name: "Cream Paper", url: "https://www.transparenttextures.com/patterns/cream-paper.png", bgColor: '#f7f5e8' },
+    { name: "Grainy Paper", url: "https://www.transparenttextures.com/patterns/paper-fibers.png", bgColor: '#f3f0e7' },
+    { name: "Soft Paper", url: "https://www.transparenttextures.com/patterns/soft-wallpaper.png", bgColor: '#f5f3eb' },
+    { name: "Squared Paper", url: "https://www.transparenttextures.com/patterns/squared-paper.png", bgColor: '#f8f8f8' },
+    { name: "Vintage Paper", url: "https://www.transparenttextures.com/patterns/worn-spots.png", bgColor: '#e9e2cc' },
+    { name: "Antique Paper", url: "https://www.transparenttextures.com/patterns/subtle-white-feathers.png", bgColor: '#e8e0c7' },
+    { name: "Linen Paper", url: "https://www.transparenttextures.com/patterns/natural-paper.png", bgColor: '#f2eee5' },
+    { name: "Letterpress", url: "https://www.transparenttextures.com/patterns/dust.png", bgColor: '#f5f3ee' },
+    { name: "Canvas", url: "https://www.transparenttextures.com/patterns/canvas.png", bgColor: '#f0ebe0' },
+    { name: "Parchment Light", url: "https://www.transparenttextures.com/patterns/beige-paper.png", bgColor: '#f5f2e5' },
   ];
   
   // Nature background images
