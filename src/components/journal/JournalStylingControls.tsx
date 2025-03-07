@@ -58,7 +58,7 @@ export function JournalStylingControls({
   onGradientChange,
   onTextStyleChange
 }: JournalStylingControlsProps) {
-  const [activeTab, setActiveTab] = useState('font');
+  const [activeTab, setActiveTab] = useState('style');
   
   // Available fonts
   const fonts = [
@@ -152,12 +152,12 @@ export function JournalStylingControls({
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid grid-cols-3 mb-4">
-          <TabsTrigger value="font" className="text-[10px]">Font</TabsTrigger>
+          <TabsTrigger value="style" className="text-[10px]">Style</TabsTrigger>
           <TabsTrigger value="color" className="text-[10px]">Color</TabsTrigger>
-          <TabsTrigger value="style" className="text-[10px]">Text Style</TabsTrigger>
+          <TabsTrigger value="effects" className="text-[10px]">Effects</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="font" className="mt-0 space-y-4">
+        <TabsContent value="style" className="mt-0 space-y-4">
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-xs">Font</span>
@@ -232,6 +232,42 @@ export function JournalStylingControls({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+            
+            <div className="mt-4 space-y-2">
+              <span className="text-xs">Text Style</span>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={!standardTextStyles.some(s => s.value !== 'normal' && s.value.includes('italic')) ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleTextStyleChange('normal')}
+                  className="flex-1 h-8 px-2"
+                  type="button"
+                >
+                  <Type className="h-3 w-3 mr-1" />
+                  Normal
+                </Button>
+                <Button
+                  variant={standardTextStyles.some(s => s.value !== 'normal' && s.value.includes('italic')) ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleTextStyleChange('italic')}
+                  className="flex-1 h-8 px-2"
+                  type="button"
+                >
+                  <Italic className="h-3 w-3 mr-1" />
+                  Italic
+                </Button>
+                <Button
+                  variant={standardTextStyles.some(s => s.value !== 'normal' && s.value.includes('underline')) ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleTextStyleChange('underline')}
+                  className="flex-1 h-8 px-2"
+                  type="button"
+                >
+                  <Underline className="h-3 w-3 mr-1" />
+                  Underline
+                </Button>
+              </div>
+            </div>
           </div>
         </TabsContent>
         
@@ -301,44 +337,8 @@ export function JournalStylingControls({
           </div>
         </TabsContent>
         
-        <TabsContent value="style" className="mt-0 space-y-4">
+        <TabsContent value="effects" className="mt-0 space-y-4">
           <div className="space-y-2">
-            <span className="text-xs">Text Style</span>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={!standardTextStyles.some(s => s.value !== 'normal' && s.value.includes('italic')) ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleTextStyleChange('normal')}
-                className="flex-1 h-8 px-2"
-                type="button"
-              >
-                <Type className="h-3 w-3 mr-1" />
-                Normal
-              </Button>
-              <Button
-                variant={standardTextStyles.some(s => s.value !== 'normal' && s.value.includes('italic')) ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleTextStyleChange('italic')}
-                className="flex-1 h-8 px-2"
-                type="button"
-              >
-                <Italic className="h-3 w-3 mr-1" />
-                Italic
-              </Button>
-              <Button
-                variant={standardTextStyles.some(s => s.value !== 'normal' && s.value.includes('underline')) ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleTextStyleChange('underline')}
-                className="flex-1 h-8 px-2"
-                type="button"
-              >
-                <Underline className="h-3 w-3 mr-1" />
-                Underline
-              </Button>
-            </div>
-          </div>
-          
-          <div className="mt-4 space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-xs flex items-center">
                 <Sparkles className="h-3 w-3 mr-1" />
