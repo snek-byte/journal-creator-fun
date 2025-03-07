@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { TextBox } from '@/types/journal';
 import { applyTextStyle, TextStyle } from '@/utils/unicodeTextStyles';
 import { TextBoxContent } from './TextBoxContent';
-import { TextBoxControls } from './TextBoxControls';
 import { getTextStyles } from '@/utils/textBoxUtils';
 
 interface TextBoxComponentProps {
@@ -172,6 +171,10 @@ export function TextBoxComponent({
     document.addEventListener('touchmove', handleTouchMove, { passive: false });
     document.addEventListener('touchend', handleTouchEnd);
   };
+  
+  const handleDelete = () => {
+    onRemove(textBox.id);
+  };
 
   return (
     <div
@@ -208,18 +211,20 @@ export function TextBoxComponent({
         />
       </div>
 
-      {selected && (
-        <TextBoxControls
-          textBox={textBox}
-          onRemove={onRemove}
-          onUpdate={onUpdate}
-          isEditing={isEditing}
-          setIsEditing={setIsEditing}
-          text={text}
-          handleChange={handleChange}
-          handleBlur={handleBlur}
-          handleKeyDown={handleKeyDown}
-        />
+      {selected && !isEditing && (
+        <button
+          className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg z-10"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDelete();
+          }}
+          aria-label="Delete text box"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 6L6 18"></path>
+            <path d="M6 6l12 12"></path>
+          </svg>
+        </button>
       )}
     </div>
   );
