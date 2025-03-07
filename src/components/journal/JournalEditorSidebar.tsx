@@ -262,14 +262,14 @@ export function JournalEditorSidebar({
             
             <Separator className="my-4" />
             
-            <BackgroundImageSelector onBackgroundSelect={onBackgroundSelect} />
-            
-            <Separator className="my-4" />
-            
             <ImageFilterSelector 
               currentFilter={currentEntry.filter || 'none'} 
               onFilterChange={onFilterChange} 
             />
+            
+            <Separator className="my-4" />
+            
+            <BackgroundImageSelector onBackgroundSelect={onBackgroundSelect} />
             
             <Separator className="my-4" />
             
