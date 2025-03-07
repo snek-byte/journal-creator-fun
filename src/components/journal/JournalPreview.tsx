@@ -411,6 +411,66 @@ export function JournalPreview({
       if (textStyle.includes('underline')) {
         styles.textDecoration = 'underline';
       }
+
+      if (textStyle.startsWith('wordart:')) {
+        const wordArtStyle = textStyle.split(':')[1];
+        
+        switch (wordArtStyle) {
+          case 'rainbow':
+            styles.background = 'linear-gradient(to right, #6366f1, #ec4899, #ef4444)';
+            styles.WebkitBackgroundClip = 'text';
+            styles.WebkitTextFillColor = 'transparent';
+            styles.backgroundClip = 'text';
+            styles.fontWeight = '700';
+            styles.letterSpacing = '0.05em';
+            break;
+          case 'neon':
+            styles.color = '#4ade80';
+            styles.fontWeight = '800';
+            styles.letterSpacing = '0.1em';
+            styles.textShadow = '0 0 5px #4ade80, 0 0 10px #4ade80';
+            break;
+          case 'shadow':
+            styles.color = 'white';
+            styles.fontWeight = '700';
+            styles.textShadow = '2px 2px 0 #333';
+            break;
+          case 'outlined':
+            styles.color = 'transparent';
+            styles.fontWeight = '800';
+            styles.WebkitTextStroke = '1px black';
+            break;
+          case 'retro':
+            styles.color = '#f59e0b';
+            styles.fontWeight = '700';
+            styles.letterSpacing = '0.05em';
+            styles.textShadow = '1px 1px 0 #78350f';
+            break;
+          case 'metallic':
+            styles.color = '#d1d5db';
+            styles.fontWeight = '700';
+            styles.backgroundImage = 'linear-gradient(180deg, #f9fafb, #6b7280)';
+            styles.WebkitBackgroundClip = 'text';
+            styles.WebkitTextFillColor = 'transparent';
+            styles.textShadow = '1px 1px 2px rgba(0, 0, 0, 0.3)';
+            break;
+          case 'golden':
+            styles.backgroundImage = 'linear-gradient(to bottom, #f59e0b, #b45309)';
+            styles.WebkitBackgroundClip = 'text';
+            styles.WebkitTextFillColor = 'transparent';
+            styles.fontWeight = '700';
+            styles.textShadow = '1px 1px 2px rgba(0, 0, 0, 0.2)';
+            break;
+          case 'bubble':
+            styles.color = '#60a5fa';
+            styles.fontWeight = '800';
+            styles.textShadow = '0 1px 0 #2563eb, 0 2px 0 #1d4ed8, 0 3px 0 #1e40af';
+            styles.letterSpacing = '0.05em';
+            break;
+        }
+        
+        return styles;
+      }
     }
     
     if (usingGradient) {

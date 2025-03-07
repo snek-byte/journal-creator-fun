@@ -1,15 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Trash2, Move, Check } from 'lucide-react';
 import { TextBox } from '@/types/journal';
-import { cn } from "@/lib/utils";
-import { TextBoxControls } from './TextBoxControls';
+import { applyTextStyle, TextStyle } from '@/utils/unicodeTextStyles';
 import { TextBoxContent } from './TextBoxContent';
-import { getPrintStyles, setTransform, percentToPixels, pixelsToPercent } from '@/utils/textBoxUtils';
-import { GripHorizontal } from 'lucide-react';
+import { TextBoxControls } from './TextBoxControls';
 
 interface TextBoxComponentProps {
   textBox: TextBox;
   selected: boolean;
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: React.RefObject<HTMLElement>;
   onSelect: (id: string) => void;
   onUpdate: (id: string, updates: Partial<TextBox>) => void;
   onRemove: (id: string) => void;
@@ -25,568 +24,163 @@ export function TextBoxComponent({
   onUpdate,
   onRemove,
   isDrawingMode,
-  style
+  style = {}
 }: TextBoxComponentProps) {
-  const { id, text, position, width, height, font, fontSize, fontWeight, fontColor, gradient, textStyle, rotation, zIndex } = textBox;
-  
-  // State
+  const textBoxRef = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(text || '');
-  const [size, setSize] = useState({ width, height });
-  const [isPrinting, setIsPrinting] = useState(false);
-  const [positionPx, setPositionPx] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  
-  // Refs
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  const boxRef = useRef<HTMLDivElement>(null);
-  const handleRef = useRef<HTMLDivElement>(null);
-  
-  // Convert percentage position to pixels on mount and when container or position changes
+  const [text, setText] = useState(textBox.text);
+
   useEffect(() => {
-    if (!containerRef.current) return;
-    
-    const containerWidth = containerRef.current.offsetWidth;
-    const containerHeight = containerRef.current.offsetHeight;
-    
-    const pixelPos = percentToPixels(position, containerWidth, containerHeight);
-    
-    console.log(`Converting position for ${id}: 
-      percent: (${position.x}%, ${position.y}%), 
-      container: ${containerWidth}x${containerHeight}, 
-      pixels: (${pixelPos.x}px, ${pixelPos.y}px)`);
-    
-    setPositionPx(pixelPos);
-    
-    if (boxRef.current) {
-      setTransform(boxRef.current, pixelPos.x, pixelPos.y, rotation || 0);
+    setText(textBox.text);
+  }, [textBox.text]);
+
+  const handleClick = () => {
+    if (!isDrawingMode) {
+      onSelect(textBox.id);
     }
-  }, [id, position.x, position.y, containerRef, rotation]);
-  
-  // Initialize interact.js for dragging and resizing
-  useEffect(() => {
-    if (!boxRef.current || isDrawingMode || isPrinting || !window.interact) {
-      console.log(`Cannot initialize interact.js for box ${id}:`, {
-        boxRefExists: !!boxRef.current,
-        isDrawingMode,
-        isPrinting,
-        interactExists: !!window.interact
-      });
-      return;
-    }
-    
-    console.log(`Initializing interact.js for TextBox ${id}`);
-    
-    // Clean up any previous interact instance for the box
-    try {
-      window.interact(boxRef.current).unset();
-    } catch (e) {
-      console.log("No previous interact instance to clean up for box");
-    }
-    
-    // Set up interact for the whole box
-    const boxInteractable = window.interact(boxRef.current);
-    
-    // Handle drag using the entire box area when it's NOT in edit mode
-    boxInteractable.draggable({
-      inertia: false,
-      autoScroll: true,
-      modifiers: [
-        window.interact.modifiers.restrictRect({
-          restriction: 'parent',
-          endOnly: true
-        })
-      ],
-      listeners: {
-        start: (event) => {
-          if (isDrawingMode || isEditing || isPrinting) return;
-          
-          // Only start dragging if not clicking on controls or handle
-          const target = event.target;
-          if (target.classList.contains('no-drag') || 
-              target.closest('.text-box-controls') || 
-              target.closest('.drag-handle') ||
-              (handleRef.current && handleRef.current.contains(event.target))) {
-            event.interaction.stop();
-            return;
-          }
-          
-          console.log(`Drag start for box ${id}`);
-          setIsDragging(true);
-          onSelect(id);
-        },
-        move: (event) => {
-          if (isDrawingMode || isEditing || isPrinting) return;
-          
-          const target = event.target;
-          
-          // Get current position from data attributes
-          const x = parseFloat(target.getAttribute('data-x') || '0');
-          const y = parseFloat(target.getAttribute('data-y') || '0');
-          
-          // Calculate new position
-          const newX = x + event.dx;
-          const newY = y + event.dy;
-          
-          console.log(`Dragging box ${id}: dx=${event.dx}, dy=${event.dy}, newX=${newX}, newY=${newY}`);
-          
-          // Update element transform
-          setTransform(target, newX, newY, rotation || 0);
-          
-          // Update state
-          setPositionPx({ x: newX, y: newY });
-        },
-        end: (event) => {
-          if (isDrawingMode || isEditing || isPrinting) return;
-          
-          setIsDragging(false);
-          
-          const target = event.target;
-          const x = parseFloat(target.getAttribute('data-x') || '0');
-          const y = parseFloat(target.getAttribute('data-y') || '0');
-          
-          console.log(`Drag end for box ${id}: finalX=${x}, finalY=${y}`);
-          
-          if (containerRef.current) {
-            const containerWidth = containerRef.current.offsetWidth;
-            const containerHeight = containerRef.current.offsetHeight;
-            
-            // Convert pixels to percentage
-            const percentPos = pixelsToPercent({ x, y }, containerWidth, containerHeight);
-            
-            console.log(`Updating position for box ${id}: xPercent=${percentPos.x}, yPercent=${percentPos.y}`);
-            onUpdate(id, { position: { x: percentPos.x, y: percentPos.y } });
-          }
-        }
-      }
-    });
-    
-    // Setup the drag handle separately if it exists
-    if (handleRef.current) {
-      // Clean up any previous interact instance for the handle
-      try {
-        window.interact(handleRef.current).unset();
-      } catch (e) {
-        console.log("No previous interact instance to clean up for handle");
-      }
-      
-      // Configure handle-specific dragging
-      window.interact(handleRef.current).draggable({
-        inertia: false,
-        autoScroll: true,
-        modifiers: [
-          window.interact.modifiers.restrictRect({
-            restriction: 'parent',
-            endOnly: true
-          })
-        ],
-        listeners: {
-          start: (event) => {
-            if (isDrawingMode || isEditing || isPrinting) return;
-            
-            console.log(`Handle drag start for box ${id}`);
-            setIsDragging(true);
-            onSelect(id);
-          },
-          move: (event) => {
-            if (isDrawingMode || isEditing || isPrinting) return;
-            
-            const box = boxRef.current;
-            if (!box) return;
-            
-            // Get current position from data attributes
-            const x = parseFloat(box.getAttribute('data-x') || '0');
-            const y = parseFloat(box.getAttribute('data-y') || '0');
-            
-            // Calculate new position
-            const newX = x + event.dx;
-            const newY = y + event.dy;
-            
-            console.log(`Handle dragging box ${id}: dx=${event.dx}, dy=${event.dy}, newX=${newX}, newY=${newY}`);
-            
-            // Update element transform
-            setTransform(box, newX, newY, rotation || 0);
-            
-            // Update state
-            setPositionPx({ x: newX, y: newY });
-          },
-          end: (event) => {
-            if (isDrawingMode || isEditing || isPrinting) return;
-            
-            setIsDragging(false);
-            
-            if (!boxRef.current || !containerRef.current) return;
-            
-            const box = boxRef.current;
-            const x = parseFloat(box.getAttribute('data-x') || '0');
-            const y = parseFloat(box.getAttribute('data-y') || '0');
-            
-            console.log(`Handle drag end for box ${id}: finalX=${x}, finalY=${y}`);
-            
-            const containerWidth = containerRef.current.offsetWidth;
-            const containerHeight = containerRef.current.offsetHeight;
-            
-            // Convert pixels to percentage
-            const percentPos = pixelsToPercent({ x, y }, containerWidth, containerHeight);
-            
-            console.log(`Updating position for box ${id}: xPercent=${percentPos.x}, yPercent=${percentPos.y}`);
-            onUpdate(id, { position: { x: percentPos.x, y: percentPos.y } });
-          }
-        }
-      });
-    }
-    
-    // Add resizable if selected
-    if (selected) {
-      boxInteractable.resizable({
-        edges: { left: true, right: true, bottom: true, top: true },
-        invert: 'reposition',
-        listeners: {
-          move: (event) => {
-            if (isDrawingMode || isEditing || isPrinting) return;
-            
-            const target = event.target;
-            let x = parseFloat(target.getAttribute('data-x') || '0');
-            let y = parseFloat(target.getAttribute('data-y') || '0');
-            
-            // Update position to account for resize
-            x += event.deltaRect.left;
-            y += event.deltaRect.top;
-            
-            console.log(`Resize move for box ${id}: width=${event.rect.width}, height=${event.rect.height}, x=${x}, y=${y}`);
-            
-            // Update element size
-            target.style.width = `${event.rect.width}px`;
-            target.style.height = `${event.rect.height}px`;
-            
-            // Update transform
-            setTransform(target, x, y, rotation || 0);
-            
-            // Update state
-            setSize({ width: event.rect.width, height: event.rect.height });
-            setPositionPx({ x, y });
-          },
-          end: (event) => {
-            if (isDrawingMode || isEditing || isPrinting) return;
-            
-            console.log(`Resize end for box ${id}: final width=${event.rect.width}, height=${event.rect.height}`);
-            
-            // Update size in parent
-            onUpdate(id, { 
-              width: event.rect.width, 
-              height: event.rect.height 
-            });
-            
-            // Update position
-            const target = event.target;
-            const x = parseFloat(target.getAttribute('data-x') || '0');
-            const y = parseFloat(target.getAttribute('data-y') || '0');
-            
-            if (containerRef.current) {
-              const containerWidth = containerRef.current.offsetWidth;
-              const containerHeight = containerRef.current.offsetHeight;
-              
-              const percentPos = pixelsToPercent({ x, y }, containerWidth, containerHeight);
-              
-              console.log(`Updating position for box ${id} after resize: xPercent=${percentPos.x}, yPercent=${percentPos.y}`);
-              onUpdate(id, { position: { x: percentPos.x, y: percentPos.y } });
-            }
-          }
-        },
-        modifiers: [
-          window.interact.modifiers.restrictSize({
-            min: { width: 50, height: 50 }
-          })
-        ]
-      });
-    }
-    
-    return () => {
-      try {
-        if (boxInteractable) {
-          boxInteractable.unset();
-          console.log(`Cleaned up interact for box ${id}`);
-        }
-        
-        if (handleRef.current) {
-          window.interact(handleRef.current).unset();
-          console.log(`Cleaned up interact for handle of box ${id}`);
-        }
-      } catch (e) {
-        console.error(`Error cleaning up interact for box ${id}:`, e);
-      }
-    };
-  }, [
-    id, 
-    isDrawingMode, 
-    isEditing, 
-    isPrinting, 
-    selected, 
-    rotation, 
-    onSelect, 
-    onUpdate, 
-    containerRef
-  ]);
-  
-  // Print detection
-  useEffect(() => {
-    const handleBeforePrint = () => setIsPrinting(true);
-    const handleAfterPrint = () => setIsPrinting(false);
-    
-    window.addEventListener('beforeprint', handleBeforePrint);
-    window.addEventListener('afterprint', handleAfterPrint);
-    
-    return () => {
-      window.removeEventListener('beforeprint', handleBeforePrint);
-      window.removeEventListener('afterprint', handleAfterPrint);
-    };
-  }, []);
-  
-  // Sync with prop changes for text
-  useEffect(() => {
-    setEditValue(text || '');
-  }, [text]);
-  
-  // Sync with prop changes for size
-  useEffect(() => {
-    setSize({ width, height });
-  }, [width, height]);
-  
-  // Activate edit mode when the component becomes selected
-  useEffect(() => {
-    if (selected && !isDrawingMode && !isPrinting) {
-      // Add small delay before setting edit mode
-      const timer = setTimeout(() => {
-        setIsEditing(true);
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [selected, isDrawingMode, isPrinting]);
-  
-  // Focus textarea when editing starts
-  useEffect(() => {
-    if (isEditing && textAreaRef.current) {
-      textAreaRef.current.focus();
-    }
-  }, [isEditing]);
-  
-  // Event handlers
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setEditValue(e.target.value);
   };
-  
-  const handleSaveText = () => {
-    setIsEditing(false);
-    onUpdate(id, { text: editValue });
+
+  const handleDoubleClick = () => {
+    if (!isDrawingMode) {
+      setIsEditing(true);
+    }
   };
-  
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setText(e.target.value);
+  };
+
   const handleBlur = () => {
-    if (editValue !== text) {
-      handleSaveText();
-    } else {
-      setIsEditing(false);
-    }
+    setIsEditing(false);
+    onUpdate(textBox.id, { text });
   };
-  
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Save on Ctrl+Enter or Cmd+Enter
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter') {
       e.preventDefault();
-      handleSaveText();
-    }
-    
-    // Cancel on Escape
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      setIsEditing(false);
-      setEditValue(text || ''); // Reset to original value
+      handleBlur();
     }
   };
-  
-  const handleSelectClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!isEditing) {
-      console.log(`Box ${id} clicked, selecting`);
-      onSelect(id);
+
+  const getWordArtStyle = (textStyleValue: string): React.CSSProperties => {
+    if (!textStyleValue?.startsWith('wordart:')) return {};
+    
+    const wordArtStyle = textStyleValue.split(':')[1];
+    const styles: React.CSSProperties = {};
+    
+    switch (wordArtStyle) {
+      case 'rainbow':
+        styles.background = 'linear-gradient(to right, #6366f1, #ec4899, #ef4444)';
+        styles.WebkitBackgroundClip = 'text';
+        styles.WebkitTextFillColor = 'transparent';
+        styles.backgroundClip = 'text';
+        styles.fontWeight = '700';
+        styles.letterSpacing = '0.05em';
+        break;
+      case 'neon':
+        styles.color = '#4ade80';
+        styles.fontWeight = '800';
+        styles.letterSpacing = '0.1em';
+        styles.textShadow = '0 0 5px #4ade80, 0 0 10px #4ade80';
+        break;
+      case 'shadow':
+        styles.color = 'white';
+        styles.fontWeight = '700';
+        styles.textShadow = '2px 2px 0 #333';
+        break;
+      case 'outlined':
+        styles.color = 'transparent';
+        styles.fontWeight = '800';
+        styles.WebkitTextStroke = '1px black';
+        break;
+      case 'retro':
+        styles.color = '#f59e0b';
+        styles.fontWeight = '700';
+        styles.letterSpacing = '0.05em';
+        styles.textShadow = '1px 1px 0 #78350f';
+        break;
+      case 'metallic':
+        styles.color = '#d1d5db';
+        styles.fontWeight = '700';
+        styles.backgroundImage = 'linear-gradient(180deg, #f9fafb, #6b7280)';
+        styles.WebkitBackgroundClip = 'text';
+        styles.WebkitTextFillColor = 'transparent';
+        styles.textShadow = '1px 1px 2px rgba(0, 0, 0, 0.3)';
+        break;
+      case 'golden':
+        styles.backgroundImage = 'linear-gradient(to bottom, #f59e0b, #b45309)';
+        styles.WebkitBackgroundClip = 'text';
+        styles.WebkitTextFillColor = 'transparent';
+        styles.fontWeight = '700';
+        styles.textShadow = '1px 1px 2px rgba(0, 0, 0, 0.2)';
+        break;
+      case 'bubble':
+        styles.color = '#60a5fa';
+        styles.fontWeight = '800';
+        styles.textShadow = '0 1px 0 #2563eb, 0 2px 0 #1d4ed8, 0 3px 0 #1e40af';
+        styles.letterSpacing = '0.05em';
+        break;
     }
-  };
-  
-  const handleRotate = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const newRotation = ((rotation || 0) + 15) % 360;
-    onUpdate(id, { rotation: newRotation });
-  };
-  
-  const handleDelete = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onRemove(id);
-  };
-  
-  // Controls visibility
-  const showControls = selected && !isEditing && !isPrinting && !isDrawingMode;
-  
-  // Style with position and rotation
-  const boxStyle: React.CSSProperties = {
-    ...style,
-    width: `${size.width}px`,
-    height: `${size.height}px`,
-    transform: `translate(${positionPx.x}px, ${positionPx.y}px) rotate(${rotation || 0}deg)`,
-    zIndex: selected ? zIndex + 10 : zIndex,
-    pointerEvents: isDrawingMode ? 'none' : 'auto',
-    opacity: isPrinting && !text ? 0 : 1,
-    position: 'absolute',
-    touchAction: 'none',
-    cursor: isEditing ? 'text' : isDragging ? 'grabbing' : 'grab',
-  };
-  
-  // Setup event handlers for HTML5 draggable
-  const handleDragStart = (e: React.DragEvent) => {
-    if (isDrawingMode || isEditing || isPrinting) return;
     
-    console.log(`Drag start for box ${id}`);
-    setIsDragging(true);
-    onSelect(id);
-    
-    // Set the data that will be dragged
-    e.dataTransfer.setData('text/plain', id);
-    
-    // Set the drag image to the current element
-    if (boxRef.current) {
-      // Use the offset to center the drag image
-      const rect = boxRef.current.getBoundingClientRect();
-      const offsetX = e.clientX - rect.left;
-      const offsetY = e.clientY - rect.top;
-      e.dataTransfer.setDragImage(boxRef.current, offsetX, offsetY);
-    }
-    
-    // Track starting position
-    if (boxRef.current) {
-      const x = parseFloat(boxRef.current.getAttribute('data-x') || '0');
-      const y = parseFloat(boxRef.current.getAttribute('data-y') || '0');
-      boxRef.current.setAttribute('data-start-x', x.toString());
-      boxRef.current.setAttribute('data-start-y', y.toString());
-    }
+    return styles;
   };
-  
-  const handleDrag = (e: React.DragEvent) => {
-    if (isDrawingMode || isEditing || isPrinting || !e.clientX) return;
-    
-    if (boxRef.current && containerRef.current) {
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const boxRect = boxRef.current.getBoundingClientRect();
-      
-      // Calculate new position relative to container
-      const offsetX = e.clientX - containerRect.left;
-      const offsetY = e.clientY - containerRect.top;
-      
-      // Account for box dimensions and cursor position within box
-      const startX = parseFloat(boxRef.current.getAttribute('data-start-x') || '0');
-      const startY = parseFloat(boxRef.current.getAttribute('data-start-y') || '0');
-      
-      const newX = offsetX - (boxRect.width / 2);
-      const newY = offsetY - (boxRect.height / 2);
-      
-      // Update element transform
-      setTransform(boxRef.current, newX, newY, rotation || 0);
-      
-      // Update state
-      setPositionPx({ x: newX, y: newY });
-    }
-  };
-  
-  const handleDragEnd = (e: React.DragEvent) => {
-    if (isDrawingMode || isEditing || isPrinting) return;
-    
-    setIsDragging(false);
-    
-    if (boxRef.current && containerRef.current) {
-      const x = parseFloat(boxRef.current.getAttribute('data-x') || '0');
-      const y = parseFloat(boxRef.current.getAttribute('data-y') || '0');
-      
-      console.log(`Drag end for box ${id}: finalX=${x}, finalY=${y}`);
-      
-      const containerWidth = containerRef.current.offsetWidth;
-      const containerHeight = containerRef.current.offsetHeight;
-      
-      // Convert pixels to percentage
-      const percentPos = pixelsToPercent({ x, y }, containerWidth, containerHeight);
-      
-      console.log(`Updating position for box ${id}: xPercent=${percentPos.x}, yPercent=${percentPos.y}`);
-      onUpdate(id, { position: { x: percentPos.x, y: percentPos.y } });
-    }
-  };
-  
+
   return (
-    <>
-      <style>{getPrintStyles()}</style>
-      <div
-        ref={boxRef}
-        className={cn(
-          "text-box-component",
-          isEditing ? "cursor-text" : isDragging ? "cursor-grabbing" : "cursor-grab"
-        )}
-        style={boxStyle}
-        onClick={handleSelectClick}
-        data-x={positionPx.x}
-        data-y={positionPx.y}
-        data-id={id}
-        data-rotation={rotation || 0}
-        draggable={!isEditing && !isPrinting && !isDrawingMode}
-        onDragStart={handleDragStart}
-        onDrag={handleDrag}
-        onDragEnd={handleDragEnd}
+    <div
+      ref={textBoxRef}
+      className="absolute cursor-move"
+      style={{
+        left: `${textBox.position.x}%`,
+        top: `${textBox.position.y}%`,
+        transform: `translate(-50%, -50%) rotate(${textBox.rotation}deg)`,
+        width: textBox.width,
+        height: textBox.height,
+        zIndex: textBox.zIndex || 10,
+        ...style,
+        pointerEvents: isDrawingMode ? 'none' : 'auto'
+      }}
+      onClick={handleClick}
+      onMouseDown={handleClick}
+      onTouchStart={handleClick}
+    >
+      <div 
+        className={`w-full h-full p-2 flex items-center justify-center bg-transparent rounded ${
+          selected && !isEditing ? 'border-2 border-dashed border-primary/70' : ''
+        }`}
       >
-        {/* Drag handle bar */}
-        {!isPrinting && !isDrawingMode && (
-          <div 
-            ref={handleRef}
-            className="drag-handle absolute top-0 left-0 right-0 h-6 bg-primary/20 hover:bg-primary/40 flex items-center justify-center rounded-t-sm cursor-grab active:cursor-grabbing z-20"
-            onMouseDown={(e) => {
-              if (!isEditing) {
-                e.stopPropagation();
-                console.log(`Drag handle mousedown for box ${id}, selecting`);
-                onSelect(id);
-              }
-            }}
-          >
-            <GripHorizontal size={16} className="text-primary-foreground" />
-          </div>
-        )}
-        
         <div 
-          className={cn(
-            "relative h-full w-full",
-            selected && !isPrinting && !isDrawingMode ? "ring-2 ring-primary ring-inset" : "ring-0 ring-transparent",
-            !selected && !isPrinting && !isDrawingMode ? "hover:ring-1 hover:ring-gray-300" : ""
-          )}
+          className={`w-full h-full overflow-hidden whitespace-pre-wrap`}
+          style={{
+            fontFamily: textBox.font,
+            fontSize: textBox.fontSize,
+            fontWeight: textBox.fontWeight,
+            color: textBox.gradient ? 'transparent' : textBox.fontColor,
+            background: textBox.gradient || 'transparent',
+            WebkitBackgroundClip: textBox.gradient ? 'text' : 'border-box',
+            backgroundClip: textBox.gradient ? 'text' : 'border-box',
+            ...getWordArtStyle(textBox.textStyle)
+          }}
+          onDoubleClick={handleDoubleClick}
         >
-          {/* Controls */}
-          {showControls && (
-            <TextBoxControls onDelete={handleDelete} onRotate={handleRotate} />
-          )}
-          
-          {/* Text content */}
-          <TextBoxContent
-            isEditing={isEditing}
-            editValue={editValue}
-            text={text}
-            font={font}
-            fontSize={fontSize}
-            fontWeight={fontWeight}
-            fontColor={fontColor}
-            gradient={gradient}
-            textStyle={textStyle}
-            rotation={rotation}
-            onTextChange={handleTextChange}
-            onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
-            textAreaRef={textAreaRef}
-            isPrinting={isPrinting}
-            style={{ paddingTop: '8px' }} // Add padding for the drag handle
-          />
+          {/* Apply the text style transformation if it's a Unicode style, but skip for wordart */}
+          {textBox.textStyle && !textBox.textStyle.startsWith('wordart:') ?
+            applyTextStyle(textBox.text, textBox.textStyle as TextStyle) :
+            textBox.text
+          }
         </div>
       </div>
-    </>
+
+      <TextBoxControls
+        textBox={textBox}
+        onRemove={onRemove}
+        onUpdate={onUpdate}
+        isEditing={isEditing}
+        setIsEditing={setIsEditing}
+        text={text}
+        handleChange={handleChange}
+        handleBlur={handleBlur}
+        handleKeyDown={handleKeyDown}
+      />
+    </div>
   );
 }

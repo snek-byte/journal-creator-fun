@@ -4,6 +4,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TextStyleControls } from './styling/TextStyleControls';
 import { ColorControls } from './styling/ColorControls';
 import { TextEffectsControls } from './styling/TextEffectsControls';
+import { WordArtStyles } from './styling/WordArtStyles';
 import { textStyles } from '@/utils/unicodeTextStyles';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -64,16 +65,23 @@ export function JournalStylingControls({
   const handleCloseStyles = () => {
     setStyleChunkIndex(0);
   };
+
+  // Handle word art style selection
+  const handleWordArtStyleSelect = (styleId: string) => {
+    // For word art styles, we'll pass a special identifier
+    onTextStyleChange(`wordart:${styleId}`);
+  };
   
   return (
     <div className="space-y-4">
       <h3 className="text-xs font-semibold tracking-tight">Text Styling</h3>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 mb-4">
+        <TabsList className="grid grid-cols-4 mb-4">
           <TabsTrigger value="style" className="text-[10px]">Style</TabsTrigger>
           <TabsTrigger value="color" className="text-[10px]">Color</TabsTrigger>
           <TabsTrigger value="effects" className="text-[10px]">Effects</TabsTrigger>
+          <TabsTrigger value="wordart" className="text-[10px]">Word Art</TabsTrigger>
         </TabsList>
         
         <TabsContent value="style" className="mt-0 space-y-4">
@@ -139,6 +147,12 @@ export function JournalStylingControls({
         <TabsContent value="effects" className="mt-0 space-y-4">
           <TextEffectsControls
             onTextStyleChange={onTextStyleChange}
+          />
+        </TabsContent>
+
+        <TabsContent value="wordart" className="mt-0 space-y-4">
+          <WordArtStyles 
+            onWordArtStyleSelect={handleWordArtStyleSelect}
           />
         </TabsContent>
       </Tabs>
