@@ -44,6 +44,27 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     { name: "Escheresque", url: "https://www.transparenttextures.com/patterns/escheresque.png", bgColor: '#d6d6d6' },
     { name: "Embossed Paper", url: "https://www.transparenttextures.com/patterns/45-degree-fabric-light.png", bgColor: '#f7f7f7' },
     { name: "Binding Dark", url: "https://www.transparenttextures.com/patterns/binding-dark.png", bgColor: '#2c2c2c' },
+    
+    { name: "Handmade Paper", url: "https://www.transparenttextures.com/patterns/handmade-paper.png", bgColor: '#f5f2e8' },
+    { name: "Rice Paper", url: "https://www.transparenttextures.com/patterns/rice-paper.png", bgColor: '#f7f3ea' },
+    { name: "Fiber Paper", url: "https://www.transparenttextures.com/patterns/paper-fibers.png", bgColor: '#f3efea' },
+    { name: "Watercolor Paper", url: "https://www.transparenttextures.com/patterns/white-paperboard.png", bgColor: '#f9f9f9' },
+    { name: "Kraft Paper", url: "https://www.transparenttextures.com/patterns/kraft-paper.png", bgColor: '#d3b683' },
+    { name: "Notebook Paper", url: "https://www.transparenttextures.com/patterns/notebook-dark.png", bgColor: '#e8e8e8' },
+    { name: "Parchment", url: "https://www.transparenttextures.com/patterns/parchment.png", bgColor: '#e9dfb8' },
+    { name: "Cardboard", url: "https://www.transparenttextures.com/patterns/cardboard.png", bgColor: '#d1bc8a' },
+    { name: "Japanese Paper", url: "https://www.transparenttextures.com/patterns/japanese-paper.png", bgColor: '#f7f4ef' },
+    { name: "Natural Paper", url: "https://www.transparenttextures.com/patterns/natural-paper.png", bgColor: '#f4efe4' },
+    { name: "Paper Fibers 2", url: "https://www.transparenttextures.com/patterns/paper-1.png", bgColor: '#f0ece0' },
+    { name: "Recycled Paper", url: "https://www.transparenttextures.com/patterns/recycled-paper.png", bgColor: '#e4e1d1' },
+    { name: "Soft Wallpaper", url: "https://www.transparenttextures.com/patterns/soft-wallpaper.png", bgColor: '#f0eee9' },
+    { name: "Textured Paper", url: "https://www.transparenttextures.com/patterns/textured-paper.png", bgColor: '#f7f2e8' },
+    { name: "Exclusive Paper", url: "https://www.transparenttextures.com/patterns/exclusive-paper.png", bgColor: '#f3f1ec' },
+    { name: "Old Paper", url: "https://www.transparenttextures.com/patterns/old-paper.png", bgColor: '#e0d4b6' },
+    { name: "Sand Paper", url: "https://www.transparenttextures.com/patterns/sandpaper.png", bgColor: '#e8e4d8' },
+    { name: "Rough Paper", url: "https://www.transparenttextures.com/patterns/rough-cloth.png", bgColor: '#ebe7db' },
+    { name: "Watercolor", url: "https://www.transparenttextures.com/patterns/watercolor.png", bgColor: '#f1eeee' },
+    { name: "Grainy Texture", url: "https://www.transparenttextures.com/patterns/graphy.png", bgColor: '#eae6dc' },
   ];
   
   const natureBackgrounds = [
