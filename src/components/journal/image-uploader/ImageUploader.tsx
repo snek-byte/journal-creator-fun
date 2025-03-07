@@ -63,14 +63,14 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
         <Button 
           variant="ghost" 
           size="xs" 
-          className="hover:bg-accent hover:text-accent-foreground w-6 h-6 p-0"
+          className="hover:bg-accent hover:text-accent-foreground w-5 h-5 p-0"
           title="Upload or select image"
         >
           <ImagePlus className="w-3 h-3" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[280px] p-2">
-        <DialogHeader className="pb-0">
+      <DialogContent className="max-w-[250px] p-2">
+        <DialogHeader className="p-0 mb-1">
           <DialogTitle className="text-xs">Your Images</DialogTitle>
         </DialogHeader>
         
