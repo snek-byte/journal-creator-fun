@@ -8,9 +8,10 @@ import { TextBoxComponent } from './TextBoxComponent';
 import { useScreenshot } from 'use-react-screenshot';
 import type { Icon } from '@/types/journal';
 import { applyTextStyle, TextStyle } from '@/utils/unicodeTextStyles';
-import { Plus } from 'lucide-react';
+import { Type } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 
 interface JournalPreviewProps {
   className?: string;
@@ -555,168 +556,174 @@ export function JournalPreview({
   return (
     <div className={cn("relative flex-1 overflow-auto bg-gray-50", className)}>
       <style>{printStyles}</style>
-      <ScrollArea className="h-full w-full">
-        <div className="flex items-center justify-center p-4 min-h-screen" onClick={handlePageClick}>
-          <div style={journalPageStyle} className={cn("journal-page w-full max-w-4xl", showVignette ? 'journal-page-vignette' : '')} onClick={handlePageClick}>
-            {backgroundImage && (
-              <div 
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  ...getBackgroundStyle(),
-                  zIndex: 1
-                }}
-                className="journal-page-background"
-                onClick={handlePageClick}
-              />
-            )}
-
-            {!backgroundImage && filter && filter !== 'none' && filter !== 'vignette' && (
-              <div 
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  filter: getCssFilter(),
-                  zIndex: 1,
-                  pointerEvents: 'none'
-                }}
-                className="journal-page-filter"
-              />
-            )}
-
-            <div className="relative h-full w-full min-h-[600px]" ref={previewRef}>
-              {localDrawing && !isDrawingMode && (
-                <img
-                  src={localDrawing}
-                  alt="Drawing"
-                  className="absolute inset-0 z-20 pointer-events-none"
+      <div className="flex flex-col h-full">
+        <div className="flex justify-end p-2 bg-white border-b no-print">
+          {!isDrawingMode && !isPrinting && (
+            <Button
+              onClick={handleAddTextBox}
+              variant="outline"
+              size="sm"
+              className="gap-1"
+              title="Add Text Box"
+            >
+              <Type size={16} />
+              <span>Add Text Box</span>
+            </Button>
+          )}
+        </div>
+        <ScrollArea className="flex-1 w-full">
+          <div className="flex items-center justify-center p-4 min-h-screen" onClick={handlePageClick}>
+            <div style={journalPageStyle} className={cn("journal-page w-full max-w-4xl", showVignette ? 'journal-page-vignette' : '')} onClick={handlePageClick}>
+              {backgroundImage && (
+                <div 
                   style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
                     width: '100%',
                     height: '100%',
-                    objectFit: 'contain',
-                    filter: !backgroundImage ? getCssFilter() : undefined
+                    ...getBackgroundStyle(),
+                    zIndex: 1
                   }}
+                  className="journal-page-background"
+                  onClick={handlePageClick}
                 />
               )}
 
-              {isDrawingMode && (
-                <div className="absolute inset-0 z-40">
-                  <DrawingLayer
-                    width={previewWidth}
-                    height={previewHeight}
-                    onDrawingChange={handleDrawingChange}
-                    tool={drawingTool}
-                    color={drawingColor}
-                    brushSize={brushSize}
-                    initialDrawing={localDrawing}
-                    onClear={() => handleDrawingChange('')}
-                  />
-                </div>
+              {!backgroundImage && filter && filter !== 'none' && filter !== 'vignette' && (
+                <div 
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    filter: getCssFilter(),
+                    zIndex: 1,
+                    pointerEvents: 'none'
+                  }}
+                  className="journal-page-filter"
+                />
               )}
 
-              <div
-                ref={textRef}
-                className="absolute z-30 cursor-move whitespace-pre-wrap"
-                style={{
-                  ...getTextStyles(),
-                  left: `${textPosition.x}%`,
-                  top: `${textPosition.y}%`,
-                  transform: 'translate(-50%, -50%)',
-                  filter: !backgroundImage ? getCssFilter() : undefined,
-                  pointerEvents: isDrawingMode ? 'none' : 'auto'
-                }}
-                onMouseDown={handleTextElementDrag}
-                onTouchStart={handleTextTouchStart}
-                onClick={(e) => {
-                  if (isDrawingMode) return;
-                  e.stopPropagation();
-                  setSelectedStickerId(null);
-                  setSelectedIconId(null);
-                  setSelectedTextBoxId(null);
-                  setIsTextSelected(true);
-                  onIconSelect('');
-                  onStickerSelect(null);
-                  onTextBoxSelect(null);
-                }}
-              >
-                {processText(text) || 'Start typing to add text...'}
-                {isTextSelected && !isTextDragging && !isPrinting && (
-                  <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-primary/70 text-primary-foreground px-2 py-1 rounded text-xs whitespace-nowrap no-print">
-                    Touch and drag to move
+              <div className="relative h-full w-full min-h-[600px]" ref={previewRef}>
+                {localDrawing && !isDrawingMode && (
+                  <img
+                    src={localDrawing}
+                    alt="Drawing"
+                    className="absolute inset-0 z-20 pointer-events-none"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
+                      filter: !backgroundImage ? getCssFilter() : undefined
+                    }}
+                  />
+                )}
+
+                {isDrawingMode && (
+                  <div className="absolute inset-0 z-40">
+                    <DrawingLayer
+                      width={previewWidth}
+                      height={previewHeight}
+                      onDrawingChange={handleDrawingChange}
+                      tool={drawingTool}
+                      color={drawingColor}
+                      brushSize={brushSize}
+                      initialDrawing={localDrawing}
+                      onClear={() => handleDrawingChange('')}
+                    />
                   </div>
                 )}
-              </div>
 
-              {textBoxes.map((textBox) => (
-                <TextBoxComponent
-                  key={textBox.id}
-                  textBox={textBox}
-                  selected={selectedTextBoxId === textBox.id}
-                  containerRef={previewRef}
-                  onSelect={handleTextBoxSelect}
-                  onUpdate={onTextBoxUpdate}
-                  onRemove={handleTextBoxRemove}
-                  isDrawingMode={isDrawingMode}
-                  style={{ 
+                <div
+                  ref={textRef}
+                  className="absolute z-30 cursor-move whitespace-pre-wrap"
+                  style={{
+                    ...getTextStyles(),
+                    left: `${textPosition.x}%`,
+                    top: `${textPosition.y}%`,
+                    transform: 'translate(-50%, -50%)',
                     filter: !backgroundImage ? getCssFilter() : undefined,
-                    zIndex: 35,
+                    pointerEvents: isDrawingMode ? 'none' : 'auto'
                   }}
-                />
-              ))}
-
-              {stickers && stickers.map((sticker) => (
-                <StickerContainer
-                  key={sticker.id}
-                  sticker={sticker}
-                  selected={selectedStickerId === sticker.id}
-                  onSelect={handleStickerSelect}
-                  onMove={onStickerMove}
-                  onResize={handleStickerResize}
-                  containerRef={previewRef}
-                  style={{ 
-                    filter: !backgroundImage ? getCssFilter() : undefined,
-                    pointerEvents: isDrawingMode ? 'none' : 'auto',
-                    zIndex: 30 
+                  onMouseDown={handleTextElementDrag}
+                  onTouchStart={handleTextTouchStart}
+                  onClick={(e) => {
+                    if (isDrawingMode) return;
+                    e.stopPropagation();
+                    setSelectedStickerId(null);
+                    setSelectedIconId(null);
+                    setSelectedTextBoxId(null);
+                    setIsTextSelected(true);
+                    onIconSelect('');
+                    onStickerSelect(null);
+                    onTextBoxSelect(null);
                   }}
-                />
-              ))}
-
-              {icons && icons.map((icon) => (
-                <IconContainer
-                  key={icon.id}
-                  icon={icon}
-                  selected={selectedIconId === icon.id}
-                  onSelect={handleIconSelect}
-                  onMove={onIconMove}
-                  onUpdate={onIconUpdate}
-                  containerRef={previewRef}
-                  style={{ 
-                    filter: !backgroundImage ? getCssFilter() : undefined,
-                    pointerEvents: isDrawingMode ? 'none' : 'auto',
-                    zIndex: 30 
-                  }}
-                />
-              ))}
-              
-              {!isDrawingMode && !isPrinting && (
-                <button
-                  className="absolute bottom-4 right-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full p-2 shadow-lg z-50 no-print"
-                  onClick={handleAddTextBox}
-                  title="Add Text Box"
                 >
-                  <Plus size={20} />
-                </button>
-              )}
+                  {processText(text) || 'Start typing to add text...'}
+                  {isTextSelected && !isTextDragging && !isPrinting && (
+                    <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-primary/70 text-primary-foreground px-2 py-1 rounded text-xs whitespace-nowrap no-print">
+                      Touch and drag to move
+                    </div>
+                  )}
+                </div>
+
+                {textBoxes.map((textBox) => (
+                  <TextBoxComponent
+                    key={textBox.id}
+                    textBox={textBox}
+                    selected={selectedTextBoxId === textBox.id}
+                    containerRef={previewRef}
+                    onSelect={handleTextBoxSelect}
+                    onUpdate={onTextBoxUpdate}
+                    onRemove={handleTextBoxRemove}
+                    isDrawingMode={isDrawingMode}
+                    style={{ 
+                      filter: !backgroundImage ? getCssFilter() : undefined,
+                      zIndex: 35,
+                    }}
+                  />
+                ))}
+
+                {stickers && stickers.map((sticker) => (
+                  <StickerContainer
+                    key={sticker.id}
+                    sticker={sticker}
+                    selected={selectedStickerId === sticker.id}
+                    onSelect={handleStickerSelect}
+                    onMove={onStickerMove}
+                    onResize={handleStickerResize}
+                    containerRef={previewRef}
+                    style={{ 
+                      filter: !backgroundImage ? getCssFilter() : undefined,
+                      pointerEvents: isDrawingMode ? 'none' : 'auto',
+                      zIndex: 30 
+                    }}
+                  />
+                ))}
+
+                {icons && icons.map((icon) => (
+                  <IconContainer
+                    key={icon.id}
+                    icon={icon}
+                    selected={selectedIconId === icon.id}
+                    onSelect={handleIconSelect}
+                    onMove={onIconMove}
+                    onUpdate={onIconUpdate}
+                    containerRef={previewRef}
+                    style={{ 
+                      filter: !backgroundImage ? getCssFilter() : undefined,
+                      pointerEvents: isDrawingMode ? 'none' : 'auto',
+                      zIndex: 30 
+                    }}
+                  />
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      </ScrollArea>
+        </ScrollArea>
+      </div>
     </div>
   );
 }
