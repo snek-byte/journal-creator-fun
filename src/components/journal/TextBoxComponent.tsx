@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Trash2, Move, Check } from 'lucide-react';
 import { TextBox } from '@/types/journal';
@@ -112,13 +113,13 @@ export function TextBoxComponent({
         styles.filter = 'drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.3))';
         break;
       case 'golden':
-        styles.background = 'linear-gradient(to bottom, #F5D100, #FEF7CD, #FFC926, #BF9B30, #FFEE75, #D4AF37)';
+        styles.background = 'linear-gradient(to bottom, #FFDF00, #FFF0A0, #FFD700, #FFDD33, #FFC800, #FFD700)';
         styles.backgroundClip = 'text';
         styles.WebkitBackgroundClip = 'text';
         styles.WebkitTextFillColor = 'transparent';
         styles.fontWeight = '800';
-        styles.textShadow = '0px 1px 0px rgba(255,255,255,0.2), 0px 2px 2px rgba(0,0,0,0.3)';
-        styles.filter = 'drop-shadow(1px 1px 1px rgba(139,105,20,0.4))';
+        styles.textShadow = '0px 1px 0px rgba(255,255,255,0.5), 0px 2px 2px rgba(144, 107, 0, 0.3)';
+        styles.filter = 'drop-shadow(2px 2px 3px rgba(255, 215, 0, 0.5))';
         break;
       case 'bubble':
         styles.color = '#60a5fa';

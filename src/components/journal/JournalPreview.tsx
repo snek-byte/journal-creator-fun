@@ -455,11 +455,13 @@ export function JournalPreview({
             styles.textShadow = '1px 1px 2px rgba(0, 0, 0, 0.3)';
             break;
           case 'golden':
-            styles.backgroundImage = 'linear-gradient(to bottom, #f59e0b, #b45309)';
+            styles.backgroundImage = 'linear-gradient(to bottom, #FFDF00, #FFF0A0, #FFD700, #FFDD33, #FFC800, #FFD700)';
             styles.WebkitBackgroundClip = 'text';
             styles.WebkitTextFillColor = 'transparent';
+            styles.backgroundClip = 'text';
             styles.fontWeight = '700';
-            styles.textShadow = '1px 1px 2px rgba(0, 0, 0, 0.2)';
+            styles.textShadow = '0px 1px 0px rgba(255,255,255,0.5), 0px 2px 2px rgba(144, 107, 0, 0.3)';
+            styles.filter = 'drop-shadow(2px 2px 3px rgba(255, 215, 0, 0.5))';
             break;
           case 'bubble':
             styles.color = '#60a5fa';
