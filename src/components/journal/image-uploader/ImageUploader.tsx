@@ -62,7 +62,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
         <Button 
           variant="ghost" 
           size="icon" 
-          className="hover:bg-accent hover:text-accent-foreground"
+          className="hover:bg-accent hover:text-accent-foreground w-8 h-8 p-0"
           title="Upload or select image"
         >
           <ImagePlus className="w-4 h-4" />
