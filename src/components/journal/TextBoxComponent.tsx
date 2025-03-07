@@ -71,54 +71,61 @@ export function TextBoxComponent({
     
     switch (wordArtStyle) {
       case 'rainbow':
-        styles.background = 'linear-gradient(to right, #6366f1, #ec4899, #ef4444)';
+        styles.background = 'linear-gradient(to right, #ff0000, #ff9900, #ffff00, #33cc33, #3399ff, #6633cc, #cc33cc)';
         styles.WebkitBackgroundClip = 'text';
         styles.WebkitTextFillColor = 'transparent';
         styles.backgroundClip = 'text';
-        styles.fontWeight = '700';
+        styles.fontWeight = '800';
         styles.letterSpacing = '0.05em';
+        styles.textShadow = '1px 1px 2px rgba(0, 0, 0, 0.2)';
         break;
       case 'neon':
         styles.color = '#4ade80';
         styles.fontWeight = '800';
         styles.letterSpacing = '0.1em';
-        styles.textShadow = '0 0 5px #4ade80, 0 0 10px #4ade80';
+        styles.textShadow = '0 0 5px #4ade80, 0 0 10px #4ade80, 0 0 15px #4ade80, 0 0 20px #4ade80';
         break;
       case 'shadow':
         styles.color = 'white';
         styles.fontWeight = '700';
-        styles.textShadow = '2px 2px 0 #333';
+        styles.textShadow = '2px 2px 0 #333, 3px 3px 0 #555';
         break;
       case 'outlined':
         styles.color = 'transparent';
         styles.fontWeight = '800';
-        styles.WebkitTextStroke = '1px black';
+        styles.WebkitTextStroke = '1.5px black';
         break;
       case 'retro':
         styles.color = '#f59e0b';
         styles.fontWeight = '700';
         styles.letterSpacing = '0.05em';
-        styles.textShadow = '1px 1px 0 #78350f';
+        styles.textShadow = '1px 1px 0 #78350f, 2px 2px 0 #78350f';
+        styles.borderBottom = '3px solid #78350f';
         break;
       case 'metallic':
-        styles.color = '#d1d5db';
-        styles.fontWeight = '700';
-        styles.backgroundImage = 'linear-gradient(180deg, #f9fafb, #6b7280)';
+        styles.backgroundImage = 'linear-gradient(180deg, #ffffff, #c0c0c0, #8c8c8c, #c0c0c0, #ffffff)';
         styles.WebkitBackgroundClip = 'text';
         styles.WebkitTextFillColor = 'transparent';
-        styles.textShadow = '1px 1px 2px rgba(0, 0, 0, 0.3)';
+        styles.backgroundClip = 'text';
+        styles.fontWeight = '800';
+        styles.letterSpacing = '0.02em';
+        styles.textShadow = '0px 1px 2px rgba(0, 0, 0, 0.4)';
+        styles.filter = 'drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.3))';
         break;
       case 'golden':
-        styles.backgroundImage = 'linear-gradient(to bottom, #f59e0b, #b45309)';
+        styles.backgroundImage = 'linear-gradient(to bottom, #f0c350, #f7ef8a, #e0aa3e, #f7ef8a, #e0aa3e)';
         styles.WebkitBackgroundClip = 'text';
         styles.WebkitTextFillColor = 'transparent';
-        styles.fontWeight = '700';
-        styles.textShadow = '1px 1px 2px rgba(0, 0, 0, 0.2)';
+        styles.backgroundClip = 'text';
+        styles.fontWeight = '800';
+        styles.letterSpacing = '0.03em';
+        styles.textShadow = '0px 2px 2px rgba(100, 84, 0, 0.3)';
+        styles.filter = 'drop-shadow(1px 1px 1px rgba(227, 186, 0, 0.5))';
         break;
       case 'bubble':
         styles.color = '#60a5fa';
         styles.fontWeight = '800';
-        styles.textShadow = '0 1px 0 #2563eb, 0 2px 0 #1d4ed8, 0 3px 0 #1e40af';
+        styles.textShadow = '0 1px 0 #2563eb, 0 2px 0 #1d4ed8, 0 3px 0 #1e40af, 0 4px 0 #1e3a8a';
         styles.letterSpacing = '0.05em';
         break;
     }
