@@ -353,7 +353,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
           <TabsTrigger value="upload" className="text-[10px]">Upload</TabsTrigger>
         </TabsList>
         
-        <ScrollArea className="h-[220px]">
+        <ScrollArea className="h-[260px]">
           <TabsContent value="papers" className="mt-0 space-y-4">
             {renderPaperBackgrounds()}
           </TabsContent>

@@ -21,7 +21,7 @@ export function ImageGallery({
   }
 
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-3 gap-2 min-h-[120px]">
       {images.map((img, index) => (
         <div 
           key={index} 
