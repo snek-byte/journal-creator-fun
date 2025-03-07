@@ -13,16 +13,17 @@ export function UploadButton({ isUploading, onClick }: UploadButtonProps) {
     <Button 
       onClick={onClick} 
       disabled={isUploading}
-      className="w-full"
+      className="w-full h-7 text-xs py-0"
+      size="sm"
     >
       {isUploading ? (
         <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          <Loader2 className="mr-1 h-3 w-3 animate-spin" />
           Uploading...
         </>
       ) : (
         <>
-          <UploadCloud className="mr-2 h-4 w-4" />
+          <UploadCloud className="mr-1 h-3 w-3" />
           Upload Image
         </>
       )}

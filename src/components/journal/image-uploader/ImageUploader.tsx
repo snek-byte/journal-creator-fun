@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -61,19 +62,19 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
       <DialogTrigger asChild>
         <Button 
           variant="ghost" 
-          size="icon" 
-          className="hover:bg-accent hover:text-accent-foreground w-8 h-8 p-0"
+          size="xs" 
+          className="hover:bg-accent hover:text-accent-foreground w-6 h-6 p-0"
           title="Upload or select image"
         >
-          <ImagePlus className="w-4 h-4" />
+          <ImagePlus className="w-3 h-3" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[300px] p-3">
-        <DialogHeader className="pb-1">
-          <DialogTitle className="text-sm">Your Images</DialogTitle>
+      <DialogContent className="max-w-[280px] p-2">
+        <DialogHeader className="pb-0">
+          <DialogTitle className="text-xs">Your Images</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-2">
+        <div className="space-y-1">
           <div>
             <UploadButton
               isUploading={isUploading}
@@ -96,7 +97,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
               isDeleting={isDeleting}
             />
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1">
               <NoImagesPlaceholder />
               <PlaceholderGallery onImageSelect={handleImageSelect} />
             </div>
