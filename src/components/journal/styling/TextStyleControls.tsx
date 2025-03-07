@@ -146,7 +146,7 @@ export function TextStyleControls({
       </div>
       
       <div className="mt-4 space-y-2">
-        <span className="text-xs">Text Style</span>
+        <span className="text-xs">Text Format</span>
         <div className="flex flex-wrap gap-2">
           <Button
             variant={!standardTextStyles.some(s => s.value !== 'normal' && s.value.includes('italic')) ? "default" : "outline"}

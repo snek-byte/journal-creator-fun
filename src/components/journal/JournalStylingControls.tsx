@@ -4,6 +4,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TextStyleControls } from './styling/TextStyleControls';
 import { ColorControls } from './styling/ColorControls';
 import { TextEffectsControls } from './styling/TextEffectsControls';
+import { textStyles } from '@/utils/unicodeTextStyles';
 
 interface JournalStylingControlsProps {
   font: string;
@@ -57,6 +58,22 @@ export function JournalStylingControls({
             onFontWeightChange={onFontWeightChange}
             onTextStyleChange={onTextStyleChange}
           />
+          
+          {/* Add text styling options directly under style tab */}
+          <div className="space-y-2 pt-2">
+            <span className="text-xs">Text Style</span>
+            <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto">
+              {textStyles.map((style) => (
+                <button
+                  key={style.value}
+                  onClick={() => onTextStyleChange(style.value)}
+                  className="text-xs px-2 py-1.5 bg-muted hover:bg-muted/80 rounded text-left truncate"
+                >
+                  {style.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </TabsContent>
         
         <TabsContent value="color" className="mt-0 space-y-4">
