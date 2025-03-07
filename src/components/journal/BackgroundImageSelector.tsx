@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageUploader } from './image-uploader/ImageUploader';
@@ -129,51 +128,46 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
   ];
 
   const patternBackgrounds = [
-    { name: "Subtle Dots", url: "https://www.transparenttextures.com/patterns/subtle-dots.png", bgColor: '#e6e6e6' },
-    { name: "Grid", url: "https://www.transparenttextures.com/patterns/grid.png", bgColor: '#e0e0e0' },
-    { name: "Checkered", url: "https://www.transparenttextures.com/patterns/checkered-pattern.png", bgColor: '#e8e8e8' },
-    { name: "Brick Wall", url: "https://www.transparenttextures.com/patterns/brick-wall.png", bgColor: '#d9d0c1' },
-    { name: "Stripes", url: "https://www.transparenttextures.com/patterns/stripes.png", bgColor: '#e0e0e0' },
-    { name: "Hexagons", url: "https://www.transparenttextures.com/patterns/hexellence.png", bgColor: '#e6e6e6' },
-    { name: "Diagonal Lines", url: "https://www.transparenttextures.com/patterns/diagonal-lines.png", bgColor: '#e0e0e0' },
-    { name: "Carbon Fiber", url: "https://www.transparenttextures.com/patterns/carbon-fibre.png", bgColor: '#282828' },
-    { name: "Cubes", url: "https://www.transparenttextures.com/patterns/3px-tile.png", bgColor: '#e0e0e0' },
+    { name: "Blue Chevron", url: "https://www.transparenttextures.com/patterns/45-degree-fabric-light.png", bgColor: '#A9D0F5' },
+    { name: "Red Plaid", url: "https://www.transparenttextures.com/patterns/fabric-plaid.png", bgColor: '#F5A9A9' },
+    { name: "Green Diamonds", url: "https://www.transparenttextures.com/patterns/diamond-upholstery.png", bgColor: '#A9F5A9' },
+    { name: "Purple Squares", url: "https://www.transparenttextures.com/patterns/checkered-pattern.png", bgColor: '#BCA9F5' },
+    { name: "Yellow Stripes", url: "https://www.transparenttextures.com/patterns/diagonal-striped-brick.png", bgColor: '#F5F6A9' },
+    { name: "Orange Weave", url: "https://www.transparenttextures.com/patterns/clean-textile.png", bgColor: '#F5C8A9' },
+    { name: "Pink Dots", url: "https://www.transparenttextures.com/patterns/dots.png", bgColor: '#F5A9D0' },
+    { name: "Teal Geometric", url: "https://www.transparenttextures.com/patterns/cubes.png", bgColor: '#A9F5F2' },
+    { name: "Mint Herringbone", url: "https://www.transparenttextures.com/patterns/diagmonds.png", bgColor: '#D4F5D8' },
     
-    // Adding 30 more patterns
-    { name: "Waves", url: "https://www.transparenttextures.com/patterns/asfalt.png", bgColor: '#d6d6d6' },
-    { name: "Diamonds", url: "https://www.transparenttextures.com/patterns/diamond-upholstery.png", bgColor: '#e0e0e0' },
-    { name: "Wood", url: "https://www.transparenttextures.com/patterns/wood-pattern.png", bgColor: '#d2bc9b' },
-    { name: "Argyle", url: "https://www.transparenttextures.com/patterns/argyle.png", bgColor: '#e8e8e8' },
-    { name: "Basket Weave", url: "https://www.transparenttextures.com/patterns/basket-weave.png", bgColor: '#e0e0e0' },
-    { name: "Black Linen", url: "https://www.transparenttextures.com/patterns/black-linen.png", bgColor: '#333333' },
-    { name: "Black Orchid", url: "https://www.transparenttextures.com/patterns/black-orchid.png", bgColor: '#2d2d2d' },
-    { name: "Broken Glass", url: "https://www.transparenttextures.com/patterns/broken-noise.png", bgColor: '#e6e6e6' },
-    { name: "Brushed Alum", url: "https://www.transparenttextures.com/patterns/brushed-alum-dark.png", bgColor: '#333333' },
+    { name: "Coral Lattice", url: "https://www.transparenttextures.com/patterns/crosses.png", bgColor: '#F8C4B4' },
+    { name: "Sky Waves", url: "https://www.transparenttextures.com/patterns/wave-grid.png", bgColor: '#B5D8F7' },
+    { name: "Lavender Circles", url: "https://www.transparenttextures.com/patterns/circles.png", bgColor: '#E0D5F2' },
+    { name: "Lime Zigzag", url: "https://www.transparenttextures.com/patterns/zig-zag.png", bgColor: '#DBFAA9' },
+    { name: "Peach Basketweave", url: "https://www.transparenttextures.com/patterns/basket-weave.png", bgColor: '#FFE0B5' },
+    { name: "Berry Grid", url: "https://www.transparenttextures.com/patterns/grid.png", bgColor: '#E5A9B5' },
+    { name: "Aqua Hexagons", url: "https://www.transparenttextures.com/patterns/hexellence.png", bgColor: '#A0E4E0' },
+    { name: "Lemon Houndstooth", url: "https://www.transparenttextures.com/patterns/houndstooth.png", bgColor: '#FFF8B5' },
+    { name: "Blush Moroccan", url: "https://www.transparenttextures.com/patterns/moroccan-flower.png", bgColor: '#F7CAD0' },
     
-    { name: "Cartographer", url: "https://www.transparenttextures.com/patterns/cartographer.png", bgColor: '#e8e8e8' },
-    { name: "Circles", url: "https://www.transparenttextures.com/patterns/circles.png", bgColor: '#e6e6e6' },
-    { name: "Clean Textile", url: "https://www.transparenttextures.com/patterns/clean-textile.png", bgColor: '#e8e8e8' },
-    { name: "Climpek", url: "https://www.transparenttextures.com/patterns/climpek.png", bgColor: '#d9d9d9' },
-    { name: "Crosshatch", url: "https://www.transparenttextures.com/patterns/crosshatch.png", bgColor: '#e0e0e0' },
-    { name: "Cubes Pattern", url: "https://www.transparenttextures.com/patterns/cubes.png", bgColor: '#d9d9d9' },
-    { name: "Crosses", url: "https://www.transparenttextures.com/patterns/diagmonds.png", bgColor: '#e8e8e8' },
-    { name: "Diamond Eyes", url: "https://www.transparenttextures.com/patterns/diamond-eyes.png", bgColor: '#e0e0e0' },
-    { name: "Dimension", url: "https://www.transparenttextures.com/patterns/dimension.png", bgColor: '#dddddd' },
+    { name: "Indigo Denim", url: "https://www.transparenttextures.com/patterns/denim.png", bgColor: '#3D5A80' },
+    { name: "Cherry Crosshatch", url: "https://www.transparenttextures.com/patterns/crosshatch.png", bgColor: '#E63946' },
+    { name: "Sage Argyle", url: "https://www.transparenttextures.com/patterns/argyle.png", bgColor: '#84A98C' },
+    { name: "Marigold Triangles", url: "https://www.transparenttextures.com/patterns/triangles.png", bgColor: '#FCBF49' },
+    { name: "Ruby Stars", url: "https://www.transparenttextures.com/patterns/stardust.png", bgColor: '#D62828' },
+    { name: "Turquoise Scale", url: "https://www.transparenttextures.com/patterns/scales.png", bgColor: '#2A9D8F' },
+    { name: "Amethyst Trellis", url: "https://www.transparenttextures.com/patterns/dark-geometric.png", bgColor: '#6A4C93' },
+    { name: "Sunflower Polka", url: "https://www.transparenttextures.com/patterns/large-leather.png", bgColor: '#F4D35E' },
+    { name: "Cobalt Herringbone", url: "https://www.transparenttextures.com/patterns/herringbone.png", bgColor: '#1D3557' },
     
-    { name: "Fancy Tiles", url: "https://www.transparenttextures.com/patterns/egg-shell.png", bgColor: '#e6e6e6' },
-    { name: "Embossed", url: "https://www.transparenttextures.com/patterns/embossed-paper.png", bgColor: '#f0f0f0' },
-    { name: "Fabric Plaid", url: "https://www.transparenttextures.com/patterns/fabric-plaid.png", bgColor: '#e0e0e0' },
-    { name: "Graphy Dark", url: "https://www.transparenttextures.com/patterns/graphy-dark.png", bgColor: '#333333' },
-    { name: "Gplay", url: "https://www.transparenttextures.com/patterns/gplay.png", bgColor: '#e0e0e0' },
-    { name: "Grid Noise", url: "https://www.transparenttextures.com/patterns/grid-noise.png", bgColor: '#e6e6e6' },
-    { name: "Grunge Wall", url: "https://www.transparenttextures.com/patterns/grunge-wall.png", bgColor: '#cccccc' },
-    { name: "Houndstooth", url: "https://www.transparenttextures.com/patterns/houndstooth.png", bgColor: '#e0e0e0' },
-    { name: "Knitted Sweater", url: "https://www.transparenttextures.com/patterns/knitted-sweater.png", bgColor: '#e8e8e8' },
-    
-    { name: "Micro Carbon", url: "https://www.transparenttextures.com/patterns/micro-carbon.png", bgColor: '#333333' },
-    { name: "Moroccan", url: "https://www.transparenttextures.com/patterns/moroccan-flower.png", bgColor: '#e0e0e0' },
-    { name: "Otis Redding", url: "https://www.transparenttextures.com/patterns/otis-redding.png", bgColor: '#d9d9d9' },
-    { name: "Pixel Weave", url: "https://www.transparenttextures.com/patterns/pixel-weave.png", bgColor: '#e6e6e6' }
+    { name: "Sienna Wicker", url: "https://www.transparenttextures.com/patterns/woven.png", bgColor: '#BC6C25' },
+    { name: "Emerald Celtic", url: "https://www.transparenttextures.com/patterns/cream-dust.png", bgColor: '#2D6A4F' },
+    { name: "Rust Checker", url: "https://www.transparenttextures.com/patterns/checkered-light-emboss.png", bgColor: '#A4462B' },
+    { name: "Slate Diamond", url: "https://www.transparenttextures.com/patterns/diamond-eyes.png", bgColor: '#415A77' },
+    { name: "Olive Weave", url: "https://www.transparenttextures.com/patterns/binding-light.png", bgColor: '#606C38' },
+    { name: "Ochre Lattice", url: "https://www.transparenttextures.com/patterns/clean-gray-paper.png", bgColor: '#DDA15E' },
+    { name: "Dusty Rose Damask", url: "https://www.transparenttextures.com/patterns/otis-redding.png", bgColor: '#BC8F8F' },
+    { name: "Forest Plaid", url: "https://www.transparenttextures.com/patterns/plaid.png", bgColor: '#344E41' },
+    { name: "Terracotta Ikat", url: "https://www.transparenttextures.com/patterns/classy-fabric.png", bgColor: '#C87547' },
+    { name: "Powder Dot", url: "https://www.transparenttextures.com/patterns/white-diamond-dark.png", bgColor: '#9AB2CE' }
   ];
   
   const handleBackgroundSelect = (url: string, bgColor?: string) => {
@@ -396,3 +390,4 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     </div>
   );
 }
+
