@@ -6,6 +6,8 @@ import { ColorControls } from './styling/ColorControls';
 import { TextEffectsControls } from './styling/TextEffectsControls';
 import { textStyles } from '@/utils/unicodeTextStyles';
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface JournalStylingControlsProps {
   font: string;
@@ -58,6 +60,11 @@ export function JournalStylingControls({
     setStyleChunkIndex(prev => Math.min(prev + 1, styleChunks.length - 1));
   };
   
+  // Handle "close" button click to collapse back to initial chunk
+  const handleCloseStyles = () => {
+    setStyleChunkIndex(0);
+  };
+  
   return (
     <div className="space-y-4">
       <h3 className="text-xs font-semibold tracking-tight">Text Styling</h3>
@@ -82,7 +89,20 @@ export function JournalStylingControls({
           
           {/* Add text styling options directly under style tab */}
           <div className="space-y-2 pt-2">
-            <span className="text-xs">Text Style</span>
+            <div className="flex justify-between items-center">
+              <span className="text-xs">Text Style</span>
+              {styleChunkIndex > 0 && (
+                <Button 
+                  variant="ghost" 
+                  size="xs" 
+                  onClick={handleCloseStyles}
+                  className="h-6 px-2 py-0 text-xs text-blue-500 flex items-center"
+                >
+                  <ChevronUp className="h-3 w-3 mr-1" />
+                  close
+                </Button>
+              )}
+            </div>
             <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto">
               {visibleStyles.map((style) => (
                 <button
@@ -99,6 +119,7 @@ export function JournalStylingControls({
                   onClick={handleShowMoreStyles}
                   className="text-xs px-2 py-1.5 bg-muted hover:bg-muted/80 rounded text-center font-medium text-blue-500"
                 >
+                  <ChevronDown className="h-3 w-3 inline mr-1" />
                   more...
                 </button>
               )}
