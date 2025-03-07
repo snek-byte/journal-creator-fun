@@ -69,13 +69,13 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
           <ImagePlus className="w-4 h-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Your Journal Images</DialogTitle>
+      <DialogContent className="max-w-[400px] p-4">
+        <DialogHeader className="pb-2">
+          <DialogTitle className="text-base">Your Images</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4">
-          <div className="flex justify-center">
+        <div className="space-y-3">
+          <div>
             <UploadButton
               isUploading={isUploading}
               onClick={handleFileSelect}
@@ -97,7 +97,7 @@ export function ImageUploader({ onImageSelect }: ImageUploaderProps) {
               isDeleting={isDeleting}
             />
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               <NoImagesPlaceholder />
               <PlaceholderGallery onImageSelect={handleImageSelect} />
             </div>
