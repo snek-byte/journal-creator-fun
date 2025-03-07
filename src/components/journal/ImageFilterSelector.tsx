@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -89,22 +88,6 @@ export function ImageFilterSelector({ onFilterChange, currentFilter = 'none' }: 
   
   return (
     <div className="space-y-2">
-      <style jsx>{`
-        .vignette-preview {
-          position: relative;
-        }
-        .vignette-preview::after {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          border-radius: 3px;
-          box-shadow: inset 0 0 20px 8px rgba(0, 0, 0, 0.7);
-          pointer-events: none;
-        }
-      `}</style>
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-xs font-semibold tracking-tight">Filters</h3>
         <div className="flex gap-1">
