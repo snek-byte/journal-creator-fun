@@ -12,8 +12,14 @@ export function WordArtStyles({ onWordArtStyleSelect }: WordArtStylesProps) {
     { 
       id: 'rainbow', 
       name: 'Rainbow', 
-      className: 'bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500 text-transparent bg-clip-text font-extrabold',
-      style: { textShadow: '1px 1px 2px rgba(0,0,0,0.2)' }
+      className: 'font-extrabold',
+      style: { 
+        background: 'linear-gradient(to right, #ea384c, #F97316, #FACC15, #22c55e, #0EA5E9, #8B5CF6, #D946EF)',
+        backgroundClip: 'text',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        textShadow: '1px 1px 2px rgba(0,0,0,0.2)'
+      }
     },
     { 
       id: 'neon', 
@@ -44,7 +50,7 @@ export function WordArtStyles({ onWordArtStyleSelect }: WordArtStylesProps) {
       name: 'Metallic', 
       className: 'font-extrabold',
       style: { 
-        backgroundImage: 'linear-gradient(180deg, #ffffff, #c0c0c0, #8c8c8c, #c0c0c0, #ffffff)',
+        backgroundImage: 'linear-gradient(180deg, #f9fafb, #9ca3af, #4b5563, #9ca3af, #f9fafb)',
         backgroundClip: 'text',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
@@ -57,7 +63,7 @@ export function WordArtStyles({ onWordArtStyleSelect }: WordArtStylesProps) {
       name: 'Golden', 
       className: 'font-extrabold',
       style: { 
-        backgroundImage: 'linear-gradient(to bottom, #f0c350, #f7ef8a, #e0aa3e, #f7ef8a, #e0aa3e)',
+        backgroundImage: 'linear-gradient(to bottom, #f59e0b, #fbbf24, #fcd34d, #fbbf24, #f59e0b)',
         backgroundClip: 'text',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
