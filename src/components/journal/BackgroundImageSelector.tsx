@@ -65,6 +65,39 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     { name: "Rough Paper", url: "https://www.transparenttextures.com/patterns/rough-cloth.png", bgColor: '#ebe7db' },
     { name: "Watercolor", url: "https://www.transparenttextures.com/patterns/watercolor.png", bgColor: '#f1eeee' },
     { name: "Grainy Texture", url: "https://www.transparenttextures.com/patterns/graphy.png", bgColor: '#eae6dc' },
+    
+    { name: "Lined Paper", url: "https://www.transparenttextures.com/patterns/lined-paper.png", bgColor: '#f5f5f5' },
+    { name: "Legal Pad", url: "https://www.transparenttextures.com/patterns/low-contrast-linen.png", bgColor: '#fefbe2' },
+    { name: "Antique Paper", url: "https://www.transparenttextures.com/patterns/paper-2.png", bgColor: '#f0ead6' },
+    { name: "Construction Paper", url: "https://www.transparenttextures.com/patterns/subtle-white-feathers.png", bgColor: '#f5e7c0' },
+    { name: "Old Parchment", url: "https://www.transparenttextures.com/patterns/noisy.png", bgColor: '#e1bc91' },
+    { name: "Newsprint", url: "https://www.transparenttextures.com/patterns/newspaper.png", bgColor: '#efefef' },
+    { name: "Notebook Grid", url: "https://www.transparenttextures.com/patterns/project-paper.png", bgColor: '#ffffff' },
+    { name: "Rice Sheet", url: "https://www.transparenttextures.com/patterns/white-sand.png", bgColor: '#f9f8f2' },
+    { name: "Creased Paper", url: "https://www.transparenttextures.com/patterns/subtle-white-feathers.png", bgColor: '#f9f5eb' },
+    { name: "Artisan Paper", url: "https://www.transparenttextures.com/patterns/paper-3.png", bgColor: '#f8f4e9' },
+    
+    { name: "Laid Paper", url: "https://www.transparenttextures.com/patterns/subtle-zebra-3d.png", bgColor: '#f2efe4' },
+    { name: "Woven Paper", url: "https://www.transparenttextures.com/patterns/woven.png", bgColor: '#f5f1e8' },
+    { name: "Linen Sheet", url: "https://www.transparenttextures.com/patterns/subtle-grey.png", bgColor: '#f9f8f5' },
+    { name: "Manuscript", url: "https://www.transparenttextures.com/patterns/pineapple-cut.png", bgColor: '#eae0cb' },
+    { name: "Papyrus", url: "https://www.transparenttextures.com/patterns/beige-paper.png", bgColor: '#e6d7b8' },
+    { name: "Manila Paper", url: "https://www.transparenttextures.com/patterns/connected.png", bgColor: '#f5e9c1' },
+    { name: "Sketch Paper", url: "https://www.transparenttextures.com/patterns/white-brushed.png", bgColor: '#ffffff' },
+    { name: "Book Page", url: "https://www.transparenttextures.com/patterns/white-carbonfiber.png", bgColor: '#f5f5f0' },
+    { name: "Stationery", url: "https://www.transparenttextures.com/patterns/subtle-stripes.png", bgColor: '#fafaff' },
+    { name: "Watermark Paper", url: "https://www.transparenttextures.com/patterns/light-wool.png", bgColor: '#f8f8f8' },
+    
+    { name: "Cotton Paper", url: "https://www.transparenttextures.com/patterns/notebook.png", bgColor: '#f4f4f4' },
+    { name: "Pressed Paper", url: "https://www.transparenttextures.com/patterns/silver-scales.png", bgColor: '#f0f0f0' },
+    { name: "Archives", url: "https://www.transparenttextures.com/patterns/subtle-white-feathers.png", bgColor: '#f0e6d2' },
+    { name: "Aged Document", url: "https://www.transparenttextures.com/patterns/xv.png", bgColor: '#e8d8b5' },
+    { name: "Fine Paper", url: "https://www.transparenttextures.com/patterns/subtle-surface.png", bgColor: '#fafaf8' },
+    { name: "Letterhead", url: "https://www.transparenttextures.com/patterns/subtlenet2.png", bgColor: '#f9f9f9' },
+    { name: "Rustic Paper", url: "https://www.transparenttextures.com/patterns/skin-side-up.png", bgColor: '#e8dfca' },
+    { name: "Scroll Texture", url: "https://www.transparenttextures.com/patterns/az-subtle.png", bgColor: '#e5dabc' },
+    { name: "Bamboo Paper", url: "https://www.transparenttextures.com/patterns/tiny-grid.png", bgColor: '#f1ebd5' },
+    { name: "Velvet Paper", url: "https://www.transparenttextures.com/patterns/worn-dots.png", bgColor: '#f2efea' }
   ];
   
   const natureBackgrounds = [
