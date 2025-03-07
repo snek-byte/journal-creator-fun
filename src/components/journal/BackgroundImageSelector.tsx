@@ -13,39 +13,39 @@ interface BackgroundImageSelectorProps {
 export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageSelectorProps) {
   const [activeTab, setActiveTab] = useState("papers");
   
-  // Expanded paper backgrounds with richer textures and more variety
   const paperBackgrounds = [
-    { name: "Plain White Paper", url: "https://www.transparenttextures.com/patterns/white-paper.png", bgColor: '#ffffff' },
-    { name: "Lined Paper", url: "https://www.transparenttextures.com/patterns/lined-paper.png", bgColor: '#f8f8f8' },
-    { name: "Handmade Paper", url: "https://www.transparenttextures.com/patterns/handmade-paper.png", bgColor: '#f5f2e9' },
-    { name: "Old Paper", url: "https://www.transparenttextures.com/patterns/old-paper.png", bgColor: '#e8e0cb' },
-    { name: "Textured Paper", url: "https://www.transparenttextures.com/patterns/textured-paper.png", bgColor: '#f7f3e9' },
-    { name: "Notebook Paper", url: "https://www.transparenttextures.com/patterns/notebook.png", bgColor: '#f0f0f0' },
-    { name: "Rice Paper", url: "https://www.transparenttextures.com/patterns/rice-paper.png", bgColor: '#f8f6ee' },
-    { name: "Cardboard", url: "https://www.transparenttextures.com/patterns/cardboard.png", bgColor: '#d9c7a0' },
-    { name: "Sandpaper", url: "https://www.transparenttextures.com/patterns/sandpaper.png", bgColor: '#e2d9c8' },
+    { name: "Vintage Parchment", url: "https://www.transparenttextures.com/patterns/old-map.png", bgColor: '#e8dcb5' },
+    { name: "Concrete Wall", url: "https://www.transparenttextures.com/patterns/concrete-wall.png", bgColor: '#d3d3d3' },
+    { name: "Dark Leather", url: "https://www.transparenttextures.com/patterns/leather.png", bgColor: '#584235' },
+    { name: "Blue Fabric", url: "https://www.transparenttextures.com/patterns/textured-stripes.png", bgColor: '#bacbdf' },
+    { name: "Cork Board", url: "https://www.transparenttextures.com/patterns/cork-board.png", bgColor: '#d8bc8a' },
+    { name: "Denim", url: "https://www.transparenttextures.com/patterns/denim.png", bgColor: '#4a6a8f' },
+    { name: "Washed Silk", url: "https://www.transparenttextures.com/patterns/clean-gray-paper.png", bgColor: '#f1eee9' },
+    { name: "Groovy Paper", url: "https://www.transparenttextures.com/patterns/groovepaper.png", bgColor: '#fffcf5' },
     
-    { name: "Parchment", url: "https://www.transparenttextures.com/patterns/parchment.png", bgColor: '#f0e9d2' },
-    { name: "Recycled Paper", url: "https://www.transparenttextures.com/patterns/recycled-paper.png", bgColor: '#f2efe6' },
-    { name: "Stationery", url: "https://www.transparenttextures.com/patterns/stationery.png", bgColor: '#fcfcfa' },
-    { name: "Kraft Paper", url: "https://www.transparenttextures.com/patterns/kraft-paper.png", bgColor: '#d3c7a3' },
-    { name: "Brown Paper", url: "https://www.transparenttextures.com/patterns/brown-paper.png", bgColor: '#c9b18d' },
-    { name: "Watercolor Paper", url: "https://www.transparenttextures.com/patterns/exclusive-paper.png", bgColor: '#f9f6f0' },
-    { name: "Japanese Paper", url: "https://www.transparenttextures.com/patterns/japanese-paper.png", bgColor: '#f1ebde' },
-    { name: "Wrinkled Paper", url: "https://www.transparenttextures.com/patterns/wrinkled-paper.png", bgColor: '#edeae0' },
-    { name: "Cream Paper", url: "https://www.transparenttextures.com/patterns/cream-paper.png", bgColor: '#f7f5e8' },
-    { name: "Grainy Paper", url: "https://www.transparenttextures.com/patterns/paper-fibers.png", bgColor: '#f3f0e7' },
-    { name: "Soft Paper", url: "https://www.transparenttextures.com/patterns/soft-wallpaper.png", bgColor: '#f5f3eb' },
-    { name: "Squared Paper", url: "https://www.transparenttextures.com/patterns/squared-paper.png", bgColor: '#f8f8f8' },
-    { name: "Vintage Paper", url: "https://www.transparenttextures.com/patterns/worn-spots.png", bgColor: '#e9e2cc' },
-    { name: "Antique Paper", url: "https://www.transparenttextures.com/patterns/subtle-white-feathers.png", bgColor: '#e8e0c7' },
-    { name: "Linen Paper", url: "https://www.transparenttextures.com/patterns/natural-paper.png", bgColor: '#f2eee5' },
-    { name: "Letterpress", url: "https://www.transparenttextures.com/patterns/dust.png", bgColor: '#f5f3ee' },
-    { name: "Canvas", url: "https://www.transparenttextures.com/patterns/canvas.png", bgColor: '#f0ebe0' },
-    { name: "Parchment Light", url: "https://www.transparenttextures.com/patterns/beige-paper.png", bgColor: '#f5f2e5' },
+    { name: "Brushed Alu", url: "https://www.transparenttextures.com/patterns/brushed-alum.png", bgColor: '#b8b8b8' },
+    { name: "Cross Stripes", url: "https://www.transparenttextures.com/patterns/cross-stripes.png", bgColor: '#e8e8e8' },
+    { name: "Wave Pattern", url: "https://www.transparenttextures.com/patterns/wave-grid.png", bgColor: '#eaf7f7' },
+    { name: "Noise Pattern", url: "https://www.transparenttextures.com/patterns/noise-pattern-with-subtle-cross-lines.png", bgColor: '#f5f5f5' },
+    { name: "Carbon Fiber", url: "https://www.transparenttextures.com/patterns/carbon-fibre-v2.png", bgColor: '#282828' },
+    { name: "Shattered Dark", url: "https://www.transparenttextures.com/patterns/shattered-dark.png", bgColor: '#3a3a3a' },
+    { name: "Flower Pattern", url: "https://www.transparenttextures.com/patterns/flowers.png", bgColor: '#f8f3e9' },
+    { name: "Gray Washed Wall", url: "https://www.transparenttextures.com/patterns/gray-sand.png", bgColor: '#d9d9d9' },
+    
+    { name: "Real Carbon", url: "https://www.transparenttextures.com/patterns/real-carbon-fibre.png", bgColor: '#2d2d2d' },
+    { name: "Green Fibers", url: "https://www.transparenttextures.com/patterns/green-fibers.png", bgColor: '#e9f0e0' },
+    { name: "Linen Dark", url: "https://www.transparenttextures.com/patterns/dark-linen.png", bgColor: '#2d2c2c' },
+    { name: "Checkered Light", url: "https://www.transparenttextures.com/patterns/light-paper-fibers.png", bgColor: '#f0f0f0' },
+    { name: "Pinstriped Suit", url: "https://www.transparenttextures.com/patterns/pinstriped-suit.png", bgColor: '#2b303b' },
+    { name: "Cream Pixels", url: "https://www.transparenttextures.com/patterns/cream-pixels.png", bgColor: '#fffbea' },
+    { name: "Silver Scales", url: "https://www.transparenttextures.com/patterns/silver-scales.png", bgColor: '#e0e0e0' },
+    { name: "Fabric Plaid", url: "https://www.transparenttextures.com/patterns/fabric-plaid.png", bgColor: '#c3dbd4' },
+    { name: "Batthern", url: "https://www.transparenttextures.com/patterns/batthern.png", bgColor: '#e1ddda' },
+    { name: "Escheresque", url: "https://www.transparenttextures.com/patterns/escheresque.png", bgColor: '#d6d6d6' },
+    { name: "Embossed Paper", url: "https://www.transparenttextures.com/patterns/45-degree-fabric-light.png", bgColor: '#f7f7f7' },
+    { name: "Binding Dark", url: "https://www.transparenttextures.com/patterns/binding-dark.png", bgColor: '#2c2c2c' },
   ];
   
-  // Nature background images
   const natureBackgrounds = [
     { name: "Mountains", url: "https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=800&h=1000&q=80" },
     { name: "Beach", url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&h=1000&q=80" },
@@ -55,7 +55,6 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     { name: "Desert", url: "https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?auto=format&fit=crop&w=800&h=1000&q=80" }
   ];
   
-  // Background gradients - Increased contrast with more vibrant colors
   const gradientBackgrounds = [
     { name: "Sunset", url: "linear-gradient(to right, #f83600 0%, #f9d423 100%)" },
     { name: "Blue-Purple", url: "linear-gradient(to right, #4facfe 0%, #00f2fe 100%)" },
@@ -71,7 +70,6 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     { name: "Light Blue", url: "linear-gradient(to top, #accbee 0%, #e7f0fd 100%)" }
   ];
 
-  // Actual repeating patterns with improved contrast and opacity
   const patternBackgrounds = [
     { name: "Subtle Dots", url: "https://www.transparenttextures.com/patterns/subtle-dots.png", bgColor: '#e6e6e6' },
     { name: "Grid", url: "https://www.transparenttextures.com/patterns/grid.png", bgColor: '#e0e0e0' },
@@ -89,9 +87,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
   
   const handleBackgroundSelect = (url: string, bgColor?: string) => {
     console.log("Selected background:", url);
-    // If it's a paper or pattern with a bgColor, create a combined background property
     if (bgColor) {
-      // For paper textures, we'll create a background with both color and texture
       const combinedBackground = `url(${url}), ${bgColor}`;
       onBackgroundSelect(combinedBackground);
     } else {
@@ -100,9 +96,7 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
     toast.info(`Background ${url ? 'applied' : 'cleared'}`);
   };
 
-  // Helper function to generate a full CSS background for papers and patterns
   const getPatternBackgroundStyle = (url: string, bgColor: string = '#faf9f6') => {
-    // For paper textures and patterns, we want to tile them as patterns with a visible background color
     return {
       backgroundImage: `url(${url})`,
       backgroundSize: 'auto',
@@ -215,7 +209,6 @@ export function BackgroundImageSelector({ onBackgroundSelect }: BackgroundImageS
         
         <Separator className="my-2" />
         
-        {/* Clear background button */}
         <Button
           variant="outline"
           size="sm"
