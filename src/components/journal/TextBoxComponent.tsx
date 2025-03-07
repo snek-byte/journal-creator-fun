@@ -5,6 +5,7 @@ import { TextBox } from '@/types/journal';
 import { applyTextStyle, TextStyle } from '@/utils/unicodeTextStyles';
 import { TextBoxContent } from './TextBoxContent';
 import { TextBoxControls } from './TextBoxControls';
+import { getTextStyles, bringToFront } from '@/utils/textBoxUtils';
 
 interface TextBoxComponentProps {
   textBox: TextBox;
@@ -78,8 +79,8 @@ export function TextBoxComponent({
     const startX = e.clientX;
     const startY = e.clientY;
     
-    const containerRect = containerRef.current?.getBoundingClientRect();
-    if (!containerRect) return;
+    if (!containerRef.current) return;
+    const containerRect = containerRef.current.getBoundingClientRect();
     
     const containerWidth = containerRect.width;
     const containerHeight = containerRect.height;
@@ -100,7 +101,10 @@ export function TextBoxComponent({
       const newX = Math.max(10, Math.min(90, initialPosition.x + deltaXPercent));
       const newY = Math.max(10, Math.min(90, initialPosition.y + deltaYPercent));
       
-      onUpdate(textBox.id, { position: { x: newX, y: newY } });
+      onUpdate(textBox.id, { 
+        position: { x: newX, y: newY },
+        zIndex: textBox.zIndex // Preserve zIndex during drag
+      });
     };
     
     const handleMouseUp = () => {
@@ -127,8 +131,8 @@ export function TextBoxComponent({
     const startX = touch.clientX;
     const startY = touch.clientY;
     
-    const containerRect = containerRef.current?.getBoundingClientRect();
-    if (!containerRect) return;
+    if (!containerRef.current) return;
+    const containerRect = containerRef.current.getBoundingClientRect();
     
     const containerWidth = containerRect.width;
     const containerHeight = containerRect.height;
@@ -153,7 +157,10 @@ export function TextBoxComponent({
       const newX = Math.max(10, Math.min(90, initialPosition.x + deltaXPercent));
       const newY = Math.max(10, Math.min(90, initialPosition.y + deltaYPercent));
       
-      onUpdate(textBox.id, { position: { x: newX, y: newY } });
+      onUpdate(textBox.id, { 
+        position: { x: newX, y: newY },
+        zIndex: textBox.zIndex // Preserve zIndex during drag
+      });
     };
     
     const handleTouchEnd = () => {
@@ -167,75 +174,6 @@ export function TextBoxComponent({
     document.addEventListener('touchend', handleTouchEnd);
   };
 
-  const getWordArtStyle = (textStyleValue: string): React.CSSProperties => {
-    if (!textStyleValue?.startsWith('wordart:')) return {};
-    
-    const wordArtStyle = textStyleValue.split(':')[1];
-    const styles: React.CSSProperties = {};
-    
-    switch (wordArtStyle) {
-      case 'rainbow':
-        styles.background = 'linear-gradient(to right, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #4B0082, #8B00FF)';
-        styles.WebkitBackgroundClip = 'text';
-        styles.WebkitTextFillColor = 'transparent';
-        styles.backgroundClip = 'text';
-        styles.fontWeight = '800';
-        styles.letterSpacing = '0.05em';
-        styles.textShadow = '1px 1px 2px rgba(0, 0, 0, 0.2)';
-        break;
-      case 'neon':
-        styles.color = '#4ade80';
-        styles.fontWeight = '800';
-        styles.letterSpacing = '0.1em';
-        styles.textShadow = '0 0 5px #4ade80, 0 0 10px #4ade80, 0 0 15px #4ade80, 0 0 20px #4ade80';
-        break;
-      case 'shadow':
-        styles.color = 'white';
-        styles.fontWeight = '700';
-        styles.textShadow = '2px 2px 0 #333, 3px 3px 0 #555';
-        break;
-      case 'outlined':
-        styles.color = 'transparent';
-        styles.fontWeight = '800';
-        styles.WebkitTextStroke = '1.5px black';
-        break;
-      case 'retro':
-        styles.color = '#f59e0b';
-        styles.fontWeight = '700';
-        styles.letterSpacing = '0.05em';
-        styles.textShadow = '1px 1px 0 #78350f, 2px 2px 0 #78350f';
-        styles.borderBottom = '3px solid #78350f';
-        break;
-      case 'metallic':
-        styles.backgroundImage = 'linear-gradient(180deg, #FFFFFF, #E8E8E8, #B0B0B0, #707070, #B0B0B0, #E8E8E8, #FFFFFF)';
-        styles.WebkitBackgroundClip = 'text';
-        styles.WebkitTextFillColor = 'transparent';
-        styles.backgroundClip = 'text';
-        styles.fontWeight = '800';
-        styles.letterSpacing = '0.02em';
-        styles.textShadow = '0px 1px 2px rgba(0, 0, 0, 0.4)';
-        styles.filter = 'drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.3))';
-        break;
-      case 'golden':
-        styles.background = 'linear-gradient(to bottom, #E6B800, #FFC926, #E6B800, #D4AF37, #B8860B, #D4AF37)';
-        styles.backgroundClip = 'text';
-        styles.WebkitBackgroundClip = 'text';
-        styles.WebkitTextFillColor = 'transparent';
-        styles.fontWeight = '800';
-        styles.textShadow = '0px 1px 1px rgba(255,255,255,0.3), 0px 2px 3px rgba(120, 80, 0, 0.5)';
-        styles.filter = 'drop-shadow(1px 2px 2px rgba(160, 120, 0, 0.6))';
-        break;
-      case 'bubble':
-        styles.color = '#60a5fa';
-        styles.fontWeight = '800';
-        styles.textShadow = '0 1px 0 #2563eb, 0 2px 0 #1d4ed8, 0 3px 0 #1e40af, 0 4px 0 #1e3a8a';
-        styles.letterSpacing = '0.05em';
-        break;
-    }
-    
-    return styles;
-  };
-
   return (
     <div
       ref={textBoxRef}
@@ -243,9 +181,9 @@ export function TextBoxComponent({
       style={{
         left: `${textBox.position.x}%`,
         top: `${textBox.position.y}%`,
-        transform: `translate(-50%, -50%) rotate(${textBox.rotation}deg)`,
-        width: textBox.width,
-        height: textBox.height,
+        transform: `translate(-50%, -50%) rotate(${textBox.rotation || 0}deg)`,
+        width: textBox.width || 160,
+        height: textBox.height || 80,
         zIndex: textBox.zIndex || 10,
         ...style,
         pointerEvents: isDrawingMode ? 'none' : 'auto',
@@ -261,23 +199,34 @@ export function TextBoxComponent({
           selected && !isEditing ? 'border-2 border-dashed border-primary/70' : ''
         }`}
       >
-        <div 
-          className={`w-full h-full overflow-hidden whitespace-pre-wrap`}
-          style={{
-            fontFamily: textBox.font,
-            fontSize: textBox.fontSize,
-            fontWeight: textBox.fontWeight,
-            color: textBox.gradient ? 'transparent' : textBox.fontColor,
-            background: textBox.gradient || 'transparent',
-            WebkitBackgroundClip: textBox.gradient ? 'text' : 'border-box',
-            backgroundClip: textBox.gradient ? 'text' : 'border-box',
-            ...getWordArtStyle(textBox.textStyle)
-          }}
-        >
-          {textBox.textStyle && !textBox.textStyle.startsWith('wordart:') ?
-            applyTextStyle(textBox.text, textBox.textStyle as TextStyle) :
-            textBox.text
-          }
+        <div className="w-full h-full overflow-hidden whitespace-pre-wrap">
+          {isEditing ? (
+            <textarea
+              className="w-full h-full p-2 border focus:outline-none focus:ring-2 focus:ring-primary"
+              value={text}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
+              autoFocus
+            />
+          ) : (
+            <div
+              style={getTextStyles(
+                textBox.font,
+                textBox.fontSize,
+                textBox.fontWeight,
+                textBox.fontColor,
+                textBox.gradient,
+                textBox.textStyle,
+                textBox.rotation || 0
+              )}
+            >
+              {textBox.textStyle && !textBox.textStyle.startsWith('wordart:') ?
+                applyTextStyle(textBox.text, textBox.textStyle as TextStyle) :
+                textBox.text
+              }
+            </div>
+          )}
         </div>
       </div>
 

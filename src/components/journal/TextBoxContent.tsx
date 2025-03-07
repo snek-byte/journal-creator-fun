@@ -1,93 +1,55 @@
 
-import React, { useEffect, useRef } from 'react';
-import { TextStyle } from '@/utils/unicodeTextStyles';
+import React from 'react';
+import { TextBox } from '@/types/journal';
+import { applyTextStyle, TextStyle } from '@/utils/unicodeTextStyles';
 import { getTextStyles } from '@/utils/textBoxUtils';
 
-export interface TextBoxContentProps {
+interface TextBoxContentProps {
+  textBox: TextBox;
   isEditing: boolean;
-  editValue: string;
   text: string;
-  font: string;
-  fontSize: string;
-  fontWeight: string;
-  fontColor: string;
-  gradient: string;
-  textStyle: string;
-  rotation: number;
-  onTextChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  onBlur: () => void;
-  onKeyDown: (e: React.KeyboardEvent) => void;
-  textAreaRef: React.RefObject<HTMLTextAreaElement>;
-  isPrinting: boolean;
-  style?: React.CSSProperties;
+  handleChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  handleBlur: () => void;
+  handleKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
 }
 
 export function TextBoxContent({
+  textBox,
   isEditing,
-  editValue,
   text,
-  font,
-  fontSize,
-  fontWeight,
-  fontColor,
-  gradient,
-  textStyle,
-  rotation,
-  onTextChange,
-  onBlur,
-  onKeyDown,
-  textAreaRef,
-  isPrinting,
-  style = {}
+  handleChange,
+  handleBlur,
+  handleKeyDown
 }: TextBoxContentProps) {
-  // Get the base styles for the content
-  const contentStyles = getTextStyles(
-    font,
-    fontSize,
-    fontWeight,
-    fontColor,
-    gradient,
-    textStyle,
-    rotation
-  );
-  
-  // Merge with any additional style props
-  const mergedStyles: React.CSSProperties = {
-    ...contentStyles,
-    ...style,
-    // Ensure these styles for proper interaction
-    pointerEvents: isEditing ? 'auto' : 'none',
-    userSelect: isEditing ? 'text' : 'none',
-    width: '100%',
-    height: '100%'
-  };
-
-  // Ref for drag handling
-  const contentRef = useRef<HTMLDivElement>(null);
-
   if (isEditing) {
     return (
       <textarea
-        ref={textAreaRef}
-        value={editValue}
-        onChange={onTextChange}
-        onKeyDown={onKeyDown}
-        onBlur={onBlur}
-        style={mergedStyles}
-        className="text-box-content-edit w-full h-full resize-none focus:outline-none p-2"
-        placeholder="Enter text here..."
+        className="w-full h-full p-2 border focus:outline-none focus:ring-2 focus:ring-primary"
+        value={text}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        autoFocus
       />
     );
   }
 
   return (
     <div
-      ref={contentRef}
-      style={mergedStyles}
-      className="text-box-content-view w-full h-full overflow-hidden"
-      title={isPrinting ? undefined : "Double-click to edit"}
+      style={getTextStyles(
+        textBox.font,
+        textBox.fontSize,
+        textBox.fontWeight,
+        textBox.fontColor,
+        textBox.gradient,
+        textBox.textStyle,
+        textBox.rotation || 0
+      )}
     >
-      {text || 'Empty text box'}
+      {textBox.textStyle && !textBox.textStyle.startsWith('wordart:') ?
+        applyTextStyle(textBox.text, textBox.textStyle as TextStyle) :
+        textBox.text
+      }
     </div>
   );
 }

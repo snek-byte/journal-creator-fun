@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Sticker, Icon, TextBox } from '@/types/journal';
 import { useJournalStore } from '@/store/journalStore';
+import { getOptimalPosition, getNextZIndex } from '@/utils/textBoxUtils';
 
 export function JournalEditor() {
   const {
@@ -119,10 +120,15 @@ export function JournalEditor() {
 
   const handleCreateTextBox = () => {
     console.log("Creating new text box");
+    
+    // Get optimal position for the new text box
+    const position = getOptimalPosition(currentEntry.textBoxes || [], 50, 30);
+    const zIndex = getNextZIndex(currentEntry.textBoxes || []);
+    
     const newTextBox: TextBox = {
       id: uuidv4(),
-      text: '',
-      position: { x: 50, y: 50 },
+      text: 'Double-click to edit this text box',
+      position: position,
       width: 200,
       height: 100,
       font: currentEntry.font,
@@ -132,7 +138,7 @@ export function JournalEditor() {
       gradient: currentEntry.gradient,
       textStyle: currentEntry.textStyle,
       rotation: 0,
-      zIndex: (currentEntry.textBoxes?.length || 0) + 10
+      zIndex: zIndex
     };
     
     handleTextBoxAdd(newTextBox);

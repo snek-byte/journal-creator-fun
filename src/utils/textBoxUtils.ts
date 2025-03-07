@@ -27,8 +27,8 @@ export const getOptimalPosition = (
   textBoxes: TextBox[], 
   defaultX: number = 50, 
   defaultY: number = 50,
-  stepX: number = 5,
-  stepY: number = 5
+  stepX: number = 20,
+  stepY: number = 20
 ): { x: number, y: number } => {
   // If no text boxes, use default position
   if (textBoxes.length === 0) {
@@ -41,11 +41,11 @@ export const getOptimalPosition = (
   
   // Simple offset based on number of text boxes
   posX += (textBoxes.length % 5) * stepX;
-  posY += (textBoxes.length % 7) * stepY;
+  posY += (textBoxes.length % 3) * stepY;
   
   // Ensure within bounds
-  posX = Math.max(15, Math.min(85, posX));
-  posY = Math.max(15, Math.min(85, posY));
+  posX = Math.max(20, Math.min(80, posX));
+  posY = Math.max(20, Math.min(80, posY));
   
   return { x: posX, y: posY };
 };
