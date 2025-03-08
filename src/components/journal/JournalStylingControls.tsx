@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TextStyleControls } from './styling/TextStyleControls';
 import { ColorControls } from './styling/ColorControls';
