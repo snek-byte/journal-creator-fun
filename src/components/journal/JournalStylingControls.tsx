@@ -42,15 +42,14 @@ export function JournalStylingControls({
   const [activeTab, setActiveTab] = useState('style');
   const [styleChunkIndex, setStyleChunkIndex] = useState(0);
   
-  // Define chunks of styles to display with "more" buttons
-  const chunkSize = 9;
-  const styleChunks = [
-    textStyles.slice(0, chunkSize),                   // First chunk: 0-8 (9 items)
-    textStyles.slice(chunkSize, chunkSize * 2),       // Second chunk: 9-17 (9 items)
-    textStyles.slice(chunkSize * 2, chunkSize * 3),   // Third chunk: 18-26 (9 items)
-    textStyles.slice(chunkSize * 3, chunkSize * 4),   // Fourth chunk: 27-35 (9 items)
-    textStyles.slice(chunkSize * 4),                  // Remaining styles
-  ];
+  // Define smaller chunks of styles with only 4 per group
+  const chunkSize = 4; // Changed from 9 to 4
+  const styleChunks = [];
+  
+  // Create chunks of 4 styles each
+  for (let i = 0; i < textStyles.length; i += chunkSize) {
+    styleChunks.push(textStyles.slice(i, i + chunkSize));
+  }
   
   // Calculate which chunks to display based on current index
   const visibleStyles = textStyles.slice(0, chunkSize * (styleChunkIndex + 1));
@@ -112,25 +111,28 @@ export function JournalStylingControls({
               )}
             </div>
             <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto">
-              {visibleStyles.map((style) => (
-                <button
-                  key={style.value}
-                  onClick={() => onTextStyleChange(style.value)}
-                  className="text-xs px-2 py-1.5 bg-muted hover:bg-muted/80 rounded text-left truncate"
-                >
-                  {style.label}
-                </button>
+              {styleChunks.slice(0, styleChunkIndex + 1).map((chunk, chunkIdx) => (
+                <React.Fragment key={`chunk-${chunkIdx}`}>
+                  {chunk.map((style) => (
+                    <button
+                      key={style.value}
+                      onClick={() => onTextStyleChange(style.value)}
+                      className="text-xs px-2 py-1.5 bg-muted hover:bg-muted/80 rounded text-left truncate"
+                    >
+                      {style.label}
+                    </button>
+                  ))}
+                  {chunkIdx === styleChunkIndex && hasMoreStyles && (
+                    <button
+                      onClick={handleShowMoreStyles}
+                      className="text-xs px-2 py-1.5 bg-muted hover:bg-muted/80 rounded text-center font-medium text-blue-500"
+                    >
+                      <ChevronDown className="h-3 w-3 inline mr-1" />
+                      more...
+                    </button>
+                  )}
+                </React.Fragment>
               ))}
-              
-              {hasMoreStyles && (
-                <button
-                  onClick={handleShowMoreStyles}
-                  className="text-xs px-2 py-1.5 bg-muted hover:bg-muted/80 rounded text-center font-medium text-blue-500"
-                >
-                  <ChevronDown className="h-3 w-3 inline mr-1" />
-                  more...
-                </button>
-              )}
             </div>
           </div>
         </TabsContent>
