@@ -64,7 +64,7 @@ export function TextBoxComponent({
     }
   };
 
-  // Mouse drag handling
+  // Enhanced dragging functionality
   const handleMouseDown = (e: React.MouseEvent) => {
     if (isDrawingMode || isEditing) return;
     
@@ -73,15 +73,18 @@ export function TextBoxComponent({
     
     onSelect(textBox.id);
     
+    // Set dragging state
     setIsDragging(true);
     setStartPos({
       x: e.clientX,
       y: e.clientY
     });
     
-    // Use the window object for better tracking outside the component
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
+    // Use document for better tracking
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    
+    console.log("MouseDown on textbox:", textBox.id);
   };
 
   const handleMouseMove = (e: MouseEvent) => {
@@ -113,25 +116,24 @@ export function TextBoxComponent({
       y: e.clientY
     });
 
-    // Log for debugging
-    console.log('Dragging:', { newX, newY, deltaX, deltaY });
+    console.log("Moving textbox:", textBox.id, "to", newX, newY);
   };
   
   const handleMouseUp = (e: MouseEvent) => {
     if (isDragging) {
       e.preventDefault();
-      e.stopPropagation();
+      
       setIsDragging(false);
       
       // Clean up event listeners
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
       
-      console.log('Drag ended');
+      console.log("Drag ended for textbox:", textBox.id);
     }
   };
 
-  // Touch handling for mobile
+  // Enhanced touch handling for mobile
   const handleTouchStart = (e: React.TouchEvent) => {
     if (isDrawingMode || isEditing) return;
     
@@ -147,9 +149,7 @@ export function TextBoxComponent({
       y: touch.clientY
     });
     
-    // Use window for better tracking
-    window.addEventListener('touchmove', handleTouchMove, { passive: false });
-    window.addEventListener('touchend', handleTouchEnd);
+    console.log("TouchStart on textbox:", textBox.id);
   };
   
   const handleTouchMove = (e: TouchEvent) => {
@@ -185,20 +185,35 @@ export function TextBoxComponent({
       y: touch.clientY
     });
 
-    // Log for debugging
-    console.log('Touch dragging:', { newX, newY });
+    console.log("Touch moving textbox:", textBox.id, "to", newX, newY);
   };
   
   const handleTouchEnd = (e: TouchEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    
-    // Clean up event listeners
-    window.removeEventListener('touchmove', handleTouchMove);
-    window.removeEventListener('touchend', handleTouchEnd);
-    
-    console.log('Touch drag ended');
+    if (isDragging) {
+      e.preventDefault();
+      setIsDragging(false);
+      
+      // Clean up event listeners
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+      
+      console.log("Touch drag ended for textbox:", textBox.id);
+    }
   };
+  
+  useEffect(() => {
+    // Add touch event listeners to document when component mounts
+    if (isDragging) {
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+      document.addEventListener('touchend', handleTouchEnd);
+      
+      // Cleanup
+      return () => {
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('touchend', handleTouchEnd);
+      };
+    }
+  }, [isDragging]);
   
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -218,12 +233,14 @@ export function TextBoxComponent({
         zIndex: selected ? 100 : (textBox.zIndex || 10),
         ...style,
         pointerEvents: isDrawingMode ? 'none' : 'auto',
-        touchAction: 'none'
+        touchAction: 'none',
+        userSelect: 'none'
       }}
       onClick={handleClick}
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
       onDoubleClick={handleDoubleClick}
+      draggable="false"
     >
       <div 
         className={`w-full h-full p-2 flex items-center justify-center rounded transition-all duration-150 
