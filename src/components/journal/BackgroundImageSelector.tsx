@@ -4,7 +4,7 @@ import { ImageUploader } from './image-uploader/ImageUploader';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { X, ImageOff } from "lucide-react";
+import { X, ImageOff, ChevronDown } from "lucide-react";
 
 interface BackgroundImageSelectorProps {
   onBackgroundSelect: (imageUrl: string) => void;
@@ -15,6 +15,8 @@ export function BackgroundImageSelector({ onBackgroundSelect, currentBackground 
   const [activeTab, setActiveTab] = useState("papers");
   const [showMorePapers, setShowMorePapers] = useState<number>(1);
   const [showMorePatterns, setShowMorePatterns] = useState<number>(1);
+  const [showMoreNature, setShowMoreNature] = useState<boolean>(false);
+  const [showMoreGradients, setShowMoreGradients] = useState<boolean>(false);
   const [hasBackground, setHasBackground] = useState<boolean>(false);
   
   useEffect(() => {
@@ -108,7 +110,7 @@ export function BackgroundImageSelector({ onBackgroundSelect, currentBackground 
     { name: "Velvet Paper", url: "https://www.transparenttextures.com/patterns/worn-dots.png", bgColor: '#f2efea' }
   ];
   
-  const natureBackgrounds = [
+  const initialNatureBackgrounds = [
     { name: "Mountains", url: "https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=800&h=1000&q=80" },
     { name: "Beach", url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&h=1000&q=80" },
     { name: "Forest", url: "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=800&h=1000&q=80" },
@@ -117,13 +119,29 @@ export function BackgroundImageSelector({ onBackgroundSelect, currentBackground 
     { name: "Desert", url: "https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?auto=format&fit=crop&w=800&h=1000&q=80" }
   ];
   
-  const gradientBackgrounds = [
+  const additionalNatureBackgrounds = [
+    { name: "Mountains Lake", url: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Autumn Forest", url: "https://images.unsplash.com/photo-1418065460487-3e41a6c84dc5?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Waterfalls", url: "https://images.unsplash.com/photo-1426604966848-d7adac402bff?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Snow Mountains", url: "https://images.unsplash.com/photo-1546514355-7fdc90ccbd03?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Calm Lake", url: "https://images.unsplash.com/photo-1489619243109-4e0ea59cfe10?auto=format&fit=crop&w=800&h=1000&q=80" },
+    { name: "Northern Lights", url: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=800&h=1000&q=80" }
+  ];
+  
+  const natureBackgrounds = showMoreNature 
+    ? [...initialNatureBackgrounds, ...additionalNatureBackgrounds]
+    : initialNatureBackgrounds;
+  
+  const initialGradientBackgrounds = [
     { name: "Sunset", url: "linear-gradient(to right, #f83600 0%, #f9d423 100%)" },
     { name: "Blue-Purple", url: "linear-gradient(to right, #4facfe 0%, #00f2fe 100%)" },
     { name: "Pink-Orange", url: "linear-gradient(to right, #ff758c 0%, #ff7eb3 100%)" },
     { name: "Green-Blue", url: "linear-gradient(to right, #43e97b 0%, #38f9d7 100%)" },
     { name: "Purple-Pink", url: "linear-gradient(to right, #8e2de2 0%, #4a00e0 100%)" },
-    { name: "Yellow-Orange", url: "linear-gradient(to right, #f6d365 0%, #fda085 100%)" },
+    { name: "Yellow-Orange", url: "linear-gradient(to right, #f6d365 0%, #fda085 100%)" }
+  ];
+  
+  const additionalGradientBackgrounds = [
     { name: "Teal-Turquoise", url: "linear-gradient(to right, #0093E9 0%, #80D0C7 100%)" },
     { name: "Blue-Pink", url: "linear-gradient(to right, #2980B9 0%, #6DD5FA 50%, #FFFFFF 100%)" },
     { name: "Pink-Purple", url: "linear-gradient(to right, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%)" },
@@ -131,7 +149,11 @@ export function BackgroundImageSelector({ onBackgroundSelect, currentBackground 
     { name: "Green-Yellow", url: "linear-gradient(to right, #C6FFDD 0%, #FBD786 50%, #f7797d 100%)" },
     { name: "Light Blue", url: "linear-gradient(to top, #accbee 0%, #e7f0fd 100%)" }
   ];
-
+  
+  const gradientBackgrounds = showMoreGradients
+    ? [...initialGradientBackgrounds, ...additionalGradientBackgrounds]
+    : initialGradientBackgrounds;
+  
   const patternBackgrounds = [
     { name: "Blue Chevron", url: "https://www.transparenttextures.com/patterns/45-degree-fabric-light.png", bgColor: '#A9D0F5' },
     { name: "Red Plaid", url: "https://www.transparenttextures.com/patterns/fabric-plaid.png", bgColor: '#F5A9A9' },
@@ -236,7 +258,7 @@ export function BackgroundImageSelector({ onBackgroundSelect, currentBackground 
   
   const renderPaperBackgrounds = () => {
     const chunks = [];
-    const itemsPerChunk = 9;
+    const itemsPerChunk = 6;
     
     for (let i = 0; i < paperBackgrounds.length; i += itemsPerChunk) {
       const chunk = paperBackgrounds.slice(i, i + itemsPerChunk);
@@ -267,8 +289,9 @@ export function BackgroundImageSelector({ onBackgroundSelect, currentBackground 
                 variant="subtle" 
                 size="sm" 
                 onClick={() => setShowMorePapers(prev => prev + 1)}
-                className="w-full text-xs"
+                className="w-full text-xs flex items-center justify-center"
               >
+                <ChevronDown className="h-3 w-3 mr-1" />
                 Show More Paper Textures
               </Button>
             )}
@@ -293,7 +316,7 @@ export function BackgroundImageSelector({ onBackgroundSelect, currentBackground 
   
   const renderPatternBackgrounds = () => {
     const chunks = [];
-    const itemsPerChunk = 9;
+    const itemsPerChunk = 6;
     
     for (let i = 0; i < patternBackgrounds.length; i += itemsPerChunk) {
       const chunk = patternBackgrounds.slice(i, i + itemsPerChunk);
@@ -324,8 +347,9 @@ export function BackgroundImageSelector({ onBackgroundSelect, currentBackground 
                 variant="subtle" 
                 size="sm" 
                 onClick={() => setShowMorePatterns(prev => prev + 1)}
-                className="w-full text-xs"
+                className="w-full text-xs flex items-center justify-center"
               >
+                <ChevronDown className="h-3 w-3 mr-1" />
                 Show More Patterns
               </Button>
             )}
@@ -401,6 +425,29 @@ export function BackgroundImageSelector({ onBackgroundSelect, currentBackground 
                 </button>
               ))}
             </div>
+            
+            {!showMoreNature && additionalNatureBackgrounds.length > 0 && (
+              <Button 
+                variant="subtle" 
+                size="sm" 
+                onClick={() => setShowMoreNature(true)}
+                className="w-full text-xs flex items-center justify-center"
+              >
+                <ChevronDown className="h-3 w-3 mr-1" />
+                Show More Nature Images
+              </Button>
+            )}
+            
+            {showMoreNature && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowMoreNature(false)}
+                className="w-full text-xs mt-1 flex items-center justify-center"
+              >
+                <X className="mr-1 h-3 w-3" /> Close
+              </Button>
+            )}
           </TabsContent>
           
           <TabsContent value="patterns" className="mt-0 space-y-4">
@@ -424,6 +471,29 @@ export function BackgroundImageSelector({ onBackgroundSelect, currentBackground 
                 </button>
               ))}
             </div>
+            
+            {!showMoreGradients && additionalGradientBackgrounds.length > 0 && (
+              <Button 
+                variant="subtle" 
+                size="sm" 
+                onClick={() => setShowMoreGradients(true)}
+                className="w-full text-xs flex items-center justify-center"
+              >
+                <ChevronDown className="h-3 w-3 mr-1" />
+                Show More Gradients
+              </Button>
+            )}
+            
+            {showMoreGradients && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowMoreGradients(false)}
+                className="w-full text-xs mt-1 flex items-center justify-center"
+              >
+                <X className="mr-1 h-3 w-3" /> Close
+              </Button>
+            )}
           </TabsContent>
           
           <TabsContent value="upload" className="mt-0 space-y-4">
