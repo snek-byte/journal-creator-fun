@@ -2,7 +2,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { TextBox } from '@/types/journal';
 import { TextBoxContent } from './TextBoxContent';
-import { getTextStyles } from '@/utils/textBoxUtils';
 
 interface TextBoxComponentProps {
   textBox: TextBox;
@@ -29,14 +28,14 @@ export function TextBoxComponent({
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState(textBox.text);
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStartPosition, setDragStartPosition] = useState({ x: 0, y: 0 });
+  const [startPos, setStartPos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     setText(textBox.text);
   }, [textBox.text]);
 
   const handleClick = (e: React.MouseEvent) => {
-    if (!isDrawingMode) {
+    if (!isDrawingMode && !isDragging) {
       e.stopPropagation();
       onSelect(textBox.id);
     }
@@ -65,6 +64,7 @@ export function TextBoxComponent({
     }
   };
 
+  // Mouse drag handling
   const handleMouseDown = (e: React.MouseEvent) => {
     if (isDrawingMode || isEditing) return;
     
@@ -72,14 +72,16 @@ export function TextBoxComponent({
     e.stopPropagation();
     
     onSelect(textBox.id);
+    
     setIsDragging(true);
-    setDragStartPosition({
+    setStartPos({
       x: e.clientX,
       y: e.clientY
     });
     
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    // Use the window object for better tracking outside the component
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
   };
 
   const handleMouseMove = (e: MouseEvent) => {
@@ -87,8 +89,8 @@ export function TextBoxComponent({
     
     e.preventDefault();
     
-    const deltaX = e.clientX - dragStartPosition.x;
-    const deltaY = e.clientY - dragStartPosition.y;
+    const deltaX = e.clientX - startPos.x;
+    const deltaY = e.clientY - startPos.y;
     
     const containerRect = containerRef.current.getBoundingClientRect();
     const containerWidth = containerRect.width;
@@ -97,25 +99,39 @@ export function TextBoxComponent({
     const deltaXPercent = (deltaX / containerWidth) * 100;
     const deltaYPercent = (deltaY / containerHeight) * 100;
     
-    const newX = Math.max(10, Math.min(90, textBox.position.x + deltaXPercent));
-    const newY = Math.max(10, Math.min(90, textBox.position.y + deltaYPercent));
+    // Update position with constraints
+    const newX = Math.max(0, Math.min(100, textBox.position.x + deltaXPercent));
+    const newY = Math.max(0, Math.min(100, textBox.position.y + deltaYPercent));
     
     onUpdate(textBox.id, { 
       position: { x: newX, y: newY }
     });
     
-    setDragStartPosition({
+    // Reset start position for the next move
+    setStartPos({
       x: e.clientX,
       y: e.clientY
     });
+
+    // Log for debugging
+    console.log('Dragging:', { newX, newY, deltaX, deltaY });
   };
   
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
+  const handleMouseUp = (e: MouseEvent) => {
+    if (isDragging) {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+      
+      // Clean up event listeners
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      
+      console.log('Drag ended');
+    }
   };
 
+  // Touch handling for mobile
   const handleTouchStart = (e: React.TouchEvent) => {
     if (isDrawingMode || isEditing) return;
     
@@ -126,13 +142,14 @@ export function TextBoxComponent({
     setIsDragging(true);
     
     const touch = e.touches[0];
-    setDragStartPosition({
+    setStartPos({
       x: touch.clientX,
       y: touch.clientY
     });
     
-    document.addEventListener('touchmove', handleTouchMove, { passive: false });
-    document.addEventListener('touchend', handleTouchEnd);
+    // Use window for better tracking
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
   };
   
   const handleTouchMove = (e: TouchEvent) => {
@@ -144,8 +161,8 @@ export function TextBoxComponent({
     
     const touch = e.touches[0];
     
-    const deltaX = touch.clientX - dragStartPosition.x;
-    const deltaY = touch.clientY - dragStartPosition.y;
+    const deltaX = touch.clientX - startPos.x;
+    const deltaY = touch.clientY - startPos.y;
     
     const containerRect = containerRef.current.getBoundingClientRect();
     const containerWidth = containerRect.width;
@@ -154,23 +171,33 @@ export function TextBoxComponent({
     const deltaXPercent = (deltaX / containerWidth) * 100;
     const deltaYPercent = (deltaY / containerHeight) * 100;
     
-    const newX = Math.max(10, Math.min(90, textBox.position.x + deltaXPercent));
-    const newY = Math.max(10, Math.min(90, textBox.position.y + deltaYPercent));
+    // Update position with constraints
+    const newX = Math.max(0, Math.min(100, textBox.position.x + deltaXPercent));
+    const newY = Math.max(0, Math.min(100, textBox.position.y + deltaYPercent));
     
     onUpdate(textBox.id, { 
       position: { x: newX, y: newY }
     });
     
-    setDragStartPosition({
+    // Reset start position for the next move
+    setStartPos({
       x: touch.clientX,
       y: touch.clientY
     });
+
+    // Log for debugging
+    console.log('Touch dragging:', { newX, newY });
   };
   
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e: TouchEvent) => {
+    e.preventDefault();
     setIsDragging(false);
-    document.removeEventListener('touchmove', handleTouchMove);
-    document.removeEventListener('touchend', handleTouchEnd);
+    
+    // Clean up event listeners
+    window.removeEventListener('touchmove', handleTouchMove);
+    window.removeEventListener('touchend', handleTouchEnd);
+    
+    console.log('Touch drag ended');
   };
   
   const handleDelete = (e: React.MouseEvent) => {
@@ -187,8 +214,8 @@ export function TextBoxComponent({
         top: `${textBox.position.y}%`,
         transform: `translate(-50%, -50%) rotate(${textBox.rotation || 0}deg)`,
         width: textBox.width || 160,
-        height: textBox.height || 80,
-        zIndex: textBox.zIndex || 10,
+        height: 'auto',
+        zIndex: selected ? 100 : (textBox.zIndex || 10),
         ...style,
         pointerEvents: isDrawingMode ? 'none' : 'auto',
         touchAction: 'none'
@@ -199,9 +226,10 @@ export function TextBoxComponent({
       onDoubleClick={handleDoubleClick}
     >
       <div 
-        className={`w-full h-full p-2 flex items-center justify-center bg-transparent rounded ${
-          selected && !isEditing ? 'border-2 border-dashed border-primary/70' : ''
-        }`}
+        className={`w-full h-full p-2 flex items-center justify-center rounded transition-all duration-150 
+          ${selected && !isEditing ? 'ring-2 ring-primary ring-offset-2' : ''}
+          ${isDragging ? 'opacity-80 scale-105' : 'opacity-100'}
+        `}
       >
         <TextBoxContent
           textBox={textBox}
@@ -215,7 +243,7 @@ export function TextBoxComponent({
 
       {selected && !isEditing && (
         <button
-          className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg z-10"
+          className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg z-20"
           onClick={handleDelete}
           aria-label="Delete text box"
         >
