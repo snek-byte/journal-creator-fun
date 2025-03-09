@@ -76,6 +76,13 @@
   }
 }
 
+/* Fix for mobile styling - ensure elements display correctly */
+@media (max-width: 640px) {
+  .grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 /* Image Filters */
 .vignette::after,
 .journal-page-vignette::after {

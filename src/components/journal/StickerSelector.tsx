@@ -76,9 +76,6 @@ export function StickerSelector({
     setSize(currentStickerSize);
   }, [currentStickerSize]);
   
-  console.log("StickerSelector: Current sticker size:", size);
-  console.log("StickerSelector: Selected sticker ID:", selectedStickerId);
-  
   // Handle sticker size change
   const handleSizeChange = (value: number[]) => {
     console.log("Slider changed to:", value[0]);
@@ -88,6 +85,20 @@ export function StickerSelector({
     if (onStickerResize) {
       console.log("Calling onStickerResize with size:", newSize);
       onStickerResize(newSize);
+    }
+  };
+
+  // Get current stickers based on active tab
+  const getCurrentStickers = () => {
+    switch (activeTab) {
+      case "decorative":
+        return decorativeStickers;
+      case "nature":
+        return natureStickers;
+      case "food":
+        return foodStickers;
+      default:
+        return decorativeStickers;
     }
   };
   
@@ -122,66 +133,26 @@ export function StickerSelector({
         </TabsList>
         
         <ScrollArea className="h-[150px]">
-          <TabsContent value="decorative" className="mt-0 space-y-4">
-            <div className="grid grid-cols-4 gap-2">
-              {decorativeStickers.map((sticker, index) => (
-                <button
-                  key={index}
-                  className="bg-white rounded-md p-2 hover:bg-gray-50 border border-gray-200"
-                  onClick={() => onStickerSelect(sticker)}
-                  type="button"
-                >
-                  <img src={sticker} alt="Sticker" className="w-full h-10 object-contain" />
-                </button>
-              ))}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="nature" className="mt-0 space-y-4">
-            <div className="grid grid-cols-4 gap-2">
-              {natureStickers.map((sticker, index) => (
-                <button
-                  key={index}
-                  className="bg-white rounded-md p-2 hover:bg-gray-50 border border-gray-200"
-                  onClick={() => onStickerSelect(sticker)}
-                  type="button"
-                >
-                  <img 
-                    src={sticker} 
-                    alt="Nature Sticker" 
-                    className="w-full h-10 object-contain"
-                    onError={(e) => {
-                      console.error(`Failed to load sticker: ${sticker}`);
-                      e.currentTarget.src = 'https://cdn-icons-png.flaticon.com/512/5449/5449904.png';
-                    }}
-                  />
-                </button>
-              ))}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="food" className="mt-0 space-y-4">
-            <div className="grid grid-cols-4 gap-2">
-              {foodStickers.map((sticker, index) => (
-                <button
-                  key={index}
-                  className="bg-white rounded-md p-2 hover:bg-gray-50 border border-gray-200"
-                  onClick={() => onStickerSelect(sticker)}
-                  type="button"
-                >
-                  <img 
-                    src={sticker}
-                    alt="Food Sticker" 
-                    className="w-full h-10 object-contain"
-                    onError={(e) => {
-                      console.error(`Failed to load sticker: ${sticker}`);
-                      e.currentTarget.src = 'https://cdn-icons-png.flaticon.com/512/5449/5449904.png';
-                    }}
-                  />
-                </button>
-              ))}
-            </div>
-          </TabsContent>
+          <div className="grid grid-cols-4 gap-2 px-1 py-1">
+            {getCurrentStickers().map((sticker, index) => (
+              <button
+                key={index}
+                className="bg-white rounded-md p-2 hover:bg-gray-50 border border-gray-200"
+                onClick={() => onStickerSelect(sticker)}
+                type="button"
+              >
+                <img 
+                  src={sticker}
+                  alt="Sticker" 
+                  className="w-full h-10 object-contain"
+                  onError={(e) => {
+                    console.error(`Failed to load sticker: ${sticker}`);
+                    e.currentTarget.src = 'https://cdn-icons-png.flaticon.com/512/5449/5449904.png';
+                  }}
+                />
+              </button>
+            ))}
+          </div>
         </ScrollArea>
       </Tabs>
     </div>

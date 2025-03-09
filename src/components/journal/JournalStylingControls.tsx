@@ -122,17 +122,17 @@ export function JournalStylingControls({
                       {style.label}
                     </button>
                   ))}
-                  {chunkIdx === styleChunkIndex && hasMoreStyles && (
-                    <button
-                      onClick={handleShowMoreStyles}
-                      className="text-xs px-2 py-1.5 bg-muted hover:bg-muted/80 rounded text-center font-medium text-blue-500"
-                    >
-                      <ChevronDown className="h-3 w-3 inline mr-1" />
-                      more...
-                    </button>
-                  )}
                 </React.Fragment>
               ))}
+              {hasMoreStyles && (
+                <button
+                  onClick={handleShowMoreStyles}
+                  className="text-xs px-2 py-1.5 bg-muted hover:bg-muted/80 rounded text-center font-medium text-blue-500"
+                >
+                  <ChevronDown className="h-3 w-3 inline mr-1" />
+                  more...
+                </button>
+              )}
             </div>
           </div>
         </TabsContent>
