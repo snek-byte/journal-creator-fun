@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { TextBox } from '@/types/journal';
 import { TextBoxContent } from './TextBoxContent';
@@ -29,22 +28,33 @@ export function TextBoxComponent({
   const [text, setText] = useState(textBox.text);
   const [isDragging, setIsDragging] = useState(false);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
+  const [justCreated, setJustCreated] = useState(
+    textBox.text === 'Double-click to edit this text box'
+  );
 
   useEffect(() => {
     setText(textBox.text);
+    
+    if (textBox.text === 'Double-click to edit this text box') {
+      setJustCreated(true);
+    }
   }, [textBox.text]);
+
+  useEffect(() => {
+    if (justCreated && selected) {
+      setIsEditing(true);
+      setJustCreated(false);
+    }
+  }, [justCreated, selected]);
 
   const handleClick = (e: React.MouseEvent) => {
     if (!isDrawingMode && !isDragging) {
       e.stopPropagation();
       onSelect(textBox.id);
-    }
-  };
-
-  const handleDoubleClick = (e: React.MouseEvent) => {
-    if (!isDrawingMode) {
-      e.stopPropagation();
-      setIsEditing(true);
+      
+      if (!isEditing && selected) {
+        setIsEditing(true);
+      }
     }
   };
 
@@ -64,7 +74,6 @@ export function TextBoxComponent({
     }
   };
 
-  // Enhanced dragging functionality
   const handleMouseDown = (e: React.MouseEvent) => {
     if (isDrawingMode || isEditing) return;
     
@@ -73,14 +82,12 @@ export function TextBoxComponent({
     
     onSelect(textBox.id);
     
-    // Set dragging state
     setIsDragging(true);
     setStartPos({
       x: e.clientX,
       y: e.clientY
     });
     
-    // Use document for better tracking
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
     
@@ -102,7 +109,6 @@ export function TextBoxComponent({
     const deltaXPercent = (deltaX / containerWidth) * 100;
     const deltaYPercent = (deltaY / containerHeight) * 100;
     
-    // Update position with constraints
     const newX = Math.max(0, Math.min(100, textBox.position.x + deltaXPercent));
     const newY = Math.max(0, Math.min(100, textBox.position.y + deltaYPercent));
     
@@ -110,7 +116,6 @@ export function TextBoxComponent({
       position: { x: newX, y: newY }
     });
     
-    // Reset start position for the next move
     setStartPos({
       x: e.clientX,
       y: e.clientY
@@ -125,7 +130,6 @@ export function TextBoxComponent({
       
       setIsDragging(false);
       
-      // Clean up event listeners
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
       
@@ -133,7 +137,6 @@ export function TextBoxComponent({
     }
   };
 
-  // Enhanced touch handling for mobile
   const handleTouchStart = (e: React.TouchEvent) => {
     if (isDrawingMode || isEditing) return;
     
@@ -171,7 +174,6 @@ export function TextBoxComponent({
     const deltaXPercent = (deltaX / containerWidth) * 100;
     const deltaYPercent = (deltaY / containerHeight) * 100;
     
-    // Update position with constraints
     const newX = Math.max(0, Math.min(100, textBox.position.x + deltaXPercent));
     const newY = Math.max(0, Math.min(100, textBox.position.y + deltaYPercent));
     
@@ -179,7 +181,6 @@ export function TextBoxComponent({
       position: { x: newX, y: newY }
     });
     
-    // Reset start position for the next move
     setStartPos({
       x: touch.clientX,
       y: touch.clientY
@@ -193,7 +194,6 @@ export function TextBoxComponent({
       e.preventDefault();
       setIsDragging(false);
       
-      // Clean up event listeners
       document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('touchend', handleTouchEnd);
       
@@ -202,12 +202,10 @@ export function TextBoxComponent({
   };
   
   useEffect(() => {
-    // Add touch event listeners to document when component mounts
     if (isDragging) {
       document.addEventListener('touchmove', handleTouchMove, { passive: false });
       document.addEventListener('touchend', handleTouchEnd);
       
-      // Cleanup
       return () => {
         document.removeEventListener('touchmove', handleTouchMove);
         document.removeEventListener('touchend', handleTouchEnd);
@@ -239,7 +237,6 @@ export function TextBoxComponent({
       onClick={handleClick}
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
-      onDoubleClick={handleDoubleClick}
       draggable="false"
     >
       <div 

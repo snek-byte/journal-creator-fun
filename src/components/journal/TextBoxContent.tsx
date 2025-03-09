@@ -19,35 +19,17 @@ export function TextBoxContent({
   handleBlur, 
   handleKeyDown 
 }: TextBoxContentProps) {
-  const [showPlaceholder, setShowPlaceholder] = useState(true);
   const isEmpty = text.trim() === '';
   
-  // Hide placeholder when user starts typing or when text is not empty
-  useEffect(() => {
-    if (!isEmpty) {
-      setShowPlaceholder(false);
-    }
-  }, [isEmpty]);
-  
-  const handleFocus = () => {
-    setShowPlaceholder(false);
-  };
-  
-  // Default placeholder text or empty if text exists
-  const placeholderText = isEmpty && showPlaceholder ? 
-    "Double-click to add text..." : 
-    "";
-  
+  // For editing mode, just show the textarea with no placeholder
   if (isEditing) {
     return (
       <textarea
-        value={text}
+        value={text === 'Double-click to edit this text box' ? '' : text}
         onChange={handleChange}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        onFocus={handleFocus}
         autoFocus
-        placeholder={placeholderText}
         className="w-full h-full min-h-[60px] bg-transparent resize-none focus:outline-none"
         style={{
           fontFamily: textBox.font || 'inherit',
@@ -62,18 +44,29 @@ export function TextBoxContent({
     );
   }
   
-  // For empty text box, show placeholder if appropriate
+  // For empty text box, show placeholder
   if (isEmpty) {
     return (
       <div className="text-muted-foreground text-sm italic">
-        {showPlaceholder ? "Double-click to add text..." : ""}
+        Click to add text...
       </div>
     );
   }
   
-  // For non-empty textbox, just show the text
+  // For non-empty textbox, show the text with proper styling
   return (
-    <div className="w-full break-words whitespace-pre-wrap">
+    <div 
+      className="w-full break-words whitespace-pre-wrap"
+      style={{
+        fontFamily: textBox.font || 'inherit',
+        fontSize: textBox.fontSize || 'inherit',
+        fontWeight: textBox.fontWeight || 'inherit',
+        color: textBox.gradient ? 'transparent' : textBox.fontColor || 'inherit',
+        background: textBox.gradient || 'transparent',
+        WebkitBackgroundClip: textBox.gradient ? 'text' : 'border-box',
+        backgroundClip: textBox.gradient ? 'text' : 'border-box',
+      }}
+    >
       {text}
     </div>
   );

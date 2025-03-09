@@ -464,7 +464,8 @@ export function useJournalEditor() {
   const [isDraggingText, setIsDraggingText] = useState(false);
   const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
   const [selectedTextBoxId, setSelectedTextBoxId] = useState<string | null>(null);
-  
+  const [isDrawingMode, setIsDrawingMode] = useState(false);
+
   // Initialize data
   useEffect(() => {
     loadChallenge();
@@ -921,7 +922,29 @@ export function useJournalEditor() {
     }
   };
 
-  // Reset function
+  const handleAddTextBox = () => {
+    if (isDrawingMode) return;
+    
+    const newTextBox: TextBox = {
+      id: uuidv4(),
+      text: 'Double-click to edit this text box',
+      position: { x: 50, y: 15 },
+      width: 160,
+      height: 80,
+      font: font,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      fontColor: fontColor,
+      gradient: gradient,
+      textStyle: textStyle,
+      rotation: 0,
+      zIndex: textBoxes.length + 10
+    };
+    
+    onTextBoxAdd(newTextBox);
+    handleTextBoxSelect(newTextBox.id);
+  };
+
   const handleResetToDefault = () => {
     console.log("Starting reset to default");
     
@@ -949,7 +972,6 @@ export function useJournalEditor() {
     console.log("Reset completed");
   };
 
-  // Undo function
   const handleUndo = () => {
     try {
       console.log("Attempting UNDO - History index:", editorState.historyIndex, "History length:", editorState.history.length);
@@ -961,7 +983,6 @@ export function useJournalEditor() {
     }
   };
 
-  // Redo function
   const handleRedo = () => {
     try {
       console.log("Attempting REDO - History index:", editorState.historyIndex, "History length:", editorState.history.length);
@@ -973,7 +994,6 @@ export function useJournalEditor() {
     }
   };
 
-  // Save function
   const saveEntry = async () => {
     try {
       syncStateToStore(editorState.currentState);
