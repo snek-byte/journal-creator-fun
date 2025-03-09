@@ -45,7 +45,7 @@ export function JournalStylingControls({
   const isMobile = useMediaQuery("(max-width: 640px)");
   
   // Define smaller chunks of styles with only 4 per group
-  const chunkSize = 4; // Changed from 9 to 4
+  const chunkSize = 4;
   const styleChunks = [];
   
   // Create chunks of 4 styles each
@@ -53,11 +53,6 @@ export function JournalStylingControls({
     styleChunks.push(textStyles.slice(i, i + chunkSize));
   }
   
-  // Calculate which chunks to display based on current index and device
-  const visibleStyles = isMobile 
-    ? textStyles.slice(0, chunkSize) // Only first row on mobile
-    : textStyles.slice(0, chunkSize * (styleChunkIndex + 1));
-    
   const hasMoreStyles = styleChunkIndex < styleChunks.length - 1;
   
   // Handle "more" button click
@@ -115,7 +110,7 @@ export function JournalStylingControls({
                 </Button>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto">
+            <div className="grid grid-cols-2 gap-2">
               {isMobile ? (
                 // Only show the first chunk (row) on mobile
                 styleChunks[0].map((style) => (
@@ -129,7 +124,7 @@ export function JournalStylingControls({
                 ))
               ) : (
                 // Show multiple chunks on desktop
-                styleChunks.slice(0, styleChunkIndex + 1).map((chunk, chunkIdx) => (
+                styleChunks.slice(0, styleChunkIndex + 1).flatMap((chunk, chunkIdx) => (
                   chunk.map((style) => (
                     <button
                       key={style.value}
