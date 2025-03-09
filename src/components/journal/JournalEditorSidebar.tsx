@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -65,6 +66,7 @@ interface JournalEditorSidebarProps {
   isDrawingMode: boolean;
   onDrawingModeToggle: (enabled: boolean) => void;
   onCreateTextBox?: () => void;
+  displayBoxComponent?: React.ReactNode; // Add this prop to pass the journal display box
 }
 
 export function JournalEditorSidebar({
@@ -109,7 +111,8 @@ export function JournalEditorSidebar({
   canRedo,
   isDrawingMode,
   onDrawingModeToggle,
-  onCreateTextBox
+  onCreateTextBox,
+  displayBoxComponent
 }: JournalEditorSidebarProps) {
   const [selectedTab, setSelectedTab] = useState('write');
   
@@ -184,7 +187,14 @@ export function JournalEditorSidebar({
           <TabsTrigger value="draw">Draw</TabsTrigger>
         </TabsList>
         
-        <ScrollArea className="h-[calc(100vh-150px)]">
+        {/* Display Box Component - Added here for mobile-friendly layout */}
+        {selectedTab !== 'write' && displayBoxComponent && (
+          <div className="mb-4 mt-2 md:hidden">
+            {displayBoxComponent}
+          </div>
+        )}
+        
+        <ScrollArea className="h-[calc(100vh-150px)] md:h-[calc(100vh-150px)]">
           <TabsContent value="write" className="space-y-4 pr-4 pb-8">
             {dailyChallenge && (
               <DailyChallenge 
@@ -325,6 +335,22 @@ export function JournalEditorSidebar({
               <h3 className="text-xs font-semibold tracking-tight">Upload Image</h3>
               <ImageUploader onImageSelect={handleImageSelect} />
             </div>
+            
+            {onCreateTextBox && (
+              <>
+                <Separator className="my-4" />
+                <div className="space-y-2">
+                  <h3 className="text-xs font-semibold tracking-tight">Text Boxes</h3>
+                  <Button 
+                    variant="outline" 
+                    onClick={onCreateTextBox} 
+                    className="w-full h-8 text-xs"
+                  >
+                    Add Text Box
+                  </Button>
+                </div>
+              </>
+            )}
           </TabsContent>
         </ScrollArea>
       </Tabs>

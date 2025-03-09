@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { TextBox } from '@/types/journal';
 import { TextBoxContent } from './TextBoxContent';
@@ -54,6 +55,11 @@ export function TextBoxComponent({
       
       if (!isEditing && selected) {
         setIsEditing(true);
+        
+        // Clear placeholder text when editing begins
+        if (text === 'Double-click to edit this text box') {
+          setText('');
+        }
       }
     }
   };
