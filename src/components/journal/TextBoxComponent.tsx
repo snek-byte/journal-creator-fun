@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { TextBox } from '@/types/journal';
 import { TextBoxContent } from './TextBoxContent';
@@ -30,13 +29,15 @@ export function TextBoxComponent({
   const [isDragging, setIsDragging] = useState(false);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
   const [justCreated, setJustCreated] = useState(
-    textBox.text === 'Double-click to edit this text box'
+    textBox.text === 'Double-click to edit this text box' || 
+    textBox.text === 'Click to add text...'
   );
 
   useEffect(() => {
     setText(textBox.text);
     
-    if (textBox.text === 'Double-click to edit this text box') {
+    if (textBox.text === 'Double-click to edit this text box' || 
+        textBox.text === 'Click to add text...') {
       setJustCreated(true);
     }
   }, [textBox.text]);
@@ -45,19 +46,28 @@ export function TextBoxComponent({
     if (justCreated && selected) {
       setIsEditing(true);
       setJustCreated(false);
+      
+      // Clear placeholder text immediately
+      if (text === 'Double-click to edit this text box' || 
+          text === 'Click to add text...') {
+        setText('');
+        onUpdate(textBox.id, { text: '' });
+      }
     }
-  }, [justCreated, selected]);
+  }, [justCreated, selected, text, textBox.id, onUpdate]);
 
   const handleClick = (e: React.MouseEvent) => {
     if (!isDrawingMode && !isDragging) {
       e.stopPropagation();
       onSelect(textBox.id);
       
-      if (!isEditing && selected) {
+      // Always start editing when clicking a selected text box
+      if (!isEditing) {
         setIsEditing(true);
         
         // Clear placeholder text when editing begins
-        if (text === 'Double-click to edit this text box') {
+        if (text === 'Double-click to edit this text box' || 
+            text === 'Click to add text...') {
           setText('');
         }
       }

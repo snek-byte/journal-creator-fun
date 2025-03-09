@@ -931,17 +931,17 @@ export function useJournalEditor() {
       position: { x: 50, y: 15 },
       width: 160,
       height: 80,
-      font: font,
-      fontSize: fontSize,
-      fontWeight: fontWeight,
-      fontColor: fontColor,
-      gradient: gradient,
-      textStyle: textStyle,
+      font: editorState.currentState.font,
+      fontSize: editorState.currentState.fontSize,
+      fontWeight: editorState.currentState.fontWeight,
+      fontColor: editorState.currentState.fontColor,
+      gradient: editorState.currentState.gradient,
+      textStyle: editorState.currentState.textStyle,
       rotation: 0,
-      zIndex: textBoxes.length + 10
+      zIndex: editorState.currentState.textBoxes.length + 10
     };
     
-    onTextBoxAdd(newTextBox);
+    handleTextBoxAdd(newTextBox);
     handleTextBoxSelect(newTextBox.id);
   };
 

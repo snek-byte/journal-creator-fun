@@ -1,4 +1,3 @@
-
 import { useJournalEditor } from '@/hooks/useJournalEditor';
 import { JournalEditorSidebar } from './journal/JournalEditorSidebar';
 import { JournalPreview } from './journal/JournalPreview';
@@ -121,7 +120,6 @@ export function JournalEditor() {
   const handleCreateTextBox = () => {
     console.log("Creating new text box");
     
-    // Get optimal position for the new text box
     const position = getOptimalPosition(currentEntry.textBoxes || [], 50, 30);
     const zIndex = getNextZIndex(currentEntry.textBoxes || []);
     
@@ -185,6 +183,66 @@ export function JournalEditor() {
     date: new Date().toISOString()
   };
 
+  const MobilePreview = () => (
+    <div className="bg-white rounded shadow-md p-3 min-h-[200px] w-full relative overflow-hidden">
+      <div
+        className={`h-full w-full ${currentEntry.filter !== 'none' ? `filter-${currentEntry.filter}` : ''}`}
+        style={{
+          backgroundImage: currentEntry.backgroundImage ? `url(${currentEntry.backgroundImage})` : 'none',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        {currentEntry.drawing && (
+          <div className="absolute inset-0 pointer-events-none">
+            <img src={currentEntry.drawing} alt="Drawing" className="w-full h-full object-cover" />
+          </div>
+        )}
+        
+        {currentEntry.text && (
+          <div
+            className={`p-2 break-words font-${currentEntry.font}`}
+            style={{
+              fontSize: currentEntry.fontSize,
+              fontWeight: currentEntry.fontWeight,
+              color: currentEntry.fontColor,
+              backgroundImage: currentEntry.gradient || 'none',
+              WebkitBackgroundClip: currentEntry.gradient ? 'text' : 'border-box',
+              WebkitTextFillColor: currentEntry.gradient ? 'transparent' : currentEntry.fontColor,
+              position: 'absolute',
+              top: `${currentEntry.textPosition.y}%`,
+              left: `${currentEntry.textPosition.x}%`,
+              transform: 'translate(-50%, -50%)',
+              maxWidth: '80%',
+              fontStyle: currentEntry.textStyle?.includes('italic') ? 'italic' : 'normal',
+              textDecoration: currentEntry.textStyle?.includes('underline') ? 'underline' : 'none',
+            }}
+          >
+            {currentEntry.text}
+          </div>
+        )}
+        
+        {currentEntry.stickers.map((sticker) => (
+          <div
+            key={sticker.id}
+            style={{
+              position: 'absolute',
+              top: `${sticker.position.y}%`,
+              left: `${sticker.position.x}%`,
+              transform: 'translate(-50%, -50%)',
+              width: `${sticker.width}px`,
+              height: `${sticker.height}px`,
+              backgroundImage: `url(${sticker.url})`,
+              backgroundSize: 'contain',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'center',
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50 overflow-auto">
       <JournalEditorSidebar 
@@ -230,6 +288,7 @@ export function JournalEditor() {
         isDrawingMode={isDrawingMode}
         onDrawingModeToggle={handleDrawingModeToggle}
         onCreateTextBox={handleCreateTextBox}
+        displayBoxComponent={<MobilePreview />}
       />
 
       <EmailDialog
