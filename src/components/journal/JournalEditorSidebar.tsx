@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { RotateCcw, RotateCw, Save, Printer, Send, ChevronDown, Undo, Redo } from "lucide-react";
+import { RotateCcw, RotateCw, Save, Printer, Send, ChevronDown, Undo, Redo, Trash2 } from "lucide-react";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import type { EmojiClickData } from 'emoji-picker-react';
@@ -124,6 +124,13 @@ export function JournalEditorSidebar({
     onBackgroundSelect(url);
   };
   
+  const handleClearText = () => {
+    setText('');
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  };
+  
   return (
     <div className="p-4 w-full lg:w-96 border-r bg-white">
       <div className="flex items-center justify-between pb-3">
@@ -204,13 +211,24 @@ export function JournalEditorSidebar({
               />
             )}
           
-            <Textarea
-              ref={textareaRef}
-              className="min-h-[200px] resize-none"
-              placeholder="What's on your mind today..."
-              value={currentEntry.text}
-              onChange={handleTextChange}
-            />
+            <div className="relative">
+              <Textarea
+                ref={textareaRef}
+                className="min-h-[200px] resize-none"
+                placeholder="What's on your mind today..."
+                value={currentEntry.text}
+                onChange={handleTextChange}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClearText}
+                className="absolute top-2 right-2 h-6 w-6 p-0 sm:hidden"
+                title="Clear text"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
 
             <div className="flex justify-between">
               <div className="space-y-1">
@@ -222,22 +240,33 @@ export function JournalEditorSidebar({
                 />
               </div>
               
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="h-8">
-                    Emoji <ChevronDown className="h-3 w-3 ml-1" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="end">
-                  <Picker 
-                    data={data} 
-                    onEmojiSelect={handleEmojiSelect}
-                    previewPosition="none"
-                    skinTonePosition="none"
-                    theme="light"
-                  />
-                </PopoverContent>
-              </Popover>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleClearText}
+                  className="hidden sm:flex h-8 items-center"
+                >
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  Clear
+                </Button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="h-8">
+                      Emoji <ChevronDown className="h-3 w-3 ml-1" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0" align="end">
+                    <Picker 
+                      data={data} 
+                      onEmojiSelect={handleEmojiSelect}
+                      previewPosition="none"
+                      skinTonePosition="none"
+                      theme="light"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
             
             <MoodSelector 

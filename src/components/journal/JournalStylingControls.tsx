@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TextStyleControls } from './styling/TextStyleControls';
 import { ColorControls } from './styling/ColorControls';
@@ -9,6 +9,7 @@ import { textStyles } from '@/utils/unicodeTextStyles';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { useMediaQuery } from '@/hooks/use-mobile';
 
 interface JournalStylingControlsProps {
   font: string;
@@ -41,6 +42,7 @@ export function JournalStylingControls({
 }: JournalStylingControlsProps) {
   const [activeTab, setActiveTab] = useState('style');
   const [styleChunkIndex, setStyleChunkIndex] = useState(0);
+  const isMobile = useMediaQuery("(max-width: 640px)");
   
   // Define smaller chunks of styles with only 4 per group
   const chunkSize = 4; // Changed from 9 to 4
@@ -51,8 +53,11 @@ export function JournalStylingControls({
     styleChunks.push(textStyles.slice(i, i + chunkSize));
   }
   
-  // Calculate which chunks to display based on current index
-  const visibleStyles = textStyles.slice(0, chunkSize * (styleChunkIndex + 1));
+  // Calculate which chunks to display based on current index and device
+  const visibleStyles = isMobile 
+    ? textStyles.slice(0, chunkSize) // Only first row on mobile
+    : textStyles.slice(0, chunkSize * (styleChunkIndex + 1));
+    
   const hasMoreStyles = styleChunkIndex < styleChunks.length - 1;
   
   // Handle "more" button click
@@ -98,7 +103,7 @@ export function JournalStylingControls({
           <div className="space-y-2 pt-2">
             <div className="flex justify-between items-center">
               <span className="text-xs">Text Style</span>
-              {styleChunkIndex > 0 && (
+              {!isMobile && styleChunkIndex > 0 && (
                 <Button 
                   variant="ghost" 
                   size="xs" 
@@ -111,9 +116,21 @@ export function JournalStylingControls({
               )}
             </div>
             <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto">
-              {styleChunks.slice(0, styleChunkIndex + 1).map((chunk, chunkIdx) => (
-                <React.Fragment key={`chunk-${chunkIdx}`}>
-                  {chunk.map((style) => (
+              {isMobile ? (
+                // Only show the first chunk (row) on mobile
+                styleChunks[0].map((style) => (
+                  <button
+                    key={style.value}
+                    onClick={() => onTextStyleChange(style.value)}
+                    className="text-xs px-2 py-1.5 bg-muted hover:bg-muted/80 rounded text-left truncate"
+                  >
+                    {style.label}
+                  </button>
+                ))
+              ) : (
+                // Show multiple chunks on desktop
+                styleChunks.slice(0, styleChunkIndex + 1).map((chunk, chunkIdx) => (
+                  chunk.map((style) => (
                     <button
                       key={style.value}
                       onClick={() => onTextStyleChange(style.value)}
@@ -121,10 +138,10 @@ export function JournalStylingControls({
                     >
                       {style.label}
                     </button>
-                  ))}
-                </React.Fragment>
-              ))}
-              {hasMoreStyles && (
+                  ))
+                ))
+              )}
+              {!isMobile && hasMoreStyles && (
                 <button
                   onClick={handleShowMoreStyles}
                   className="text-xs px-2 py-1.5 bg-muted hover:bg-muted/80 rounded text-center font-medium text-blue-500"
