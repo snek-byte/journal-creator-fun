@@ -111,7 +111,6 @@ export function JournalStylingControls({
               )}
             </div>
             <div className="grid grid-cols-2 gap-2">
-              {/* Always show only the first chunk on both mobile and desktop */}
               {styleChunks[0].map((style) => (
                 <button
                   key={style.value}
