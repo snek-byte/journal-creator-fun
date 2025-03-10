@@ -22,7 +22,6 @@ import type { EmojiClickData } from 'emoji-picker-react';
 import type { JournalEntry, Challenge } from '@/types/journal';
 import { ImageUploader } from './image-uploader/ImageUploader';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useMediaQuery } from '@/hooks/use-mobile';
 
 interface JournalEditorSidebarProps {
   textareaRef: React.RefObject<HTMLTextAreaElement>;
@@ -116,7 +115,6 @@ export function JournalEditorSidebar({
   displayBoxComponent
 }: JournalEditorSidebarProps) {
   const [selectedTab, setSelectedTab] = useState('write');
-  const isMobile = useMediaQuery("(max-width: 640px)");
   
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
@@ -184,37 +182,6 @@ export function JournalEditorSidebar({
         </div>
       </div>
       
-      {/* Text Area for Mobile - Always show at the top in mobile view */}
-      {isMobile && (
-        <div className="mb-4">
-          <div className="relative">
-            <Textarea
-              ref={textareaRef}
-              className="min-h-[100px] resize-none"
-              placeholder="What's on your mind today..."
-              value={currentEntry.text}
-              onChange={handleTextChange}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleClearText}
-              className="absolute top-2 right-2 h-6 w-6 p-0"
-              title="Clear text"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      )}
-      
-      {/* Display Box Component - Always show in mobile view */}
-      {isMobile && displayBoxComponent && (
-        <div className="mb-4">
-          {displayBoxComponent}
-        </div>
-      )}
-      
       <Tabs 
         defaultValue="write" 
         value={selectedTab} 
@@ -227,7 +194,14 @@ export function JournalEditorSidebar({
           <TabsTrigger value="draw">Draw</TabsTrigger>
         </TabsList>
         
-        <ScrollArea className="h-[calc(100vh-240px)] md:h-[calc(100vh-150px)]">
+        {/* Display Box Component - Added here for mobile-friendly layout */}
+        {selectedTab !== 'write' && displayBoxComponent && (
+          <div className="mb-4 mt-2 md:hidden">
+            {displayBoxComponent}
+          </div>
+        )}
+        
+        <ScrollArea className="h-[calc(100vh-150px)] md:h-[calc(100vh-150px)]">
           <TabsContent value="write" className="space-y-4 pr-4 pb-8">
             {dailyChallenge && (
               <DailyChallenge 
@@ -237,26 +211,24 @@ export function JournalEditorSidebar({
               />
             )}
           
-            {!isMobile && (
-              <div className="relative">
-                <Textarea
-                  ref={textareaRef}
-                  className="min-h-[200px] resize-none"
-                  placeholder="What's on your mind today..."
-                  value={currentEntry.text}
-                  onChange={handleTextChange}
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClearText}
-                  className="absolute top-2 right-2 h-6 w-6 p-0"
-                  title="Clear text"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
+            <div className="relative">
+              <Textarea
+                ref={textareaRef}
+                className="min-h-[200px] resize-none"
+                placeholder="What's on your mind today..."
+                value={currentEntry.text}
+                onChange={handleTextChange}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClearText}
+                className="absolute top-2 right-2 h-6 w-6 p-0 sm:hidden"
+                title="Clear text"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
 
             <div className="flex justify-between">
               <div className="space-y-1">
@@ -273,7 +245,7 @@ export function JournalEditorSidebar({
                   variant="outline" 
                   size="sm"
                   onClick={handleClearText}
-                  className="h-8 items-center"
+                  className="hidden sm:flex h-8 items-center"
                 >
                   <Trash2 className="h-3 w-3 mr-1" />
                   Clear

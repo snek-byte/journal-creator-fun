@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
 export default function Auth() {
@@ -12,15 +13,11 @@ export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const navigate = useNavigate();
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
-    setSuccess("");
 
     try {
       if (isSignUp) {
@@ -29,7 +26,7 @@ export default function Auth() {
           password,
         });
         if (error) throw error;
-        setSuccess("Check your email for the confirmation link!");
+        toast.success("Check your email for the confirmation link!");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -40,7 +37,7 @@ export default function Auth() {
       }
     } catch (error) {
       if (error instanceof Error) {
-        setError(error.message);
+        toast.error(error.message);
       }
     } finally {
       setIsLoading(false);
@@ -60,16 +57,6 @@ export default function Auth() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleAuth} className="space-y-4">
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
-                {error}
-              </div>
-            )}
-            {success && (
-              <div className="p-3 bg-green-50 border border-green-200 text-green-700 rounded-md text-sm">
-                {success}
-              </div>
-            )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
