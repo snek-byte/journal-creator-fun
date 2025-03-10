@@ -53,10 +53,8 @@ export default function Write() {
           console.log('interact.js loaded successfully, window.interact:', !!window.interact);
           if (window.interact) {
             setInteractJsLoaded(true);
-            // Removed toast notification
           } else {
             console.error('interact is not available after script load');
-            // Removed toast notification
             
             // Try loading again after a delay, with max attempts
             if (loadingAttempts < 3) {
@@ -64,15 +62,12 @@ export default function Write() {
                 setLoadingAttempts(prev => prev + 1);
                 loadInteractJs();
               }, 1000);
-            } else {
-              // Removed toast notification
             }
           }
         };
         
         script.onerror = () => {
           console.error('Failed to load interact.js script');
-          // Removed toast notification
           
           // Try loading again after a delay, with max attempts
           if (loadingAttempts < 3) {
@@ -80,8 +75,6 @@ export default function Write() {
               setLoadingAttempts(prev => prev + 1);
               loadInteractJs();
             }, 1000);
-          } else {
-            // Removed toast notification
           }
         };
         

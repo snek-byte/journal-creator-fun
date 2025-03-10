@@ -94,7 +94,7 @@ export function JournalStylingControls({
             onTextStyleChange={onTextStyleChange}
           />
           
-          {/* Add text styling options directly under style tab */}
+          {/* Text styling options with limited display for mobile */}
           <div className="space-y-2 pt-2">
             <div className="flex justify-between items-center">
               <span className="text-xs">Text Style</span>
@@ -111,31 +111,15 @@ export function JournalStylingControls({
               )}
             </div>
             <div className="grid grid-cols-2 gap-2">
-              {isMobile ? (
-                // Only show the first chunk (row) on mobile
-                styleChunks[0].map((style) => (
-                  <button
-                    key={style.value}
-                    onClick={() => onTextStyleChange(style.value)}
-                    className="text-xs px-2 py-1.5 bg-muted hover:bg-muted/80 rounded text-left truncate"
-                  >
-                    {style.label}
-                  </button>
-                ))
-              ) : (
-                // Show multiple chunks on desktop
-                styleChunks.slice(0, styleChunkIndex + 1).flatMap((chunk) => (
-                  chunk.map((style) => (
-                    <button
-                      key={style.value}
-                      onClick={() => onTextStyleChange(style.value)}
-                      className="text-xs px-2 py-1.5 bg-muted hover:bg-muted/80 rounded text-left truncate"
-                    >
-                      {style.label}
-                    </button>
-                  ))
-                ))
-              )}
+              {styleChunks[0].map((style) => (
+                <button
+                  key={style.value}
+                  onClick={() => onTextStyleChange(style.value)}
+                  className="text-xs px-2 py-1.5 bg-muted hover:bg-muted/80 rounded text-left truncate"
+                >
+                  {style.label}
+                </button>
+              ))}
               {!isMobile && hasMoreStyles && (
                 <button
                   onClick={handleShowMoreStyles}
