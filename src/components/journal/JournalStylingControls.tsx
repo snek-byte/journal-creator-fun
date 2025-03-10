@@ -124,7 +124,7 @@ export function JournalStylingControls({
                 ))
               ) : (
                 // Show multiple chunks on desktop
-                styleChunks.slice(0, styleChunkIndex + 1).flatMap((chunk, chunkIdx) => (
+                styleChunks.slice(0, styleChunkIndex + 1).flatMap((chunk) => (
                   chunk.map((style) => (
                     <button
                       key={style.value}

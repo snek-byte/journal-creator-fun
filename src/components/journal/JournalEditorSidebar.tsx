@@ -185,7 +185,7 @@ export function JournalEditorSidebar({
       </div>
       
       {/* Text Area for Mobile - Always show at the top in mobile view */}
-      {isMobile && selectedTab !== 'write' && (
+      {isMobile && (
         <div className="mb-4">
           <div className="relative">
             <Textarea
@@ -208,6 +208,13 @@ export function JournalEditorSidebar({
         </div>
       )}
       
+      {/* Display Box Component - Always show in mobile view */}
+      {isMobile && displayBoxComponent && (
+        <div className="mb-4">
+          {displayBoxComponent}
+        </div>
+      )}
+      
       <Tabs 
         defaultValue="write" 
         value={selectedTab} 
@@ -220,14 +227,7 @@ export function JournalEditorSidebar({
           <TabsTrigger value="draw">Draw</TabsTrigger>
         </TabsList>
         
-        {/* Display Box Component - Added here for mobile-friendly layout */}
-        {isMobile && selectedTab !== 'write' && displayBoxComponent && (
-          <div className="mb-4 mt-2">
-            {displayBoxComponent}
-          </div>
-        )}
-        
-        <ScrollArea className="h-[calc(100vh-200px)] md:h-[calc(100vh-150px)]">
+        <ScrollArea className="h-[calc(100vh-240px)] md:h-[calc(100vh-150px)]">
           <TabsContent value="write" className="space-y-4 pr-4 pb-8">
             {dailyChallenge && (
               <DailyChallenge 
@@ -237,24 +237,26 @@ export function JournalEditorSidebar({
               />
             )}
           
-            <div className="relative">
-              <Textarea
-                ref={textareaRef}
-                className="min-h-[200px] resize-none"
-                placeholder="What's on your mind today..."
-                value={currentEntry.text}
-                onChange={handleTextChange}
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleClearText}
-                className="absolute top-2 right-2 h-6 w-6 p-0"
-                title="Clear text"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
+            {!isMobile && (
+              <div className="relative">
+                <Textarea
+                  ref={textareaRef}
+                  className="min-h-[200px] resize-none"
+                  placeholder="What's on your mind today..."
+                  value={currentEntry.text}
+                  onChange={handleTextChange}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearText}
+                  className="absolute top-2 right-2 h-6 w-6 p-0"
+                  title="Clear text"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
 
             <div className="flex justify-between">
               <div className="space-y-1">

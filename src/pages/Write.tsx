@@ -3,7 +3,6 @@ import { JournalEditor } from "@/components/JournalEditor";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useJournalStore } from "@/store/journalStore";
-import { toast } from "sonner";
 
 export default function Write() {
   const { loadEntries, loadProgress } = useJournalStore();
@@ -54,10 +53,10 @@ export default function Write() {
           console.log('interact.js loaded successfully, window.interact:', !!window.interact);
           if (window.interact) {
             setInteractJsLoaded(true);
-            toast.success("Journal editor ready");
+            // Removed toast notification
           } else {
             console.error('interact is not available after script load');
-            toast.error("Failed to initialize the editor");
+            // Removed toast notification
             
             // Try loading again after a delay, with max attempts
             if (loadingAttempts < 3) {
@@ -66,14 +65,14 @@ export default function Write() {
                 loadInteractJs();
               }, 1000);
             } else {
-              toast.error("Editor failed to initialize completely. Please refresh the page.");
+              // Removed toast notification
             }
           }
         };
         
         script.onerror = () => {
           console.error('Failed to load interact.js script');
-          toast.error("Failed to load editor components");
+          // Removed toast notification
           
           // Try loading again after a delay, with max attempts
           if (loadingAttempts < 3) {
@@ -82,7 +81,7 @@ export default function Write() {
               loadInteractJs();
             }, 1000);
           } else {
-            toast.error("Could not load all required components. Please refresh the page.");
+            // Removed toast notification
           }
         };
         
