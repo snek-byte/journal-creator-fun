@@ -18,3 +18,8 @@ export function useMediaQuery(query: string): boolean {
 
   return matches;
 }
+
+// Export a convenience hook for mobile detection
+export function useIsMobile(): boolean {
+  return useMediaQuery('(max-width: 640px)');
+}
