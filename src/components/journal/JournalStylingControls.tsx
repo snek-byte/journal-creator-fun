@@ -111,32 +111,17 @@ export function JournalStylingControls({
               )}
             </div>
             <div className="grid grid-cols-2 gap-2">
-              {isMobile ? (
-                // Only show the first chunk (row) on mobile
-                styleChunks[0].map((style) => (
-                  <button
-                    key={style.value}
-                    onClick={() => onTextStyleChange(style.value)}
-                    className="text-xs px-2 py-1.5 bg-muted hover:bg-muted/80 rounded text-left truncate"
-                  >
-                    {style.label}
-                  </button>
-                ))
-              ) : (
-                // Show multiple chunks on desktop
-                styleChunks.slice(0, styleChunkIndex + 1).flatMap((chunk) => (
-                  chunk.map((style) => (
-                    <button
-                      key={style.value}
-                      onClick={() => onTextStyleChange(style.value)}
-                      className="text-xs px-2 py-1.5 bg-muted hover:bg-muted/80 rounded text-left truncate"
-                    >
-                      {style.label}
-                    </button>
-                  ))
-                ))
-              )}
-              {!isMobile && hasMoreStyles && (
+              {/* Always show only the first chunk on both mobile and desktop */}
+              {styleChunks[0].map((style) => (
+                <button
+                  key={style.value}
+                  onClick={() => onTextStyleChange(style.value)}
+                  className="text-xs px-2 py-1.5 bg-muted hover:bg-muted/80 rounded text-left truncate"
+                >
+                  {style.label}
+                </button>
+              ))}
+              {hasMoreStyles && (
                 <button
                   onClick={handleShowMoreStyles}
                   className="text-xs px-2 py-1.5 bg-muted hover:bg-muted/80 rounded text-center font-medium text-blue-500"
