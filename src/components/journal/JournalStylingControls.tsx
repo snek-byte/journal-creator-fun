@@ -98,7 +98,7 @@ export function JournalStylingControls({
           <div className="space-y-2 pt-2">
             <div className="flex justify-between items-center">
               <span className="text-xs">Text Style</span>
-              {!isMobile && styleChunkIndex > 0 && (
+              {styleChunkIndex > 0 && (
                 <Button 
                   variant="ghost" 
                   size="xs" 
