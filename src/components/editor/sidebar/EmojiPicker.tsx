@@ -2,14 +2,19 @@
 import React from 'react';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
-import type { EmojiClickData } from 'emoji-picker-react';
 import { useEditorStore } from '@/store/editorStore';
 
 export function EmojiPicker() {
   const { insertEmoji } = useEditorStore();
   
-  const handleEmojiSelect = (emojiData: EmojiClickData) => {
-    insertEmoji(emojiData.emoji);
+  const handleEmojiSelect = (emojiData: any) => {
+    console.log("Selected emoji:", emojiData);
+    // Use the native emoji from the data
+    if (emojiData.native) {
+      insertEmoji(emojiData.native);
+    } else if (emojiData.emoji) {
+      insertEmoji(emojiData.emoji);
+    }
   };
   
   return (
