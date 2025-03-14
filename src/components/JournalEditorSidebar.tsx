@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -121,16 +120,13 @@ export function JournalEditorSidebar({
     onBackgroundSelect(url);
   };
 
-  // Direct undo/redo functions that use the current component's state rather than relying on parent
   const onUndoButton = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     try {
-      // Use the store directly for immediate update
       const state = { ...journal.currentEntry };
       console.log("UNDO: Current state before:", state);
       
-      // Call parent undo function
       handleUndo();
       
       console.log("UNDO: Current state after:", journal.currentEntry);
@@ -145,11 +141,9 @@ export function JournalEditorSidebar({
     e.preventDefault();
     e.stopPropagation();
     try {
-      // Use the store directly for immediate update
       const state = { ...journal.currentEntry };
       console.log("REDO: Current state before:", state);
       
-      // Call parent redo function
       handleRedo();
       
       console.log("REDO: Current state after:", journal.currentEntry);
@@ -224,7 +218,7 @@ export function JournalEditorSidebar({
         </TabsList>
         
         <ScrollArea className="h-[calc(100vh-150px)]">
-          <TabsContent value="write" className="space-y-4 pr-4 pb-8">
+          <TabsContent value="write" className="space-y-4 pr-4">
             {dailyChallenge && (
               <DailyChallenge 
                 dailyChallenge={dailyChallenge} 
@@ -277,14 +271,14 @@ export function JournalEditorSidebar({
             <Button 
               variant="outline" 
               onClick={handleResetToDefault} 
-              className="w-full h-8 text-xs"
+              className="w-full h-8 text-xs m-0 mb-0"
             >
               <RotateCcw className="h-3 w-3 mr-1" />
               Reset to Default
             </Button>
           </TabsContent>
           
-          <TabsContent value="style" className="space-y-4 pr-4 pb-8">
+          <TabsContent value="style" className="space-y-4 pr-4">
             <JournalStylingControls
               font={currentEntry.font}
               fontSize={currentEntry.fontSize}
@@ -342,7 +336,7 @@ export function JournalEditorSidebar({
             />
           </TabsContent>
           
-          <TabsContent value="draw" className="space-y-4 pr-4 pb-8">
+          <TabsContent value="draw" className="space-y-4 pr-4">
             <DrawingTools 
               onToolSelect={onDrawingToolSelect}
               currentTool={currentDrawingTool}

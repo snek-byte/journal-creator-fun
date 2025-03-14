@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -86,15 +85,31 @@
   button:has(svg.h-3.w-3) {
     margin-bottom: 0 !important;
   }
+
+  /* Complete removal of bottom spacing in mobile */
+  .ScrollArea-content {
+    padding-bottom: 0 !important;
+  }
+  
+  /* Target the button directly and remove any margins */
+  [role="tabpanel"] > div:last-child button {
+    margin-bottom: 0 !important;
+  }
   
   /* Ensure no extra space at bottom of scroll area in mobile view */
   .h-\[calc\(100vh-240px\)\] {
     padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
   }
   
   /* Remove all bottom padding from ScrollArea content in mobile */
   .pb-8 {
     padding-bottom: 0 !important;
+  }
+  
+  /* Target the parent container to eliminate any extra space */
+  [data-orientation="vertical"] > div {
+    margin-bottom: 0 !important;
   }
 }
 

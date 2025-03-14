@@ -42,3 +42,21 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Mobile-specific fixes */
+@media (max-width: 640px) {
+  .ScrollAreaRoot {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  
+  .ScrollAreaViewport {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  
+  .ScrollAreaViewport > div {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+}
