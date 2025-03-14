@@ -227,8 +227,8 @@ export function JournalEditorSidebar({
           <TabsTrigger value="draw">Draw</TabsTrigger>
         </TabsList>
         
-        <ScrollArea className="h-[calc(100vh-240px)] md:h-[calc(100vh-150px)]">
-          <TabsContent value="write" className="space-y-4 pr-4 pb-8">
+        <ScrollArea className={`h-[calc(100vh-240px)] md:h-[calc(100vh-150px)] ${isMobile ? 'mobile-scroll-no-padding' : ''}`}>
+          <TabsContent value="write" className={`space-y-4 pr-4 ${isMobile ? 'pb-0' : 'pb-8'}`}>
             {dailyChallenge && (
               <DailyChallenge 
                 dailyChallenge={dailyChallenge} 
@@ -305,14 +305,14 @@ export function JournalEditorSidebar({
             <Button 
               variant="outline" 
               onClick={handleResetToDefault} 
-              className="w-full h-8 text-xs"
+              className={`w-full h-8 text-xs ${isMobile ? 'mb-0 pb-0' : ''}`}
             >
               <RotateCcw className="h-3 w-3 mr-1" />
               Reset to Default
             </Button>
           </TabsContent>
           
-          <TabsContent value="style" className="space-y-4 pr-4 pb-8">
+          <TabsContent value="style" className={`space-y-4 pr-4 ${isMobile ? 'pb-0' : 'pb-8'}`}>
             <JournalStylingControls
               font={currentEntry.font}
               fontSize={currentEntry.fontSize}
@@ -373,7 +373,7 @@ export function JournalEditorSidebar({
             />
           </TabsContent>
           
-          <TabsContent value="draw" className="space-y-4 pr-4 pb-8">
+          <TabsContent value="draw" className={`space-y-4 pr-4 ${isMobile ? 'pb-0' : 'pb-8'}`}>
             <DrawingTools 
               onToolSelect={onDrawingToolSelect}
               currentTool={currentDrawingTool}
