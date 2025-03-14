@@ -27,6 +27,7 @@ const buttonVariants = cva(
         lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",
         xs: "h-6 w-6 rounded-full p-0 [&_svg]:size-3",
+        reset: "h-8 px-4 py-1 mb-0", // Special size for Reset button
       },
     },
     defaultVariants: {

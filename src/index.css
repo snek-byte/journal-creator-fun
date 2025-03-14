@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -109,6 +110,24 @@
   
   /* Target the parent container to eliminate any extra space */
   [data-orientation="vertical"] > div {
+    margin-bottom: 0 !important;
+  }
+
+  /* Additional fixes to completely remove bottom space */
+  .mobile-scroll-no-padding {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+  }
+  
+  /* Ensure TabsContent has no bottom padding in mobile */
+  [role="tabpanel"] {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+  }
+  
+  /* Force the ScrollArea to have no bottom padding */
+  div[style*="overflow: auto"] {
+    padding-bottom: 0 !important;
     margin-bottom: 0 !important;
   }
 }

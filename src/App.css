@@ -59,4 +59,35 @@
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
   }
+  
+  /* Ensure content doesn't overflow at the bottom */
+  [role="tabpanel"] {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+  }
+  
+  /* Target specifically the Reset to Default button container */
+  [role="tabpanel"] > div:last-child {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  
+  /* Target the ScrollArea in JournalEditorSidebar */
+  .h-\[calc\(100vh-240px\)\], 
+  .h-\[calc\(100vh-150px\)\] {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+  }
+  
+  /* Ensure no margin or padding at bottom of scrollable content */
+  div[style*="overflow: auto"] {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+  }
+  
+  /* Force all tabs content to have no bottom padding */
+  div[data-radix-scroll-area-viewport] > div {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+  }
 }

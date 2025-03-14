@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import { ImageUploader } from './journal/image-uploader/ImageUploader';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { useJournalStore } from '@/store/journalStore';
+import { useMediaQuery } from '@/hooks/use-mobile';
 
 interface JournalEditorSidebarProps {
   textareaRef: React.RefObject<HTMLTextAreaElement>;
@@ -111,6 +113,7 @@ export function JournalEditorSidebar({
 }: JournalEditorSidebarProps) {
   const [selectedTab, setSelectedTab] = useState('write');
   const journal = useJournalStore();
+  const isMobile = useMediaQuery("(max-width: 640px)");
   
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
@@ -217,8 +220,8 @@ export function JournalEditorSidebar({
           <TabsTrigger value="draw">Draw</TabsTrigger>
         </TabsList>
         
-        <ScrollArea className="h-[calc(100vh-150px)]">
-          <TabsContent value="write" className="space-y-4 pr-4">
+        <ScrollArea className={`h-[calc(100vh-150px)] ${isMobile ? 'mobile-scroll-no-padding' : ''}`}>
+          <TabsContent value="write" className={`space-y-4 pr-4 ${isMobile ? '' : 'pb-8'}`}>
             {dailyChallenge && (
               <DailyChallenge 
                 dailyChallenge={dailyChallenge} 
@@ -268,17 +271,19 @@ export function JournalEditorSidebar({
               onMoodSelect={setMood} 
             />
             
-            <Button 
-              variant="outline" 
-              onClick={handleResetToDefault} 
-              className="w-full h-8 text-xs m-0 mb-0"
-            >
-              <RotateCcw className="h-3 w-3 mr-1" />
-              Reset to Default
-            </Button>
+            <div className={isMobile ? 'mb-0 pb-0' : ''}>
+              <Button 
+                variant="outline" 
+                onClick={handleResetToDefault} 
+                className="w-full h-8 text-xs m-0 mb-0 p-0"
+              >
+                <RotateCcw className="h-3 w-3 mr-1" />
+                Reset to Default
+              </Button>
+            </div>
           </TabsContent>
           
-          <TabsContent value="style" className="space-y-4 pr-4">
+          <TabsContent value="style" className={`space-y-4 pr-4 ${isMobile ? '' : 'pb-8'}`}>
             <JournalStylingControls
               font={currentEntry.font}
               fontSize={currentEntry.fontSize}
@@ -336,7 +341,7 @@ export function JournalEditorSidebar({
             />
           </TabsContent>
           
-          <TabsContent value="draw" className="space-y-4 pr-4">
+          <TabsContent value="draw" className={`space-y-4 pr-4 ${isMobile ? '' : 'pb-8'}`}>
             <DrawingTools 
               onToolSelect={onDrawingToolSelect}
               currentTool={currentDrawingTool}
