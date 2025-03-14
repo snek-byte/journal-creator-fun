@@ -83,12 +83,12 @@
   }
   
   /* Remove all space beneath Reset to Default button in mobile view */
-  button:has(.h-3.w-3[stroke="currentColor"][d="M0.5 12.5C0.5 6.97715 4.97715 2.5 10.5 2.5C16.0228 2.5 20.5 6.97715 20.5 12.5C20.5 18.0228 16.0228 22.5 10.5 22.5C4.97715 22.5 0.5 18.0228 0.5 12.5Z"]) {
+  button:has(svg.h-3.w-3) {
     margin-bottom: 0 !important;
   }
   
   /* Ensure no extra space at bottom of scroll area in mobile view */
-  .h-\\[calc\\(100vh-240px\\)\\] {
+  .h-\[calc\(100vh-240px\)\] {
     padding-bottom: 0 !important;
   }
   
