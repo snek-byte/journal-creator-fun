@@ -74,7 +74,7 @@ const getSelectedText = () => {
 
 // Helper to focus editor and position cursor at the end
 const focusEditorAtEnd = () => {
-  const editorEl = document.querySelector('[contenteditable=true]');
+  const editorEl = document.querySelector('[contenteditable=true]') as HTMLElement;
   if (editorEl) {
     editorEl.focus();
     

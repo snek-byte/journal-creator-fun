@@ -269,7 +269,7 @@ export function JournalPreview({
     if (!text) return '';
     
     if (textStyle && textStyles.includes(textStyle)) {
-      return applyTextStyle(text, textStyle as TextStyle);
+      return applyTextStyle(text, textStyle as unknown as TextStyle);
     }
     
     return text;
@@ -789,4 +789,3 @@ export function JournalPreview({
     </div>
   );
 }
-
