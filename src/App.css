@@ -29,6 +29,20 @@
   outline: none;
 }
 
+/* Fix for gradient text display and printing */
+[contenteditable="true"] {
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+  color-adjust: exact !important;
+}
+
+/* Fix for text on gradients */
+[contenteditable="true"][style*="background"] {
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
 /* Basic formatting styles */
 [contenteditable="true"] h1 {
   font-size: 2rem;
@@ -158,4 +172,16 @@
   line-height: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Fix for gradient printing */
+@media print {
+  [contenteditable="true"][style*="background"] {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+  }
 }

@@ -1,50 +1,43 @@
 
-import React, { useState } from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import React from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
 import { TextStyling } from './sidebar/TextStyling';
-import { ColorControls } from './sidebar/ColorControls';
-import { InsertOptions } from './sidebar/InsertOptions';
 import { TextEffects } from './sidebar/TextEffects';
+import { InsertOptions } from './sidebar/InsertOptions';
 import { EmojiPicker } from './sidebar/EmojiPicker';
-import { useMediaQuery } from '@/hooks/use-mobile';
+import { X } from 'lucide-react';
 
 interface EditorSidebarProps {
   onClose: () => void;
 }
 
 export function EditorSidebar({ onClose }: EditorSidebarProps) {
-  const [activeTab, setActiveTab] = useState('styling');
-  const isMobile = useMediaQuery("(max-width: 640px)");
-  
   return (
-    <div className="w-64 border-r border-gray-200 bg-white hidden md:block lg:w-80">
-      <div className="p-3 flex items-center justify-between border-b">
-        <h2 className="text-lg font-semibold">Document Styling</h2>
-        <Button variant="ghost" size="sm" onClick={onClose} className="lg:hidden">
-          <X className="h-4 w-4" />
-        </Button>
+    <div className="w-80 border-r bg-background flex flex-col h-full">
+      <div className="p-4 border-b flex justify-between items-center">
+        <h2 className="text-lg font-semibold">Editor Tools</h2>
+        <button 
+          onClick={onClose}
+          className="p-1 rounded-full hover:bg-gray-100"
+          aria-label="Close sidebar"
+        >
+          <X size={18} />
+        </button>
       </div>
       
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-5 px-3 pt-3">
-          <TabsTrigger value="styling" className="text-xs">Text</TabsTrigger>
-          <TabsTrigger value="colors" className="text-xs">Colors</TabsTrigger>
-          <TabsTrigger value="effects" className="text-xs">Effects</TabsTrigger>
-          <TabsTrigger value="insert" className="text-xs">Insert</TabsTrigger>
-          <TabsTrigger value="emoji" className="text-xs">Emoji</TabsTrigger>
+      <Tabs defaultValue="text">
+        <TabsList className="w-full justify-start px-4 pt-2">
+          <TabsTrigger value="text">Text</TabsTrigger>
+          <TabsTrigger value="effects">Effects</TabsTrigger>
+          <TabsTrigger value="insert">Insert</TabsTrigger>
+          <TabsTrigger value="emoji">Emoji</TabsTrigger>
         </TabsList>
         
-        <ScrollArea className="h-[calc(100vh-180px)]">
-          <div className="p-3">
-            <TabsContent value="styling" className="mt-0">
+        <ScrollArea className="h-[calc(100vh-240px)]">
+          <div className="p-4">
+            <TabsContent value="text" className="mt-0">
               <TextStyling />
-            </TabsContent>
-            
-            <TabsContent value="colors" className="mt-0">
-              <ColorControls />
             </TabsContent>
             
             <TabsContent value="effects" className="mt-0">

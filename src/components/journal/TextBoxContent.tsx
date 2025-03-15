@@ -35,10 +35,13 @@ export function TextBoxContent({
           fontFamily: textBox.font || 'inherit',
           fontSize: textBox.fontSize || 'inherit',
           fontWeight: textBox.fontWeight || 'inherit',
-          color: textBox.gradient ? 'transparent' : textBox.fontColor || 'inherit',
-          background: textBox.gradient || 'transparent',
-          WebkitBackgroundClip: textBox.gradient ? 'text' : 'border-box',
-          backgroundClip: textBox.gradient ? 'text' : 'border-box',
+          WebkitTextFillColor: textBox.gradient ? 'transparent' : (textBox.fontColor || 'inherit'),
+          color: textBox.gradient ? 'transparent' : (textBox.fontColor || 'inherit'),
+          backgroundImage: textBox.gradient || 'none',
+          WebkitBackgroundClip: textBox.gradient ? 'text' : 'unset',
+          backgroundClip: textBox.gradient ? 'text' : 'unset',
+          printColorAdjust: 'exact',
+          WebkitPrintColorAdjust: 'exact',
         }}
       />
     );
@@ -61,10 +64,13 @@ export function TextBoxContent({
         fontFamily: textBox.font || 'inherit',
         fontSize: textBox.fontSize || 'inherit',
         fontWeight: textBox.fontWeight || 'inherit',
-        color: textBox.gradient ? 'transparent' : textBox.fontColor || 'inherit',
-        background: textBox.gradient || 'transparent',
-        WebkitBackgroundClip: textBox.gradient ? 'text' : 'border-box',
-        backgroundClip: textBox.gradient ? 'text' : 'border-box',
+        WebkitTextFillColor: textBox.gradient ? 'transparent' : (textBox.fontColor || 'inherit'),
+        color: textBox.gradient ? 'transparent' : (textBox.fontColor || 'inherit'),
+        backgroundImage: textBox.gradient || 'none',
+        WebkitBackgroundClip: textBox.gradient ? 'text' : 'unset',
+        backgroundClip: textBox.gradient ? 'text' : 'unset',
+        printColorAdjust: 'exact',
+        WebkitPrintColorAdjust: 'exact',
       }}
     >
       {text}

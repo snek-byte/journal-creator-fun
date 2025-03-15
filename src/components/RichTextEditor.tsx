@@ -27,7 +27,7 @@ export function RichTextEditor() {
     <div className="flex flex-col h-screen">
       <EditorToolbar />
       <div className="flex flex-1 overflow-hidden">
-        <EditorSidebar onClose={handleCloseSidebar} />
+        {sidebarOpen && <EditorSidebar onClose={handleCloseSidebar} />}
         <EditorContent 
           ref={editorRef}
           font={currentFont}

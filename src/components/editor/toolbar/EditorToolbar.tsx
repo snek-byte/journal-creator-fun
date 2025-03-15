@@ -1,123 +1,61 @@
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Undo, Redo, Save, Printer, Download, Menu, RotateCcw } from 'lucide-react';
+import React from 'react';
 import { FormatControls } from './FormatControls';
 import { AlignmentControls } from './AlignmentControls';
 import { ListControls } from './ListControls';
+import { Separator } from '@/components/ui/separator';
 import { useEditorStore } from '@/store/editorStore';
-import { useMediaQuery } from '@/hooks/use-mobile';
 
 export function EditorToolbar() {
-  const { undo, redo, canUndo, canRedo, resetEditor } = useEditorStore();
-  const isMobile = useMediaQuery("(max-width: 640px)");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-
-  const handleSave = () => {
-    // Save functionality will be implemented later
-    console.log("Save clicked");
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const handleExport = () => {
-    // Export functionality will be implemented later
-    console.log("Export clicked");
-  };
-
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
+  const { resetEditor, undo, redo, canUndo, canRedo } = useEditorStore();
+  
   return (
-    <div className="bg-white border-b border-gray-200 p-2 flex flex-wrap items-center gap-1">
-      <div className="flex items-center gap-1 mr-2">
-        <Button
-          variant="outline"
-          size="icon"
+    <div className="p-2 border-b flex flex-wrap items-center gap-2 bg-white">
+      <div className="flex items-center gap-1">
+        <button
           onClick={undo}
           disabled={!canUndo}
+          className="p-1.5 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
           title="Undo"
         >
-          <Undo className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 7v6h6"></path>
+            <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+          </svg>
+        </button>
+        
+        <button
           onClick={redo}
           disabled={!canRedo}
+          className="p-1.5 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
           title="Redo"
         >
-          <Redo className="h-4 w-4" />
-        </Button>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 7v6h-6"></path>
+            <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"></path>
+          </svg>
+        </button>
       </div>
       
-      <Separator orientation="vertical" className="h-8 mx-1" />
+      <Separator orientation="vertical" className="h-6" />
       
       <FormatControls />
       
-      <Separator orientation="vertical" className="h-8 mx-1" />
+      <Separator orientation="vertical" className="h-6" />
       
       <AlignmentControls />
       
-      <Separator orientation="vertical" className="h-8 mx-1" />
+      <Separator orientation="vertical" className="h-6" />
       
       <ListControls />
       
-      <div className="flex-grow"></div>
-      
-      <div className="flex items-center gap-1">
-        <Button
-          variant="outline"
-          size="icon"
+      <div className="ml-auto">
+        <button
           onClick={resetEditor}
-          title="Reset"
-          className="h-8 w-8"
+          className="px-2 py-1 text-xs text-red-500 hover:bg-red-50 rounded"
         >
-          <RotateCcw className="h-4 w-4" />
-        </Button>
-        
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handlePrint}
-          title="Print"
-          className="h-8 w-8"
-        >
-          <Printer className="h-4 w-4" />
-        </Button>
-        
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handleExport}
-          title="Export"
-          className="h-8 w-8"
-        >
-          <Download className="h-4 w-4" />
-        </Button>
-        
-        <Button
-          size="sm"
-          onClick={handleSave}
-          className="hidden sm:flex"
-        >
-          <Save className="h-4 w-4 mr-1" />
-          Save
-        </Button>
-        
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={toggleSidebar}
-          className="lg:hidden h-8 w-8"
-          title="Toggle Sidebar"
-        >
-          <Menu className="h-4 w-4" />
-        </Button>
+          Reset Editor
+        </button>
       </div>
     </div>
   );

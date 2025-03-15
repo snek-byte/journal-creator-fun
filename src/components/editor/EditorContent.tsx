@@ -15,7 +15,7 @@ interface EditorContentProps {
 export const EditorContent = forwardRef<HTMLDivElement, EditorContentProps>(
   ({ font, fontSize, fontWeight, color, gradient, alignment }, ref) => {
     const { setContent, content, handleContentChange } = useEditorStore();
-    const selectionRef = useRef<{ start: number, end: number } | null>(null);
+    const selectionRef = useRef<{ start: number, end: number, node: Node | null } | null>(null);
     
     // Set initial content
     useEffect(() => {
@@ -24,50 +24,34 @@ export const EditorContent = forwardRef<HTMLDivElement, EditorContentProps>(
       }
     }, [content, setContent]);
     
-    // Function to save the current selection position
+    // Function to save the current selection position with more accuracy
     const saveSelection = () => {
       const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
         selectionRef.current = {
           start: range.startOffset,
-          end: range.endOffset
+          end: range.endOffset,
+          node: range.startContainer
         };
       }
     };
     
-    // Function to restore the selection position
+    // Function to restore the selection position more accurately
     const restoreSelection = () => {
-      const contentEditableDiv = ref as React.RefObject<HTMLDivElement>;
-      if (contentEditableDiv?.current && selectionRef.current) {
+      if (!selectionRef.current || !selectionRef.current.node) return;
+      
+      try {
         const selection = window.getSelection();
         if (selection) {
-          try {
-            // Get all text nodes in the editor
-            const textNodes: Node[] = [];
-            const walker = document.createTreeWalker(
-              contentEditableDiv.current,
-              NodeFilter.SHOW_TEXT,
-              null
-            );
-            
-            let node;
-            while (node = walker.nextNode()) {
-              textNodes.push(node);
-            }
-            
-            if (textNodes.length > 0) {
-              // Try to set selection at the saved position
-              const range = document.createRange();
-              range.setStart(textNodes[0], selectionRef.current.start);
-              range.setEnd(textNodes[0], selectionRef.current.end);
-              selection.removeAllRanges();
-              selection.addRange(range);
-            }
-          } catch (e) {
-            console.error("Error restoring selection:", e);
-          }
+          const range = document.createRange();
+          range.setStart(selectionRef.current.node, selectionRef.current.end);
+          range.setEnd(selectionRef.current.node, selectionRef.current.end);
+          selection.removeAllRanges();
+          selection.addRange(range);
         }
+      } catch (e) {
+        console.error("Error restoring selection:", e);
       }
     };
     
@@ -92,10 +76,14 @@ export const EditorContent = forwardRef<HTMLDivElement, EditorContentProps>(
                 fontFamily: font || 'inherit',
                 fontSize: fontSize || 'inherit',
                 fontWeight: fontWeight || 'inherit',
+                WebkitTextFillColor: gradient ? 'transparent' : (color || 'inherit'),
                 color: gradient ? 'transparent' : (color || 'inherit'),
-                background: gradient || 'transparent',
-                WebkitBackgroundClip: gradient ? 'text' : 'border-box',
-                backgroundClip: gradient ? 'text' : 'border-box',
+                backgroundImage: gradient || 'none',
+                WebkitBackgroundClip: gradient ? 'text' : 'unset',
+                backgroundClip: gradient ? 'text' : 'unset',
+                printColorAdjust: 'exact',
+                WebkitPrintColorAdjust: 'exact',
+                MozPrintColorAdjust: 'exact'
               }}
               dangerouslySetInnerHTML={{ __html: content }}
               onBlur={saveSelection}
@@ -111,7 +99,7 @@ export const EditorContent = forwardRef<HTMLDivElement, EditorContentProps>(
               onInput={(e) => {
                 const target = e.target as HTMLDivElement;
                 handleContentChange(target.innerHTML);
-                saveSelection();
+                // We don't save selection here as it would cause the cursor to jump
               }}
             />
           </div>
