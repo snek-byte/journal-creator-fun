@@ -24,7 +24,7 @@ export const EditorContent = forwardRef<HTMLDivElement, EditorContentProps>(
       }
     }, [content, setContent]);
     
-    // Function to save the current selection position with more accuracy
+    // Function to save the current selection position
     const saveSelection = () => {
       const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
@@ -37,7 +37,7 @@ export const EditorContent = forwardRef<HTMLDivElement, EditorContentProps>(
       }
     };
     
-    // Function to restore the selection position more accurately
+    // Function to restore the selection position
     const restoreSelection = () => {
       if (!selectionRef.current || !selectionRef.current.node) return;
       
@@ -45,7 +45,7 @@ export const EditorContent = forwardRef<HTMLDivElement, EditorContentProps>(
         const selection = window.getSelection();
         if (selection) {
           const range = document.createRange();
-          range.setStart(selectionRef.current.node, selectionRef.current.end);
+          range.setStart(selectionRef.current.node, selectionRef.current.start);
           range.setEnd(selectionRef.current.node, selectionRef.current.end);
           selection.removeAllRanges();
           selection.addRange(range);
@@ -82,13 +82,14 @@ export const EditorContent = forwardRef<HTMLDivElement, EditorContentProps>(
                 WebkitBackgroundClip: gradient ? 'text' : 'unset',
                 backgroundClip: gradient ? 'text' : 'unset',
                 printColorAdjust: 'exact',
-                WebkitPrintColorAdjust: 'exact',
-                MozPrintColorAdjust: 'exact'
+                WebkitPrintColorAdjust: 'exact'
               }}
               dangerouslySetInnerHTML={{ __html: content }}
               onBlur={saveSelection}
               onClick={saveSelection}
+              onFocus={restoreSelection}
               onKeyDown={(e) => {
+                // Save selection before any key-based changes
                 saveSelection();
                 // Support tab key
                 if (e.key === 'Tab') {
@@ -99,8 +100,9 @@ export const EditorContent = forwardRef<HTMLDivElement, EditorContentProps>(
               onInput={(e) => {
                 const target = e.target as HTMLDivElement;
                 handleContentChange(target.innerHTML);
-                // We don't save selection here as it would cause the cursor to jump
+                // We preserve the cursor position by not calling saveSelection here
               }}
+              onMouseUp={saveSelection}
             />
           </div>
         </div>
