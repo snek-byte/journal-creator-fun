@@ -41,6 +41,8 @@
   -webkit-background-clip: text !important;
   background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
+  background-size: 100% !important; /* Ensure gradient covers the text completely */
+  color: #000 !important; /* Fallback for non-gradient supporting browsers */
 }
 
 /* Basic formatting styles */
@@ -184,4 +186,22 @@
     background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
   }
+  
+  /* Additional print-specific rules to ensure gradients show */
+  @page {
+    margin: 0.5cm;
+  }
+  
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  * {
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
 }
+

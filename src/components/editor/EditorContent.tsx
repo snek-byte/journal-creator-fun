@@ -77,7 +77,7 @@ export const EditorContent = forwardRef<HTMLDivElement, EditorContentProps>(
                 fontSize: fontSize || 'inherit',
                 fontWeight: fontWeight || 'inherit',
                 WebkitTextFillColor: gradient ? 'transparent' : (color || 'inherit'),
-                color: gradient ? 'transparent' : (color || 'inherit'),
+                color: gradient ? (color || 'inherit') : (color || 'inherit'),
                 backgroundImage: gradient || 'none',
                 WebkitBackgroundClip: gradient ? 'text' : 'unset',
                 backgroundClip: gradient ? 'text' : 'unset',
