@@ -72,6 +72,24 @@ const getSelectedText = () => {
   return selection?.toString() || '';
 };
 
+// Helper to focus editor and position cursor at the end
+const focusEditorAtEnd = () => {
+  const editorEl = document.querySelector('[contenteditable=true]');
+  if (editorEl) {
+    editorEl.focus();
+    
+    // Try to place cursor at the end
+    const selection = window.getSelection();
+    if (selection) {
+      const range = document.createRange();
+      range.selectNodeContents(editorEl);
+      range.collapse(false); // false means collapse to end
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  }
+};
+
 // Initial state
 const initialState = {
   content: '',
@@ -146,7 +164,11 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   // Text formatting
   setFont: (font) => {
     set({ currentFont: font });
-    execCommand('fontName', font);
+    
+    focusEditorAtEnd();
+    setTimeout(() => {
+      execCommand('fontName', font);
+    }, 0);
   },
   
   setFontSize: (size) => {
@@ -157,7 +179,11 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       if (!isNaN(sizePx)) {
         // Convert px to pt for execCommand (approximate)
         const sizePt = Math.round(sizePx * 0.75);
-        execCommand('fontSize', sizePt.toString());
+        
+        focusEditorAtEnd();
+        setTimeout(() => {
+          execCommand('fontSize', sizePt.toString());
+        }, 0);
       }
     } catch (error) {
       console.error('Error setting font size:', error);
@@ -167,15 +193,22 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   setFontWeight: (weight) => {
     set({ currentFontWeight: weight });
     
+    focusEditorAtEnd();
     // Apply bold if weight is bold or greater
     if (weight === 'bold' || parseInt(weight) >= 700) {
-      execCommand('bold');
+      setTimeout(() => {
+        execCommand('bold');
+      }, 0);
     }
   },
   
   setColor: (color) => {
     set({ currentColor: color });
-    execCommand('foreColor', color);
+    
+    focusEditorAtEnd();
+    setTimeout(() => {
+      execCommand('foreColor', color);
+    }, 0);
   },
   
   setGradient: (gradient) => {
@@ -188,24 +221,28 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   setAlignment: (alignment) => {
     set({ currentAlignment: alignment });
     
-    switch (alignment) {
-      case 'left':
-        execCommand('justifyLeft');
-        break;
-      case 'center':
-        execCommand('justifyCenter');
-        break;
-      case 'right':
-        execCommand('justifyRight');
-        break;
-      case 'justify':
-        execCommand('justifyFull');
-        break;
-    }
+    focusEditorAtEnd();
+    setTimeout(() => {
+      switch (alignment) {
+        case 'left':
+          execCommand('justifyLeft');
+          break;
+        case 'center':
+          execCommand('justifyCenter');
+          break;
+        case 'right':
+          execCommand('justifyRight');
+          break;
+        case 'justify':
+          execCommand('justifyFull');
+          break;
+      }
+    }, 0);
   },
   
   // Text operations
   toggleBold: () => {
+    focusEditorAtEnd();
     execCommand('bold');
     
     const { activeMark } = get();
@@ -217,6 +254,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   },
   
   toggleItalic: () => {
+    focusEditorAtEnd();
     execCommand('italic');
     
     const { activeMark } = get();
@@ -228,6 +266,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   },
   
   toggleUnderline: () => {
+    focusEditorAtEnd();
     execCommand('underline');
     
     const { activeMark } = get();
@@ -239,6 +278,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   },
   
   toggleStrikethrough: () => {
+    focusEditorAtEnd();
     execCommand('strikeThrough');
     
     const { activeMark } = get();
@@ -251,6 +291,8 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   
   toggleCode: () => {
     const selectedText = getSelectedText();
+    
+    focusEditorAtEnd();
     
     if (selectedText) {
       execCommand('insertHTML', `<code>${selectedText}</code>`);
@@ -268,6 +310,8 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   
   toggleLink: () => {
     const selectedText = getSelectedText();
+    
+    focusEditorAtEnd();
     
     if (selectedText) {
       const url = prompt('Enter URL:', 'https://');
@@ -293,6 +337,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   },
   
   toggleBulletList: () => {
+    focusEditorAtEnd();
     execCommand('insertUnorderedList');
     
     const { activeBlock } = get();
@@ -304,6 +349,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   },
   
   toggleOrderedList: () => {
+    focusEditorAtEnd();
     execCommand('insertOrderedList');
     
     const { activeBlock } = get();
@@ -315,6 +361,8 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   },
   
   toggleCheckList: () => {
+    focusEditorAtEnd();
+    
     const html = `
       <ul style="list-style-type: none; padding-left: 1.5em;">
         <li>
@@ -335,16 +383,20 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   
   // Insert operations
   insertImage: (url) => {
+    focusEditorAtEnd();
     execCommand('insertHTML', `<img src="${url}" alt="Image" style="max-width: 100%;">`);
     toast.success('Image inserted');
   },
   
   insertLink: (text, url) => {
+    focusEditorAtEnd();
     execCommand('insertHTML', `<a href="${url}" target="_blank">${text}</a>`);
     toast.success('Link inserted');
   },
   
   insertTable: () => {
+    focusEditorAtEnd();
+    
     const html = `
       <table style="width: 100%; border-collapse: collapse; margin: 1em 0;">
         <thead>
@@ -374,6 +426,8 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   },
   
   insertQuote: () => {
+    focusEditorAtEnd();
+    
     const html = `
       <blockquote style="border-left: 3px solid #ccc; margin: 1em 0; padding-left: 1em; color: #666;">
         <p>Enter your quote here...</p>
@@ -385,6 +439,8 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   },
   
   insertCode: () => {
+    focusEditorAtEnd();
+    
     const html = `
       <pre style="background-color: #f5f5f5; border-radius: 4px; padding: 1em; overflow-x: auto; font-family: monospace; margin: 1em 0;">
 // Your code here
@@ -399,6 +455,8 @@ function example() {
   },
   
   insertFile: (filename) => {
+    focusEditorAtEnd();
+    
     const html = `
       <div style="display: flex; align-items: center; padding: 0.5em; border: 1px solid #ccc; border-radius: 4px; margin: 0.5em 0; background-color: #f9f9f9;">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.5em;">
@@ -417,7 +475,9 @@ function example() {
   },
   
   insertEmoji: (emoji) => {
+    focusEditorAtEnd();
     execCommand('insertText', emoji);
+    toast.success('Emoji inserted');
   },
   
   // Text style
@@ -428,6 +488,8 @@ function example() {
       toast.error('Please select text first');
       return;
     }
+    
+    focusEditorAtEnd();
     
     let html = '';
     
@@ -452,16 +514,28 @@ function example() {
         break;
       default:
         // For unicode transformations from the textStyles array
-        html = `<span>${selectedText}</span>`;
-        if (style) {
-          // Apply unicode transformation in the component
-          console.log(`Applying style: ${style}`);
-          toast.success('Style applied');
+        try {
+          // From utils/unicodeTextStyles.js, try to apply the style
+          import('@/utils/unicodeTextStyles').then(({ applyTextStyle }) => {
+            const styledText = applyTextStyle(selectedText, style);
+            if (styledText) {
+              execCommand('insertHTML', `<span>${styledText}</span>`);
+              toast.success('Style applied');
+            }
+          }).catch(error => {
+            console.error("Error applying text style:", error);
+            execCommand('insertHTML', `<span>${selectedText}</span>`);
+          });
+          return;
+        } catch (error) {
+          console.error("Error importing unicodeTextStyles:", error);
+          html = `<span>${selectedText}</span>`;
         }
         break;
     }
     
     execCommand('insertHTML', html);
+    toast.success('Style applied');
   },
   
   // Reset

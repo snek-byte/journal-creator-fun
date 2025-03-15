@@ -22,6 +22,7 @@
   white-space: pre-wrap;
   word-break: break-word;
   line-height: 1.5;
+  min-height: 300px;
 }
 
 [contenteditable="true"]:focus {
@@ -137,6 +138,14 @@
     white-space: nowrap;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 0.5rem;
+  }
+  
+  /* Make editor visible on mobile */
+  [contenteditable="true"] {
+    display: block !important;
+    visibility: visible !important;
+    min-height: 200px !important;
+    background-color: white !important;
   }
 }
 

@@ -8,7 +8,7 @@ import { useEditorStore } from '@/store/editorStore';
 import { useMediaQuery } from '@/hooks/use-mobile';
 
 export function RichTextEditor() {
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSidebar, setShowSidebar] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const isMobile = useMediaQuery("(max-width: 640px)");
   const { 
@@ -125,24 +125,24 @@ export function RichTextEditor() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-background overflow-hidden">
-      {/* Main content area */}
-      <div className={`flex flex-col flex-grow ${showSidebar ? 'lg:mr-64' : ''} transition-all duration-300`}>
-        {/* Editor toolbar */}
-        <EditorToolbar 
-          toggleSidebar={toggleSidebar} 
-          onExport={handleExport}
-          onPrint={handlePrint}
-          onSave={handleSave}
-          onUndo={undo}
-          onRedo={redo}
-          canUndo={canUndo}
-          canRedo={canRedo}
-          onReset={resetEditor}
-        />
-        
-        {/* Editor content */}
-        <div className="flex-grow overflow-auto p-4 bg-gray-50">
+    <div className="flex flex-col h-screen bg-background overflow-hidden">
+      {/* Editor toolbar */}
+      <EditorToolbar 
+        toggleSidebar={toggleSidebar} 
+        onExport={handleExport}
+        onPrint={handlePrint}
+        onSave={handleSave}
+        onUndo={undo}
+        onRedo={redo}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        onReset={resetEditor}
+      />
+      
+      {/* Main content area with editor and sidebar */}
+      <div className="flex flex-grow overflow-hidden relative">
+        {/* Editor content - always visible */}
+        <div className={`flex-grow overflow-auto p-4 bg-gray-50 transition-all duration-300 ${showSidebar ? 'md:mr-64' : ''}`}>
           <EditorContent 
             ref={contentRef} 
             font={currentFont}
@@ -153,14 +153,16 @@ export function RichTextEditor() {
             alignment={currentAlignment}
           />
         </div>
-      </div>
-      
-      {/* Sidebar - Fixed on desktop, slide over on mobile */}
-      <div 
-        className={`fixed lg:absolute top-0 right-0 h-full w-full lg:w-64 bg-white border-l border-gray-200 shadow-lg transition-transform duration-300 z-30 
-          ${showSidebar ? 'translate-x-0' : 'translate-x-full lg:translate-x-0 lg:w-0'}`}
-      >
-        <EditorSidebar onClose={() => setShowSidebar(false)} />
+        
+        {/* Sidebar - fixed position on mobile, integrated on desktop */}
+        <div 
+          className={`fixed inset-y-0 right-0 z-30 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out border-l border-gray-200
+            ${showSidebar ? 'translate-x-0' : 'translate-x-full md:translate-x-0 md:w-0 md:opacity-0'}
+          `}
+          style={{ top: isMobile ? '0' : '64px', height: isMobile ? '100%' : 'calc(100% - 64px)' }}
+        >
+          <EditorSidebar onClose={() => setShowSidebar(false)} />
+        </div>
       </div>
     </div>
   );

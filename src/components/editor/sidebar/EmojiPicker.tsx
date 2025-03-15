@@ -9,7 +9,7 @@ export function EmojiPicker() {
   
   const handleEmojiSelect = (emojiData: any) => {
     console.log("Selected emoji:", emojiData);
-    // Use the native emoji from the data
+    // Get the native emoji character
     if (emojiData.native) {
       insertEmoji(emojiData.native);
     } else if (emojiData.emoji) {
