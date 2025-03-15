@@ -20,7 +20,7 @@ export function EditorSidebar({ onClose }: EditorSidebarProps) {
   const isMobile = useMediaQuery("(max-width: 640px)");
   
   return (
-    <div className="h-full flex flex-col">
+    <div className="w-64 border-r border-gray-200 bg-white hidden md:block lg:w-80">
       <div className="p-3 flex items-center justify-between border-b">
         <h2 className="text-lg font-semibold">Document Styling</h2>
         <Button variant="ghost" size="sm" onClick={onClose} className="lg:hidden">
@@ -28,7 +28,7 @@ export function EditorSidebar({ onClose }: EditorSidebarProps) {
         </Button>
       </div>
       
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid grid-cols-5 px-3 pt-3">
           <TabsTrigger value="styling" className="text-xs">Text</TabsTrigger>
           <TabsTrigger value="colors" className="text-xs">Colors</TabsTrigger>
@@ -37,7 +37,7 @@ export function EditorSidebar({ onClose }: EditorSidebarProps) {
           <TabsTrigger value="emoji" className="text-xs">Emoji</TabsTrigger>
         </TabsList>
         
-        <ScrollArea className={`flex-1 ${isMobile ? 'mobile-scroll-no-padding' : ''}`}>
+        <ScrollArea className="h-[calc(100vh-180px)]">
           <div className="p-3">
             <TabsContent value="styling" className="mt-0">
               <TextStyling />

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { toast } from 'sonner';
+import { TextStyle } from '@/utils/unicodeTextStyles';
 
 interface EditorState {
   // Content
