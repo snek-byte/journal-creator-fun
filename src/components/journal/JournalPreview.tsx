@@ -268,8 +268,8 @@ export function JournalPreview({
   const processText = (text: string) => {
     if (!text) return '';
     
-    if (textStyle && textStyles.includes(textStyle)) {
-      return applyTextStyle(text, textStyle as unknown as TextStyle);
+    if (textStyle && textStyles.includes(textStyle as TextStyle)) {
+      return applyTextStyle(text, textStyle as TextStyle);
     }
     
     return text;

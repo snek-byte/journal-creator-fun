@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { toast } from 'sonner';
 
@@ -517,6 +516,7 @@ function example() {
         try {
           // From utils/unicodeTextStyles.js, try to apply the style
           import('@/utils/unicodeTextStyles').then(({ applyTextStyle }) => {
+            // Fix for the TS error by passing style as a string
             const styledText = applyTextStyle(selectedText, style);
             if (styledText) {
               execCommand('insertHTML', `<span>${styledText}</span>`);
