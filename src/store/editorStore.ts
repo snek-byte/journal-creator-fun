@@ -480,7 +480,7 @@ function example() {
   },
   
   // Text style
-  applyTextStyle: (style) => {
+  applyTextStyle: (style: string) => {
     const selectedText = getSelectedText();
     
     if (!selectedText) {
@@ -490,52 +490,21 @@ function example() {
     
     focusEditorAtEnd();
     
-    let html = '';
-    
-    switch (style) {
-      case 'highlight':
-        html = `<mark style="background-color: #fff387; padding: 0 2px;">${selectedText}</mark>`;
-        break;
-      case 'shadow':
-        html = `<span style="text-shadow: 2px 2px 2px rgba(0,0,0,0.3);">${selectedText}</span>`;
-        break;
-      case 'glow':
-        html = `<span style="text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #0073e6, 0 0 20px #0073e6;">${selectedText}</span>`;
-        break;
-      case 'outline':
-        html = `<span style="text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; color: white;">${selectedText}</span>`;
-        break;
-      case 'blur':
-        html = `<span style="color: transparent; text-shadow: 0 0 5px rgba(0,0,0,0.5);">${selectedText}</span>`;
-        break;
-      case 'reveal':
-        html = `<span style="background-color: #000; color: #000; transition: color 0.3s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#000'">${selectedText}</span>`;
-        break;
-      default:
-        // For unicode transformations from the textStyles array
-        try {
-          // From utils/unicodeTextStyles.js, try to apply the style
-          import('@/utils/unicodeTextStyles').then(({ applyTextStyle }) => {
-            // Fix for the TS error by passing style as a string
-            const styledText = applyTextStyle(selectedText, style);
-            if (styledText) {
-              execCommand('insertHTML', `<span>${styledText}</span>`);
-              toast.success('Style applied');
-            }
-          }).catch(error => {
-            console.error("Error applying text style:", error);
-            execCommand('insertHTML', `<span>${selectedText}</span>`);
-          });
-          return;
-        } catch (error) {
-          console.error("Error importing unicodeTextStyles:", error);
-          html = `<span>${selectedText}</span>`;
+    try {
+      import('@/utils/unicodeTextStyles').then(({ applyTextStyle }) => {
+        const styledText = applyTextStyle(selectedText, style as TextStyle);
+        if (styledText) {
+          execCommand('insertHTML', styledText);
+          toast.success('Style applied');
         }
-        break;
+      }).catch(error => {
+        console.error("Error applying text style:", error);
+        execCommand('insertHTML', selectedText);
+      });
+    } catch (error) {
+      console.error("Error importing unicodeTextStyles:", error);
+      execCommand('insertHTML', selectedText);
     }
-    
-    execCommand('insertHTML', html);
-    toast.success('Style applied');
   },
   
   // Reset
